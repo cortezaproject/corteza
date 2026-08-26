@@ -383,6 +383,49 @@
                         :description="$t('agent.editor.tools.help')"
                       />
 
+                      <!-- What the agent can do, then the way to change it. A
+                           lone full-width button read as an empty field beside
+                           the two pickers under it, and said nothing about the
+                           access the agent already had. -->
+                      <div
+                        class="flex items-center gap-4 rounded-border border border-surface px-3 py-2.5"
+                      >
+                        <div class="flex-1 min-w-0">
+                          <span class="text-sm text-color block">
+                            {{ toolSummary.headline }}
+                          </span>
+                          <span
+                            v-if="toolSummary.counts.length"
+                            class="flex items-center gap-3 text-xs text-muted-color mt-0.5"
+                          >
+                            <span
+                              v-for="c in toolSummary.counts"
+                              :key="c.mode"
+                              class="flex items-center gap-1"
+                            >
+                              <i :class="modeIcon(c.mode)" />
+                              {{ $t(`agent.editor.tools.summary.${c.mode}`, { n: c.n }) }}
+                            </span>
+                          </span>
+                          <span v-else class="text-xs text-muted-color block mt-0.5">
+                            {{ $t('agent.editor.tools.summary.inheritsHelp') }}
+                          </span>
+                        </div>
+
+                        <Button
+                          :label="$t('agent.editor.tools.browse')"
+                          icon="pi pi-sliders-h"
+                          severity="secondary"
+                          outlined
+                          size="small"
+                          class="shrink-0"
+                          :loading="loadingTools"
+                          :disabled="!canEdit"
+                          data-testid="browse-tools"
+                          @click="toolDialogOpen = true"
+                        />
+                      </div>
+
                       <!-- A new agent is granted nothing, so it refuses every
                            question until something is added. Naming the
                            namespace it is for drops a visible read-only grant
@@ -400,17 +443,6 @@
                           @update:model-value="seedNamespaceGrant"
                         />
                       </CFormGroup>
-
-                      <Button
-                        :label="$t('agent.editor.tools.browse')"
-                        icon="pi pi-sliders-h"
-                        severity="secondary"
-                        outlined
-                        :loading="loadingTools"
-                        :disabled="!canEdit"
-                        data-testid="browse-tools"
-                        @click="toolDialogOpen = true"
-                      />
 
                       <AgentToolDialog
                         v-model:visible="toolDialogOpen"
@@ -849,6 +881,7 @@ import AiChat from '../components/AiChat.vue'
 import AiTrace from '../components/AiTrace.vue'
 import AgentToolDialog from '../components/AgentToolDialog.vue'
 import { useEditorSplit } from '../composables/useEditorSplit'
+import { MODE_ICONS, splitGrants, tally } from '../toolAccess'
 
 const {
   CInputLLM,
@@ -977,6 +1010,27 @@ const statusOptions = computed(() => [
 const availableTools = ref([])
 const loadingTools = ref(false)
 const selectedTools = ref([])
+
+// What the agent can actually do, read the way the runtime will read it. An
+// agent granted nothing is not an agent that can do nothing: it inherits what
+// the person invoking it may already do, and the panel has to say so.
+const toolSummary = computed(() => {
+  const { named, families } = splitGrants(agent.value?.access?.tools || [])
+  const counts = tally(availableTools.value, named, families).filter(c => c.mode !== 'deny')
+  const total = counts.reduce((n, c) => n + c.n, 0)
+
+  return {
+    total,
+    counts,
+    headline: total
+      ? t('agent.editor.tools.summary.chosen', { n: total })
+      : t('agent.editor.tools.summary.inherits'),
+  }
+})
+
+function modeIcon(mode) {
+  return MODE_ICONS[mode] || MODE_ICONS.custom
+}
 
 // Tool configuration dialog
 const toolDialogVisible = ref(false)

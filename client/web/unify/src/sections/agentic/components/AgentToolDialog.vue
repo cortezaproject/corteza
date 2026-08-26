@@ -42,10 +42,19 @@
                 class="text-xs text-muted-color w-3"
               />
               <span class="text-sm font-semibold text-color">{{ d.label }}</span>
-              <span
-                class="text-xs text-muted-color tabular-nums rounded border border-surface px-1.5 py-0.5"
-              >
-                {{ d.count }}
+
+              <!-- The split, not the total: a section reads as what it lets the
+                   agent do, and the total is the sum of what is shown. -->
+              <span class="flex items-center gap-2.5 text-xs text-muted-color">
+                <span
+                  v-for="c in sectionCounts(d)"
+                  :key="c.mode"
+                  class="flex items-center gap-1"
+                  :title="modeLabel(c.mode)"
+                >
+                  <i :class="modeIcon(c.mode)" />
+                  <span class="tabular-nums">{{ c.n }}</span>
+                </span>
               </span>
             </button>
 
@@ -169,7 +178,14 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { MODE_ICONS, RISK_ORDER, coveredByFamily, defaultModeFor, modeOf } from '../toolAccess'
+import {
+  MODE_ICONS,
+  RISK_ORDER,
+  coveredByFamily,
+  defaultModeFor,
+  modeOf,
+  tally,
+} from '../toolAccess'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -320,7 +336,6 @@ const domains = computed(() => {
         key: d.key,
         label: t(`agent.editor.tools.dialog.domain.${d.key}`),
         areas,
-        count: areas.reduce((n, a) => n + a.tools.length, 0),
       }
     })
     .filter(d => d.areas.length)
@@ -337,6 +352,10 @@ function sectionMode(d) {
 
   const first = rowMode(tools[0])
   return tools.every(tool => rowMode(tool) === first) ? first : 'custom'
+}
+
+function sectionCounts(d) {
+  return tally(toolsIn(d), draft.value, families.value)
 }
 
 // One click for a whole subject, which is the unit an agent is actually given:

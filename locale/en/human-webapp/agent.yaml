@@ -211,6 +211,13 @@ editor:
       custom: Custom
       deny: Blocked
       section: Permission for every tool in this section
+    summary:
+      always: '{n} run without asking'
+      ask: '{n} need approval'
+      chosen: '{n} tools chosen'
+      inherits: Inherits your access
+      inheritsHelp: Whatever the person invoking this agent can already do, minus anything
+        that deletes.
     seed:
       help: A new agent can call nothing until it is given a tool, so it will refuse every
         question. Choose the namespace this agent is for and it will be granted

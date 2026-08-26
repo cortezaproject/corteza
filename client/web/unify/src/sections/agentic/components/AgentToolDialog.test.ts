@@ -53,12 +53,6 @@ function mountDialog(grants: any[] = [], list = tools) {
 }
 
 describe('AgentToolDialog grouping', () => {
-  it('counts what a section holds', () => {
-    const vm = mountDialog().vm as any
-    expect(domain(vm, 'data').count).toBe(2)
-    expect(domain(vm, 'people').count).toBe(1)
-  })
-
   // Grouping by `usage` and `configuring` split five subjects across both
   // sections — every TAQ tool but `exec` in one, `exec` in the other. Asking
   // "what can this agent do to TAQs?" then meant looking in two places.
@@ -258,6 +252,18 @@ describe('AgentToolDialog section control', () => {
     const before = [...vm.chosen].sort()
     vm.setSectionMode(dataSection(vm), 'custom')
     expect([...vm.chosen].sort()).toEqual(before)
+  })
+
+  // A total says how big the section is; the split says what it lets the agent
+  // do, which is the question the header is there to answer.
+  it('shows a section as a split by mode rather than a total', () => {
+    const w = mountDialog([{ name: 'compose_record_lookup' }])
+    const vm = w.vm as any
+
+    expect(vm.sectionCounts(domain(vm, 'data'))).toEqual([
+      { mode: 'always', n: 1 },
+      { mode: 'deny', n: 1 },
+    ])
   })
 
   it('reads a section nothing has been chosen in as blocked', () => {
