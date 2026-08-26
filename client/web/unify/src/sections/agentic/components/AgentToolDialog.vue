@@ -60,7 +60,7 @@
               size="small"
               class="w-56 shrink-0"
               :disabled="disabled"
-              :aria-label="$t('agent.editor.tools.dialog.mode.section')"
+              :aria-label="$t('agent.editor.tools.mode.section')"
               :data-testid="`section-mode-${d.key}`"
               @update:model-value="v => setSectionMode(d, v)"
             >
@@ -102,7 +102,7 @@
                 <div
                   class="flex-1 min-w-0"
                   :class="{ 'opacity-50': !toolOn(tool) }"
-                  :title="coveredByGroup(tool) ? $t('agent.editor.tools.dialog.fromFamily') : ''"
+                  :title="covered(tool) ? $t('agent.editor.tools.dialog.fromFamily') : ''"
                 >
                   <span class="text-sm text-color block">
                     <i
@@ -169,6 +169,8 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { MODE_ICONS, RISK_ORDER, coveredByFamily, defaultModeFor, modeOf } from '../toolAccess'
+
 const props = defineProps({
   visible: { type: Boolean, default: false },
   tools: { type: Array, default: () => [] },
@@ -217,19 +219,12 @@ watch(
   { immediate: true },
 )
 
-const MODE_ICONS = {
-  always: 'pi pi-check-circle',
-  ask: 'pi pi-question-circle',
-  deny: 'pi pi-ban',
-  custom: 'pi pi-ellipsis-h',
-}
-
 function modeIcon(mode) {
   return MODE_ICONS[mode] || MODE_ICONS.custom
 }
 
 function modeLabel(mode) {
-  return t(`agent.editor.tools.dialog.mode.${mode || 'custom'}`)
+  return t(`agent.editor.tools.mode.${mode || 'custom'}`)
 }
 
 function modeOption(value) {
@@ -242,35 +237,25 @@ const toolModes = computed(() => ['always', 'ask', 'deny'].map(modeOption))
 // disagree — offered so the control can show it back rather than lie.
 const sectionModes = computed(() => ['always', 'ask', 'deny', 'custom'].map(modeOption))
 
-// Whether the agent has the tool at all. Blocked and off are one state: an
-// agent that may not use a tool and an agent that was never given it come to
-// the same thing, and two ways of saying it would only disagree.
-function toolOn(tool) {
-  if (coveredByGroup(tool)) return draft.value.get(tool.name) !== 'deny'
-  return chosen.value.has(tool.name)
-}
-
-// What the segments read as. A tool the agent does not have reads as blocked,
-// which is the same statement an unticked box used to make beside it.
+// What the three segments read as. There is no fourth "default" segment — the
+// default IS one of the three, shown as the chosen one.
 function rowMode(tool) {
-  return toolOn(tool) ? effectiveMode(tool) : 'deny'
+  return modeOf(tool, draft.value, families.value)
 }
 
-// What the tool will actually do once the agent has it: the mode set on it, or
-// the one its risk decides until someone sets another. There is no fourth "default" segment —
-// the default IS one of the three, shown as the chosen one.
-function effectiveMode(tool) {
-  return draft.value.get(tool.name) || defaultModeFor(tool.risk)
+// Whether the agent has the tool at all.
+function toolOn(tool) {
+  return rowMode(tool) !== 'deny'
 }
 
-function defaultModeFor(risk) {
-  return risk && risk !== 'read' ? 'ask' : 'always'
+function covered(tool) {
+  return coveredByFamily(tool, families.value)
 }
 
 // An allow set by hand on a tool that writes: the one state where the choice
 // permits more than the risk rule would have.
 function loosened(tool) {
-  return toolOn(tool) && effectiveMode(tool) === 'always' && !!tool.risk && tool.risk !== 'read'
+  return rowMode(tool) === 'always' && !!tool.risk && tool.risk !== 'read'
 }
 
 // Skills are attached to a tool, not chosen: the runtime injects one when the
@@ -301,10 +286,6 @@ const DOMAINS = [
 ]
 
 const PLACED_AREAS = new Set(DOMAINS.flatMap(d => d.areas))
-
-// Reads first, then writes, then deletes: the harmless surface leads, and the
-// one that cannot be taken back is last.
-const RISK_ORDER = { read: 0, write: 1, destructive: 2 }
 
 const domains = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -353,11 +334,9 @@ function toolsIn(d) {
 function sectionMode(d) {
   const tools = toolsIn(d)
   if (!tools.length) return 'custom'
-  if (tools.every(tool => !toolOn(tool))) return 'deny'
 
-  const first = effectiveMode(tools[0])
-  const agreed = tools.every(tool => toolOn(tool) && effectiveMode(tool) === first)
-  return agreed ? first : 'custom'
+  const first = rowMode(tools[0])
+  return tools.every(tool => rowMode(tool) === first) ? first : 'custom'
 }
 
 // One click for a whole subject, which is the unit an agent is actually given:
@@ -383,7 +362,7 @@ function applyMode(next, tool, mode) {
   // Blocking a tool nothing else grants is saying nothing about it, so the
   // entry goes rather than staying behind as a grant that grants nothing.
   if (mode === 'deny') {
-    if (coveredByGroup(tool)) next.set(tool.name, 'deny')
+    if (covered(tool)) next.set(tool.name, 'deny')
     else next.delete(tool.name)
     return
   }
@@ -392,7 +371,7 @@ function applyMode(next, tool, mode) {
   // rather than pinning it, so a tool that should simply follow the rule keeps
   // doing so if the rule ever changes.
   const isDefault = mode === defaultModeFor(tool.risk)
-  if (isDefault && coveredByGroup(tool) && !named.value.has(tool.name)) {
+  if (isDefault && covered(tool) && !named.value.has(tool.name)) {
     next.delete(tool.name)
     return
   }
@@ -450,17 +429,6 @@ function summarise(description) {
   if (!text) return ''
   const end = text.search(/\.\s/)
   return end > 0 ? text.slice(0, end + 1) : text
-}
-
-// A ceiling admits its own level and everything below it, which is what the
-// runtime expands. A destructive tool under a write ceiling is not covered and
-// stays available to grant by name.
-function coveredByGroup(tool) {
-  return families.value.some(
-    f =>
-      (tool.groups || []).includes(f.group) &&
-      (RISK_ORDER[tool.risk] ?? 0) <= (RISK_ORDER[f.maxRisk || 'read'] ?? 0),
-  )
 }
 
 function riskLabel(risk) {

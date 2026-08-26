@@ -198,12 +198,6 @@ editor:
       inherits: Nothing chosen — the agent can use whatever the person invoking it is
         already allowed to do, minus anything that deletes. Choose tools here to narrow
         that.
-      mode:
-        always: Always allow
-        ask: Needs approval
-        custom: Custom
-        deny: Blocked
-        section: Permission for every tool in this section
       noMatches: No tool matches that.
       risk:
         destructive: deletes
@@ -211,6 +205,12 @@ editor:
         write: writes
       search: Search tools…
       title: Tools this agent may use
+    mode:
+      always: Always allow
+      ask: Needs approval
+      custom: Custom
+      deny: Blocked
+      section: Permission for every tool in this section
     seed:
       help: A new agent can call nothing until it is given a tool, so it will refuse every
         question. Choose the namespace this agent is for and it will be granted

@@ -53,6 +53,12 @@ function mountDialog(grants: any[] = [], list = tools) {
 }
 
 describe('AgentToolDialog grouping', () => {
+  it('counts what a section holds', () => {
+    const vm = mountDialog().vm as any
+    expect(domain(vm, 'data').count).toBe(2)
+    expect(domain(vm, 'people').count).toBe(1)
+  })
+
   // Grouping by `usage` and `configuring` split five subjects across both
   // sections — every TAQ tool but `exec` in one, `exec` in the other. Asking
   // "what can this agent do to TAQs?" then meant looking in two places.
@@ -70,12 +76,6 @@ describe('AgentToolDialog grouping', () => {
 
     expect(vm.domains.map((d: any) => d.key)).toEqual(['automation'])
     expect(toolNames(vm)).toEqual(['automation_taq_create', 'automation_taq_exec'])
-  })
-
-  it('counts what a section holds', () => {
-    const vm = mountDialog().vm as any
-    expect(domain(vm, 'data').count).toBe(2)
-    expect(domain(vm, 'people').count).toBe(1)
   })
 
   // A tool family nobody has placed yet gets a section of its own rather than
@@ -196,15 +196,6 @@ describe('AgentToolDialog family grants', () => {
   // The dialog chooses tools; a grant naming a whole family is set elsewhere in
   // the editor. It still has to know what a family already covers, and hand
   // every family back exactly as it found it.
-  it('covers a tool at or below the ceiling, and no higher', () => {
-    const vm = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }]).vm as any
-
-    expect(vm.coveredByGroup({ groups: ['usage'], risk: 'read' })).toBe(true)
-    expect(vm.coveredByGroup({ groups: ['usage'], risk: 'write' })).toBe(true)
-    expect(vm.coveredByGroup({ groups: ['usage'], risk: 'destructive' })).toBe(false)
-    expect(vm.coveredByGroup({ groups: ['configuring'], risk: 'read' })).toBe(false)
-  })
-
   it('shows a covered tool as one the agent has', () => {
     const vm = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }]).vm as any
     const lookup = { name: 'compose_record_lookup', groups: ['usage'], risk: 'read' }
@@ -290,16 +281,21 @@ describe('AgentToolDialog modes', () => {
   it('opens showing what the agent already has', () => {
     const vm = mountDialog([{ name: 'compose_record_lookup', permission: 'ask' }]).vm as any
     expect([...vm.chosen]).toEqual(['compose_record_lookup'])
-    expect(vm.effectiveMode({ name: 'compose_record_lookup', risk: 'read' })).toBe('ask')
+    expect(vm.rowMode({ name: 'compose_record_lookup', risk: 'read' })).toBe('ask')
   })
 
   // There is no fourth "default" segment: the default IS one of the three, and
   // a row with nothing set shows the one its risk decides.
   it('shows the risk default as the chosen segment', () => {
-    const vm = mountDialog().vm as any
-    expect(vm.effectiveMode({ name: 'compose_record_lookup', risk: 'read' })).toBe('always')
-    expect(vm.effectiveMode({ name: 'compose_record_create', risk: 'write' })).toBe('ask')
-    expect(vm.effectiveMode({ name: 'compose_record_delete', risk: 'destructive' })).toBe('ask')
+    const vm = mountDialog([
+      { name: 'compose_record_lookup' },
+      { name: 'compose_record_create' },
+      { name: 'compose_record_delete' },
+    ]).vm as any
+
+    expect(vm.rowMode({ name: 'compose_record_lookup', risk: 'read' })).toBe('always')
+    expect(vm.rowMode({ name: 'compose_record_create', risk: 'write' })).toBe('ask')
+    expect(vm.rowMode({ name: 'compose_record_delete', risk: 'destructive' })).toBe('ask')
   })
 
   // The rail marks the one state the risk rule would not have produced: an
