@@ -3,6 +3,7 @@ package filter
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -224,4 +225,49 @@ func TestPagingCursorFromValueGetter(t *testing.T) {
 
 func TestPagingCursor_ToAST(t *testing.T) {
 	t.Skip("TODO")
+}
+
+// A cursor value must come back as the instant it went in. RFC3339 writes a
+// zone offset as hours and minutes, so a zone whose offset carries seconds
+// loses them; the cursor's equality test then never matches the row it was
+// built from, and paging over a block of rows sharing that value skips the
+// block ascending and repeats it forever descending.
+func TestPagingCursor_timeSurvivesEncoding(t *testing.T) {
+	// +00:58:04 — Ljubljana's LMT, the zone Go's zero time lands in on a
+	// machine set to Europe/Ljubljana.
+	lmt := time.FixedZone("LMT", 58*60+4)
+
+	tcc := []struct {
+		name string
+		in   time.Time
+	}{
+		{"go zero time in a sub-minute-offset zone", time.Time{}.In(lmt)},
+		{"ordinary time in a sub-minute-offset zone", time.Date(2026, 8, 26, 13, 4, 5, 0, lmt)},
+		{"time already in UTC", time.Date(2026, 8, 26, 13, 4, 5, 0, time.UTC)},
+	}
+
+	for _, c := range tcc {
+		t.Run(c.name, func(t *testing.T) {
+			enc := &PagingCursor{}
+			enc.Set("created_at", c.in, true)
+
+			raw, err := enc.MarshalJSON()
+			require.NoError(t, err)
+
+			dec := &PagingCursor{}
+			require.NoError(t, dec.UnmarshalJSON(raw))
+
+			// Timestamps ride the cursor as RFC3339 strings and are handed to
+			// the database as such, so what matters is the instant they denote.
+			enc0, ok := dec.Values()[0].(string)
+			require.True(t, ok, "cursor value decoded as %T, not a string", dec.Values()[0])
+
+			got, err := time.Parse(time.RFC3339Nano, enc0)
+			require.NoError(t, err, "cursor value %q is not RFC3339", enc0)
+
+			require.True(t, c.in.Equal(got),
+				"cursor shifted the instant: put in %s, encoded as %q, got back %s (%s off)",
+				c.in.UTC(), enc0, got.UTC(), got.Sub(c.in))
+		})
+	}
 }
