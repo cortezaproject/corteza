@@ -1,0 +1,69 @@
+{
+  "fixtureVersion": "2026-08-26.1",
+  "fixtureID": "contract-v1",
+  "contractVersion": "1.0.0",
+  "benchmarkNow": "2026-01-15T15:00:00.000Z",
+  "namespace": {
+    "namespaceID": "311-fixture-namespace",
+    "slug": "city311-fixture",
+    "name": "City 311 fixture"
+  },
+  "module": {
+    "moduleID": "311-fixture-module",
+    "namespaceID": "311-fixture-namespace",
+    "handle": "service_requests",
+    "name": "Service requests",
+    "fields": [
+      { "name": "summary", "kind": "String", "isRequired": true },
+      { "name": "description", "kind": "String", "isRequired": true },
+      { "name": "status", "kind": "String" }
+    ]
+  },
+  "page": {
+    "pageID": "311-fixture-page",
+    "namespaceID": "311-fixture-namespace",
+    "handle": "service_requests",
+    "pageType": "record"
+  },
+  "record": {
+    "recordID": "311-fixture-record",
+    "moduleID": "311-fixture-module",
+    "revision": 1,
+    "values": {
+      "summary": "Pothole on Example Street",
+      "description": "A fixture record used for read-only UI checks.",
+      "status": "SUBMITTED"
+    },
+    "createdAt": "2026-01-15T15:00:00.000Z",
+    "updatedAt": "2026-01-15T15:00:00.000Z"
+  },
+  "attachments": [
+    {
+      "attachmentID": "311-fixture-attachment",
+      "name": "fixture.txt",
+      "mime": "text/plain",
+      "size": 17,
+      "url": "/fixtures/311/fixture.txt",
+      "download": "/fixtures/311/fixture.txt"
+    }
+  ],
+  "revisions": [
+    {
+      "revisionID": "311-fixture-revision-1",
+      "recordID": "311-fixture-record",
+      "revision": 1,
+      "createdAt": "2026-01-15T15:00:00.000Z",
+      "changes": []
+    }
+  ],
+  "scenarios": {
+    "success": { "status": 200 },
+    "empty": { "status": 200, "set": [], "total": 0 },
+    "forbidden": { "status": 403, "error": "FORBIDDEN", "retryable": false },
+    "not-found": { "status": 404, "error": "NOT_FOUND", "retryable": false },
+    "validation": { "status": 422, "error": "VALIDATION_ERROR", "retryable": false, "errors": [{ "field": "/values/summary", "code": "REQUIRED" }] },
+    "retryable": { "status": 503, "error": "TEMPORARILY_UNAVAILABLE", "retryable": true },
+    "terminal": { "status": 500, "error": "OPERATION_FAILED", "retryable": false },
+    "version-conflict": { "status": 409, "error": "VERSION_CONFLICT", "retryable": false, "current_version": 2 }
+  }
+}
