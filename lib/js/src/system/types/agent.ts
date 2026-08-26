@@ -51,6 +51,9 @@ interface AgentAccessTool {
   name: string
   group?: string
   maxRisk?: string
+  // How an allowed call is treated: 'always' runs it, 'ask' puts it to the
+  // user first, 'deny' refuses it. Empty follows the tool's own risk.
+  permission?: string
   description: string
   allow: AgentAccessAllow[] | null
   context?: {
@@ -72,6 +75,9 @@ interface AgentAccessWorkflow {
 
 interface AgentAccess {
   tools: AgentAccessTool[]
+  // The agent's own scope. It bounds every tool however that tool was granted,
+  // including the ones an agent with no tools inherits from its invoker.
+  allow: AgentAccessAllow[]
   taqs: AgentAccessTAQ[]
   workflows: AgentAccessWorkflow[]
 }
@@ -138,6 +144,7 @@ export class Agent {
 
   public access: AgentAccess = {
     tools: [],
+    allow: [],
     taqs: [],
     workflows: [],
   }
@@ -225,6 +232,7 @@ export class Agent {
     if (IsOf(o, 'access')) {
       this.access = {
         tools: Array.isArray(o.access?.tools) ? o.access.tools : this.access.tools,
+        allow: Array.isArray(o.access?.allow) ? o.access.allow : this.access.allow,
         taqs: Array.isArray(o.access?.taqs) ? o.access.taqs : this.access.taqs,
         workflows: Array.isArray(o.access?.workflows) ? o.access.workflows : this.access.workflows,
       }

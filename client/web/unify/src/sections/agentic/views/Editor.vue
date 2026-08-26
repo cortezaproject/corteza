@@ -1416,24 +1416,16 @@ function onToolPickerSelect(tool) {
   })
 }
 
-// seedNamespaceGrant turns "this agent is for namespace X" into the grant that
-// actually says so. It is added to the list rather than applied on save, so the
-// author sees what they are about to give away and can change it.
+// seedNamespaceGrant turns "this agent is for namespace X" into the setting
+// that says so: the agent's own scope, not a tool grant. With no tools named it
+// inherits what the person invoking it can already do, and this is what keeps
+// that inside one namespace however its tools are granted later.
 function seedNamespaceGrant(namespaceID) {
-  if (!namespaceID || agent.value.access.tools.length) return
+  if (!namespaceID || agent.value.access.tools.length || agent.value.access.allow?.length) return
 
-  const option = groupToolOptions.value.find(o => o.group === 'usage' && o.maxRisk === 'read')
-  if (!option) return
+  agent.value.access.allow = [{ namespaceID: String(namespaceID), moduleIDs: [] }]
 
-  agent.value.access.tools.push({
-    group: option.group,
-    maxRisk: option.maxRisk,
-    description: '',
-    allow: [{ namespaceID: String(namespaceID), moduleIDs: [] }],
-  })
-  selectedTools.value = [...selectedTools.value, option]
-
-  // The grant is only useful if the agent is told what it reaches; without the
+  // A scope is only useful if the agent is told what it reaches; without the
   // platform context it guesses handles and reports they do not exist.
   agent.value.behavior.injectSystemContext = true
 }

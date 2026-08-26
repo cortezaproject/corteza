@@ -161,24 +161,22 @@ func seedNamespaceAccess(ctx context.Context, a *sysTypes.Agent, ref string) str
 		return ""
 	}
 
-	if len(a.Access.Tools) > 0 || len(a.Access.TAQs) > 0 || len(a.Access.Workflows) > 0 {
+	if len(a.Access.Tools) > 0 || len(a.Access.Allow) > 0 || len(a.Access.TAQs) > 0 || len(a.Access.Workflows) > 0 {
 		return ""
 	}
 
 	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, ref)
 	if err != nil || ns == nil {
 		return fmt.Sprintf(
-			"Namespace %q could not be resolved, so no access was granted. This agent can call nothing until you give it one.",
+			"Namespace %q could not be resolved, so the agent was not scoped to it. It still inherits the invoking user's tools across every namespace — set access.allow if that is not what you want.",
 			ref,
 		)
 	}
 
-	a.Access.Tools = []sysTypes.AgentAccessTool{{
-		Group:       "usage",
-		MaxRisk:     "read",
-		Description: "Read and aggregate data in this namespace",
-		Allow:       []sysTypes.AgentAccessAllow{{NamespaceID: ns.ID}},
-	}}
+	// The agent's own scope rather than a tool grant: with no tools named it
+	// inherits what the invoking user can do, and this is the setting that
+	// keeps that inside one namespace however its tools are granted later.
+	a.Access.Allow = []sysTypes.AgentAccessAllow{{NamespaceID: ns.ID}}
 
 	// The grant is only worth anything if the agent is told what it reaches;
 	// without the platform context it guesses handles and reports they do not
@@ -186,7 +184,7 @@ func seedNamespaceAccess(ctx context.Context, a *sysTypes.Agent, ref string) str
 	a.Behavior.InjectSystemContext = true
 
 	return fmt.Sprintf(
-		"Granted read-only access to namespace %q (every module, including ones added later) and turned on the platform context, because 'access' granted nothing. Edit access to widen or narrow it.",
+		"Scoped this agent to namespace %q (every module, including ones added later) and turned on the platform context, because 'access' said nothing. Within that namespace it inherits what the invoking user can do; name tools in access.tools to narrow it further.",
 		ns.Slug,
 	)
 }
