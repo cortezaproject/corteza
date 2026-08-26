@@ -2204,6 +2204,7 @@ export const useProjectsStore = defineStore('projects', () => {
     touch,
     load,
     fetchProject,
+    absorb,
     findById,
     membersFor,
     resourcesFor,

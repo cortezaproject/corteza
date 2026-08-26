@@ -110,6 +110,7 @@ import NewProjectDialog from '@/sections/project/components/project/NewProjectDi
 import RenameProjectDialog from '@/sections/project/components/project/RenameProjectDialog.vue'
 import StatusChip from '@/sections/project/components/project/StatusChip.vue'
 import { chainHasPublished } from '@/sections/project/config/publishState'
+import { useProjectsStore } from '@/sections/project/stores/projects'
 import { system } from '@planetcrust/human-js'
 import {
   changedAt,
@@ -129,6 +130,12 @@ const router = useRouter()
 const confirm = useConfirm()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+
+// This list fetches its own rows, but the section sidebar renders the shared
+// project cache — so every mutation here has to land in the store too, or a
+// renamed, shelved or deleted project keeps its old entry in the nav until the
+// next reload.
+const store = useProjectsStore()
 
 // Creating a project is a component-level operation — there is no project yet
 // to carry a flag — so it comes from the effective rule set rather than a row.
@@ -259,10 +266,12 @@ const onCreated = project => {
 
 // Run an API mutation and report the outcome — success toast only when the call
 // actually went through, error toast with the API message otherwise. Re-lists
-// from the backend on success so the row reflects current state.
+// from the backend on success so the row reflects current state, and folds a
+// returned project into the shared cache so the sidebar tree moves with it.
 async function apiCall(fn, success) {
   try {
-    await fn()
+    const raw = await fn()
+    if (raw?.projectID) store.absorb(raw)
     filterList()
     if (success) $toast.toastSuccess(success.detail, success.summary)
   } catch (err) {
@@ -338,7 +347,7 @@ const confirmDelete = project => {
       size: 'small',
     },
     accept: () =>
-      apiCall(() => $SystemAPI.projectDelete({ projectID: project.projectID }), {
+      apiCall(() => store.removeProject(project.projectID), {
         summary: t('project.list.toast.deleted'),
         detail: project.name,
       }),

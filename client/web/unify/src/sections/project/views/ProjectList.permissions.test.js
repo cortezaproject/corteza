@@ -55,6 +55,12 @@ vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: k => k }) }))
 vi.mock('primevue/useconfirm', () => ({ useConfirm: () => ({ require: vi.fn() }) }))
 vi.mock('@/sections/project/config/publishState', () => ({ chainHasPublished: () => false }))
 
+// The view folds every mutation into the shared project cache so the sidebar
+// tree moves with it; this suite is about the action menu, not the cache.
+vi.mock('@/sections/project/stores/projects', () => ({
+  useProjectsStore: () => ({ absorb: vi.fn(), removeProject: vi.fn() }),
+}))
+
 vi.mock('@/sections/project/components/project/NewProjectDialog.vue', () => ({
   default: { template: '<div />' },
 }))
