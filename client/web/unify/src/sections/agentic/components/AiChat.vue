@@ -83,7 +83,7 @@
 /* eslint-disable vue/no-mutating-props */
 import { ref, inject, nextTick, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components } from '@planetcrust/human-vue'
+import { components, useAgentTurn } from '@planetcrust/human-vue'
 import AiTrace from './AiTrace.vue'
 const { CChatMessages } = components
 
@@ -120,34 +120,58 @@ const { t } = useI18n()
 const $SystemAPI = inject('$SystemAPI')
 const $toast = inject('$toast')
 
-const executing = ref(false)
+// The turn itself is shared with the sidebar and the page block; what this
+// chat does with it — a conversation held as a prop, and a trace beside it — is
+// its own.
+const { executing, pending, send, approve, deny } = useAgentTurn({
+  agentID: () => props.agent?.agentID,
+  conversationID: () =>
+    props.conversation.conversationID || props.conversation.aiConversationID || null,
+  exec: req => $SystemAPI.agentExec(req),
 
-// What the agent stopped to ask about, if anything.
-const pending = ref(null)
+  onReply: content =>
+    props.conversation.messages.push({
+      role: 'agent',
+      content,
+      traceIndex: props.conversation.traceHistory.length,
+    }),
 
-// Tools the user has approved, per conversation. An approval is a UX memory,
-// not a control: the server asks again on a conversation it has not been told
-// about, and nothing here can grant what the invoking user could not do anyway.
-const approvedTools = ref({})
+  onResponse: res => {
+    if (res?.conversationID) {
+      props.conversation.conversationID = res.conversationID
+      props.conversation.aiConversationID = res.conversationID
+    }
+    if (res?.context) {
+      props.conversation.context = res.context
+    }
 
-function awaitingApproval(res) {
-  return res?.status === 'awaiting_approval'
-}
+    props.conversation.traceHistory.push({
+      prompt: lastPrompt.value,
+      decisions: res?.decisions || [],
+      toolCalls: res?.toolCalls || [],
+      usage: res?.usage || null,
+      conversationTokens: res?.conversationTokens || 0,
+    })
 
-function approvalKey() {
-  return props.conversation?.conversationID || 'new'
-}
+    selectedTraceIndex.value = props.conversation.traceHistory.length - 1
+    selectedTraceType.value = 'response'
+    nextTick(() => {
+      aiTraceRef.value?.highlightLatest?.()
+    })
+  },
 
-function setPending(res) {
-  pending.value =
-    awaitingApproval(res) && res?.pendingApproval?.tool
-      ? {
-          tool: res.pendingApproval.tool,
-          label: res.pendingApproval.title || res.pendingApproval.tool,
-          risk: res.pendingApproval.risk,
-        }
-      : null
-}
+  onError: err => {
+    console.error(err)
+    $toast.toastErrorHandler(t('notification.agent.execFailed'))(err)
+    props.conversation.messages.push({ role: 'agent', content: 'Error: ' + err.message })
+    props.conversation.traceHistory.push({ error: err.message })
+  },
+
+  deniedMessage: () => t('agent.editor.chat.approval.denied'),
+})
+
+// What the trace entry for the run in flight should be labelled with.
+const lastPrompt = ref('')
 
 const selectedTraceIndex = ref(null)
 const selectedTraceType = ref(null)
@@ -162,141 +186,18 @@ async function sendChatMessage(input) {
     content: input,
     traceIndex: props.conversation.traceHistory.length,
   })
-  executing.value = true
 
-  try {
-    const activeConvId =
-      props.conversation.conversationID || props.conversation.aiConversationID || null
-    const res = await $SystemAPI.agentExec({
-      agentID: props.agent.agentID,
-      input: input,
-      ...(activeConvId ? { conversationID: activeConvId } : {}),
-    })
-
-    if (res?.conversationID) {
-      props.conversation.conversationID = res.conversationID
-      props.conversation.aiConversationID = res.conversationID || res.conversationID
-    }
-
-    if (res?.context) {
-      props.conversation.context = res.context
-    }
-
-    // A run that stopped to ask usually has nothing to say yet, and the
-    // fallback below would print the whole response object as the agent's
-    // answer. Only fall back when the run actually finished.
-    const content = awaitingApproval(res)
-      ? res?.output
-      : res?.output || (typeof res === 'string' ? res : res?.response?.text || JSON.stringify(res))
-
-    if (content) {
-      props.conversation.messages.push({
-        role: 'agent',
-        content,
-        usage: res?.usage || null,
-        traceIndex: props.conversation.traceHistory.length,
-      })
-    }
-
-    setPending(res)
-
-    props.conversation.traceHistory.push({
-      prompt: input,
-      decisions: res?.decisions || [],
-      toolCalls: res?.toolCalls || [],
-      usage: res?.usage || null,
-      conversationTokens: res?.conversationTokens || 0,
-    })
-
-    selectedTraceIndex.value = props.conversation.traceHistory.length - 1
-    selectedTraceType.value = 'response'
-    nextTick(() => {
-      aiTraceRef.value?.highlightLatest?.()
-    })
-  } catch (err) {
-    console.error(err)
-    $toast.toastErrorHandler(t('notification.agent.execFailed'))(err)
-    props.conversation.messages.push({ role: 'agent', content: 'Error: ' + err.message })
-    props.conversation.traceHistory.push({ error: err.message })
-  } finally {
-    executing.value = false
-  }
+  lastPrompt.value = input
+  await send(input)
 }
 
 async function onApprove(forChat) {
-  const p = pending.value
-  if (!p) return
-
-  if (forChat) {
-    const key = approvalKey()
-    approvedTools.value = {
-      ...approvedTools.value,
-      [key]: [...(approvedTools.value[key] || []), p.tool],
-    }
-  }
-
-  pending.value = null
-  // A one-off approval is sent with the call and not remembered, so the next
-  // use of the same tool asks again.
-  await resumeAfterApproval(forChat ? [] : [p.tool])
+  lastPrompt.value = ''
+  await approve(forChat)
 }
 
 function onDeny() {
-  pending.value = null
-  props.conversation.messages.push({
-    role: 'agent',
-    content: t('agent.editor.chat.approval.denied'),
-  })
-}
-
-// The run continues where it paused: an empty input on the same conversation,
-// carrying what has been approved.
-async function resumeAfterApproval(once) {
-  executing.value = true
-
-  try {
-    const activeConvId =
-      props.conversation.conversationID || props.conversation.aiConversationID || null
-    const approved = [...(approvedTools.value[approvalKey()] || []), ...once]
-
-    const res = await $SystemAPI.agentExec({
-      agentID: props.agent.agentID,
-      input: '',
-      ...(activeConvId ? { conversationID: activeConvId } : {}),
-      approvedTools: approved,
-    })
-
-    if (res?.output) {
-      props.conversation.messages.push({
-        role: 'agent',
-        content: res.output,
-        usage: res?.usage || null,
-        traceIndex: props.conversation.traceHistory.length,
-      })
-    }
-
-    props.conversation.traceHistory.push({
-      prompt: '',
-      decisions: res?.decisions || [],
-      toolCalls: res?.toolCalls || [],
-      usage: res?.usage || null,
-      conversationTokens: res?.conversationTokens || 0,
-    })
-
-    setPending(res)
-
-    selectedTraceIndex.value = props.conversation.traceHistory.length - 1
-    selectedTraceType.value = 'response'
-    nextTick(() => {
-      aiTraceRef.value?.highlightLatest?.()
-    })
-  } catch (err) {
-    console.error(err)
-    $toast.toastErrorHandler(t('notification.agent.execFailed'))(err)
-    props.conversation.messages.push({ role: 'agent', content: 'Error: ' + err.message })
-  } finally {
-    executing.value = false
-  }
+  deny()
 }
 
 function onTraceSelect(idx, type) {

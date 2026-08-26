@@ -180,6 +180,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useAgentChatStore } from '../../stores/useAgentChatStore'
+import { useAgentTurn } from '../../composables/useAgentTurn'
 import CChatMessages from './CChatMessages.vue'
 import CConversationTabs from './CConversationTabs.vue'
 import type { AgentChatTranslations } from './translations'
@@ -327,7 +328,26 @@ const conversationTabs = computed(() =>
   })),
 )
 
-const executing = ref(false)
+const turn = useAgentTurn({
+  agentID: () => agentStore.activeAgentID,
+  conversationID: () => (activeConversation.value as any)?.conversationID,
+  exec: (req: any) => $SystemAPI.agentExec(req),
+
+  onReply: (content: string, _res: any, agentID: string) =>
+    agentStore.addMessage(agentID, { role: 'agent', content }),
+
+  onResponse: (res: any, agentID: string) => {
+    if (res?.conversationID) agentStore.setConversationID(agentID, res.conversationID)
+  },
+
+  onError: (err: any, agentID: string) =>
+    agentStore.addMessage(agentID, { role: 'agent', content: 'Error: ' + err.message }),
+
+  context: () => (props.contextProvider ? props.contextProvider() : undefined),
+  deniedMessage: () => props.translations.approval.denied,
+})
+
+const executing = turn.executing
 const chatMessagesRef = ref<InstanceType<typeof CChatMessages> | null>(null)
 const historyPopover = ref<any>(null)
 
@@ -398,139 +418,16 @@ watch(
   },
 )
 
-// Tools the user has approved, per conversation. An approval is a UX memory,
-// not a control: the server asks again on a conversation it has not been told
-// about, and nothing here can grant what the invoking user could not do anyway.
-const approvedTools = ref<Record<string, string[]>>({})
-
-// What the agent stopped to ask about, if anything.
-const pending = ref<{ tool: string; label: string; risk?: string; agentID: string } | null>(null)
-
-function awaitingApproval(res: any) {
-  return res?.status === 'awaiting_approval'
-}
-
-function approvalKey(agentID: string, conversationID?: string) {
-  return `${agentID}:${conversationID || 'new'}`
-}
+// The turn itself is shared with the agent editor's chat; what this one does
+// with it — conversations kept in the store, a context provider from the page
+// around it — is its own.
+const { pending, approve: onApprove, deny: onDeny } = turn
 
 async function onSend(input: string) {
   if (!agentStore.activeAgentID) return
 
-  const currentAgentID = agentStore.activeAgentID
-  agentStore.addMessage(currentAgentID, { role: 'user', content: input })
-
-  await runAgent(currentAgentID, input)
-}
-
-// runAgent covers both a fresh question and the resume that follows an
-// approval; a resume carries no input of its own, only the tool it may use.
-async function runAgent(currentAgentID: string, input: string) {
-  executing.value = true
-  pending.value = null
-
-  try {
-    const activeConv = activeConversation.value as any
-    const context = props.contextProvider ? props.contextProvider() : undefined
-    const key = approvalKey(currentAgentID, activeConv?.conversationID)
-    const approved = approvedTools.value[key] || []
-
-    const res = await $SystemAPI.agentExec({
-      agentID: currentAgentID,
-      input,
-      ...(activeConv?.conversationID ? { conversationID: activeConv.conversationID } : {}),
-      ...(context && Object.keys(context).length > 0 ? { context } : {}),
-      ...(approved.length ? { approvedTools: approved } : {}),
-    })
-
-    if (res?.conversationID) {
-      agentStore.setConversationID(currentAgentID, res.conversationID)
-    }
-
-    // A run that stopped to ask usually has nothing to say yet, and the
-    // fallback below would print the whole response object as the agent's
-    // answer. Only fall back when the run actually finished.
-    const outputContent = awaitingApproval(res)
-      ? res?.output
-      : res?.output || (typeof res === 'string' ? res : res?.response?.text || JSON.stringify(res))
-
-    if (outputContent) {
-      agentStore.addMessage(currentAgentID, { role: 'agent', content: outputContent })
-    }
-
-    if (res?.status === 'awaiting_approval' && res?.pendingApproval?.tool) {
-      pending.value = {
-        tool: res.pendingApproval.tool,
-        label: res.pendingApproval.title || res.pendingApproval.tool,
-        risk: res.pendingApproval.risk,
-        agentID: currentAgentID,
-      }
-    }
-  } catch (err: any) {
-    agentStore.addMessage(currentAgentID, { role: 'agent', content: 'Error: ' + err.message })
-  } finally {
-    executing.value = false
-  }
-}
-
-async function onApprove(forChat: boolean) {
-  const p = pending.value
-  if (!p) return
-
-  const conv = activeConversation.value as any
-  if (forChat) {
-    const key = approvalKey(p.agentID, conv?.conversationID)
-    approvedTools.value = {
-      ...approvedTools.value,
-      [key]: [...(approvedTools.value[key] || []), p.tool],
-    }
-  }
-
-  pending.value = null
-  // A one-off approval is sent with the call and not remembered, so the next
-  // use of the same tool asks again.
-  await runAgentApproving(p.agentID, forChat ? [] : [p.tool])
-}
-
-async function runAgentApproving(currentAgentID: string, once: string[]) {
-  executing.value = true
-  try {
-    const activeConv = activeConversation.value as any
-    const context = props.contextProvider ? props.contextProvider() : undefined
-    const key = approvalKey(currentAgentID, activeConv?.conversationID)
-    const approved = [...(approvedTools.value[key] || []), ...once]
-
-    const res = await $SystemAPI.agentExec({
-      agentID: currentAgentID,
-      input: '',
-      ...(activeConv?.conversationID ? { conversationID: activeConv.conversationID } : {}),
-      ...(context && Object.keys(context).length > 0 ? { context } : {}),
-      approvedTools: approved,
-    })
-
-    if (res?.output) {
-      agentStore.addMessage(currentAgentID, { role: 'agent', content: res.output })
-    }
-    if (res?.status === 'awaiting_approval' && res?.pendingApproval?.tool) {
-      pending.value = {
-        tool: res.pendingApproval.tool,
-        label: res.pendingApproval.title || res.pendingApproval.tool,
-        risk: res.pendingApproval.risk,
-        agentID: currentAgentID,
-      }
-    }
-  } catch (err: any) {
-    agentStore.addMessage(currentAgentID, { role: 'agent', content: 'Error: ' + err.message })
-  } finally {
-    executing.value = false
-  }
-}
-
-function onDeny() {
-  const p = pending.value
-  if (!p) return
-  pending.value = null
-  agentStore.addMessage(p.agentID, { role: 'agent', content: props.translations.approval.denied })
+  agentStore.addMessage(agentStore.activeAgentID, { role: 'user', content: input })
+  await turn.send(input)
 }
 
 defineExpose({

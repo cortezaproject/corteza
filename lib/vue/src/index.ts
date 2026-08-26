@@ -36,6 +36,7 @@ export { useRecordStore } from './stores/useRecordStore'
 export { useUserStore } from './stores/useUserStore'
 export { useRightSidebarStore } from './stores/useRightSidebarStore'
 export { useConfirmDelete } from './composables/useConfirmDelete'
+export { useAgentTurn } from './composables/useAgentTurn'
 export { useResourceList } from './composables/useResourceList'
 export {
   CHANGED_AT_KEY,

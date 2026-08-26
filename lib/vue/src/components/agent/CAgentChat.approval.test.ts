@@ -58,7 +58,8 @@ describe('CAgentChat approvals', () => {
     await flushPromises()
 
     const vm = w.vm as any
-    await vm.$.setupState.runAgent('1', 'change it')
+    vm.$.setupState.agentStore.setActiveAgentID('1')
+    await vm.$.setupState.onSend('change it')
     await flushPromises()
 
     expect(vm.$.setupState.pending?.tool).toBe('compose_record_update')
@@ -87,7 +88,8 @@ describe('CAgentChat approvals', () => {
     await flushPromises()
 
     const vm = w.vm as any
-    await vm.$.setupState.runAgent('1', 'change it')
+    vm.$.setupState.agentStore.setActiveAgentID('1')
+    await vm.$.setupState.onSend('change it')
     await flushPromises()
 
     await vm.$.setupState.onApprove(true)
@@ -121,14 +123,15 @@ describe('CAgentChat approvals', () => {
     await flushPromises()
 
     const vm = w.vm as any
-    await vm.$.setupState.runAgent('1', 'change it')
+    vm.$.setupState.agentStore.setActiveAgentID('1')
+    await vm.$.setupState.onSend('change it')
     await flushPromises()
     await vm.$.setupState.onApprove(false)
     await flushPromises()
 
     expect(exec.mock.calls[1][0].approvedTools).toEqual(['compose_record_update'])
 
-    await vm.$.setupState.runAgent('1', 'change it again')
+    await vm.$.setupState.onSend('change it again')
     await flushPromises()
     expect(exec.mock.calls[2][0].approvedTools).toBeUndefined()
   })
