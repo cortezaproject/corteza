@@ -303,8 +303,8 @@ cmd_up() {
   fi
 
   echo
-  echo "gin builds on first request to its proxy, so warm it before believing a check:"
-  echo "  curl -s localhost:$gin/api/ >/dev/null"
+  echo "gin rebuilds and respawns on its own on any .go write — give it ~15s."
+  echo "It only misses an edit that lands mid-build; re-save the file if one does."
 }
 
 cmd_down() {

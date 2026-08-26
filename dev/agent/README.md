@@ -208,15 +208,17 @@ DOM as it is; use a visibility assertion when visibility is the question.
   `/compose` (`sections/compose/index.js` prefixes them): a page is
   `/compose/namespace/<slug>/pages/<pageID>`, addressed by namespace **slug**,
   not `/compose/ns/…`.
-- **`stale: false` can still mean a stale binary.** The check compares the
-  binary's build time against source mtimes, so a rebuild that the watcher
-  started _before_ you edited, and finished _after_, reports as fresh while
-  running the older code. It bites hardest when editing a file repeatedly in
-  quick succession — mutation-testing a file, say, where a live check then
-  reports behaviour matching a mutation you already reverted. Cost an
-  investigation once. When a live result contradicts a passing unit test,
-  `touch` the file, wait for the next build, and re-check before believing
-  either.
+- **An edit that lands mid-build is skipped for good.** gin rebuilds and
+  respawns on its own on any `.go` write — its proxy port is not involved, and
+  curling it does not start a build — but it stamps its watch clock _after_ the
+  build returns, so anything written during those ~15s already looks old and is
+  never picked up. It bites hardest when editing a file repeatedly in quick
+  succession: mutation-testing, say, where a live check then reports behaviour
+  matching a mutation you already reverted. Cost an investigation once.
+  `dev_server_status` with `wait` blocks until the running process's start time
+  beats your edit; when it times out, re-saving the file is the only thing that
+  gets that edit built, and on the shared primary that restart is the human's to
+  make.
 - **Vite does not pick up edits under `lib/`.** The webapp resolves
   `@planetcrust/human-js` / `human-vue` to their TypeScript sources, but the
   running dev server keeps serving the transform it made at startup — a
@@ -325,8 +327,9 @@ What catches people out:
   with it. `new` warns and names the count.
 - **First `up` is minutes, not seconds** — `pnpm install` and a Go build. After
   that it is seconds.
-- **gin builds on the first request to its proxy.** `curl -s localhost:<gin>/api/`
-  before believing any check, exactly as on the primary.
+- **gin rebuilds and respawns on its own**, here as on the primary — nothing
+  needs to touch its proxy port. What it drops is an edit that lands during a
+  build; judge by the process start time, as on the primary.
 - **The shared token works against every worktree** — same JWT secret, and the
   cloned DB has the same user IDs. No re-bootstrap.
 - **`rm` refuses while the checkout is dirty.** It will not discard your work.

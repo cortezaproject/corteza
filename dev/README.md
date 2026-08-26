@@ -81,10 +81,12 @@ a login made later:
 cd server && ./build/gin-bin --env-file .env roles useradd super-admin you@example.tld
 ```
 
-Two things about `make watch` worth knowing before they confuse you: gin builds
-on the **first request** to its proxy, so `curl -s localhost:3001/api/` before
-believing any check; and it never respawns on its own once the webapp bypasses
-its proxy, so a Go change needs a touched `.go` file and ~15s.
+One thing about `make watch` worth knowing before it confuses you: gin runs with
+`--immediate`, so it rebuilds **and respawns on its own** on any `.go` write —
+the webapp bypassing its proxy port changes nothing, and curling that port does
+not start a build. What gin drops is an edit that lands _while_ a build is
+running: it stamps its watch clock after the build returns, so that file already
+looks old and is skipped for good. Re-saving the file is what gets it built.
 
 ## 3. Provision the agent identities
 
@@ -175,7 +177,7 @@ than the binary, so restarting the MCP client is all a tool edit needs.
 | `dev_commit_create`                             | commit with the convention enforced                 |
 | `dev_branch_status`                             | branch, base, ahead/behind, working tree            |
 | `dev_intent_governing` / `_check` / `_affected` | intent docs, drift, affected e2e specs              |
-| `dev_server_status` / `dev_server_logs`         | is the dev server up, how stale, filtered log tail  |
+| `dev_server_status` / `dev_server_logs`         | up, how stale (`wait` blocks), filtered log tail    |
 | `dev_ui_verify`                                 | render-check a webapp path in a real browser        |
 | `dev_fixture_cleanup`                           | remove this session's seeded data                   |
 

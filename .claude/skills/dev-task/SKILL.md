@@ -194,12 +194,13 @@ Review means exercising the claims, not reading the diff.
 
 - **Re-run the step-3 reproduction against the fix**, in the same environment.
 - **Prove the environment is running the fix before you believe the re-run.**
-  `dev_server_status` decides staleness from the running process's start time.
-  gin only rebuilds when its proxy is hit (`curl -s localhost:3001/api/`);
-  requests to the API port never trigger it. A finished build is not a restart —
-  gin can compile the change and leave the old process serving — so judge by the
-  process start time, and when it still predates your edit, ask the human to
-  relaunch `make watch` rather than poking on.
+  `dev_server_status` decides staleness from the running process's start time,
+  and its `wait` argument blocks until that start time beats your edit — use it
+  rather than polling. gin rebuilds and respawns on its own; its proxy port is
+  not involved and poking it is not a remedy. What gin drops is an edit that
+  landed mid-build, which is skipped for good — re-saving the file is the only
+  thing that gets it built, and on the shared primary that restart is the
+  human's to make.
 - Run `/dev-change`'s verify sequence: tests, format, intent drift, affected
   specs.
 - **Check against the step-6 criteria**, one at a time, out loud.

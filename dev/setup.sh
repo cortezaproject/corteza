@@ -410,8 +410,8 @@ Setup done$([[ "$PROBLEMS" == 0 ]] || echo " — $PROBLEMS thing(s) marked ! abo
   3. open $HUMAN_WEBAPP and sign up — the FIRST user becomes super-admin
   4. make setup-agent                        the agent toolkit's own identities
 
-gin builds on the first request to its proxy, so warm it before believing
-anything: curl -s $HUMAN_GIN/api/ >/dev/null
+gin rebuilds and respawns on its own on any .go write — give it ~15s. It only
+misses an edit that lands mid-build; re-save the file if one does.
 EOF
     ;;
 esac
