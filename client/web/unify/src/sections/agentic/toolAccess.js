@@ -16,6 +16,16 @@ export const MODE_ICONS = {
   custom: 'pi pi-ellipsis-h',
 }
 
+// Ask keeps the body colour: it is the mode most tools sit in until someone
+// decides otherwise, and colouring it too would leave nothing quiet to read the
+// other two against.
+export const MODE_COLOURS = {
+  always: 'text-green-500',
+  ask: '',
+  deny: 'text-red-500',
+  custom: '',
+}
+
 // The order they are counted and shown in: what runs freely, what stops to ask,
 // what the agent does not have.
 export const MODES = ['always', 'ask', 'deny']

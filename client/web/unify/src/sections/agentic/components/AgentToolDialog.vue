@@ -53,7 +53,7 @@
                   class="flex items-center gap-1"
                   :title="modeLabel(c.mode)"
                 >
-                  <i :class="modeIcon(c.mode)" />
+                  <i :class="[modeIcon(c.mode), modeColour(c.mode)]" />
                   <span class="tabular-nums">{{ c.n }}</span>
                 </span>
               </span>
@@ -76,13 +76,16 @@
             >
               <template #value="{ value }">
                 <span class="flex items-center gap-2">
-                  <i :class="modeIcon(value)" class="text-xs" />
+                  <i :class="[modeIcon(value), modeColour(value)]" class="text-xs" />
                   {{ modeLabel(value) }}
                 </span>
               </template>
               <template #option="{ option }">
                 <span class="flex items-center gap-2">
-                  <i :class="option.icon" class="text-xs" />
+                  <i
+                    :class="[option.icon, sectionMode(d) === option.value ? option.colour : '']"
+                    class="text-xs"
+                  />
                   {{ option.label }}
                 </span>
               </template>
@@ -100,15 +103,6 @@
                 :key="tool.name"
                 class="group flex items-start gap-3 py-2 border-b border-surface last:border-0"
               >
-                <!-- A rail only where the choice loosens what the risk would
-                     have done. The list stays quiet until there is something to
-                     notice, and the thing to notice is an allow set by hand on
-                     a tool that writes. -->
-                <span
-                  class="w-0.5 self-stretch rounded-full shrink-0"
-                  :class="loosened(tool) ? 'bg-amber-500' : 'bg-transparent'"
-                />
-
                 <div
                   class="flex-1 min-w-0"
                   :class="{ 'opacity-50': !toolOn(tool) }"
@@ -139,8 +133,14 @@
                     :disabled="disabled"
                     @update:model-value="v => setMode(tool, v)"
                   >
+                    <!-- Only the chosen segment is coloured. Colouring all three
+                         made every row shout in red about the state it was not
+                         in, and left the control unable to show its own. -->
                     <template #option="{ option }">
-                      <i :class="option.icon" :title="option.label" />
+                      <i
+                        :class="[option.icon, rowMode(tool) === option.value ? option.colour : '']"
+                        :title="option.label"
+                      />
                     </template>
                   </SelectButton>
                 </div>
@@ -180,6 +180,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
+  MODE_COLOURS,
   MODE_ICONS,
   RISK_ORDER,
   coveredByFamily,
@@ -240,12 +241,16 @@ function modeIcon(mode) {
   return MODE_ICONS[mode] || MODE_ICONS.custom
 }
 
+function modeColour(mode) {
+  return MODE_COLOURS[mode] || ''
+}
+
 function modeLabel(mode) {
   return t(`agent.editor.tools.mode.${mode || 'custom'}`)
 }
 
 function modeOption(value) {
-  return { value, icon: modeIcon(value), label: modeLabel(value) }
+  return { value, icon: modeIcon(value), colour: modeColour(value), label: modeLabel(value) }
 }
 
 const toolModes = computed(() => ['always', 'ask', 'deny'].map(modeOption))
@@ -267,12 +272,6 @@ function toolOn(tool) {
 
 function covered(tool) {
   return coveredByFamily(tool, families.value)
-}
-
-// An allow set by hand on a tool that writes: the one state where the choice
-// permits more than the risk rule would have.
-function loosened(tool) {
-  return rowMode(tool) === 'always' && !!tool.risk && tool.risk !== 'read'
 }
 
 // Skills are attached to a tool, not chosen: the runtime injects one when the
@@ -486,14 +485,15 @@ function apply() {
 </script>
 
 <style scoped>
-/* A blocked row shows nothing until it is reached for. Written here rather than
-   as utilities so the rule survives whatever else styles the row. */
+/* A blocked row recedes rather than disappears, so the way back is where it was.
+   Written here rather than as utilities so the rule survives whatever else
+   styles the row. */
 .tool-mode {
   transition: opacity 0.15s ease;
 }
 
 .tool-mode[data-blocked='true']:not(:focus-within) {
-  opacity: 0;
+  opacity: 0.4;
 }
 
 .group:hover .tool-mode[data-blocked='true'] {

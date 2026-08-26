@@ -403,7 +403,7 @@
                               :key="c.mode"
                               class="flex items-center gap-1"
                             >
-                              <i :class="modeIcon(c.mode)" />
+                              <i :class="[modeIcon(c.mode), modeColour(c.mode)]" />
                               {{ $t(`agent.editor.tools.summary.${c.mode}`, { n: c.n }) }}
                             </span>
                           </span>
@@ -415,7 +415,6 @@
                         <Button
                           :label="$t('agent.editor.tools.configureTools')"
                           icon="pi pi-sliders-h"
-                          severity="secondary"
                           outlined
                           size="small"
                           class="shrink-0"
@@ -881,7 +880,7 @@ import AiChat from '../components/AiChat.vue'
 import AiTrace from '../components/AiTrace.vue'
 import AgentToolDialog from '../components/AgentToolDialog.vue'
 import { useEditorSplit } from '../composables/useEditorSplit'
-import { MODE_ICONS, splitGrants, tally } from '../toolAccess'
+import { MODE_COLOURS, MODE_ICONS, splitGrants, tally } from '../toolAccess'
 
 const {
   CInputLLM,
@@ -1030,6 +1029,10 @@ const toolSummary = computed(() => {
 
 function modeIcon(mode) {
   return MODE_ICONS[mode] || MODE_ICONS.custom
+}
+
+function modeColour(mode) {
+  return MODE_COLOURS[mode] || ''
 }
 
 // Tool configuration dialog

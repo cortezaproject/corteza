@@ -304,21 +304,6 @@ describe('AgentToolDialog modes', () => {
     expect(vm.rowMode({ name: 'compose_record_delete', risk: 'destructive' })).toBe('ask')
   })
 
-  // The rail marks the one state the risk rule would not have produced: an
-  // allow set by hand on a tool that writes. Tightening never needs a warning.
-  it('rails only a hand-set allow on a tool that writes', () => {
-    const w = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }])
-    const vm = w.vm as any
-    const create = { name: 'compose_record_create', risk: 'write' }
-
-    expect(vm.loosened(create)).toBe(false)
-    vm.setMode(create, 'always')
-    expect(vm.loosened(create)).toBe(true)
-
-    vm.setMode({ name: 'compose_record_lookup', risk: 'read' }, 'always')
-    expect(vm.loosened({ name: 'compose_record_lookup', risk: 'read' })).toBe(false)
-  })
-
   // Choosing the mode the risk would have given anyway is not a decision to
   // store: pinning it would freeze the tool if the rule ever changed.
   it('stores an override only when it differs from the risk default', () => {
@@ -453,10 +438,10 @@ describe('AgentToolDialog blocked rows', () => {
     expect(vm.rowMode(lookup)).toBe('always')
   })
 
-  // The row shows nothing until it is reached for: a permission control on
-  // every one of ninety tools the agent does not have reads as ninety
-  // decisions waiting to be made.
-  it('keeps the control out of sight on a blocked row, and reachable', async () => {
+  // A blocked row's control recedes rather than vanishes: at full strength on
+  // every one of ninety tools the agent does not have it reads as ninety
+  // decisions waiting to be made, and gone it leaves no way back.
+  it('leaves the control in place on a blocked row, receded', async () => {
     const w = await mountRendered()
     const rows = [...document.querySelectorAll('[data-blocked]')]
 
