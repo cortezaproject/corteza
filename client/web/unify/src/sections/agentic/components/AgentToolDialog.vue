@@ -31,7 +31,9 @@
            with the search field while the scrollbar sits in the gutter. -->
       <div class="overflow-y-auto flex-1 min-h-0 -mr-2 pr-2">
         <section v-for="d in domains" :key="d.key">
-          <div class="flex items-center gap-2 py-2 border-b border-surface">
+          <div
+            class="tool-section-head sticky top-0 z-10 flex items-center gap-2 py-2 border-b border-surface"
+          >
             <button
               type="button"
               class="flex items-center gap-2 flex-1 min-w-0 text-left"
@@ -491,6 +493,13 @@ function apply() {
 </script>
 
 <style scoped>
+/* A pinned header keeps the subject and its permission control in reach while
+   thirty rows go past. The dialog's own background rather than a surface class,
+   so rows scrolling under it stay hidden in either theme. */
+.tool-section-head {
+  background: var(--p-dialog-background, var(--p-content-background, #fff));
+}
+
 /* A blocked row recedes rather than disappears, so the way back is where it was.
    Written here rather than as utilities so the rule survives whatever else
    styles the row. */

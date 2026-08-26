@@ -503,6 +503,23 @@ describe('AgentToolDialog footer', () => {
   })
 })
 
+describe('AgentToolDialog section headers', () => {
+  // Thirty rows go past in People and access; losing the subject and its
+  // permission control off the top means scrolling back to use either.
+  it('pins a section header while its rows scroll', async () => {
+    const w = await mountRendered()
+    const heads = [...document.querySelectorAll('.tool-section-head')]
+
+    expect(heads.length).toBeGreaterThan(0)
+    for (const h of heads) {
+      expect([...h.classList]).toContain('sticky')
+      expect([...h.classList]).toContain('top-0')
+    }
+
+    w.unmount()
+  })
+})
+
 describe('AgentToolDialog blocked rows', () => {
   // Blocked is the off state, so a row the agent does not have reads as blocked
   // rather than showing a default it is not following.
