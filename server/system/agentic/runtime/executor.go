@@ -570,7 +570,7 @@ func (r *runtime) runExecutionLoop(
 				ToolCalls: toAiToolCalls(llmResp.ToolCalls),
 			})
 
-			results, infos, pending := r.executeTools(ctx, agent, llmResp.ToolCalls, approved, unattended, tc)
+			results, infos, pending := r.executeTools(ctx, agent, llmResp.ToolCalls, approved, unattended, toolTitles(tools), tc)
 			conversation.Messages = append(conversation.Messages, results...)
 			executedTools = append(executedTools, infos...)
 
@@ -740,7 +740,7 @@ func (u *Usage) accumulate(other Usage) {
 }
 
 // executeTools runs each tool call and returns conversation messages + telemetry info.
-func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []ToolCall, approved map[string]bool, unattended bool, tc traceCtx) ([]types.AiConversationMessage, []ToolCallInfo, *PendingApproval) {
+func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []ToolCall, approved map[string]bool, unattended bool, titles map[string]string, tc traceCtx) ([]types.AiConversationMessage, []ToolCallInfo, *PendingApproval) {
 	var (
 		messages []types.AiConversationMessage
 		infos    []ToolCallInfo
@@ -990,9 +990,10 @@ func (r *runtime) executeTools(ctx context.Context, agent *types.Agent, calls []
 			}
 
 			return messages, infos, &PendingApproval{
-				Tool: call.Name,
-				Args: decision.SanitizedArgs,
-				Risk: r.toolRisk(call.Name),
+				Tool:  call.Name,
+				Title: titles[call.Name],
+				Args:  decision.SanitizedArgs,
+				Risk:  r.toolRisk(call.Name),
 			}
 		}
 
@@ -1132,10 +1133,28 @@ func approvedSet(names []string) map[string]bool {
 	return out
 }
 
+// toolTitles maps each tool to the name a person would recognise it by.
+func toolTitles(tools []Tool) map[string]string {
+	out := make(map[string]string, len(tools))
+	for _, t := range tools {
+		if t.Title != "" {
+			out[t.Name] = t.Title
+		}
+	}
+	return out
+}
+
 // toolRisk says how much a pending call is asking for, so a prompt can put it
-// to the user in those terms. Read-only tools never reach a prompt, so a name
-// the write ceiling does not cover reads as destructive rather than as nothing.
+// to the user in those terms.
+//
+// A per-TAQ tool is minted at run time and is in no group, so it has to be
+// answered for separately: running an automation writes. Anything else the
+// write ceiling does not cover deletes — read-only tools never reach a prompt.
 func (r *runtime) toolRisk(name string) string {
+	if _, ok := dynamicAutomationRef(name); ok {
+		return "write"
+	}
+
 	for _, group := range []string{"usage", "configuring"} {
 		for _, n := range r.mcp.ToolNamesIn(group, "write") {
 			if n == name {
@@ -1144,6 +1163,20 @@ func (r *runtime) toolRisk(name string) string {
 		}
 	}
 	return "destructive"
+}
+
+// dynamicAutomationRef reports the TAQ ID behind a minted "automation_<id>"
+// tool name, mirroring what policy matches on.
+func dynamicAutomationRef(name string) (string, bool) {
+	const prefix = "automation_"
+	if !strings.HasPrefix(name, prefix) {
+		return "", false
+	}
+	id := strings.TrimPrefix(name, prefix)
+	if _, err := strconv.ParseUint(id, 10, 64); err != nil {
+		return "", false
+	}
+	return id, true
 }
 
 // toAiToolCalls converts runtime ToolCalls (with parsed Args) to the persisted format.

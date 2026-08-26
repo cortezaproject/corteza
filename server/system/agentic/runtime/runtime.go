@@ -85,8 +85,11 @@ type (
 	// PendingApproval is the tool call a run stopped on, described well enough
 	// for a person to say yes or no to it.
 	PendingApproval struct {
-		Tool string         `json:"tool"`
-		Args map[string]any `json:"args,omitempty"`
+		Tool string `json:"tool"`
+		// Title is what to call it in front of a person. A per-TAQ tool is
+		// minted as "automation_<id>", which names nothing anyone recognises.
+		Title string         `json:"title,omitempty"`
+		Args  map[string]any `json:"args,omitempty"`
 		// Risk is the tool's own classification — "write" or "destructive" —
 		// so a prompt can say how much is being asked for.
 		Risk string `json:"risk,omitempty"`

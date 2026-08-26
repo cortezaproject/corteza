@@ -444,3 +444,35 @@ func TestRun_UnattendedRunsAnApprovedTool(t *testing.T) {
 	assert.Equal(t, StatusComplete, resp.Status)
 	assert.Empty(t, resp.ToolCalls[0].Error)
 }
+
+// A per-TAQ tool is minted as "automation_<id>", which names nothing anyone
+// recognises and is in no group. Both had to be answered for separately, or the
+// prompt reads "may I use automation_510775573053898753 (deletes)".
+func TestPendingApprovalDescribesAMintedAutomation(t *testing.T) {
+	rt := newRuntime(&mockRegistry{agent: activeAgent()}, nil, &mockMCP{})
+
+	assert.Equal(t, "write", rt.toolRisk("automation_510775573053898753"),
+		"running an automation writes; it is not a deletion")
+	assert.Equal(t, "destructive", rt.toolRisk("compose_record_delete"),
+		"a name the write ceiling does not cover deletes")
+
+	titles := toolTitles([]Tool{
+		{Name: "automation_510775573053898753", Title: "Refresh every holding's totals"},
+		{Name: "compose_record_create"},
+	})
+	assert.Equal(t, "Refresh every holding's totals", titles["automation_510775573053898753"])
+	assert.NotContains(t, titles, "compose_record_create", "no title is better than an empty one")
+}
+
+func TestDynamicAutomationRef(t *testing.T) {
+	for name, want := range map[string]bool{
+		"automation_123":           true,
+		"automation_taq_exec":      false,
+		"automation_workflow_exec": false,
+		"compose_record_create":    false,
+		"automation_":              false,
+	} {
+		_, ok := dynamicAutomationRef(name)
+		assert.Equal(t, want, ok, "for %q", name)
+	}
+}

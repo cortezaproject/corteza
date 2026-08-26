@@ -143,7 +143,7 @@
             <div class="min-w-0">
               <div class="text-sm text-color font-semibold">{{ translations.approval.title }}</div>
               <div class="text-sm text-muted-color">
-                {{ translations.approval.body(pending.tool) }}
+                {{ translations.approval.body(pending.label) }}
               </div>
               <div v-if="pending.risk === 'destructive'" class="text-sm text-red-500 mt-1">
                 {{ translations.approval.destructive }}
@@ -404,7 +404,7 @@ watch(
 const approvedTools = ref<Record<string, string[]>>({})
 
 // What the agent stopped to ask about, if anything.
-const pending = ref<{ tool: string; risk?: string; agentID: string } | null>(null)
+const pending = ref<{ tool: string; label: string; risk?: string; agentID: string } | null>(null)
 
 function awaitingApproval(res: any) {
   return res?.status === 'awaiting_approval'
@@ -461,6 +461,7 @@ async function runAgent(currentAgentID: string, input: string) {
     if (res?.status === 'awaiting_approval' && res?.pendingApproval?.tool) {
       pending.value = {
         tool: res.pendingApproval.tool,
+        label: res.pendingApproval.title || res.pendingApproval.tool,
         risk: res.pendingApproval.risk,
         agentID: currentAgentID,
       }
@@ -513,6 +514,7 @@ async function runAgentApproving(currentAgentID: string, once: string[]) {
     if (res?.status === 'awaiting_approval' && res?.pendingApproval?.tool) {
       pending.value = {
         tool: res.pendingApproval.tool,
+        label: res.pendingApproval.title || res.pendingApproval.tool,
         risk: res.pendingApproval.risk,
         agentID: currentAgentID,
       }
