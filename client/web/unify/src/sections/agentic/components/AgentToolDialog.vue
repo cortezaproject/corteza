@@ -80,12 +80,11 @@
                   {{ modeLabel(value) }}
                 </span>
               </template>
+              <!-- Every entry keeps its colour here. The list is the choices,
+                   not the state, and the tick already says which is current. -->
               <template #option="{ option }">
                 <span class="flex items-center gap-2">
-                  <i
-                    :class="[option.icon, sectionMode(d) === option.value ? option.colour : '']"
-                    class="text-xs"
-                  />
+                  <i :class="[option.icon, option.colour]" class="text-xs" />
                   {{ option.label }}
                 </span>
               </template>
