@@ -87,39 +87,71 @@
                 </CFormGroup>
 
                 <CFormGroup :label="$t('chart.colorScheme.label')" input-id="colorScheme">
-                  <Select
-                    id="colorScheme"
-                    v-model="chart.config.colorScheme"
-                    :options="colorSchemes"
-                    option-label="name"
-                    option-value="id"
-                    :placeholder="$t('chart.colorScheme.placeholder')"
-                    class="w-full"
-                    filter
-                    show-clear
-                  >
-                    <template #value="{ value }">
-                      <div v-if="value" class="flex gap-0.5 items-center">
-                        <div
-                          v-for="(color, ci) in getSchemeColors(value)"
-                          :key="ci"
-                          :style="`background: ${color};`"
-                          class="w-3.5 h-3.5 rounded-sm"
-                        />
-                      </div>
-                      <span v-else>{{ $t('chart.colorScheme.placeholder') }}</span>
-                    </template>
-                    <template #option="{ option }">
-                      <div class="flex gap-0.5 items-center">
-                        <div
-                          v-for="(color, ci) in option.colors"
-                          :key="ci"
-                          :style="`background: ${color};`"
-                          class="w-3.5 h-3.5 rounded-sm"
-                        />
-                      </div>
-                    </template>
-                  </Select>
+                  <div class="flex items-center gap-2">
+                    <Select
+                      id="colorScheme"
+                      v-model="chart.config.colorScheme"
+                      :options="colorSchemes"
+                      option-label="name"
+                      option-value="id"
+                      :placeholder="$t('chart.colorScheme.placeholder')"
+                      class="flex-1 min-w-0"
+                      filter
+                      show-clear
+                    >
+                      <template #value="{ value }">
+                        <span v-if="value" class="truncate">{{ getSchemeName(value) }}</span>
+                        <span v-else>{{ $t('chart.colorScheme.placeholder') }}</span>
+                      </template>
+                      <template #option="{ option }">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <div class="flex gap-0.5 items-center shrink-0">
+                            <div
+                              v-for="(color, ci) in option.colors"
+                              :key="ci"
+                              :style="`background: ${color};`"
+                              class="w-3.5 h-3.5 rounded-sm"
+                            />
+                          </div>
+                          <span class="truncate">{{ option.name }}</span>
+                        </div>
+                      </template>
+                      <template v-if="canManageColorSchemes" #header>
+                        <div class="p-2 border-b border-surface-200 dark:border-surface-700">
+                          <Button
+                            :label="$t('chart.colorScheme.custom.add')"
+                            icon="pi pi-plus"
+                            severity="secondary"
+                            text
+                            size="small"
+                            class="w-full"
+                            data-testid="chart-color-scheme-add"
+                            @click="createColorScheme"
+                          />
+                        </div>
+                      </template>
+                    </Select>
+
+                    <Button
+                      v-if="showEditColorSchemeButton"
+                      v-tooltip.bottom="$t('chart.colorScheme.custom.edit')"
+                      :aria-label="$t('chart.colorScheme.custom.edit')"
+                      icon="pi pi-pencil"
+                      severity="secondary"
+                      outlined
+                      data-testid="chart-color-scheme-edit"
+                      @click="editColorScheme"
+                    />
+                  </div>
+
+                  <div v-if="currentColorScheme" class="flex flex-wrap gap-0.5 items-center mt-2">
+                    <div
+                      v-for="(color, ci) in currentColorScheme.colors"
+                      :key="ci"
+                      :style="`background: ${color};`"
+                      class="w-4 h-2 rounded-sm"
+                    />
+                  </div>
                 </CFormGroup>
 
                 <CFormGroup :label="$t('chart.edit.animation.label')">
@@ -163,6 +195,7 @@
 
                     <ChartRenderer
                       v-else-if="chart"
+                      ref="chartPreview"
                       :chart="chart"
                       :reporter="reporter"
                       @updated="onUpdated"
@@ -206,6 +239,89 @@
       />
     </CEditorActions>
   </Form>
+
+  <Dialog
+    v-model:visible="colorSchemeModal.show"
+    :header="colorSchemeModalTitle"
+    modal
+    :style="{ width: '32rem' }"
+  >
+    <div class="flex flex-col gap-4">
+      <CFormGroup
+        :label="$t('chart.colorScheme.custom.modal.name.label')"
+        input-id="colorSchemeName"
+      >
+        <InputText
+          id="colorSchemeName"
+          v-model="colorSchemeModal.colorscheme.name"
+          class="w-full"
+          autofocus
+        />
+      </CFormGroup>
+
+      <CFormGroup :label="$t('chart.colorScheme.custom.modal.colors.label')">
+        <div class="flex flex-wrap items-center gap-1">
+          <div
+            v-for="(color, index) in colorSchemeModal.colorscheme.colors"
+            :key="index"
+            class="flex items-center"
+          >
+            <CInputColorPicker v-model="colorSchemeModal.colorscheme.colors[index]" />
+            <Button
+              v-tooltip.bottom="$t('general.label.remove')"
+              :aria-label="$t('general.label.remove')"
+              :disabled="colorSchemeModal.colorscheme.colors.length < 2"
+              icon="pi pi-times"
+              severity="danger"
+              text
+              rounded
+              size="small"
+              @click="removeColor(index)"
+            />
+          </div>
+
+          <Button
+            v-tooltip.bottom="$t('general.label.add')"
+            :aria-label="$t('general.label.add')"
+            icon="pi pi-plus"
+            severity="secondary"
+            outlined
+            size="small"
+            data-testid="chart-color-scheme-add-color"
+            @click="addColor"
+          />
+        </div>
+      </CFormGroup>
+    </div>
+
+    <template #footer>
+      <CInputDelete
+        v-if="colorSchemeModal.edit"
+        :label="$t('general.label.delete')"
+        :message="$t('chart.colorScheme.custom.modal.delete')"
+        :header="colorSchemeModal.colorscheme.name"
+        :disabled="colorSchemeModal.processing"
+        outlined
+        class="mr-auto"
+        @confirm="deleteColorScheme"
+      />
+      <Button
+        :label="$t('general.label.cancel')"
+        severity="secondary"
+        text
+        :disabled="colorSchemeModal.processing"
+        @click="colorSchemeModal.show = false"
+      />
+      <Button
+        :label="$t('general.label.save')"
+        icon="pi pi-save"
+        :disabled="!colorSchemeIsSaveable"
+        :loading="colorSchemeModal.processing"
+        data-testid="chart-color-scheme-save"
+        @click="saveColorScheme"
+      />
+    </template>
+  </Dialog>
 </template>
 
 <script setup>
@@ -213,8 +329,17 @@ import { ref, computed, watch, inject, provide, toRaw, markRaw } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { compose, shared } from '@planetcrust/human-js'
-import { components, useHistoryBack, useDraftGuard } from '@planetcrust/human-vue'
+import { components, useHistoryBack, useDraftGuard, useRBACStore } from '@planetcrust/human-vue'
 import { chartConstructor } from '../../../lib/charts'
+import {
+  COLOR_SCHEMES_SETTING,
+  colorSchemeOptions,
+  isCustomScheme,
+  newCustomScheme,
+  readColorSchemes,
+  removeColorScheme,
+  upsertColorScheme,
+} from '../../../lib/chart-color-schemes'
 import { useChartStore } from '@planetcrust/human-vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import ChartRenderer from '../../../components/Chart/ChartRenderer.vue'
@@ -222,18 +347,21 @@ import { evaluatePlacementFilter, usesRecordVariables } from '../../../lib/recor
 import ChartTranslator from '../../../components/Admin/Chart/ChartTranslator.vue'
 import * as Reports from '../../../components/Chart/Report/index.js'
 
-const { CInputDelete } = components
+const { CInputDelete, CInputColorPicker } = components
 
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const goBack = useHistoryBack()
 const $ComposeAPI = inject('$ComposeAPI')
+const $SystemAPI = inject('$SystemAPI')
+const $Settings = inject('$Settings', undefined)
 const $toast = inject('$toast')
 const $Auth = inject('$Auth', {})
 
 const chartStore = useChartStore()
 const moduleStore = useModuleStore()
+const rbac = useRBACStore()
 
 const { colorschemes } = shared
 
@@ -257,6 +385,14 @@ const processingSave = ref(false)
 const processingClone = ref(false)
 const processingDelete = ref(false)
 const editReportIndex = ref(0)
+const chartPreview = ref(null)
+
+const colorSchemeModal = ref({
+  show: false,
+  processing: false,
+  edit: false,
+  colorscheme: newCustomScheme(),
+})
 
 // Computed
 const chartID = computed(() => route.params.chartID)
@@ -267,30 +403,38 @@ const isEdit = computed(() => {
 
 const modules = computed(() => moduleStore.set || [])
 
-const colorSchemes = computed(() => {
-  const capitalize = w => `${w[0].toUpperCase()}${w.slice(1)}`
-  const splicer = sc => {
-    const rr = /(\D+)(\d+)$/gi.exec(sc)
-    return { label: rr?.[1] || sc, count: rr?.[2] || '' }
-  }
+// The instance's own schemes are a live read of the setting, so a save in the
+// modal reaches the picker and the preview without refetching the chart.
+const customColorSchemes = computed(() => readColorSchemes($Settings))
 
-  const rr = []
-  for (const g in colorschemes) {
-    for (const sc in colorschemes[g]) {
-      const gn = splicer(sc)
-      rr.push({
-        id: `${g}.${sc}`,
-        name: `${capitalize(g)}: ${capitalize(gn.label)} (${gn.count} colors)`,
-        colors: [...colorschemes[g][sc]],
-      })
-    }
-  }
-  return rr
+const colorSchemes = computed(() =>
+  colorSchemeOptions(customColorSchemes.value, colorschemes, count =>
+    t('chart.colorLabel', { count }),
+  ),
+)
+
+const currentColorScheme = computed(() =>
+  colorSchemes.value.find(({ id }) => id === chart.value?.config?.colorScheme),
+)
+
+const canManageColorSchemes = computed(() => rbac.can('system/', 'settings.manage'))
+
+const showEditColorSchemeButton = computed(
+  () => canManageColorSchemes.value && isCustomScheme(currentColorScheme.value?.id),
+)
+
+const colorSchemeModalTitle = computed(() =>
+  t(`chart.colorScheme.custom.${colorSchemeModal.value.edit ? 'edit' : 'add'}`),
+)
+
+const colorSchemeIsSaveable = computed(() => {
+  const { name, colors } = colorSchemeModal.value.colorscheme
+  return !!name?.trim() && !!colors?.length && !colorSchemeModal.value.processing
 })
 
-function getSchemeColors(id) {
+function getSchemeName(id) {
   const scheme = colorSchemes.value.find(s => s.id === id)
-  return scheme?.colors || []
+  return scheme?.name || id
 }
 
 const editReport = computed({
@@ -454,6 +598,83 @@ const previewNeedsRecord = computed(() =>
 
 function onUpdated() {
   processing.value = false
+}
+
+function createColorScheme() {
+  colorSchemeModal.value = {
+    show: true,
+    processing: false,
+    edit: false,
+    colorscheme: newCustomScheme(),
+  }
+}
+
+function editColorScheme() {
+  const { id, name, colors = [] } = currentColorScheme.value
+
+  colorSchemeModal.value = {
+    show: true,
+    processing: false,
+    edit: true,
+    colorscheme: { id, name, colors: [...colors] },
+  }
+}
+
+function addColor() {
+  colorSchemeModal.value.colorscheme.colors.push('#000000')
+}
+
+function removeColor(index) {
+  colorSchemeModal.value.colorscheme.colors.splice(index, 1)
+}
+
+// The setting is global and the chart is not: saving a scheme persists the
+// palette and selects it, and the chart itself stays unsaved until the author
+// presses Save, the way every other edit on this screen behaves.
+async function writeColorSchemes(value, { selects, notification }) {
+  colorSchemeModal.value.processing = true
+
+  try {
+    await $SystemAPI.settingsUpdate({ values: [{ name: COLOR_SCHEMES_SETTING, value }] })
+    await $Settings?.fetch()
+
+    // Editing a scheme in place changes no part of the chart, so the preview's
+    // own watcher has nothing to fire on; where the selection does change it
+    // fires on its own, and asking for a second render races the first.
+    const reselected = chart.value.config.colorScheme !== selects
+    chart.value.config.colorScheme = selects
+    colorSchemeModal.value.show = false
+    $toast.toastSuccess(t(`notification.chart.colorScheme.${notification}.success`))
+
+    if (!reselected) {
+      chartPreview.value?.updateChart()
+    }
+  } catch (e) {
+    console.error('Failed to save color scheme:', e)
+    $toast.toastErrorHandler(t(`notification.chart.colorScheme.${notification}.failed`))(e)
+  } finally {
+    colorSchemeModal.value.processing = false
+  }
+}
+
+async function saveColorScheme() {
+  if (!colorSchemeIsSaveable.value) return
+
+  const scheme = colorSchemeModal.value.colorscheme
+
+  await writeColorSchemes(upsertColorScheme(customColorSchemes.value, scheme), {
+    selects: scheme.id,
+    notification: colorSchemeModal.value.edit ? 'update' : 'create',
+  })
+}
+
+async function deleteColorScheme() {
+  const { id } = colorSchemeModal.value.colorscheme
+
+  await writeColorSchemes(removeColorScheme(customColorSchemes.value, id), {
+    selects: chart.value?.config?.colorScheme === id ? undefined : chart.value?.config?.colorScheme,
+    notification: 'delete',
+  })
 }
 
 async function handleSubmit({ valid }) {

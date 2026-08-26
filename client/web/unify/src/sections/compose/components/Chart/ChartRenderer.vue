@@ -22,10 +22,11 @@
 </template>
 
 <script setup>
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, watch, inject, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
 import { chartConstructor } from '../../lib/charts'
+import { readColorSchemes } from '../../lib/chart-color-schemes'
 import { useModuleStore, useRecordStore } from '@planetcrust/human-vue'
 
 const { CChart } = components
@@ -51,6 +52,7 @@ const emit = defineEmits(['updated', 'drill-down'])
 const { t } = useI18n()
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
+const $Settings = inject('$Settings', undefined)
 
 const error = ref(undefined)
 const processing = ref(false)
@@ -188,6 +190,10 @@ async function updateChart() {
 
     // Add theme variables for chart styling
     data.themeVariables = getThemeVariables()
+
+    // The built-in palettes are compiled in; the ones an admin defines live in
+    // settings, and a chart naming one resolves to no palette without them.
+    data.customColorSchemes = readColorSchemes($Settings)
 
     const options = chart.makeOptions(data)
 

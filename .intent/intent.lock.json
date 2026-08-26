@@ -671,10 +671,15 @@
       "doc": "client/web/unify/src/sections/compose/components/Admin/Admin.intent.md",
       "t": "2026-08-25"
     },
-    "client/web/unify/src/sections/compose/components/Chart/ChartRenderer.vue": {
-      "h": "59e1cf1ff8f2",
+    "client/web/unify/src/sections/compose/components/Chart/ChartRenderer.colorScheme.test.js": {
+      "h": "152f83c2fcee",
       "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-26"
+    },
+    "client/web/unify/src/sections/compose/components/Chart/ChartRenderer.vue": {
+      "h": "084ce6bbf915",
+      "doc": "client/web/unify/src/sections/compose/components/Chart/Chart.intent.md",
+      "t": "2026-08-26"
     },
     "client/web/unify/src/sections/compose/components/Chart/Report/FunnelChart.vue": {
       "h": "4c1dd920bc61",
@@ -1161,6 +1166,16 @@
       "doc": "client/web/unify/src/sections/compose/compose.intent.md",
       "t": "2026-08-13"
     },
+    "client/web/unify/src/sections/compose/lib/chart-color-schemes.js": {
+      "h": "76c20730b032",
+      "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
+      "t": "2026-08-26"
+    },
+    "client/web/unify/src/sections/compose/lib/chart-color-schemes.test.js": {
+      "h": "34b8e581d049",
+      "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
+      "t": "2026-08-26"
+    },
     "client/web/unify/src/sections/compose/lib/charts.js": {
       "h": "cca127aebe3b",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
@@ -1236,10 +1251,15 @@
       "doc": "client/web/unify/src/sections/compose/stores/translator.intent.md",
       "t": "2026-08-25"
     },
+    "client/web/unify/src/sections/compose/views/Admin/Charts/Edit.colorScheme.test.js": {
+      "h": "897c31e0c43a",
+      "doc": "client/web/unify/src/sections/compose/views/Admin/Charts/Charts.intent.md",
+      "t": "2026-08-26"
+    },
     "client/web/unify/src/sections/compose/views/Admin/Charts/Edit.vue": {
-      "h": "53d60a78f15e",
+      "h": "03de33036934",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Charts/Edit.intent.md",
-      "t": "2026-08-17"
+      "t": "2026-08-26"
     },
     "client/web/unify/src/sections/compose/views/Admin/Charts/List.vue": {
       "h": "b0223d9e553a",
@@ -3386,10 +3406,15 @@
       "doc": "lib/js/src/shared/shared.intent.md",
       "t": "2026-07-23"
     },
-    "lib/js/src/shared/types/chart/helper.ts": {
-      "h": "216795b2a734",
+    "lib/js/src/shared/types/chart/helper.test.ts": {
+      "h": "43589b037fe5",
       "doc": "lib/js/src/shared/shared.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-26"
+    },
+    "lib/js/src/shared/types/chart/helper.ts": {
+      "h": "4da8fcb3d603",
+      "doc": "lib/js/src/shared/shared.intent.md",
+      "t": "2026-08-26"
     },
     "lib/js/src/system/events.ts": {
       "h": "0e120fd570bc",

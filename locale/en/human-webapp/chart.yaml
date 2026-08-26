@@ -6,6 +6,9 @@ colorScheme:
     modal:
       colors:
         label: Colors
+      delete: >-
+        Delete this color scheme? Charts that use it fall back to the default
+        palette.
       name:
         label: Name
   label: Color scheme

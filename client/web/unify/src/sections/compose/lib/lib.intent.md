@@ -10,6 +10,7 @@ touched-by:
   - client/web/unify/src/sections/compose/views
 tests:
   - client/web/unify/src/sections/compose/lib/record-filter.test.ts
+  - client/web/unify/src/sections/compose/lib/chart-color-schemes.test.js
 ---
 
 # Compose lib helpers
@@ -43,6 +44,16 @@ test in isolation.
   empty-operators and storage keys; keep it green when touching escaping).
 - `charts.js` — `chartConstructor(c)`: inspects report metric types to pick
   the concrete chart class (Funnel/Gauge/Radar, else base `compose.Chart`).
+- `chart-color-schemes.js` — the instance's own chart palettes, as against the
+  tables lib/js compiles in. Owns the one setting they live in
+  (`COLOR_SCHEMES_SETTING` = `ui.charts.colorSchemes`) and `readColorSchemes`,
+  which answers with a list whatever the setting holds or whether settings
+  loaded at all. `colorSchemeOptions` builds the picker's list — the instance's
+  own first, then every built-in family named `Family: Label (n colors)` by
+  `builtinColorSchemes` — and `upsertColorScheme`/`removeColorScheme` produce
+  the whole new setting value without touching the list handed in.
+  `isCustomScheme` names the substring lib/js selects a custom scheme by, and
+  `newCustomScheme` mints an id carrying it.
 - `resource-translations.ts` — applies fetched resource-translation sets
   in-place onto modules/fields/pages/layouts/namespaces (`apply*Translations`).
   Owns the resource-ID string formats (`compose:module/{ns}/{mod}`,
@@ -68,3 +79,9 @@ test in isolation.
   there, not by re-wrapping `eval`/`Function` locally.
 - Translation resource-ID/key formats must match what the server's resource
   translation endpoints emit; they are shared with the Translator components.
+- A custom colour scheme is recognised by `custom` appearing in its id, and the
+  decision is lib/js's (`getColorschemeColors`), not this module's —
+  `isCustomScheme` and `newCustomScheme` exist so the two cannot drift. An id
+  minted without it is looked up in the built-in tables and found nowhere.
+- The setting is written whole. Both mutators return a new array so a write that
+  fails leaves the picker showing what the server still holds.

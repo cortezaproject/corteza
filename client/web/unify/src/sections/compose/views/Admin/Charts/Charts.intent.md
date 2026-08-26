@@ -6,10 +6,12 @@ owner: fe
 depends-on:
   - lib/vue/src/stores/useChartStore.js
   - client/web/unify/src/sections/compose/lib/charts.js
+  - client/web/unify/src/sections/compose/lib/chart-color-schemes.js
   - client/web/unify/src/sections/compose/components/Chart
 touched-by:
   - client/web/unify/src/sections/compose/routes.js
-tests: []
+tests:
+  - client/web/unify/src/sections/compose/views/Admin/Charts/Edit.colorScheme.test.js
 ---
 
 # Charts admin
@@ -28,7 +30,10 @@ immediate visual preview.
 - Chart classes from `@planetcrust/human-js` (`compose.Chart` and subclasses);
   `../../../lib/charts` `chartConstructor` re-types raw API charts.
 - RBAC: namespace `canCreateChart`/`canExportCharts`, per-chart `can*` flags;
-  permission resource `corteza::compose:chart/<namespaceID>/<id|*>`.
+  permission resource `corteza::compose:chart/<namespaceID>/<id|*>`. Managing
+  colour schemes is the one thing here gated on a component operation instead —
+  `system/` `settings.manage`, because a scheme is a global setting.
+- `$SystemAPI.settingsUpdate` + `$Settings` for `ui.charts.colorSchemes`.
 
 ## Map
 
