@@ -102,6 +102,20 @@ func TestOpenAPIPublishesServerErrorPolicy(t *testing.T) {
 	}
 }
 
+func TestOpenAPIErrorExamplesMatchTheirErrorCodes(t *testing.T) {
+	document := NewOpenAPIDocument()
+	consumed := document["x-city311-consumed-operations"].(map[string]interface{})
+	workflow := consumed["workflow_action_execute"].(map[string]interface{})["operation"].(map[string]interface{})
+	response := workflow["responses"].(map[string]interface{})["401"].(map[string]interface{})
+	examples := response["content"].(map[string]interface{})["application/json"].(map[string]interface{})["examples"].(map[string]interface{})
+	for _, name := range []string{"invalid_client", "invalid_token"} {
+		body := examples[name].(map[string]interface{})["value"].(map[string]interface{})
+		if body["error"] != strings.ToUpper(name) {
+			t.Fatalf("workflow %s example has wrong error code: %#v", name, body)
+		}
+	}
+}
+
 func TestOpenAPIUsesStandardSchemaKeywordsAndResolvedReferences(t *testing.T) {
 	document := NewOpenAPIDocument()
 	raw, err := json.Marshal(document)

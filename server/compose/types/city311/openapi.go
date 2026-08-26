@@ -165,7 +165,7 @@ func openAPIResponses(contract ContractDocument, endpointName string, endpoint E
 		response := responseAt(responses, key, label)
 		response["x-city311-example"] = map[string]interface{}{"status": status, "body": nil}
 		if status != 204 && endpoint.ResponseSchema != "" && endpoint.ResponseSchema != "empty_response" {
-			body := responseExampleBody(contract, endpointName, status, exampleForSchema(contract, endpoint.ResponseSchema, map[string]bool{}))
+			body := responseExampleBody(contract, endpointName, status, "", exampleForSchema(contract, endpoint.ResponseSchema, map[string]bool{}))
 			response["x-city311-example"] = map[string]interface{}{"status": status, "body": body}
 			content := responseContent(response, map[string]interface{}{"$ref": schemaRef(endpoint.ResponseSchema)})
 			examples := content["examples"].(map[string]interface{})
@@ -177,7 +177,7 @@ func openAPIResponses(contract ContractDocument, endpointName string, endpoint E
 		status := endpoint.ErrorStatuses[code]
 		key := strconv.Itoa(status)
 		response := responseAt(responses, key, code)
-		body := responseExampleBody(contract, endpointName, status, map[string]interface{}{
+		body := responseExampleBody(contract, endpointName, status, code, map[string]interface{}{
 			"error": code, "message": humanizeError(code), "retryable": status >= 500,
 		})
 		response["x-city311-example"] = map[string]interface{}{"status": status, "body": body}
@@ -189,11 +189,18 @@ func openAPIResponses(contract ContractDocument, endpointName string, endpoint E
 	return responses
 }
 
-func responseExampleBody(contract ContractDocument, endpointName string, status int, fallback interface{}) interface{} {
+func responseExampleBody(contract ContractDocument, endpointName string, status int, errorCode string, fallback interface{}) interface{} {
 	for _, name := range sortedMockNames(contract.Mocks) {
 		mock := contract.Mocks[name]
 		if mock.Endpoint == endpointName && mock.Role == "response" && mock.HTTPStatus == status {
-			return normalizedJSON(mock.Body)
+			body := normalizedJSON(mock.Body)
+			if errorCode != "" {
+				bodyMap, ok := body.(map[string]interface{})
+				if !ok || bodyMap["error"] != errorCode {
+					continue
+				}
+			}
+			return body
 		}
 	}
 	return fallback

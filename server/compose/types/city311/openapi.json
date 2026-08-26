@@ -13064,8 +13064,8 @@
                   },
                   "validation_error": {
                     "value": {
-                      "error": "EXPIRED_RESET_TOKEN",
-                      "message": "The reset token has expired.",
+                      "error": "VALIDATION_ERROR",
+                      "message": "validation error.",
                       "retryable": false
                     }
                   }
@@ -13078,8 +13078,8 @@
             "description": "EXPIRED RESET TOKEN",
             "x-city311-example": {
               "body": {
-                "error": "EXPIRED_RESET_TOKEN",
-                "message": "The reset token has expired.",
+                "error": "VALIDATION_ERROR",
+                "message": "validation error.",
                 "retryable": false
               },
               "status": 422
@@ -16778,8 +16778,8 @@
                   },
                   "version_conflict": {
                     "value": {
-                      "error": "IDEMPOTENCY_CONFLICT",
-                      "message": "The idempotency key has already been used with different content.",
+                      "error": "VERSION_CONFLICT",
+                      "message": "version conflict.",
                       "retryable": false
                     }
                   }
@@ -16792,8 +16792,8 @@
             "description": "IDEMPOTENCY CONFLICT",
             "x-city311-example": {
               "body": {
-                "error": "IDEMPOTENCY_CONFLICT",
-                "message": "The idempotency key has already been used with different content.",
+                "error": "VERSION_CONFLICT",
+                "message": "version conflict.",
                 "retryable": false
               },
               "status": 409
@@ -21807,10 +21807,8 @@
                   },
                   "idempotency_conflict": {
                     "value": {
-                      "current_version": 4,
-                      "error": "VERSION_CONFLICT",
-                      "failing_request_id": "case-7c58d2",
-                      "message": "The resource was updated by another operation.",
+                      "error": "IDEMPOTENCY_CONFLICT",
+                      "message": "idempotency conflict.",
                       "retryable": false
                     }
                   },
@@ -28039,7 +28037,7 @@
                   },
                   "invalid_token": {
                     "value": {
-                      "error": "INVALID_CLIENT",
+                      "error": "INVALID_TOKEN",
                       "message": "The authenticated workflow action failed.",
                       "retryable": false
                     }
@@ -28067,7 +28065,7 @@
             "description": "INVALID CLIENT",
             "x-city311-example": {
               "body": {
-                "error": "INVALID_CLIENT",
+                "error": "INVALID_TOKEN",
                 "message": "The authenticated workflow action failed.",
                 "retryable": false
               },
