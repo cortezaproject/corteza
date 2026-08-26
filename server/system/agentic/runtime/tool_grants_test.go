@@ -177,3 +177,21 @@ func TestExpandToolGrantsDoesNotInheritOverAConfiguredAgent(t *testing.T) {
 
 	require.Equal(t, []string{"compose_record_lookup"}, namesOf(out))
 }
+
+// "All data tools, but ask before deleting" is written as a group grant plus a
+// named entry. Expanding the group first would claim the name and take its mode
+// with it, leaving the override with no effect.
+func TestExpandToolGrantsPrefersTheNamedEntry(t *testing.T) {
+	out := expandToolGrants(grantingAgent(
+		types.AgentAccessTool{Group: "usage", MaxRisk: "write"},
+		types.AgentAccessTool{Name: "compose_record_create", Permission: "deny"},
+	), grantRegistry())
+
+	modes := map[string]string{}
+	for _, e := range out.Access.Tools {
+		modes[e.Name] = e.Permission
+	}
+
+	require.Equal(t, "deny", modes["compose_record_create"], "the named entry must win")
+	require.Equal(t, "always", modes["compose_record_lookup"], "the rest still comes from the group")
+}

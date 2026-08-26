@@ -52,12 +52,20 @@ func expandToolGrants(agent *types.Agent, reg MCPClient) *types.Agent {
 	expanded := make([]types.AgentAccessTool, 0, len(out.Access.Tools))
 	seen := make(map[string]bool, len(out.Access.Tools))
 
+	// Named entries first, whatever order they were written in: an entry that
+	// names a tool is the more specific statement about it, and a group grant
+	// expanding over it would silently take its permission mode with it —
+	// which is how "all data tools, but ask before delete" is written.
+	for _, t := range out.Access.Tools {
+		if t.Group != "" || seen[t.Name] {
+			continue
+		}
+		seen[t.Name] = true
+		expanded = append(expanded, t)
+	}
+
 	for _, t := range out.Access.Tools {
 		if t.Group == "" {
-			if !seen[t.Name] {
-				seen[t.Name] = true
-				expanded = append(expanded, t)
-			}
 			continue
 		}
 
