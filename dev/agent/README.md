@@ -26,7 +26,7 @@ Self-healing: re-running bootstrap repairs a misconfigured client (PUT with
 the full desired config) and re-caches the secret from the expose endpoint.
 
 Requires: `curl`, `python3` (no jq dependency), a built server binary in
-`server/build/` (gin's `make watch` provides one).
+`server/build/` (`make watch` provides one).
 
 Which server it reaches is not typed anywhere. `stack.sh` resolves it from the
 checkout's own `server/.env` and `.env.e2e`, so a worktree's scripts answer for
@@ -34,7 +34,7 @@ the worktree; every script here sources it through `common.sh`, and the node
 ones through `stack.mjs`. Print it to see where a checkout points:
 
 ```sh
-dev/agent/stack.sh   # HUMAN_API · HUMAN_BASE · HUMAN_AUTH · HUMAN_WEBAPP · HUMAN_GIN
+dev/agent/stack.sh   # HUMAN_API · HUMAN_BASE · HUMAN_AUTH · HUMAN_WEBAPP
 ```
 
 An exported `HUMAN_API` or `HUMAN_WEBAPP` still overrides it, but nothing in
@@ -208,17 +208,15 @@ DOM as it is; use a visibility assertion when visibility is the question.
   `/compose` (`sections/compose/index.js` prefixes them): a page is
   `/compose/namespace/<slug>/pages/<pageID>`, addressed by namespace **slug**,
   not `/compose/ns/…`.
-- **An edit that lands mid-build is skipped for good.** gin rebuilds and
-  respawns on its own on any `.go` write — its proxy port is not involved, and
-  curling it does not start a build — but it stamps its watch clock _after_ the
-  build returns, so anything written during those ~15s already looks old and is
-  never picked up. It bites hardest when editing a file repeatedly in quick
-  succession: mutation-testing, say, where a live check then reports behaviour
-  matching a mutation you already reverted. Cost an investigation once.
-  `dev_server_status` with `wait` blocks until the running process's start time
-  beats your edit; when it times out, re-saving the file is the only thing that
-  gets that edit built, and on the shared primary that restart is the human's to
-  make.
+- **A build is ~15s, and the old server serves through it.** `make watch`
+  rebuilds and restarts on any `.go` write, and no edit is dropped however fast
+  they land — but for those seconds the API answers with the previous build.
+  That bites hardest when editing a file repeatedly in quick succession:
+  mutation-testing, say, where a live check reports behaviour matching a
+  mutation you already reverted. Cost an investigation once. `dev_server_status`
+  with `wait` blocks until the running process's start time beats your edit; a
+  timeout means the build failed, and `dev_server_logs` has the compiler
+  output.
 - **Vite does not pick up edits under `lib/`.** The webapp resolves
   `@planetcrust/human-js` / `human-vue` to their TypeScript sources, but the
   running dev server keeps serving the transform it made at startup — a
@@ -280,7 +278,7 @@ worktree.sh rm   NAME                stop, drop the DB, remove the checkout
 ```
 
 Ports come from the slot, so two worktrees cannot collide — API `1043+slot*100`,
-gin `3001+slot*100`, vite `5173+slot`. The primary is slot 0 and is never
+vite `5173+slot`. The primary is slot 0 and is never
 reassigned. `new` writes `server/.env`, `public/config.js` and `.env.e2e`
 pointed at those ports; all three are gitignored, so nothing shows up in the
 worktree's `git status`, and they are what `stack.sh` reads back — so a
@@ -327,9 +325,8 @@ What catches people out:
   with it. `new` warns and names the count.
 - **First `up` is minutes, not seconds** — `pnpm install` and a Go build. After
   that it is seconds.
-- **gin rebuilds and respawns on its own**, here as on the primary — nothing
-  needs to touch its proxy port. What it drops is an edit that lands during a
-  build; judge by the process start time, as on the primary.
+- **The server rebuilds and restarts itself**, here as on the primary. Judge by
+  the process start time, as on the primary.
 - **The shared token works against every worktree** — same JWT secret, and the
   cloned DB has the same user IDs. No re-bootstrap.
 - **`rm` refuses while the checkout is dirty.** It will not discard your work.

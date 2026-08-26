@@ -65,7 +65,7 @@ thing.
 Two long-running processes:
 
 ```sh
-cd server && make watch            # API + gin live-reload
+cd server && make watch            # API, rebuilt and restarted on every edit
 cd client/web/unify && pnpm dev    # webapp
 ```
 
@@ -78,15 +78,15 @@ and step 3 is about to create `agent@local.dev`, which would take that slot. For
 a login made later:
 
 ```sh
-cd server && ./build/gin-bin --env-file .env roles useradd super-admin you@example.tld
+cd server && ./build/dev-bin --env-file .env roles useradd super-admin you@example.tld
 ```
 
-One thing about `make watch` worth knowing before it confuses you: gin runs with
-`--immediate`, so it rebuilds **and respawns on its own** on any `.go` write —
-the webapp bypassing its proxy port changes nothing, and curling that port does
-not start a build. What gin drops is an edit that lands _while_ a build is
-running: it stamps its watch clock after the build returns, so that file already
-looks old and is skipped for good. Re-saving the file is what gets it built.
+`make watch` runs `server/cmd/devwatch`, which rebuilds and restarts the server
+on any `.go` write. There is no proxy and no second port: nothing has to make a
+request to provoke a build, and an edit that lands _during_ one is built by the
+cycle after it. A build takes ~15s, and the previous server keeps serving until
+the new binary is ready — so the check that matters is whether the running
+process started after your edit, which `dev_server_status` reports on.
 
 ## 3. Provision the agent identities
 
@@ -258,7 +258,7 @@ dev/agent/worktree.sh gc           # find leftovers; --reap removes them
 
 `new` writes that slot's `server/.env`, `public/config.js` and `.env.e2e` for
 you, so a worktree needs no `make setup`. Ports derive from the slot (API
-`1043+slot*100`, gin `3001+slot*100`, vite `5173+slot`), the primary is slot 0,
+`1043+slot*100`, vite `5173+slot`), the primary is slot 0,
 and nothing cleans itself up when a terminal closes: only `rm` and `land`
 remove anything.
 
@@ -267,7 +267,7 @@ worktree reaches that worktree — `dev/agent/stack.sh` is the one resolver, and
 printing it is the fastest way to see which stack a checkout is pointed at:
 
 ```sh
-dev/agent/stack.sh    # HUMAN_API · HUMAN_BASE · HUMAN_AUTH · HUMAN_WEBAPP · HUMAN_GIN
+dev/agent/stack.sh    # HUMAN_API · HUMAN_BASE · HUMAN_AUTH · HUMAN_WEBAPP
 ```
 
 ## The gotchas that cost the most time

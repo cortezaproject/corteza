@@ -47,7 +47,7 @@ When a good structure is built live (via API or UI), capture it back into a
 fixture instead of rebuilding next time:
 
 ```sh
-cd server && ./build/gin-bin --env-file .env export compose-namespace <slug> 2>&1
+cd server && ./build/dev-bin --env-file .env export compose-namespace <slug> 2>&1
 ```
 
 Review the YAML, place it under `dev/fixtures/<slug>/`, commit.

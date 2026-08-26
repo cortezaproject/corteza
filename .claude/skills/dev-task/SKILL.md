@@ -196,11 +196,10 @@ Review means exercising the claims, not reading the diff.
 - **Prove the environment is running the fix before you believe the re-run.**
   `dev_server_status` decides staleness from the running process's start time,
   and its `wait` argument blocks until that start time beats your edit — use it
-  rather than polling. gin rebuilds and respawns on its own; its proxy port is
-  not involved and poking it is not a remedy. What gin drops is an edit that
-  landed mid-build, which is skipped for good — re-saving the file is the only
-  thing that gets it built, and on the shared primary that restart is the
-  human's to make.
+  rather than polling. The watcher rebuilds and restarts on its own and cannot
+  miss a write, so waiting is the whole remedy; do nothing to the server. A wait
+  that times out means the build failed — `dev_server_logs` has the compiler
+  output, and the previous process is still serving.
 - Run `/dev-change`'s verify sequence: tests, format, intent drift, affected
   specs.
 - **Check against the step-6 criteria**, one at a time, out loud.
