@@ -517,12 +517,14 @@
                         :description="$t('agent.editor.taqs.help')"
                       />
 
-                      <CInputTAQ
-                        v-model="taqPickerSelection"
-                        :placeholder="$t('agent.editor.taqs.selectPlaceholder')"
-                        @update:model-value="onTaqPickerSelect"
-                        :disabled="!canEdit"
-                      />
+                      <div class="max-w-lg">
+                        <CInputTAQ
+                          v-model="taqPickerSelection"
+                          :placeholder="$t('agent.editor.taqs.selectPlaceholder')"
+                          @update:model-value="onTaqPickerSelect"
+                          :disabled="!canEdit"
+                        />
+                      </div>
 
                       <CFormItemList
                         v-if="agent.access.taqs?.length"
@@ -553,12 +555,14 @@
                         :description="$t('agent.editor.workflows.help')"
                       />
 
-                      <CInputWorkflow
-                        v-model="workflowPickerSelection"
-                        :placeholder="$t('agent.editor.workflows.selectPlaceholder')"
-                        @update:model-value="onWorkflowPickerSelect"
-                        :disabled="!canEdit"
-                      />
+                      <div class="max-w-lg">
+                        <CInputWorkflow
+                          v-model="workflowPickerSelection"
+                          :placeholder="$t('agent.editor.workflows.selectPlaceholder')"
+                          @update:model-value="onWorkflowPickerSelect"
+                          :disabled="!canEdit"
+                        />
+                      </div>
 
                       <CFormItemList
                         v-if="agent.access.workflows?.length"
