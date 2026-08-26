@@ -15,6 +15,7 @@ touched-by:
 tests:
   - client/web/unify/src/sections/compose/views/Pages/RecordView.layout.test.js
   - client/web/unify/src/sections/compose/views/Pages/RecordView.title.test.js
+  - client/web/unify/src/sections/compose/views/Pages/RecordView.admin-tools.test.js
 ---
 
 # Record View (public record page)
@@ -37,11 +38,12 @@ navigation via query params instead of route params).
 - `resolveLayout()` picks the layout once the record it needs is resolved, and re-runs on initial load, on a same-page record swap, on view/edit/create mode changes, and after save — but never on field-value edits, since a layout swap remounts the block set and would discard in-progress input. An explicit `?layoutID=` (e.g. from a navigation block) wins only if that layout's own condition/roles pass, else selection falls back to normal order.
 - Block visibility, unlike layout, is reactive to record values: re-evaluated (debounced 300ms) on value edits as well as mode/record changes.
 - Provides `recordViewContext` (mode/record/isNew/isSaving) that RecordBlock consumes.
+- Topbar links into the admin panel, each on the namespace's `manage` plus the right of the resource it opens (see `compose.intent.md`): module edit on the record module's `canUpdateModule`, builder and page edit on the page's `canUpdatePage`. The two are read separately — a user who may edit the module but not the page gets one button, not both, and neither stands in for the other.
 - The displayed title is the page's, unless the active layout sets `config.useTitle` — then its `meta.title` is interpolated against the open record (`${record.values.x}`, `${recordID}`, `${ownerID}`, `${userID}`), so one page can title itself per layout. Any failure to evaluate falls back to the page title rather than surfacing a broken string.
 
 ## Routes
 
-`page.record` at `pages/:pageID/records/:recordID` under `namespace.view`. Non-record pages redirect to `page`. Editors get topbar links to module edit, builder, and page edit.
+`page.record` at `pages/:pageID/records/:recordID` under `namespace.view`. Non-record pages redirect to `page`.
 
 ## When changing this
 

@@ -30,6 +30,8 @@ screens render as its router children.
 - `View.vue` additionally preloads module, page, chart, and page-layout stores.
 - RBAC: section-level `compose/` `namespace.create`/`grant` checks plus per-item
   `can*` flags; permission resource `corteza::compose:namespace/<id|*>`.
+  `canManageNamespace` is the one that opens the namespace's admin panel, and
+  `View.vue` guards the `admin.*` routes with it (see `compose.intent.md`).
 
 ## Map
 

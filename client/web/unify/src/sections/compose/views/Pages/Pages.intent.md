@@ -13,6 +13,8 @@ touched-by:
   - client/web/unify/src/sections/compose/routes.js
 tests:
   - client/web/unify/src/sections/compose/views/Pages/RecordView.layout.test.js
+  - client/web/unify/src/sections/compose/views/Pages/View.admin-tools.test.js
+  - client/web/unify/src/sections/compose/views/Pages/RecordView.admin-tools.test.js
 ---
 
 # Public page views
@@ -41,9 +43,16 @@ produces — they never define pages, only display them.
 - `RecordView.layout.test.js` — layout-selection/block-visibility ordering:
   each re-resolve trigger, the save case, and that block conditions react to
   value edits while layout does not.
+- `View.admin-tools.test.js` / `RecordView.admin-tools.test.js` — which topbar
+  links into the admin panel each screen offers, against the namespace's
+  `manage` and the page's and module's own rights.
 
 ## When changing this
 
+- These screens are the public face, but they carry the shortcuts into the
+  admin panel. Those are gated on the namespace's `manage` on top of the
+  resource's own right, per `compose.intent.md` — a page's update right alone
+  must never open the builder.
 - Block positioning contract: layout blocks intersected with page block
   definitions; a block present in the layout but missing from the page is
   dropped. `meta.hidden` blocks stay in the list (Grid/tabs need them) while

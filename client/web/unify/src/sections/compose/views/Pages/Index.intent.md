@@ -21,7 +21,7 @@ module and page.
 ## UX capabilities
 
 - Auto-redirects (replace) to the first visible, root-level, non-record page by weight as soon as one exists in the store — reactive, so it also fires when pages load in later.
-- Onboarding screen otherwise: "create module" → `admin.modules` and "create page" → `admin.pages`, each shown only with the matching `canCreateModule` / `canCreatePage` flag.
+- Onboarding screen otherwise: "create module" → `admin.modules` and "create page" → `admin.pages`, each shown only with the matching `canCreateModule` / `canCreatePage` flag _and_ the namespace's `manage` (see `compose.intent.md`) — both land in the admin panel, which without it would bounce straight back here.
 - While a home page exists nothing is rendered (prevents onboarding flash before redirect).
 
 ## Routes

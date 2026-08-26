@@ -6,7 +6,8 @@ owner: fe
 depends-on: []
 touched-by:
   - client/web/unify/src/sections/compose/sidebar/ComposeSidebar.vue
-tests: []
+tests:
+  - client/web/unify/src/sections/compose/components/CSidebarNavigation.admin.test.js
 ---
 
 # Compose components
@@ -31,7 +32,7 @@ sidebar files.
 - Reminders — reminder sidebar/list/edit/toast components over the reminder store
 - Translator — resource-translation button/dialog/form trio over the translator store
 - CSidebarNamespaceSwitcher.vue — namespace Select for the compose sidebar; navigates on switch, links to namespace manage/edit
-- CSidebarNavigation.vue — sidebar search box plus two trees rendered together, each when it has items: the public page tree and the admin nav (modules/pages/charts). The current route only changes the search placeholder, never which tree shows
+- CSidebarNavigation.vue — sidebar search box plus two trees: the public page tree, and below it the **admin panel** — a headed section over the module/page/chart nav, shown only to a user the namespace grants `manage` (see `compose.intent.md`). The current route only changes the search placeholder, never which tree shows. Both trees sit in one scroll region so the sidebar never carries a second scrollbar, and the admin panel is held at its foot: it fills down to the bottom when there are few pages, and stops doing so once it is taller than the sidebar itself
 - CSidebarNamespaceNav.vue — the namespace editor's sidebar: a local name/short-name filter over every listable namespace, disabled ones included and badged, each row opening that namespace's editor. The "Namespaces" header is the link to the chooser (chevron expands, label navigates), so no separate entry for it. Disabled namespaces belong here precisely because this is where they get configured — the switcher, which navigates into a namespace, filters them out
 
 ## Data touched
@@ -39,6 +40,9 @@ sidebar files.
 Sidebar files read namespace, page, and module stores from `@planetcrust/human-vue`.
 The admin nav builds `_id/_parentId/_label/_route` items; the page tree instead
 points the shared tree at the page shape via `*-key` props (`pageID`/`selfID`/`title`).
+CSidebarNavigation resolves its namespace from the store by the route's slug
+(`getByUrlPart`) rather than a prop — the sidebar is a sibling of the router view,
+so the namespace `Namespace/View.vue` provides does not reach it.
 
 ## When changing this
 

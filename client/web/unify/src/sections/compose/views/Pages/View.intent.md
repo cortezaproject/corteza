@@ -12,6 +12,7 @@ touched-by:
   - client/web/unify/src/sections/compose/routes.js
 tests:
   - client/web/unify/src/sections/compose/views/Pages/View.title.test.js
+  - client/web/unify/src/sections/compose/views/Pages/View.admin-tools.test.js
 ---
 
 # Page View (public, non-record)
@@ -25,7 +26,7 @@ the page's blocks accordingly, and hide blocks whose visibility rules fail.
 ## UX capabilities
 
 - Blocks render through the shared `Grid`; layout selection honours an explicit `?layoutID=` (e.g. from a navigation block) when that layout's own condition/roles pass, else falls back to normal order; with no matching layout the page's own block positions are used as fallback.
-- Editors (`canUpdatePage`) get topbar shortcuts to the page builder and page editor; a translator button appears per resource-translation settings.
+- Topbar shortcuts to the page builder and page editor need the namespace's `manage` as well as the page's `canUpdatePage` — they are admin-panel screens (see `compose.intent.md`). The same pair gates the empty-state "add a layout" button. A translator button appears per resource-translation settings, independently of either.
 - Distinct empty states for "page has no blocks" and "page not found".
 - The topbar shows the page title, unless the chosen layout sets `config.useTitle` and its own `meta.title` — that title is interpolated against the signed-in user (`${user.name}`, `${userID}`). There is no record here, so a title reading one, an empty one, or one that will not evaluate leaves the page title standing.
 

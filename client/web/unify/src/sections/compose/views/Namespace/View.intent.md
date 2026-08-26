@@ -28,6 +28,7 @@ view. Every nested compose screen depends on the context established here.
 
 - Resolves slug-or-ID; unknown namespaces toast and bounce to `root`.
 - Disabled namespaces: admins may still use `admin.*` routes; users with update rights are redirected to the namespace editor; everyone else to `root`.
+- Guards the namespace's admin panel: on any `admin.*` route, a user the namespace does not grant `manage` is sent to that namespace's pages (see `compose.intent.md`). The guard watches the route as well as the load, so it catches a click from inside the namespace and not only a cold arrival.
 - Every one of those bounces replaces the history entry rather than pushing one, so Back cannot return to a URL this view refuses and be bounced again.
 - Clears then preloads module/page/chart/page-layout stores in parallel on every namespace switch — children may assume the stores are populated.
 - Provides `$namespace` and `$pageStore` for deeply nested consumers (e.g. record field editors), passes `:namespace` as a prop to the child view, and mounts the global `RecordModal`.

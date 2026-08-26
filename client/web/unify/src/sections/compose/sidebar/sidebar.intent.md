@@ -9,7 +9,8 @@ depends-on:
   - client/web/unify/src/sections/compose/components/CSidebarNamespaceNav.vue
 touched-by:
   - client/web/unify/src/sections/compose/index.js
-tests: []
+tests:
+  - client/web/unify/src/sections/compose/sidebar/ComposeSidebar.scroll.test.js
 ---
 
 # Compose sidebar
@@ -25,7 +26,7 @@ one sidebar body the shell provides.
 
 - `ComposeSidebar.vue` — thin column composition in two shapes, chosen by
   `route.meta.sidebar`: inside a namespace, CSidebarNamespaceSwitcher on top
-  and CSidebarNavigation (search + page tree + admin nav) filling the rest; on
+  and CSidebarNavigation (search + page tree + admin panel) filling the rest; on
   the namespace editor, CSidebarNamespaceNav alone — the page tree needs a
   namespace, which the editor has not entered.
 
@@ -33,6 +34,11 @@ one sidebar body the shell provides.
 
 - Keep it a pure composition — behavior belongs in the components under
   `components/` (owned by their own doc); this file only picks between them.
+- The sidebar scrolls in one place. The namespace switcher and the nav's search
+  box stay put; everything below them — page tree and admin panel together —
+  scrolls as one. The shell (`CSidebar`) already scrolls what this body hands
+  it, so a child that also claims the full height gives the sidebar two
+  scrollbars; children take the height their siblings leave.
 - The choice reads route meta, never route names, so a rename cannot silently
   swap sidebars. Routes with `meta.hideSidebar` (the namespace list) suppress
   the sidebar entirely; this component need not handle that case.

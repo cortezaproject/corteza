@@ -42,6 +42,25 @@ realtime socket, shared stores) to the unify shell.
   panel. Reminders are a compose feature by design — they do not move to the
   shell.
 
+## Namespace administration
+
+A namespace's modules, pages and charts are configured in its **admin panel** —
+the `admin.*` routes and the sidebar section that leads to them. The server has
+one op for it, `compose:namespace` `manage` ("Access to namespace admin panel"),
+and it is the only thing that opens the panel. Every way in is gated on it: the
+sidebar's admin section, the `admin.*` routes themselves, the topbar shortcuts
+on public pages, and the onboarding buttons on an empty namespace.
+
+Per-resource rights (`canUpdatePage`, `canUpdateModule`) decide **which** of
+those shortcuts is offered, never **whether** the panel is reachable — a user
+who may edit a page but holds no `manage` has no way into the builder. The gate
+withholds rather than disables: everything behind it refuses on arrival, and an
+offer that refuses is worse than one never made.
+
+Hiding the entrances is not the gate. `Namespace/View.vue` guards the routes
+themselves, because a bookmark, a pasted link or a namespace switch all arrive
+without ever touching the sidebar.
+
 ## Map
 
 - `ComposeHost.vue` — section layout: RouterView + compose-only overlays
