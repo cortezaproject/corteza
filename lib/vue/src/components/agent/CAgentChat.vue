@@ -406,6 +406,10 @@ const approvedTools = ref<Record<string, string[]>>({})
 // What the agent stopped to ask about, if anything.
 const pending = ref<{ tool: string; risk?: string; agentID: string } | null>(null)
 
+function awaitingApproval(res: any) {
+  return res?.status === 'awaiting_approval'
+}
+
 function approvalKey(agentID: string, conversationID?: string) {
   return `${agentID}:${conversationID || 'new'}`
 }
@@ -443,8 +447,12 @@ async function runAgent(currentAgentID: string, input: string) {
       agentStore.setConversationID(currentAgentID, res.conversationID)
     }
 
-    const outputContent =
-      res?.output || (typeof res === 'string' ? res : res?.response?.text || JSON.stringify(res))
+    // A run that stopped to ask usually has nothing to say yet, and the
+    // fallback below would print the whole response object as the agent's
+    // answer. Only fall back when the run actually finished.
+    const outputContent = awaitingApproval(res)
+      ? res?.output
+      : res?.output || (typeof res === 'string' ? res : res?.response?.text || JSON.stringify(res))
 
     if (outputContent) {
       agentStore.addMessage(currentAgentID, { role: 'agent', content: outputContent })
