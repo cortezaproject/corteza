@@ -130,7 +130,7 @@ func addContractEndpoints(document *ContractDocument) {
 
 func addConsumedEndpoints(document *ContractDocument) {
 	document.Endpoints["mapping_geocode"] = EndpointContract{
-		Method: "POST", Path: "/api/v1/geocode", Direction: EndpointConsumedByCRM,
+		Method: "POST", Path: "/internal/integrations/mapping/geocode", Direction: EndpointConsumedByCRM,
 		Authentication: authenticationContract("MAP_API_TOKEN supplied only to server runtime"), RequiredHeaders: []string{"Authorization", "Content-Type"},
 		RequestSchema: "geocode_request", ResponseSchema: "geocode_response", SuccessStatuses: map[string]int{"success": 200},
 		ErrorStatuses: map[string]int{string(ErrorAddressNotFound): 404, string(ErrorMapUnauthenticated): 401, string(ErrorMapTemporarilyUnavailable): 503},

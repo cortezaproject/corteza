@@ -107,6 +107,9 @@ func TestCivicWorksCallbackAndLocationRules(t *testing.T) {
 	if contract.Endpoints["workflow_action_execute"].Direction != EndpointConsumedByCRM || contract.Endpoints["mapping_geocode"].Direction != EndpointConsumedByCRM {
 		t.Fatal("fixture endpoints called by CRM must be marked consumed_by_crm")
 	}
+	if contract.Endpoints["mapping_geocode"].Path != "/internal/integrations/mapping/geocode" {
+		t.Fatal("mapping geocode must use a server-only path separate from the browser proxy")
+	}
 
 	for serviceType, required := range map[string]bool{
 		"TREE_MAINTENANCE": true, "POTHOLE": true, "MISSED_TRASH": true, "GENERAL_INQUIRY": false,
@@ -115,6 +118,18 @@ func TestCivicWorksCallbackAndLocationRules(t *testing.T) {
 		if !present || rule.LocationRequired != required || rule.ConfirmedCoordinatesRequired != required {
 			t.Errorf("incorrect location rule for %s: %#v", serviceType, rule)
 		}
+	}
+}
+
+func TestProvidedAndConsumedEndpointPathsDoNotCollide(t *testing.T) {
+	contract := NewContractDocument()
+	seen := map[string]string{}
+	for name, endpoint := range contract.Endpoints {
+		key := endpoint.Method + " " + endpoint.Path
+		if previous, present := seen[key]; present && previous != endpoint.Direction {
+			t.Fatalf("endpoint %s collides with %s at %s", name, previous, key)
+		}
+		seen[key] = endpoint.Direction
 	}
 }
 

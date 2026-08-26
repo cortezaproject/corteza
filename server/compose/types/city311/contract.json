@@ -1929,7 +1929,7 @@
     },
     "mapping_geocode": {
       "method": "POST",
-      "path": "/api/v1/geocode",
+      "path": "/internal/integrations/mapping/geocode",
       "direction": "consumed_by_crm",
       "authentication": {
         "mode": "server_api_token",

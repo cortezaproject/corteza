@@ -27886,7 +27886,7 @@
         ],
         "summary": "mapping geocode",
         "tags": [
-          "geocode"
+          "internal"
         ],
         "x-city311-authentication": {
           "mode": "server_api_token",
@@ -27894,7 +27894,7 @@
         },
         "x-city311-direction": "consumed_by_crm"
       },
-      "path": "/api/v1/geocode"
+      "path": "/internal/integrations/mapping/geocode"
     },
     "workflow_action_execute": {
       "method": "POST",
