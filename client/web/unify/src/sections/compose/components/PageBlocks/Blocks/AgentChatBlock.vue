@@ -50,7 +50,31 @@ function contextProvider() {
       ctx.recordValues = { ...props.record.values }
     }
   }
+
+  const units = recordUnits()
+  if (Object.keys(units).length) ctx.recordUnits = units
+
   return ctx
+}
+
+// What the module puts in front of or after a number, keyed by field — the
+// same shape compose_record_report returns for an aggregate.
+//
+// A value reaches the agent as the bare string "52", which says nothing about
+// the currency the page is printing beside it; asked what the card was worth,
+// an agent answered in euros off a field prefixed "$".
+function recordUnits() {
+  const out = {}
+  for (const f of props.record?.module?.fields || []) {
+    const prefix = f.options?.prefix
+    const suffix = f.options?.suffix
+    if (!prefix && !suffix) continue
+    out[f.name] = {
+      ...(prefix ? { prefix } : {}),
+      ...(suffix ? { suffix } : {}),
+    }
+  }
+  return out
 }
 
 const chatRef = ref(null)
