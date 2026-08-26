@@ -130,6 +130,20 @@
                         </span>
                       </div>
 
+                      <Button
+                        v-if="toolOn(tool)"
+                        icon="pi pi-cog"
+                        severity="secondary"
+                        text
+                        rounded
+                        size="small"
+                        class="shrink-0"
+                        :disabled="disabled"
+                        :aria-label="$t('agent.editor.tools.dialog.settings.label')"
+                        :data-testid="`configure-${tool.name}`"
+                        @click="toggleConfiguring(tool.name)"
+                      />
+
                       <!-- Blocked is the off state, so the row shows nothing until it
                      is reached for. Three segments carry the whole decision:
                      a second control for on and off would only disagree. -->
@@ -157,20 +171,6 @@
                           </template>
                         </SelectButton>
                       </div>
-
-                      <Button
-                        v-if="toolOn(tool)"
-                        icon="pi pi-cog"
-                        severity="secondary"
-                        text
-                        rounded
-                        size="small"
-                        class="shrink-0"
-                        :disabled="disabled"
-                        :aria-label="$t('agent.editor.tools.dialog.settings.label')"
-                        :data-testid="`configure-${tool.name}`"
-                        @click="toggleConfiguring(tool.name)"
-                      />
                     </div>
 
                     <!-- A tool's own settings: the note the model reads before
