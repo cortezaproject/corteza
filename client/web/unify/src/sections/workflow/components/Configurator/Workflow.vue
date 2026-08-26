@@ -1,6 +1,6 @@
 <template>
-  <div v-if="localWorkflow" class="flex flex-col gap-4">
-    <div v-if="workflow.workflowID && workflow.workflowID !== '0'" class="flex gap-2 px-3 pt-3">
+  <div v-if="localWorkflow" class="flex flex-col gap-4 p-3">
+    <div v-if="workflow.workflowID && workflow.workflowID !== '0'" class="flex gap-2">
       <import
         data-test-id="button-import-workflow"
         :disabled="importProcessing"
@@ -26,7 +26,7 @@
       />
     </div>
 
-    <div class="flex flex-col gap-4 px-3">
+    <div class="flex flex-col gap-4">
       <CFormGroup :label="$t('configurator.name.label')" required>
         <InputText
           v-model="localWorkflow.meta.name"
@@ -164,57 +164,59 @@
       </CFormGroup>
     </div>
 
-    <div class="flex items-center w-full p-3 mt-auto border-t surface-border">
-      <Button
-        v-if="workflow.canDeleteWorkflow && !isDeleted"
-        :label="$t('editor.delete')"
-        severity="danger"
-        text
-        size="small"
-        :loading="processingDelete"
-        @click="handleDeleteClick"
-      />
-      <Button
-        v-else-if="isDeleted && workflow.canUndeleteWorkflow"
-        :label="$t('general.label.restore')"
-        icon="pi pi-replay"
-        severity="warn"
-        text
-        size="small"
-        :loading="processingDelete"
-        @click="$emit('undelete')"
-      />
-
-      <div class="flex-1" />
-
-      <div class="flex items-center gap-2">
+    <Teleport to="#workflow-configurator-footer" defer>
+      <div class="flex items-center w-full">
         <Button
-          v-if="workflow.workflowID === '0'"
-          :label="$t('editor.back')"
-          severity="secondary"
+          v-if="workflow.canDeleteWorkflow && !isDeleted"
+          :label="$t('editor.delete')"
+          severity="danger"
           text
           size="small"
-          @click="goBack({ name: 'workflow.list' })"
+          :loading="processingDelete"
+          @click="handleDeleteClick"
         />
         <Button
-          v-if="workflow.workflowID !== '0'"
-          :label="$t('general.cancel')"
-          severity="secondary"
+          v-else-if="isDeleted && workflow.canUndeleteWorkflow"
+          :label="$t('general.label.restore')"
+          icon="pi pi-replay"
+          severity="warn"
           text
           size="small"
-          @click="handleCancel"
+          :loading="processingDelete"
+          @click="$emit('undelete')"
         />
 
-        <Button
-          data-test-id="button-save-workflow"
-          :label="$t('editor.save')"
-          :disabled="isSaveDisabled"
-          :loading="processingSave"
-          size="small"
-          @click="handleSave"
-        />
+        <div class="flex-1" />
+
+        <div class="flex items-center gap-2">
+          <Button
+            v-if="workflow.workflowID === '0'"
+            :label="$t('editor.back')"
+            severity="secondary"
+            text
+            size="small"
+            @click="goBack({ name: 'workflow.list' })"
+          />
+          <Button
+            v-if="workflow.workflowID !== '0'"
+            :label="$t('general.cancel')"
+            severity="secondary"
+            text
+            size="small"
+            @click="handleCancel"
+          />
+
+          <Button
+            data-test-id="button-save-workflow"
+            :label="$t('editor.save')"
+            :disabled="isSaveDisabled"
+            :loading="processingSave"
+            size="small"
+            @click="handleSave"
+          />
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 

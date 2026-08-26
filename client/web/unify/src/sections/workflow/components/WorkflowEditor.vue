@@ -359,7 +359,10 @@
         workflow.workflowID === '0' ? $t('general.new-workflow') : $t('general.edit-workflow')
       "
       modal
-      :pt="{ content: 'p-0' }"
+      :pt="{
+        content: { class: 'p-0' },
+        footer: { class: 'border-t border-surface p-3' },
+      }"
       class="w-full max-w-5xl"
     >
       <workflow-configurator
@@ -375,6 +378,11 @@
         @undelete="$emit('undelete')"
         @close="configuratorVisible = false"
       />
+
+      <!-- The configurator teleports its action row here -->
+      <template #footer>
+        <div id="workflow-configurator-footer" class="w-full" />
+      </template>
     </Dialog>
 
     <Dialog
