@@ -19,6 +19,7 @@ auth: schema.#optionsGroup & {
 		password_security: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description: """
 				Password security allows you to disable constraints to which passwords must conform to.
 
@@ -45,6 +46,7 @@ auth: schema.#optionsGroup & {
 		}
 		secret: {
 			defaultGoExpr: "getSecretFromEnv(\"jwt secret\")"
+			defaultNote:   "md5 of DB_DSN and HOSTNAME; stable across restarts, changes when either does"
 			description: """
 				Secret used for signing JWT tokens.
 				Value is used only when HS256, HS384 or HS512 algorithm is used.
@@ -91,6 +93,7 @@ auth: schema.#optionsGroup & {
 				`provider` placeholder is replaced with the actual value when used.
 				"""
 			defaultGoExpr: "FullURL(\"/auth/external/{provider}/callback\")"
+			defaultNote:   "DOMAIN and HTTP_BASE_URL joined, e.g. http://localhost/auth/external/{provider}/callback"
 		}
 		external_cookie_secret: {
 			description: """
@@ -104,6 +107,7 @@ auth: schema.#optionsGroup & {
 				"""
 
 			defaultGoExpr: "getSecretFromEnv(\"external cookie secret\")"
+			defaultNote:   "md5 of DB_DSN and HOSTNAME; stable across restarts, changes when either does"
 		}
 		base_URL: {
 			description: """
@@ -112,6 +116,7 @@ auth: schema.#optionsGroup & {
 				"""
 
 			defaultGoExpr: "FullURL(\"/auth\")"
+			defaultNote:   "DOMAIN and HTTP_BASE_URL joined, e.g. http://localhost/auth"
 		}
 		session_cookie_name: {
 			description:  "Session cookie name"
@@ -120,14 +125,17 @@ auth: schema.#optionsGroup & {
 		session_cookie_path: {
 			description:   "Session cookie path"
 			defaultGoExpr: "pathPrefix(\"/auth\")"
+			defaultNote:   "HTTP_BASE_URL joined with /auth, so /auth unless HTTP_BASE_URL is set"
 		}
 		session_cookie_domain: {
 			defaultGoExpr: "GuessApiHostname()"
+			defaultNote:   "DOMAIN, falling back to LETSENCRYPT_HOST, VIRTUAL_HOST, then localhost"
 			description:   "Session cookie domain"
 		}
 		session_cookie_secure: {
 			type:          "bool"
 			defaultGoExpr: "isSecure()"
+			defaultNote:   "follows HTTP_SSL_TERMINATED, which is true when LETSENCRYPT_HOST is set"
 			description:   "Defaults to true when HTTPS is used. Human will try to guess the this setting by"
 		}
 		session_lifetime: {
@@ -180,6 +188,7 @@ auth: schema.#optionsGroup & {
 		}
 		csrf_secret: {
 			defaultGoExpr: "getSecretFromEnv(\"csrf secret\")"
+			defaultNote:   "md5 of DB_DSN and HOSTNAME; stable across restarts, changes when either does"
 			description: """
 				Secret used for securing CSRF protection
 
@@ -193,6 +202,7 @@ auth: schema.#optionsGroup & {
 		csrf_enabled: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Enable CSRF protection"
 		}
 		csrf_field_name: {

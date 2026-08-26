@@ -19,6 +19,7 @@ upgrade: schema.#optionsGroup & {
 		always: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Controls if the upgradable systems should be upgraded when the server starts."
 		}
 	}

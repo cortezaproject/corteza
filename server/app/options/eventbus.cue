@@ -15,6 +15,7 @@ eventbus: schema.#optionsGroup & {
 		scheduler_enabled: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Enable eventbus scheduler."
 		}
 		scheduler_interval: {

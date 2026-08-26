@@ -10,6 +10,7 @@ workflow: schema.#optionsGroup & {
 		register: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Registers enabled and valid workflows and executes them when triggered"
 		}
 		exec_debug: {
@@ -19,16 +20,19 @@ workflow: schema.#optionsGroup & {
 		call_stack_size: {
 			type:          "int"
 			defaultGoExpr: "16"
+			defaultValue:  "16"
 			description:   "Defines the maximum call stack size between workflows"
 		}
 		stack_trace_enabled: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Enables execution stack trace construction"
 		}
 		stack_trace_full: {
 			type:          "bool"
 			defaultGoExpr: "false"
+			defaultValue:  "false"
 			description:   "Forces the stack trace to record all steps; intended for testing, memory use grows with every executed step"
 		}
 	}

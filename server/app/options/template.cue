@@ -10,8 +10,7 @@ template: schema.#optionsGroup & {
 
 	options: {
 		renderer_gotenberg_address: {
-			defaultGoExpr: ""
-			description:   "Gotenberg rendering container address."
+			description: "Gotenberg rendering container address."
 		}
 
 		renderer_gotenberg_enabled: {

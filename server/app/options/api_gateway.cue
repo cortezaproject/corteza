@@ -15,6 +15,7 @@ apigw: schema.#optionsGroup & {
 		enabled: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Enable API Gateway"
 		}
 		debug: {
@@ -28,11 +29,13 @@ apigw: schema.#optionsGroup & {
 		profiler_enabled: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Enable profiler"
 		}
 		profiler_global: {
 			type:          "bool"
 			defaultGoExpr: "false"
+			defaultValue:  "false"
 			description:   "Profiler enabled for all routes"
 		}
 		log_request_body: {
@@ -46,6 +49,7 @@ apigw: schema.#optionsGroup & {
 		proxy_follow_redirects: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Follow redirects on proxy requests"
 		}
 		proxy_outbound_timeout: {

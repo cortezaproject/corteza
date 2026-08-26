@@ -46,4 +46,8 @@ import (
 
 	// Plain default value to use when generating .env.example
 	defaultValue?: string
+
+	// Prose for the "Default:" line, for a default that cannot be written as a
+	// literal — computed at startup, or dependent on another option
+	defaultNote?: string
 }

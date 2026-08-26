@@ -33,6 +33,7 @@ sentry: schema.#optionsGroup & {
 		attach_stacktrace: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Attach stacktraces"
 		}
 		sample_rate: {
@@ -42,6 +43,7 @@ sentry: schema.#optionsGroup & {
 		max_breadcrumbs: {
 			type:          "int"
 			defaultGoExpr: "0"
+			defaultValue:  "0"
 			description:   "Maximum number of breadcrumbs."
 		}
 		server_name: {
@@ -50,6 +52,7 @@ sentry: schema.#optionsGroup & {
 		}
 		release: {
 			defaultGoExpr: "version.Version"
+			defaultNote:   "the version this server was built with, or \"development\" when it carries no build stamp"
 			description:   "Set reported Release."
 		}
 		dist: {

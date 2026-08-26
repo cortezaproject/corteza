@@ -11,6 +11,7 @@ actionLog: schema.#optionsGroup & {
 		enabled: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 		}
 		debug: {
 			type: "bool"

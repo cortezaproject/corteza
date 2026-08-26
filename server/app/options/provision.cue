@@ -10,6 +10,7 @@ provision: schema.#optionsGroup & {
 		always: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Controls if provision should run when the server starts."
 		}
 		path: {

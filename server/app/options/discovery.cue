@@ -10,11 +10,13 @@ discovery: schema.#optionsGroup & {
 		enabled: {
 			type:          "bool"
 			defaultGoExpr: "false"
+			defaultValue:  "false"
 			description:   "Enable discovery endpoints"
 		}
 		debug: {
 			type:          "bool"
 			defaultGoExpr: "false"
+			defaultValue:  "false"
 			description:   "Enable discovery related activity info"
 		}
 		human_domain: {
@@ -32,22 +34,26 @@ discovery: schema.#optionsGroup & {
 		embeddings_enabled: {
 			type:          "bool"
 			defaultGoExpr: "false"
+			defaultValue:  "false"
 			description:   "Enable discovery embeddings generation"
 		}
 		embeddings_dimension: {
       type:        "int"
       description: "Embeddings dimension"
       defaultGoExpr: "384"
+			defaultValue:  "384"
     }
     hnsw_ef_construction: {
       type:        "int"
       description: "HNSW ef construction parameter"
       defaultGoExpr: "128"
+      defaultValue:  "128"
     }
     hnsw_m: {
       type:        "int"
       description: "HNSW m parameter"
       defaultGoExpr: "16"
+      defaultValue:  "16"
     }
 
 	}

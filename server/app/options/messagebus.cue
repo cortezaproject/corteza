@@ -10,6 +10,7 @@ messagebus: schema.#optionsGroup & {
 		Enabled: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Enable messagebus"
 		}
 		log_enabled: {

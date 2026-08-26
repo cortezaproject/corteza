@@ -45,11 +45,13 @@ HTTPServer: schema.#optionsGroup & {
 		enableHealthcheckRoute: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			env:           "HTTP_ENABLE_HEALTHCHECK_ROUTE"
 		}
 		enableVersionRoute: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Enable `/version` route."
 			env:           "HTTP_ENABLE_VERSION_ROUTE"
 		}
@@ -75,12 +77,14 @@ HTTPServer: schema.#optionsGroup & {
 		}
 		metricsPassword: {
 			defaultGoExpr: "string(rand.Bytes(5))"
+			defaultNote:   "5 random alphanumeric characters, drawn again on every start"
 			description:   "Password for the metrics endpoint."
 			env:           "HTTP_METRICS_PASSWORD"
 		}
 		enablePanicReporting: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Report HTTP panic to Sentry."
 			env:           "HTTP_REPORT_PANIC"
 		}
@@ -92,6 +96,7 @@ HTTPServer: schema.#optionsGroup & {
 		apiEnabled: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			env:           "HTTP_API_ENABLED"
 		}
 		apiBaseUrl: {
@@ -118,6 +123,7 @@ HTTPServer: schema.#optionsGroup & {
 		sslTerminated: {
 			type:          "bool"
 			defaultGoExpr: "isSecure()"
+			defaultNote:   "true when LETSENCRYPT_HOST is set, false otherwise"
 			description: """
 				Is SSL termination enabled in ingres, proxy or load balancer that is in front of Human?
 				By default, Human checks for presence of LETSENCRYPT_HOST environmental variable.
@@ -136,14 +142,18 @@ HTTPServer: schema.#optionsGroup & {
 		web_console_enabled: {
 			type:          "bool"
 			defaultGoExpr: "false"
+			defaultValue:  "false"
+			defaultNote:   "false, and true when ENVIRONMENT names a development environment"
 			description:   "Enable web console. When running in dev environment, web console is enabled by default."
 		}
 		web_console_username: {
+			defaultNote:   "admin, and empty in a development environment"
 			defaultValue: "admin"
 			description:  "Username for the web console endpoint."
 		}
 		web_console_password: {
 			defaultGoExpr: "string(rand.Bytes(32))"
+			defaultNote:   "32 random alphanumeric characters drawn on every start, and empty in a development environment"
 			description: """
 				Password for the web console endpoint. When running in dev environment, password is not required.
 

@@ -19,6 +19,7 @@ locale: schema.#optionsGroup & {
 		}
 
 		path: {
+			defaultNote:   "empty, and ../locale when ENVIRONMENT names a development environment or LOCALE_DEVELOPMENT_MODE is on"
 			description: """
 				One or more paths to locale config and translation files, separated by colon
 

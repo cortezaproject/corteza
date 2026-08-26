@@ -46,6 +46,16 @@ import (
 		output:   ".env.example"
 		syntax:   ".env"
 		payload: {
+			// Value each type falls back to when an option declares no default
+			_zeroValue: {
+				"bool":          "false"
+				"int":           "0"
+				"int64":         "0"
+				"float64":       "0"
+				"time.Duration": "0s"
+				"string":        ""
+			}
+
 			groups: [
 				for g in app.human.options {
 					title: "# " + strings.Join(strings.Split(g.title, "\n"), "\n# ")
@@ -60,14 +70,27 @@ import (
 							env:    o.env
 							type:   o.type
 
-							defaultGoExpr?: string
-							if (o.defaultGoExpr != _|_) {
-								defaultGoExpr: o.defaultGoExpr
+							// An option with a Go default has to say what that default is
+							if (o.defaultGoExpr != _|_ && o.defaultValue == _|_ && o.defaultNote == _|_) {
+								_documented: "\(o.env) sets defaultGoExpr, so it must also set defaultValue or defaultNote" & ""
 							}
 
-							defaultValue?: string
+							// value on the commented assignment line
+							defaultValue: string
 							if (o.defaultValue != _|_) {
 								defaultValue: o.defaultValue
+							}
+							if (o.defaultValue == _|_) {
+								defaultValue: _zeroValue[o.type]
+							}
+
+							// what the "Default:" line says
+							defaultDoc: string
+							if (o.defaultNote != _|_) {
+								defaultDoc: o.defaultNote
+							}
+							if (o.defaultNote == _|_) {
+								defaultDoc: defaultValue
 							}
 
 							if (o.description != _|_) {

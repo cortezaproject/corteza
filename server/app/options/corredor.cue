@@ -29,11 +29,13 @@ corredor: schema.#optionsGroup & {
 		max_receive_message_size: {
 			type:          "int"
 			defaultGoExpr: "2 << 23"
+			defaultValue:  "16777216"
 			description:   "Max message size that can be received."
 		}
 		default_exec_timeout: {
 			type:          "time.Duration"
 			defaultGoExpr: "time.Minute"
+			defaultValue:  "1m"
 		}
 		list_timeout: {
 			type:          "time.Duration"
@@ -43,10 +45,12 @@ corredor: schema.#optionsGroup & {
 		list_refresh: {
 			type:          "time.Duration"
 			defaultGoExpr: "time.Second * 5"
+			defaultValue:  "5s"
 		}
 		run_as_enabled: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 		}
 		tls_cert_enabled: {
 			type: "bool"

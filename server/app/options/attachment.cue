@@ -11,6 +11,7 @@ attachment: schema.#optionsGroup & {
 		avatar_max_file_size: {
 			type: "int64"
 			defaultGoExpr: "1000000"
+			defaultValue:  "1000000"
 			description:  "Avatar image maximum upload size, default value is 1MB"
 		}
 		avatar_initials_font_path: {

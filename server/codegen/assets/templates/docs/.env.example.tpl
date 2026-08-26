@@ -32,7 +32,7 @@
 {{ .description }}
 {{- end }}
 # Type:    {{ .type }}
-# Default: {{ .defaultValue }}
+# Default:{{ with .defaultDoc }} {{ . }}{{ end }}
 # {{ .env }}={{ .defaultValue }}
 {{- end }}
 {{- end }}

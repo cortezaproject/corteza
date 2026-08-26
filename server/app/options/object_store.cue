@@ -21,6 +21,7 @@ objectStore: schema.#optionsGroup & {
 		minioSecure: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			env:           "MINIO_SECURE"
 		}
 		minioAccessKey: {

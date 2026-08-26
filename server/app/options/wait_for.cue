@@ -32,6 +32,7 @@ waitFor: schema.#optionsGroup & {
 		status_page: {
 			type:          "bool"
 			defaultGoExpr: "true"
+			defaultValue:  "true"
 			description:   "Show temporary status web page."
 			env:           "WAIT_FOR_STATUS_PAGE"
 		}
