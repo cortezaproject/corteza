@@ -12,6 +12,9 @@ import * as automation from './automation'
 import * as shared from './shared'
 import * as apiClients from './api-clients'
 import * as fmt from './formatting'
+import * as c311 from './311'
+
+export * from './311'
 
 export {
   eventbus,
@@ -25,4 +28,5 @@ export {
   apiClients,
   NoID,
   fmt,
+  c311,
 }
