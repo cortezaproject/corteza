@@ -68,7 +68,7 @@
               class="text-xs"
             />
           </div>
-          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
+          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-md">
             {{ data.meta.description }}
           </span>
           <div

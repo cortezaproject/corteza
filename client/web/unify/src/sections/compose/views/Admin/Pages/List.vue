@@ -54,10 +54,7 @@
               <span :class="{ 'text-muted-color font-medium': node.data.selfID === '0' }">
                 {{ node.label }}
               </span>
-              <span
-                v-if="node.data.description"
-                class="text-xs text-muted-color truncate max-w-full"
-              >
+              <span v-if="node.data.description" class="text-xs text-muted-color truncate max-w-md">
                 {{ node.data.description }}
               </span>
             </div>

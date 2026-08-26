@@ -80,7 +80,7 @@
             <span>{{ data.name }}</span>
             <Tag v-if="isFederated(data)" severity="info" :value="$t('module.federated')" />
           </div>
-          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
+          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-md">
             {{ data.meta.description }}
           </span>
         </div>
