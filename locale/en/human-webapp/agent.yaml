@@ -203,6 +203,17 @@ editor:
         records: Records
         reminders: Reminders
         workspace: Workspace
+      settings:
+        allModules: Every module
+        label: Tool settings
+        modules: Limit to modules
+        modulesHelp: Leave empty and this tool reaches every module the agent works in.
+        namedElsewhere: Scoped by naming the TAQ or workflow in the lists below, not by
+          namespace.
+        needsWorksIn: Set "Works in" on the agent before narrowing a tool by module.
+        note: Note for the model
+        noteHelp: Shown to the agent alongside the tool, to say when to use it.
+        notePlaceholder: e.g. only for open leads
       fromFamily: Granted by a family grant on this agent. Blocking it here writes an
         exception to that grant.
       inherits: No tools chosen — this agent answers from what it knows, and cannot look
@@ -221,6 +232,11 @@ editor:
       custom: Custom
       deny: Blocked
       section: Permission for every tool in this section
+    worksIn:
+      help: Every tool this agent uses is confined to this namespace. Leave it empty and a
+        tool reaches whatever the person invoking the agent can reach.
+      label: Works in
+      placeholder: Every namespace the invoker can reach
     summary:
       always: '{n} run without asking'
       ask: '{n} need approval'

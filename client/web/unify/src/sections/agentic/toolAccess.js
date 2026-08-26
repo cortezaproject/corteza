@@ -75,3 +75,93 @@ export function tally(tools, named, families) {
   for (const tool of tools) counts[modeOf(tool, named, families)]++
   return MODES.filter(mode => counts[mode]).map(mode => ({ mode, n: counts[mode] }))
 }
+
+// Skills are attached to a tool, not chosen: the runtime injects one when the
+// tool that triggers it is used. Offering them here invites a choice that
+// changes nothing.
+export const HIDDEN_AREAS = new Set(['system_skill'])
+
+// Sections are subjects, in the order an agent meets them: what it works with,
+// then what it runs, then what it builds on, then who it touches.
+//
+// Grouping by `usage` and `configuring` instead put 17 tools in one section and
+// 94 in the other, and split five subjects across both — every TAQ tool but
+// `exec` in one section, `exec` in the other. A subject now appears once, with
+// all of its tools, whichever group each one belongs to.
+//
+// A section holds one subject and not two: reminders are a personal surface and
+// share nothing with records but their group, and the schema a namespace
+// defines is a different job from the pages that display it.
+export const DOMAINS = [
+  { key: 'records', areas: ['compose_record'] },
+  { key: 'datamodel', areas: ['compose_namespace', 'compose_module'] },
+  { key: 'interface', areas: ['compose_page', 'compose_chart'] },
+  {
+    key: 'automation',
+    areas: ['automation_taq', 'automation_workflow', 'automation_trigger', 'automation_event'],
+  },
+  { key: 'people', areas: ['system_user', 'system_role', 'system_auth'] },
+  { key: 'ai', areas: ['system_agent', 'system_chatbot'] },
+  { key: 'reminders', areas: ['system_reminder'] },
+  { key: 'workspace', areas: ['system_application', 'system_theme'] },
+]
+
+export const PLACED_AREAS = new Set(DOMAINS.flatMap(d => d.areas))
+
+// compose_record_lookup -> compose_record; discovery_search -> discovery.
+export function areaOf(name) {
+  const parts = String(name).split('_')
+  return parts.length > 2 ? `${parts[0]}_${parts[1]}` : parts[0]
+}
+
+// Which tools a namespace/module scope actually narrows.
+//
+// An allow entry describes a compose namespace and its modules, and the policy
+// check can say nothing about a resource of any other kind: on 94 of the tools
+// it is ignored, and on the two exec tools it makes the runtime refuse the call
+// outright. Offering the control on all of them is how a setting that does
+// nothing came to look like one that does.
+const SCOPABLE = ['compose_record_', 'compose_module_', 'compose_namespace_']
+
+// Scoped by naming the TAQ or workflow instead, not by namespace.
+const SCOPE_BLOCKED = ['automation_taq_exec', 'automation_workflow_exec']
+
+export function canScope(name) {
+  return SCOPABLE.some(prefix => String(name).startsWith(prefix))
+}
+
+export function scopeBlocked(name) {
+  return SCOPE_BLOCKED.includes(name)
+}
+
+// A namespace scope reaches modules everywhere except on the namespace tools,
+// whose resource has no module segment to narrow.
+export function scopesModules(name) {
+  return canScope(name) && !String(name).startsWith('compose_namespace_')
+}
+
+// The sections a set of tools falls into, each with what it lets the agent do.
+// The dialog groups its rows by this and the panel summarises by it, so they
+// cannot disagree about which subject a tool belongs to.
+export function sectionsOf(tools, named, families, label) {
+  const byArea = new Map()
+
+  for (const tool of tools) {
+    const area = areaOf(tool.name)
+    if (HIDDEN_AREAS.has(area)) continue
+    if (!byArea.has(area)) byArea.set(area, [])
+    byArea.get(area).push(tool)
+  }
+
+  const spec = [
+    ...DOMAINS,
+    { key: 'other', areas: [...byArea.keys()].filter(k => !PLACED_AREAS.has(k)).sort() },
+  ]
+
+  return spec
+    .map(d => {
+      const held = d.areas.filter(k => byArea.has(k)).flatMap(k => byArea.get(k))
+      return { key: d.key, label: label(d.key), counts: tally(held, named, families) }
+    })
+    .filter(d => d.counts.some(c => c.mode !== 'deny'))
+}

@@ -383,131 +383,77 @@
                         :description="$t('agent.editor.tools.help')"
                       />
 
-                      <!-- What the agent can do, then the way to change it. A
-                           lone full-width button read as an empty field beside
-                           the two pickers under it, and said nothing about the
-                           access the agent already had. -->
-                      <div
-                        class="flex items-center gap-4 rounded-border border border-surface px-3 py-2.5"
-                      >
-                        <div class="flex-1 min-w-0">
-                          <span class="text-sm text-color block">
-                            {{ toolSummary.headline }}
-                          </span>
-                          <span
-                            v-if="toolSummary.counts.length"
-                            class="flex items-center gap-3 text-xs text-muted-color mt-0.5"
-                          >
-                            <span
-                              v-for="c in toolSummary.counts"
-                              :key="c.mode"
-                              class="flex items-center gap-1"
-                            >
-                              <i :class="[modeIcon(c.mode), modeColour(c.mode)]" />
-                              {{ $t(`agent.editor.tools.summary.${c.mode}`, { n: c.n }) }}
-                            </span>
-                          </span>
-                          <span v-else class="text-xs text-muted-color block mt-0.5">
-                            {{ $t('agent.editor.tools.summary.inheritsHelp') }}
-                          </span>
-                        </div>
-
-                        <Button
-                          :label="$t('agent.editor.tools.configureTools')"
-                          icon="pi pi-sliders-h"
-                          outlined
-                          size="small"
-                          class="shrink-0"
-                          :loading="loadingTools"
-                          :disabled="!canEdit"
-                          data-testid="browse-tools"
-                          @click="toolDialogOpen = true"
-                        />
-                      </div>
-
-                      <!-- A new agent is granted nothing, so it refuses every
-                           question until something is added. Naming the
-                           namespace it is for drops a visible read-only grant
-                           into the list below, which the author can widen,
-                           narrow or remove before saving. -->
-                      <CFormGroup
-                        v-if="isCreate && !agent.access.tools.length"
-                        :label="$t('agent.editor.tools.seed.label')"
-                        :description="$t('agent.editor.tools.seed.help')"
-                      >
-                        <CInputNamespace
-                          :model-value="null"
-                          :placeholder="$t('agent.editor.tools.namespacePlaceholder')"
-                          :disabled="!canEdit"
-                          @update:model-value="seedNamespaceGrant"
-                        />
-                      </CFormGroup>
+                      <!-- What the agent can do, then the way to change it.
+                           The tools themselves are not listed: an agent can
+                           hold ninety of them, and the section it works in is
+                           what someone reading this panel wants to know. -->
+                      <Button
+                        :label="$t('agent.editor.tools.configureTools')"
+                        icon="pi pi-sliders-h"
+                        outlined
+                        size="small"
+                        class="self-start"
+                        :loading="loadingTools"
+                        :disabled="!canEdit"
+                        data-testid="browse-tools"
+                        @click="toolDialogOpen = true"
+                      />
 
                       <AgentToolDialog
                         v-model:visible="toolDialogOpen"
                         :tools="availableTools"
                         :grants="agent.access.tools"
+                        :namespaces="agent.access.allow || []"
                         :disabled="!canEdit"
                         @apply="onToolsApplied"
                       />
 
-                      <CFormItemList
-                        :items="selectedTools"
-                        item-key="name"
-                        @remove="tool => removeTool(tool)"
-                        :disabled="!canEdit"
-                      >
-                        <template #default="{ item: tool }">
-                          <span class="font-medium text-color text-sm truncate">
-                            {{ tool.title }}
+                      <div v-if="toolSummary.total" class="flex flex-col gap-1">
+                        <span class="text-sm text-color">
+                          {{ $t('agent.editor.tools.summary.chosen', { n: toolSummary.total }) }}
+                        </span>
+                        <div
+                          v-for="section in toolSummary.sections"
+                          :key="section.key"
+                          class="flex items-center gap-3 text-sm"
+                        >
+                          <span class="text-muted-color w-52 shrink-0 truncate">
+                            {{ section.label }}
                           </span>
-                          <small
-                            v-if="getToolHints(tool.name)"
-                            class="text-muted-color text-xs truncate block"
+                          <span
+                            v-for="c in section.counts"
+                            :key="c.mode"
+                            class="flex items-center gap-1 text-xs text-muted-color"
+                            :title="$t(`agent.editor.tools.mode.${c.mode}`)"
                           >
-                            {{ getToolHints(tool.name) }}
-                          </small>
-                          <div
-                            v-if="!hasToolAllowFromName(tool.name)"
-                            class="flex items-center gap-1.5 mt-0.5"
-                          >
-                            <i class="pi pi-lock text-xs text-muted-color" />
-                            <span class="text-xs text-muted-color">
-                              {{ $t('agent.editor.tools.restricted') }}
-                            </span>
-                          </div>
-                          <div v-else class="flex items-center gap-1.5 flex-wrap mt-0.5">
-                            <i class="pi pi-lock text-xs text-muted-color" />
-                            <template
-                              v-for="detail in getToolAllowDetails(tool.name)"
-                              :key="detail.namespaceID"
-                            >
-                              <Tag severity="secondary" rounded>
-                                <template #default>
-                                  <span class="text-xs">
-                                    {{ detail.namespaceName }}
-                                    <span v-if="detail.modules.length" class="text-muted-color">
-                                      · {{ detail.modules.join(', ') }}
-                                    </span>
-                                    <span v-else class="text-muted-color">
-                                      · {{ $t('agent.editor.tools.allModules') }}
-                                    </span>
-                                  </span>
-                                </template>
-                              </Tag>
-                            </template>
-                          </div>
-                        </template>
-                        <template #actions="{ index }">
-                          <Button
-                            icon="pi pi-pencil"
-                            severity="secondary"
-                            text
-                            size="small"
-                            @click="openToolDialog(index)"
-                          />
-                        </template>
-                      </CFormItemList>
+                            <i :class="[modeIcon(c.mode), modeColour(c.mode)]" />
+                            <span class="tabular-nums">{{ c.n }}</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      <span v-else class="text-sm text-muted-color">
+                        {{ $t('agent.editor.tools.summary.inheritsHelp') }}
+                      </span>
+
+                      <Divider class="my-4" />
+
+                      <!-- Every tool is confined to these namespaces, which is
+                           the answer to "what is this agent for". A tool may
+                           narrow further; none may reach past this. -->
+                      <CFormGroup
+                        :label="$t('agent.editor.tools.worksIn.label')"
+                        :description="$t('agent.editor.tools.worksIn.help')"
+                      />
+
+                      <div class="max-w-lg">
+                        <CInputNamespace
+                          :model-value="agentNamespaceID"
+                          :placeholder="$t('agent.editor.tools.worksIn.placeholder')"
+                          :disabled="!canEdit"
+                          @update:model-value="setAgentNamespace"
+                        />
+                      </div>
 
                       <Divider class="my-4" />
 
@@ -757,88 +703,6 @@
     </div>
 
     <!-- Tool Configuration Dialog -->
-    <Dialog
-      v-model:visible="toolDialogVisible"
-      :header="
-        editingToolMeta?.title || editingToolForm?.name || $t('agent.editor.tools.configure')
-      "
-      modal
-      :style="{ width: '40rem' }"
-    >
-      <div v-if="editingToolForm" class="flex flex-col gap-4">
-        <!-- Hints -->
-        <CFormGroup :label="$t('agent.editor.tools.toolDescription')">
-          <InputText
-            v-model="editingToolForm.hints"
-            :placeholder="$t('agent.editor.tools.descriptionPlaceholder')"
-            :disabled="!canEdit"
-          />
-        </CFormGroup>
-
-        <!-- Restrict access toggle -->
-        <div class="flex flex-col gap-3">
-          <CInputToggleCard
-            :modelValue="hasToolAllow(editingToolForm)"
-            :label="$t('agent.editor.tools.configureAccess')"
-            :description="$t('agent.editor.tools.configureAccessHelp')"
-            @update:modelValue="toggleToolAllow(editingToolForm, $event)"
-            :disabled="!canEdit"
-          />
-
-          <!-- Namespace / Module rows -->
-          <CFormGroup v-if="hasToolAllow(editingToolForm)">
-            <template #actions>
-              <Button
-                :label="$t('agent.editor.tools.addNamespace')"
-                icon="pi pi-plus"
-                severity="secondary"
-                size="small"
-                @click="addToolAllowEntry(editingToolForm)"
-              />
-            </template>
-            <CFormList v-model="editingToolForm.allow" :disabled="!canEdit">
-              <template #row="{ item }">
-                <div class="flex flex-col gap-2 w-full">
-                  <CInputNamespace
-                    :model-value="item.namespaceID"
-                    @update:model-value="onToolAllowNamespaceChange(item, $event)"
-                    :placeholder="$t('agent.editor.tools.namespacePlaceholder')"
-                    :disabled="!canEdit"
-                  />
-                  <CInputModule
-                    v-if="item.namespaceID"
-                    :model-value="item.moduleIDs || []"
-                    @update:model-value="item.moduleIDs = $event"
-                    :namespace-i-d="item.namespaceID"
-                    :placeholder="$t('agent.editor.tools.modulesPlaceholder')"
-                    :multiple="true"
-                    :disabled="!canEdit"
-                  />
-                </div>
-              </template>
-            </CFormList>
-          </CFormGroup>
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button
-            :label="$t('general.label.cancel')"
-            severity="secondary"
-            text
-            size="small"
-            @click="toolDialogVisible = false"
-          />
-          <Button
-            :label="$t('general.label.save')"
-            severity="primary"
-            size="small"
-            @click="saveToolDialog"
-          />
-        </div>
-      </template>
-    </Dialog>
 
     <Message v-if="!canEdit" severity="warn" :closable="false">
       {{ $t('general.editor.readOnly') }}
@@ -884,7 +748,7 @@ import AiChat from '../components/AiChat.vue'
 import AiTrace from '../components/AiTrace.vue'
 import AgentToolDialog from '../components/AgentToolDialog.vue'
 import { useEditorSplit } from '../composables/useEditorSplit'
-import { MODE_COLOURS, MODE_ICONS, splitGrants, tally } from '../toolAccess'
+import { MODE_COLOURS, MODE_ICONS, sectionsOf, splitGrants, tally } from '../toolAccess'
 
 const {
   CInputLLM,
@@ -1012,24 +876,31 @@ const statusOptions = computed(() => [
 
 const availableTools = ref([])
 const loadingTools = ref(false)
-const selectedTools = ref([])
 
 // What the agent can actually do, read the way the runtime will read it.
 // Access is deny-by-default, so a total of zero is an agent that refuses every
 // question rather than one that is merely unconfigured.
 const toolSummary = computed(() => {
   const { named, families } = splitGrants(agent.value?.access?.tools || [])
-  const counts = tally(availableTools.value, named, families).filter(c => c.mode !== 'deny')
-  const total = counts.reduce((n, c) => n + c.n, 0)
+  const total = tally(availableTools.value, named, families)
+    .filter(c => c.mode !== 'deny')
+    .reduce((n, c) => n + c.n, 0)
 
-  return {
-    total,
-    counts,
-    headline: total
-      ? t('agent.editor.tools.summary.chosen', { n: total })
-      : t('agent.editor.tools.summary.inherits'),
-  }
+  const sections = sectionsOf(availableTools.value, named, families, key =>
+    t(`agent.editor.tools.dialog.domain.${key}`),
+  ).map(section => ({ ...section, counts: section.counts.filter(c => c.mode !== 'deny') }))
+
+  return { total, sections }
 })
+
+// The agent's own scope, which every tool is confined to. Held as allow entries
+// so a tool may narrow within one; the panel sets whole namespaces and leaves
+// the modules to the tool that needs them.
+const agentNamespaceID = computed(() => agent.value?.access?.allow?.[0]?.namespaceID || null)
+
+function setAgentNamespace(namespaceID) {
+  agent.value.access.allow = namespaceID ? [{ namespaceID, moduleIDs: [] }] : []
+}
 
 function modeIcon(mode) {
   return MODE_ICONS[mode] || MODE_ICONS.custom
@@ -1040,13 +911,6 @@ function modeColour(mode) {
 }
 
 // Tool configuration dialog
-const toolDialogVisible = ref(false)
-const editingToolIndex = ref(-1)
-const editingToolForm = ref(null)
-const editingToolMeta = computed(() => {
-  if (!editingToolForm.value) return null
-  return availableTools.value.find(t => t.name === editingToolForm.value.name)
-})
 
 // TCL
 const tclMasterList = ref(null)
@@ -1131,7 +995,6 @@ async function fetchTclMasterList() {
 function applyAgentData(res) {
   agent.value = new system.Agent(res)
   capture()
-  initToolSelection()
 }
 
 const initialValues = computed(() => ({
@@ -1308,9 +1171,6 @@ watch(
     agentConversations.value = []
     filterConversations.value = {}
     sortingConversations.value = { sortBy: 'createdAt', sortDesc: true }
-    editingToolForm.value = null
-    editingToolIndex.value = -1
-    toolDialogVisible.value = false
 
     loadAgent()
   },
@@ -1381,67 +1241,12 @@ async function fetchAvailableTools() {
   } finally {
     loadingTools.value = false
   }
-
-  initToolSelection()
-}
-
-// A grant names one tool, or a whole group capped by a risk level. The server
-// expands a group when the agent runs, so a grant keeps working as tools are
-// added. These are offered alongside the individual tools rather than instead
-// of them: picking tools one at a time is still right when an agent should have
-// exactly three of them.
-const GROUP_GRANTS = [
-  { group: 'usage', maxRisk: 'read' },
-  { group: 'usage', maxRisk: 'write' },
-  { group: 'configuring', maxRisk: 'read' },
-  { group: 'configuring', maxRisk: 'write' },
-]
-
-// Every helper here finds a grant by `name`, which a group grant does not have.
-// One synthetic key keeps that lookup working without a second code path.
-function accessKey(entry) {
-  return entry?.group ? `group:${entry.group}/${entry.maxRisk || 'read'}` : entry?.name
-}
-
-const groupToolOptions = computed(() =>
-  GROUP_GRANTS.map(g => ({
-    name: accessKey(g),
-    group: g.group,
-    maxRisk: g.maxRisk,
-    title: t(`agent.editor.tools.groups.${g.group}_${g.maxRisk}`),
-    description: t(`agent.editor.tools.groups.${g.group}_${g.maxRisk}_help`),
-  })),
-)
-
-const pickableTools = computed(() => [...groupToolOptions.value, ...availableTools.value])
-
-function initToolSelection() {
-  // Wait for both agent and tools to be loaded
-  if (!availableTools.value.length || loading.value) return
-
-  const enabled = new Set((agent.value?.access?.tools || []).map(accessKey))
-  selectedTools.value = pickableTools.value.filter(t => enabled.has(t.name))
 }
 
 const toolDialogOpen = ref(false)
 
 function onToolsApplied(tools) {
   agent.value.access.tools = tools
-  initToolSelection()
-}
-
-// seedNamespaceGrant turns "this agent is for namespace X" into the setting
-// that says so: the agent's own scope, not a tool grant. It holds however the
-// tools are granted later, which is why it is written once here rather than
-// repeated on each of them.
-function seedNamespaceGrant(namespaceID) {
-  if (!namespaceID || agent.value.access.tools.length || agent.value.access.allow?.length) return
-
-  agent.value.access.allow = [{ namespaceID: String(namespaceID), moduleIDs: [] }]
-
-  // A scope is only useful if the agent is told what it reaches; without the
-  // platform context it guesses handles and reports they do not exist.
-  agent.value.behavior.injectSystemContext = true
 }
 
 const loadedTaqNames = ref({})
@@ -1490,11 +1295,6 @@ watch(
   { deep: true, immediate: true },
 )
 
-function removeTool(tool) {
-  selectedTools.value = selectedTools.value.filter(t => t.name !== tool.name)
-  agent.value.access.tools = agent.value.access.tools.filter(t => accessKey(t) !== tool.name)
-}
-
 const taqPickerSelection = ref(null)
 const workflowPickerSelection = ref(null)
 
@@ -1532,30 +1332,7 @@ function removeWorkflow(idx) {
   agent.value.access.workflows.splice(idx, 1)
 }
 
-function getToolHints(name) {
-  const tool = agent.value.access.tools.find(t => accessKey(t) === name)
-  return tool?.hints || ''
-}
-
 // --- Tool configuration dialog helpers ---
-
-function openToolDialog(toolIdx) {
-  const tool = selectedTools.value[toolIdx]
-  if (!tool) return
-  const accessIdx = agent.value.access.tools.findIndex(t => accessKey(t) === tool.name)
-  if (accessIdx < 0) return
-
-  // Deep copy so edits don't leak until Save
-  editingToolIndex.value = accessIdx
-  editingToolForm.value = JSON.parse(JSON.stringify(agent.value.access.tools[accessIdx]))
-  toolDialogVisible.value = true
-}
-
-function saveToolDialog() {
-  if (editingToolIndex.value < 0 || !editingToolForm.value) return
-  agent.value.access.tools[editingToolIndex.value] = editingToolForm.value
-  toolDialogVisible.value = false
-}
 
 // Resolved namespace and module names for tool allow summaries
 const resolvedNsNames = ref({})
@@ -1610,48 +1387,6 @@ watch(
   },
   { deep: true, immediate: true },
 )
-
-function hasToolAllowFromName(toolName) {
-  const tool = agent.value.access.tools.find(t => accessKey(t) === toolName)
-  return Array.isArray(tool?.allow)
-}
-
-function getToolAllowDetails(toolName) {
-  const tool = agent.value.access.tools.find(t => accessKey(t) === toolName)
-  if (!tool?.allow?.length) return []
-
-  return tool.allow.map(r => ({
-    namespaceID: r.namespaceID,
-    namespaceName: resolvedNsNames.value[r.namespaceID] || r.namespaceID,
-    modules: (r.moduleIDs || []).map(id => resolvedModNames.value[id] || id),
-  }))
-}
-
-function hasToolAllow(toolData) {
-  return Array.isArray(toolData?.allow)
-}
-
-function toggleToolAllow(toolData, enabled) {
-  if (!toolData) return
-  if (enabled) {
-    toolData.allow = []
-  } else {
-    toolData.allow = null
-  }
-}
-
-function addToolAllowEntry(toolData) {
-  if (!toolData || !Array.isArray(toolData.allow)) return
-  toolData.allow.push({
-    namespaceID: null,
-    moduleIDs: [],
-  })
-}
-
-function onToolAllowNamespaceChange(rule, namespaceID) {
-  rule.namespaceID = namespaceID
-  rule.moduleIDs = []
-}
 </script>
 
 <style scoped>

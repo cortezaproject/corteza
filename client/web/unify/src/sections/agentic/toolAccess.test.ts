@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { coveredByFamily, defaultModeFor, modeOf, splitGrants, tally } from './toolAccess'
+import {
+  canScope,
+  coveredByFamily,
+  defaultModeFor,
+  modeOf,
+  scopeBlocked,
+  scopesModules,
+  sectionsOf,
+  splitGrants,
+  tally,
+} from './toolAccess'
 
 const read = { name: 'compose_record_lookup', groups: ['usage'], risk: 'read' }
 const write = { name: 'compose_record_create', groups: ['usage'], risk: 'write' }
@@ -71,5 +81,80 @@ describe('toolAccess', () => {
   it('counts nothing granted as all blocked', () => {
     const { named, families } = grants()
     expect(tally([read, write], named, families)).toEqual([{ mode: 'deny', n: 2 }])
+  })
+})
+
+describe('scoping applies to compose resources only', () => {
+  // An allow entry describes a compose namespace and its modules. On 94 of the
+  // 111 tools the policy check ignores it, and on the two exec tools it makes
+  // the runtime refuse the call — so the control belongs on neither.
+  it('scopes the compose tools a namespace can narrow', () => {
+    expect(canScope('compose_record_lookup')).toBe(true)
+    expect(canScope('compose_module_create')).toBe(true)
+    expect(canScope('compose_namespace_lookup')).toBe(true)
+  })
+
+  it('does not scope a tool the check cannot narrow', () => {
+    for (const name of [
+      'system_user_create',
+      'compose_page_create',
+      'compose_chart_lookup',
+      'automation_taq_create',
+      'system_reminder_snooze',
+    ]) {
+      expect(canScope(name)).toBe(false)
+    }
+  })
+
+  // Not merely ignored — an allow entry here makes the call fail.
+  it('names the two an allow entry would block', () => {
+    expect(scopeBlocked('automation_taq_exec')).toBe(true)
+    expect(scopeBlocked('automation_workflow_exec')).toBe(true)
+    expect(scopeBlocked('compose_record_lookup')).toBe(false)
+    expect(scopeBlocked('system_user_create')).toBe(false)
+  })
+
+  // A namespace resource has no module segment, so modules cannot narrow it.
+  it('offers modules only where the resource has them', () => {
+    expect(scopesModules('compose_record_lookup')).toBe(true)
+    expect(scopesModules('compose_module_lookup')).toBe(true)
+    expect(scopesModules('compose_namespace_lookup')).toBe(false)
+    expect(scopesModules('system_user_create')).toBe(false)
+  })
+})
+
+describe('sectionsOf', () => {
+  const label = (k: string) => k
+  const tools = [
+    { name: 'compose_record_lookup', groups: ['usage'], risk: 'read' },
+    { name: 'compose_record_delete', groups: ['usage'], risk: 'destructive' },
+    { name: 'system_user_create', groups: ['configuring'], risk: 'write' },
+  ]
+
+  // The panel summarises by section and the dialog groups by it; reading the
+  // taxonomy from one place is what stops them disagreeing.
+  it('reports each section by what it lets the agent do', () => {
+    const { named, families } = splitGrants([
+      { name: 'compose_record_lookup' },
+      { name: 'system_user_create' },
+    ])
+
+    expect(sectionsOf(tools, named, families, label)).toEqual([
+      {
+        key: 'records',
+        label: 'records',
+        counts: [
+          { mode: 'always', n: 1 },
+          { mode: 'deny', n: 1 },
+        ],
+      },
+      { key: 'people', label: 'people', counts: [{ mode: 'ask', n: 1 }] },
+    ])
+  })
+
+  // A section the agent has nothing in is not worth a line.
+  it('leaves out a section holding nothing the agent has', () => {
+    const { named, families } = splitGrants([{ name: 'system_user_create' }])
+    expect(sectionsOf(tools, named, families, label).map(s => s.key)).toEqual(['people'])
   })
 })

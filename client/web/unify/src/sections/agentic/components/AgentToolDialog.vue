@@ -109,55 +109,132 @@
                     {{ area.label }}
                   </div>
 
-                  <div
-                    v-for="tool in area.tools"
-                    :key="tool.name"
-                    class="group flex items-start gap-3 py-2 border-b border-surface last:border-0"
-                  >
+                  <div v-for="tool in area.tools" :key="tool.name">
                     <div
-                      class="flex-1 min-w-0"
-                      :class="{ 'tool-row-blocked': !toolOn(tool) }"
-                      :title="covered(tool) ? $t('agent.editor.tools.dialog.fromFamily') : ''"
+                      class="group flex items-start gap-3 py-2 border-b border-surface last:border-0"
                     >
-                      <span class="text-sm text-color block">
-                        <i
-                          :class="[riskIcon(tool.risk), riskColour(tool.risk), 'text-xs mr-1.5']"
-                          :title="riskLabel(tool.risk)"
-                        />
-                        {{ tool.title || tool.name }}
-                      </span>
-                      <span class="text-xs text-muted-color block line-clamp-2">
-                        {{ summarise(tool.description) }}
-                      </span>
-                    </div>
+                      <div
+                        class="flex-1 min-w-0"
+                        :class="{ 'tool-row-blocked': !toolOn(tool) }"
+                        :title="covered(tool) ? $t('agent.editor.tools.dialog.fromFamily') : ''"
+                      >
+                        <span class="text-sm text-color block">
+                          <i
+                            :class="[riskIcon(tool.risk), riskColour(tool.risk), 'text-xs mr-1.5']"
+                            :title="riskLabel(tool.risk)"
+                          />
+                          {{ tool.title || tool.name }}
+                        </span>
+                        <span class="text-xs text-muted-color block line-clamp-2">
+                          {{ summarise(tool.description) }}
+                        </span>
+                      </div>
 
-                    <!-- Blocked is the off state, so the row shows nothing until it
+                      <!-- Blocked is the off state, so the row shows nothing until it
                      is reached for. Three segments carry the whole decision:
                      a second control for on and off would only disagree. -->
-                    <div class="tool-mode shrink-0" :data-blocked="!toolOn(tool)">
-                      <SelectButton
-                        :model-value="rowMode(tool)"
-                        :options="toolModes"
-                        option-value="value"
-                        :allow-empty="false"
-                        size="small"
-                        :disabled="disabled"
-                        @update:model-value="v => setMode(tool, v)"
-                      >
-                        <!-- Only the chosen segment is coloured. Colouring all three
+                      <div class="tool-mode shrink-0" :data-blocked="!toolOn(tool)">
+                        <SelectButton
+                          :model-value="rowMode(tool)"
+                          :options="toolModes"
+                          option-value="value"
+                          :allow-empty="false"
+                          size="small"
+                          :disabled="disabled"
+                          @update:model-value="v => setMode(tool, v)"
+                        >
+                          <!-- Only the chosen segment is coloured. Colouring all three
                          made every row shout in red about the state it was not
                          in, and left the control unable to show its own. -->
-                        <template #option="{ option }">
-                          <i
-                            :class="[
-                              option.icon,
-                              rowMode(tool) === option.value ? option.colour : '',
-                            ]"
-                            :title="option.label"
-                          />
-                        </template>
-                      </SelectButton>
+                          <template #option="{ option }">
+                            <i
+                              :class="[
+                                option.icon,
+                                rowMode(tool) === option.value ? option.colour : '',
+                              ]"
+                              :title="option.label"
+                            />
+                          </template>
+                        </SelectButton>
+                      </div>
+
+                      <Button
+                        v-if="toolOn(tool)"
+                        icon="pi pi-cog"
+                        severity="secondary"
+                        text
+                        rounded
+                        size="small"
+                        class="shrink-0"
+                        :disabled="disabled"
+                        :aria-label="$t('agent.editor.tools.dialog.settings.label')"
+                        :data-testid="`configure-${tool.name}`"
+                        @click="toggleConfiguring(tool.name)"
+                      />
                     </div>
+
+                    <!-- A tool's own settings: the note the model reads before
+                         calling it, and how far it may reach. Narrowing shows
+                         only where the policy check can act on it. -->
+                    <transition name="p-collapsible">
+                      <div
+                        v-if="configuring.has(tool.name) && toolOn(tool)"
+                        class="tool-section-body"
+                      >
+                        <div class="min-h-0 pb-3 pl-8 flex flex-col gap-3">
+                          <CFormGroup
+                            :label="$t('agent.editor.tools.dialog.settings.note')"
+                            :description="$t('agent.editor.tools.dialog.settings.noteHelp')"
+                          >
+                            <InputText
+                              :model-value="entryOf(tool).description"
+                              :placeholder="
+                                $t('agent.editor.tools.dialog.settings.notePlaceholder')
+                              "
+                              :disabled="disabled"
+                              size="small"
+                              class="w-full"
+                              @update:model-value="v => patchEntry(tool, { description: v })"
+                            />
+                          </CFormGroup>
+
+                          <CFormGroup
+                            v-if="scopesModules(tool.name) && namespaces.length"
+                            :label="$t('agent.editor.tools.dialog.settings.modules')"
+                            :description="$t('agent.editor.tools.dialog.settings.modulesHelp')"
+                          >
+                            <div v-for="ns in namespaces" :key="ns.namespaceID" class="mb-2">
+                              <CInputModule
+                                :model-value="modulesFor(tool, ns.namespaceID)"
+                                :namespace-i-d="ns.namespaceID"
+                                :multiple="true"
+                                :placeholder="$t('agent.editor.tools.dialog.settings.allModules')"
+                                :disabled="disabled"
+                                @update:model-value="v => setModulesFor(tool, ns.namespaceID, v)"
+                              />
+                            </div>
+                          </CFormGroup>
+
+                          <Message
+                            v-else-if="canScope(tool.name) && !namespaces.length"
+                            severity="secondary"
+                            :closable="false"
+                            class="!my-0"
+                          >
+                            {{ $t('agent.editor.tools.dialog.settings.needsWorksIn') }}
+                          </Message>
+
+                          <Message
+                            v-else-if="scopeBlocked(tool.name)"
+                            severity="secondary"
+                            :closable="false"
+                            class="!my-0"
+                          >
+                            {{ $t('agent.editor.tools.dialog.settings.namedElsewhere') }}
+                          </Message>
+                        </div>
+                      </div>
+                    </transition>
                   </div>
                 </div>
               </div>
@@ -195,21 +272,34 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { components } from '@planetcrust/human-vue'
+
 import {
+  DOMAINS,
+  HIDDEN_AREAS,
   MODE_COLOURS,
   MODE_ICONS,
+  PLACED_AREAS,
   RISK_ORDER,
+  areaOf,
+  canScope,
   coveredByFamily,
   defaultModeFor,
   modeOf,
+  scopeBlocked,
+  scopesModules,
   tally,
 } from '../toolAccess'
+
+const { CInputModule } = components
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
   tools: { type: Array, default: () => [] },
   // The agent's access.tools, as stored.
   grants: { type: Array, default: () => [] },
+  // The agent's own scope. A tool narrows within these and never past them.
+  namespaces: { type: Array, default: () => [] },
   disabled: { type: Boolean, default: false },
 })
 
@@ -220,8 +310,49 @@ const { t } = useI18n()
 const search = ref('')
 
 // Editing happens on copies: closing with Cancel has to leave the agent
-// exactly as it was.
-const draft = ref(new Map()) // tool name -> permission
+// exactly as it was. An entry carries everything the grant holds — its mode,
+// the note the model reads, and any narrowing — because the row edits all
+// three.
+const draft = ref(new Map()) // tool name -> grant entry
+
+// What the permission rule reads: it asks about modes, not whole entries.
+const permissions = computed(
+  () => new Map([...draft.value].map(([name, entry]) => [name, entry.permission || ''])),
+)
+
+// Which rows are open on their own settings.
+const configuring = ref(new Set())
+
+function toggleConfiguring(name) {
+  const next = new Set(configuring.value)
+  if (next.has(name)) next.delete(name)
+  else next.add(name)
+  configuring.value = next
+}
+
+function entryOf(tool) {
+  return (
+    draft.value.get(tool.name) || { name: tool.name, permission: '', description: '', allow: [] }
+  )
+}
+
+function patchEntry(tool, patch) {
+  const next = new Map(draft.value)
+  next.set(tool.name, { ...entryOf(tool), ...patch })
+  draft.value = next
+}
+
+// A tool narrows within the agent's own namespaces; it can never reach past
+// them. No modules chosen for a namespace means every module in it.
+function modulesFor(tool, namespaceID) {
+  return entryOf(tool).allow?.find(a => a.namespaceID === namespaceID)?.moduleIDs || []
+}
+
+function setModulesFor(tool, namespaceID, moduleIDs) {
+  const rest = (entryOf(tool).allow || []).filter(a => a.namespaceID !== namespaceID)
+  const allow = moduleIDs?.length ? [...rest, { namespaceID, moduleIDs }] : rest
+  patchEntry(tool, { allow })
+}
 
 // A grant may name a whole family instead of a tool. This dialog chooses tools
 // and no longer writes families, but it still has to know which tools an
@@ -244,8 +375,11 @@ watch(
     if (!open) return
     search.value = ''
     collapsed.value = null
+    configuring.value = new Set()
     draft.value = new Map(
-      (props.grants || []).filter(g => g.name).map(g => [g.name, g.permission || '']),
+      (props.grants || [])
+        .filter(g => g.name)
+        .map(g => [g.name, { description: '', allow: [], ...g, permission: g.permission || '' }]),
     )
     families.value = (props.grants || []).filter(g => g.group)
     named.value = new Set(draft.value.keys())
@@ -278,7 +412,7 @@ const sectionModes = computed(() => ['always', 'ask', 'deny', 'custom'].map(mode
 // What the three segments read as. There is no fourth "default" segment — the
 // default IS one of the three, shown as the chosen one.
 function rowMode(tool) {
-  return modeOf(tool, draft.value, families.value)
+  return modeOf(tool, permissions.value, families.value)
 }
 
 // Whether the agent has the tool at all.
@@ -289,38 +423,6 @@ function toolOn(tool) {
 function covered(tool) {
   return coveredByFamily(tool, families.value)
 }
-
-// Skills are attached to a tool, not chosen: the runtime injects one when the
-// tool that triggers it is used. Offering them here invites a choice that
-// changes nothing.
-const HIDDEN_AREAS = new Set(['system_skill'])
-
-// Sections are subjects, in the order an agent meets them: what it works with,
-// then what it runs, then what it builds on, then who it touches.
-//
-// Grouping by `usage` and `configuring` instead put 17 tools in one section and
-// 94 in the other, and split five subjects across both — every TAQ tool but
-// `exec` in one section, `exec` in the other. A subject now appears once, with
-// all of its tools, whichever group each one belongs to.
-//
-// A section holds one subject and not two: reminders are a personal surface and
-// share nothing with records but their group, and the schema a namespace
-// defines is a different job from the pages that display it.
-const DOMAINS = [
-  { key: 'records', areas: ['compose_record'] },
-  { key: 'datamodel', areas: ['compose_namespace', 'compose_module'] },
-  { key: 'interface', areas: ['compose_page', 'compose_chart'] },
-  {
-    key: 'automation',
-    areas: ['automation_taq', 'automation_workflow', 'automation_trigger', 'automation_event'],
-  },
-  { key: 'people', areas: ['system_user', 'system_role', 'system_auth'] },
-  { key: 'ai', areas: ['system_agent', 'system_chatbot'] },
-  { key: 'reminders', areas: ['system_reminder'] },
-  { key: 'workspace', areas: ['system_application', 'system_theme'] },
-]
-
-const PLACED_AREAS = new Set(DOMAINS.flatMap(d => d.areas))
 
 const domains = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -374,7 +476,7 @@ function sectionMode(d) {
 }
 
 function sectionCounts(d) {
-  return tally(toolsIn(d), draft.value, families.value)
+  return tally(toolsIn(d), permissions.value, families.value)
 }
 
 // One click for a whole subject, which is the unit an agent is actually given:
@@ -397,10 +499,16 @@ function setMode(tool, mode) {
 }
 
 function applyMode(next, tool, mode) {
+  const carry = permission => ({
+    ...(next.get(tool.name) || { name: tool.name, description: '', allow: [] }),
+    name: tool.name,
+    permission,
+  })
+
   // Blocking a tool nothing else grants is saying nothing about it, so the
   // entry goes rather than staying behind as a grant that grants nothing.
   if (mode === 'deny') {
-    if (covered(tool)) next.set(tool.name, 'deny')
+    if (covered(tool)) next.set(tool.name, carry('deny'))
     else next.delete(tool.name)
     return
   }
@@ -414,7 +522,7 @@ function applyMode(next, tool, mode) {
     return
   }
 
-  next.set(tool.name, isDefault ? '' : mode)
+  next.set(tool.name, carry(isDefault ? '' : mode))
 }
 
 // Open where there is already something to see, so a configured agent shows its
@@ -454,12 +562,6 @@ function matches(tool, q) {
   return `${tool.name} ${tool.title || ''} ${tool.description || ''}`.toLowerCase().includes(q)
 }
 
-// compose_record_lookup -> compose_record; discovery_search -> discovery.
-function areaOf(name) {
-  const parts = String(name).split('_')
-  return parts.length > 2 ? `${parts[0]}_${parts[1]}` : parts[0]
-}
-
 // The first sentence, which is what a tool description leads with. The rest is
 // written for the model that has already decided to call it.
 function summarise(description) {
@@ -490,15 +592,7 @@ function riskColour(risk) {
 // Applying keeps whatever scope a grant already carried: the dialog chooses
 // tools and modes, and namespace scoping is set elsewhere.
 function apply() {
-  const byName = new Map((props.grants || []).filter(g => g.name).map(g => [g.name, g]))
-
-  const toolEntries = [...draft.value.entries()].map(([name, permission]) => ({
-    ...(byName.get(name) || { name, description: '', allow: [] }),
-    name,
-    permission,
-  }))
-
-  emit('apply', [...families.value, ...toolEntries])
+  emit('apply', [...families.value, ...draft.value.values()])
   emit('update:visible', false)
 }
 </script>
