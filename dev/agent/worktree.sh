@@ -133,6 +133,18 @@ port_busy() { ss -ltn "sport = :$1" 2>/dev/null | grep -q LISTEN; }
 
 port_holder() { ss -ltnp "sport = :$1" 2>/dev/null | sed -nE 's/.*pid=([0-9]+).*/\1/p' | head -1; }
 
+# Signal whatever is listening on a port, by its own process group — a server
+# started under a watcher is a group leader in its own right, and reaching it
+# through the group that started the watcher does not work.
+stop_port_group() { # stop_port_group PORT SIGNAL
+  local holder pgid
+  holder="$(port_holder "$1")"
+  [[ -n "$holder" ]] || return 0
+  pgid="$(ps -o pgid= -p "$holder" 2>/dev/null | tr -d ' ')"
+  [[ -n "$pgid" ]] && kill -"$2" -"$pgid" 2>/dev/null ||
+    kill -"$2" "$holder" 2>/dev/null || true
+}
+
 orphan_warning() { # orphan_warning PORT PIDFILE WHAT
   if [[ -f "$2" ]]; then
     echo "$3 already up on $1"
@@ -308,20 +320,37 @@ cmd_down() {
   [[ "${2:-}" == "--force" || "${1:-}" == "--force" ]] && force=1
   [[ "${1:-}" == "--force" ]] && name="$(resolve_name "")"
   path="$(read_meta "$name" path)"
+  local api vite
+  api="$(read_meta "$name" api)"
+  vite="$(read_meta "$name" vite)"
   for what in server webapp; do
-    local pidfile="$path/.run/$what.pid"
+    local pidfile="$path/.run/$what.pid" port
     [[ -f "$pidfile" ]] || continue
+    if [[ "$what" == server ]]; then port="$api"; else port="$vite"; fi
     local pid
     pid="$(cat "$pidfile")"
     # setsid made it a group leader, so the negative PID reaches the whole
     # tree. Killing the wrapper alone leaves the port bound.
     if kill -0 "$pid" 2>/dev/null; then
+      # The watcher runs the server in a process group of its own, so the
+      # wrapper's group never contains it. Nor does the watcher get to stop it
+      # on the way out: it is piped into `tee`, which the same group signal
+      # kills, and the next line it logs takes it down before its shutdown
+      # runs. So ask the listener to close first, by its own group, while it
+      # still has a parent to be reaped by.
+      stop_port_group "$port" TERM
       kill -TERM -"$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
-      for _ in 1 2 3 4 5 6 7 8 9 10; do
-        kill -0 "$pid" 2>/dev/null || break
+      # The port is what `up` checks, and it outlives the group leader —
+      # `make` exits at once, so waiting on that alone puts the SIGKILL below
+      # in the middle of the server's shutdown.
+      for ((i = 0; i < 40; i++)); do
+        kill -0 "$pid" 2>/dev/null || port_busy "$port" || break
         sleep 0.3
       done
       kill -KILL -"$pid" 2>/dev/null || true
+      # Last resort for a service this slot started: the wait above already
+      # gave it a full shutdown window.
+      if port_busy "$port"; then stop_port_group "$port" KILL; fi
       echo "stopped $what ($pid)"
     fi
     rm -f "$pidfile"
