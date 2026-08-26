@@ -12,46 +12,56 @@
     <!-- The nav's one scroller. Page tree and admin panel scroll together, so
          the sidebar shows a single scrollbar however long either grows. -->
     <div class="flex-1 overflow-auto">
-      <CSidebarNav
-        v-if="filteredPageNavItems.length"
-        :items="filteredPageNavItems"
-        id-key="pageID"
-        parent-key="selfID"
-        label-key="title"
-        icon-key="_icon"
-        weight-key="weight"
-        route-key="_route"
-        :filter-fn="p => p.visible"
-        :expand-all="hasSearch"
-      />
+      <div class="flex flex-col min-h-full">
+        <!-- The pages take whatever height is going, which is what holds the
+             admin panel to the foot of a namespace that has only a few. -->
+        <div class="flex-1">
+          <CSidebarNav
+            v-if="filteredPageNavItems.length"
+            :items="filteredPageNavItems"
+            id-key="pageID"
+            parent-key="selfID"
+            label-key="title"
+            icon-key="_icon"
+            weight-key="weight"
+            route-key="_route"
+            :filter-fn="p => p.visible"
+            :expand-all="hasSearch"
+          />
 
-      <!-- No results -->
-      <div
-        v-if="hasSearch && !filteredPageNavItems.length && !filteredAdminNavItems.length"
-        class="flex items-center justify-center py-8 text-muted-color text-sm"
-      >
-        {{ $t('sidebar.noResults') }}
-      </div>
+          <!-- No results -->
+          <div
+            v-if="hasSearch && !filteredPageNavItems.length && !filteredAdminNavItems.length"
+            class="flex items-center justify-center py-8 text-muted-color text-sm"
+          >
+            {{ $t('sidebar.noResults') }}
+          </div>
+        </div>
 
-      <!-- The namespace's administration, headed so it reads as a different
-           kind of place from the pages above it. -->
-      <div
-        v-if="filteredAdminNavItems.length"
-        class="mt-3 pt-3 border-t surface-border"
-        data-testid="sidebar-admin-panel"
-      >
-        <h2 class="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-color">
-          {{ $t('sidebar.adminPanel') }}
-        </h2>
-        <CSidebarNav
-          :items="filteredAdminNavItems"
-          id-key="_id"
-          parent-key="_parentId"
-          label-key="_label"
-          icon-key="_icon"
-          route-key="_route"
-          :expand-all="hasSearch"
-        />
+        <!-- The namespace's administration: named, and held at the foot of the
+             sidebar. Sticky rather than a band of its own, so the nav still
+             scrolls as one — and once the panel is taller than the sidebar it
+             stops sticking and scrolls with everything else. -->
+        <div
+          v-if="filteredAdminNavItems.length"
+          class="sticky bottom-0 bg-surface pt-2"
+          data-testid="sidebar-admin-panel"
+        >
+          <h2 class="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-color">
+            {{ $t('sidebar.adminPanel') }}
+          </h2>
+          <div class="border-t surface-border pt-1">
+            <CSidebarNav
+              :items="filteredAdminNavItems"
+              id-key="_id"
+              parent-key="_parentId"
+              label-key="_label"
+              icon-key="_icon"
+              route-key="_route"
+              :expand-all="hasSearch"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>

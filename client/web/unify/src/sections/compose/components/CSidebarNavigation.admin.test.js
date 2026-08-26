@@ -119,4 +119,37 @@ describe('Compose sidebar admin panel', () => {
     // than sitting in a band of its own below a second scrollbar.
     expect(scrollers[0].find('[data-testid="sidebar-admin-panel"]').exists()).toBe(true)
   })
+
+  it('holds the panel at the foot of the sidebar', () => {
+    namespace = { namespaceID: 'N1', slug: 'ns', canManageNamespace: true }
+
+    mountNav()
+
+    // Sticky keeps it at the bottom once the pages scroll...
+    const panel = wrapper.find('[data-testid="sidebar-admin-panel"]')
+    expect(panel.classes()).toContain('sticky')
+    expect(panel.classes()).toContain('bottom-0')
+    // ...and it needs its own background, or the pages scroll visibly through it.
+    expect(panel.classes()).toContain('bg-surface')
+
+    // ...and the pages growing to fill is what pushes it there when there are
+    // too few of them to scroll at all.
+    const column = wrapper.find('.overflow-auto > div')
+    expect(column.classes()).toContain('min-h-full')
+    expect(column.find('.flex-1').exists()).toBe(true)
+  })
+
+  it('names the panel above the rule, not below it', () => {
+    namespace = { namespaceID: 'N1', slug: 'ns', canManageNamespace: true }
+
+    mountNav()
+
+    const panel = wrapper.find('[data-testid="sidebar-admin-panel"]')
+    const children = [...panel.element.children]
+    expect(children[0].tagName).toBe('H2')
+    expect(children[0].textContent.trim()).toBe('sidebar.adminPanel')
+    // the rule sits on the block holding the nav, under the heading
+    expect(children[1].className).toContain('border-t')
+    expect(children[1].querySelector('ul')).toBeTruthy()
+  })
 })
