@@ -169,7 +169,7 @@ auth: schema.#optionsGroup & {
 			type:          "time.Duration"
 			description:   "How often are expired sessions and tokens purged from the database"
 			defaultGoExpr: "15 * time.Minute"
-			defaultValue:  "15min"
+			defaultValue:  "15m"
 		}
 		request_rate_limit: {
 			type: "int"

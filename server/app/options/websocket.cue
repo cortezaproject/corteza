@@ -33,7 +33,7 @@ websocket: schema.#optionsGroup & {
 			type: "time.Duration"
 
 			defaultGoExpr: "((120 * time.Second) * 9) / 10"
-			defaultValue:  "119s"
+			defaultValue:  "108s"
 		}
 	}
 }

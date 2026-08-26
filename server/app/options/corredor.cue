@@ -61,14 +61,17 @@ corredor: schema.#optionsGroup & {
 			env:          "CORREDOR_CLIENT_CERTIFICATES_PATH"
 		}
 		tls_cert_cA: {
+			defaultNote:   "ca.crt, resolved against CORREDOR_CLIENT_CERTIFICATES_PATH"
 			defaultValue: "ca.crt"
 			env:          "CORREDOR_CLIENT_CERTIFICATES_CA"
 		}
 		tls_cert_private: {
+			defaultNote:   "private.key, resolved against CORREDOR_CLIENT_CERTIFICATES_PATH"
 			defaultValue: "private.key"
 			env:          "CORREDOR_CLIENT_CERTIFICATES_PRIVATE"
 		}
 		tls_cert_public: {
+			defaultNote:   "public.crt, resolved against CORREDOR_CLIENT_CERTIFICATES_PATH"
 			defaultValue: "public.crt"
 			env:          "CORREDOR_CLIENT_CERTIFICATES_PUBLIC"
 		}
