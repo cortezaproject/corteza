@@ -482,16 +482,13 @@ func (s *Session) worker(ctx context.Context) {
 
 				s.log.Debug("done, setting results and stopping the worker")
 
-				// Make sure we're serving a non-nil value
-				s.mux.Lock()
-				if st.scope.IsEmpty() {
-					s.result = &expr.Vars{}
-				} else {
-					s.result = st.scope
-				}
-				s.mux.Unlock()
-
 				// Call event handler with completed status
+				//
+				// This has to run before the result is set: Status() reports a
+				// session as completed as soon as the result is non-nil, and
+				// WaitUntil returns the moment it polls that status. Setting the
+				// result first lets a waiter collect the session before the
+				// handler recorded its stacktrace.
 				err := s.eventHandler(SessionCompleted, st, s)
 				if err != nil {
 					err = fmt.Errorf(
@@ -504,6 +501,16 @@ func (s *Session) worker(ctx context.Context) {
 					s.err = err
 					return
 				}
+
+				// Make sure we're serving a non-nil value
+				s.mux.Lock()
+				if st.scope.IsEmpty() {
+					s.result = &expr.Vars{}
+				} else {
+					s.result = st.scope
+				}
+				s.mux.Unlock()
+
 				return
 			}
 
