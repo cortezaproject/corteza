@@ -2,7 +2,8 @@
   <div
     class="flex gap-3 p-3 border border-surface rounded-lg transition-colors max-w-2xl"
     :class="[disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-emphasis']"
-    @click="!disabled && $emit('update:modelValue', !modelValue)"
+    @pointerdown="onPointerDown"
+    @click="onClick"
   >
     <div class="flex flex-col flex-1 min-w-0" :class="textOpacityClass">
       <div class="flex items-center gap-1">
@@ -74,7 +75,23 @@ const props = defineProps({
   },
 })
 
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
+
+// A press and release on the same element is a click on the card. A drag that
+// starts on a control in a slot and ends off it fires its click on the two
+// targets' common ancestor instead, which is the card itself.
+let pressed = null
+
+function onPointerDown(event) {
+  pressed = event.target
+}
+
+function onClick(event) {
+  const from = pressed
+  pressed = null
+  if (props.disabled || (from && from !== event.target)) return
+  emit('update:modelValue', !props.modelValue)
+}
 
 const textOpacityClass = computed(() => {
   if (props.dim) return 'opacity-50'
