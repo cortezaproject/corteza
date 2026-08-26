@@ -11,6 +11,15 @@ export interface AgentChatTranslations {
   clearAllChats: string
   chatTab: (id: number) => string
   noAgents: string
+  approval: {
+    title: string
+    body: (tool: string) => string
+    destructive: string
+    allow: string
+    allowChat: string
+    deny: string
+    denied: string
+  }
   history: {
     button: string
     empty: string
@@ -33,6 +42,15 @@ export function makeAgentChatTranslations(t: TFn, prefix: string): AgentChatTran
     clearAllChats: k('clearAllChats'),
     chatTab: (id: number) => k('chatTab', { id }),
     noAgents: k('noAgents'),
+    approval: {
+      title: k('approval.title'),
+      body: (tool: string) => k('approval.body', { tool }),
+      destructive: k('approval.destructive'),
+      allow: k('approval.allow'),
+      allowChat: k('approval.allowChat'),
+      deny: k('approval.deny'),
+      denied: k('approval.denied'),
+    },
     history: {
       button: k('history.button'),
       empty: k('history.empty'),

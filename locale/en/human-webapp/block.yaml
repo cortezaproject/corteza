@@ -1,4 +1,12 @@
 agentChat:
+  approval:
+    allow: Allow once
+    allowChat: Allow for this chat
+    body: The agent wants to use {tool}. It has not run yet.
+    denied: I did not run that tool. Tell me what you would like to do instead.
+    deny: Don't allow
+    destructive: This deletes data. There is no undo prompt after this one.
+    title: Permission needed
   chatTab: Chat {id}
   clearAllChats: Clear All Chats
   config:

@@ -57,6 +57,11 @@
       </div>
     </div>
 
+    <!-- Anything that needs answering before the next message: an approval
+         prompt, typically. Above the composer because it is a decision to
+         make, not a turn that happened. -->
+    <slot name="beforeComposer" />
+
     <!-- Input row -->
     <CChatComposer
       v-if="!readonly"

@@ -126,6 +126,53 @@
       @send="onSend"
     >
       <template #empty>{{ translations.empty }}</template>
+
+      <!-- What the agent stopped to ask about. It sits above the composer
+           rather than in the message list: it is a decision to make, not a
+           turn that happened. -->
+      <template v-if="pending" #beforeComposer>
+        <div
+          class="mx-4 mb-2 rounded-border border border-surface bg-emphasis p-3 flex flex-col gap-2"
+          data-testid="agent-approval"
+        >
+          <div class="flex items-start gap-2">
+            <i
+              class="pi pi-shield text-sm mt-0.5 shrink-0"
+              :class="pending.risk === 'destructive' ? 'text-red-500' : 'text-primary'"
+            />
+            <div class="min-w-0">
+              <div class="text-sm text-color font-semibold">{{ translations.approval.title }}</div>
+              <div class="text-sm text-muted-color">
+                {{ translations.approval.body(pending.tool) }}
+              </div>
+              <div v-if="pending.risk === 'destructive'" class="text-sm text-red-500 mt-1">
+                {{ translations.approval.destructive }}
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-2 justify-end">
+            <Button
+              :label="translations.approval.deny"
+              size="small"
+              severity="secondary"
+              text
+              @click="onDeny"
+            />
+            <Button
+              :label="translations.approval.allow"
+              size="small"
+              severity="secondary"
+              outlined
+              @click="onApprove(false)"
+            />
+            <Button
+              :label="translations.approval.allowChat"
+              size="small"
+              @click="onApprove(true)"
+            />
+          </div>
+        </div>
+      </template>
     </CChatMessages>
   </div>
 </template>
@@ -351,22 +398,45 @@ watch(
   },
 )
 
+// Tools the user has approved, per conversation. An approval is a UX memory,
+// not a control: the server asks again on a conversation it has not been told
+// about, and nothing here can grant what the invoking user could not do anyway.
+const approvedTools = ref<Record<string, string[]>>({})
+
+// What the agent stopped to ask about, if anything.
+const pending = ref<{ tool: string; risk?: string; agentID: string } | null>(null)
+
+function approvalKey(agentID: string, conversationID?: string) {
+  return `${agentID}:${conversationID || 'new'}`
+}
+
 async function onSend(input: string) {
   if (!agentStore.activeAgentID) return
 
   const currentAgentID = agentStore.activeAgentID
   agentStore.addMessage(currentAgentID, { role: 'user', content: input })
 
+  await runAgent(currentAgentID, input)
+}
+
+// runAgent covers both a fresh question and the resume that follows an
+// approval; a resume carries no input of its own, only the tool it may use.
+async function runAgent(currentAgentID: string, input: string) {
   executing.value = true
+  pending.value = null
 
   try {
     const activeConv = activeConversation.value as any
     const context = props.contextProvider ? props.contextProvider() : undefined
+    const key = approvalKey(currentAgentID, activeConv?.conversationID)
+    const approved = approvedTools.value[key] || []
+
     const res = await $SystemAPI.agentExec({
       agentID: currentAgentID,
       input,
       ...(activeConv?.conversationID ? { conversationID: activeConv.conversationID } : {}),
       ...(context && Object.keys(context).length > 0 ? { context } : {}),
+      ...(approved.length ? { approvedTools: approved } : {}),
     })
 
     if (res?.conversationID) {
@@ -376,12 +446,81 @@ async function onSend(input: string) {
     const outputContent =
       res?.output || (typeof res === 'string' ? res : res?.response?.text || JSON.stringify(res))
 
-    agentStore.addMessage(currentAgentID, { role: 'agent', content: outputContent })
+    if (outputContent) {
+      agentStore.addMessage(currentAgentID, { role: 'agent', content: outputContent })
+    }
+
+    if (res?.status === 'awaiting_approval' && res?.pendingApproval?.tool) {
+      pending.value = {
+        tool: res.pendingApproval.tool,
+        risk: res.pendingApproval.risk,
+        agentID: currentAgentID,
+      }
+    }
   } catch (err: any) {
     agentStore.addMessage(currentAgentID, { role: 'agent', content: 'Error: ' + err.message })
   } finally {
     executing.value = false
   }
+}
+
+async function onApprove(forChat: boolean) {
+  const p = pending.value
+  if (!p) return
+
+  const conv = activeConversation.value as any
+  if (forChat) {
+    const key = approvalKey(p.agentID, conv?.conversationID)
+    approvedTools.value = {
+      ...approvedTools.value,
+      [key]: [...(approvedTools.value[key] || []), p.tool],
+    }
+  }
+
+  pending.value = null
+  // A one-off approval is sent with the call and not remembered, so the next
+  // use of the same tool asks again.
+  await runAgentApproving(p.agentID, forChat ? [] : [p.tool])
+}
+
+async function runAgentApproving(currentAgentID: string, once: string[]) {
+  executing.value = true
+  try {
+    const activeConv = activeConversation.value as any
+    const context = props.contextProvider ? props.contextProvider() : undefined
+    const key = approvalKey(currentAgentID, activeConv?.conversationID)
+    const approved = [...(approvedTools.value[key] || []), ...once]
+
+    const res = await $SystemAPI.agentExec({
+      agentID: currentAgentID,
+      input: '',
+      ...(activeConv?.conversationID ? { conversationID: activeConv.conversationID } : {}),
+      ...(context && Object.keys(context).length > 0 ? { context } : {}),
+      approvedTools: approved,
+    })
+
+    if (res?.output) {
+      agentStore.addMessage(currentAgentID, { role: 'agent', content: res.output })
+    }
+    if (res?.status === 'awaiting_approval' && res?.pendingApproval?.tool) {
+      pending.value = {
+        tool: res.pendingApproval.tool,
+        risk: res.pendingApproval.risk,
+        agentID: currentAgentID,
+      }
+    }
+  } catch (err: any) {
+    agentStore.addMessage(currentAgentID, { role: 'agent', content: 'Error: ' + err.message })
+  } finally {
+    executing.value = false
+  }
+}
+
+function onDeny() {
+  const p = pending.value
+  if (!p) return
+  pending.value = null
+  agentStore.addMessage(p.agentID, { role: 'agent', content: props.translations.approval.denied })
 }
 
 defineExpose({
