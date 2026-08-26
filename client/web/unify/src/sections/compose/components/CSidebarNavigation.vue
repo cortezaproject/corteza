@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full border-t surface-border">
+  <div class="flex flex-col border-t surface-border">
     <!-- Search input -->
     <CInputSearch
       id="sidebar-search"
@@ -9,9 +9,11 @@
       class="my-2"
     />
 
-    <!-- Page tree navigation (grows to fill) -->
-    <div v-if="filteredPageNavItems.length" class="flex-1 overflow-auto">
+    <!-- The nav's one scroller. Page tree and admin panel scroll together, so
+         the sidebar shows a single scrollbar however long either grows. -->
+    <div class="flex-1 overflow-auto">
       <CSidebarNav
+        v-if="filteredPageNavItems.length"
         :items="filteredPageNavItems"
         id-key="pageID"
         parent-key="selfID"
@@ -22,33 +24,42 @@
         :filter-fn="p => p.visible"
         :expand-all="hasSearch"
       />
-    </div>
 
-    <!-- No results -->
-    <div
-      v-if="hasSearch && !filteredPageNavItems.length && !filteredAdminNavItems.length"
-      class="flex-1 flex items-center justify-center text-muted-color text-sm"
-    >
-      {{ $t('sidebar.noResults') }}
-    </div>
+      <!-- No results -->
+      <div
+        v-if="hasSearch && !filteredPageNavItems.length && !filteredAdminNavItems.length"
+        class="flex items-center justify-center py-8 text-muted-color text-sm"
+      >
+        {{ $t('sidebar.noResults') }}
+      </div>
 
-    <!-- Admin navigation (pinned at bottom) -->
-    <CSidebarNav
-      v-if="filteredAdminNavItems.length"
-      :items="filteredAdminNavItems"
-      id-key="_id"
-      parent-key="_parentId"
-      label-key="_label"
-      icon-key="_icon"
-      divider-key="_divider"
-      route-key="_route"
-      :expand-all="hasSearch"
-    />
+      <!-- The namespace's administration, headed so it reads as a different
+           kind of place from the pages above it. -->
+      <div
+        v-if="filteredAdminNavItems.length"
+        class="mt-3 pt-3 border-t surface-border"
+        data-testid="sidebar-admin-panel"
+      >
+        <h2 class="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-color">
+          {{ $t('sidebar.adminPanel') }}
+        </h2>
+        <CSidebarNav
+          :items="filteredAdminNavItems"
+          id-key="_id"
+          parent-key="_parentId"
+          label-key="_label"
+          icon-key="_icon"
+          route-key="_route"
+          :expand-all="hasSearch"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { useModuleStore } from '@planetcrust/human-vue'
+import { useNamespaceStore } from '@planetcrust/human-vue'
 import { usePageStore } from '@planetcrust/human-vue'
 import { components } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
@@ -61,6 +72,7 @@ const route = useRoute()
 const $ComposeAPI = inject('$ComposeAPI')
 
 const moduleStore = useModuleStore()
+const namespaceStore = useNamespaceStore()
 const pageStore = usePageStore()
 
 const searchQuery = ref('')
@@ -138,47 +150,58 @@ const filteredPageNavItems = computed(() => {
   return items.filter(i => keepIds.has(i.pageID))
 })
 
+// The admin panel opens on the namespace's `manage` op and nothing else. Without
+// it the section is absent rather than disabled: every entry in it leads to a
+// screen the server refuses, and an offer that refuses on arrival is worse than
+// one that was never made.
+const canManageNamespace = computed(
+  () => !!namespaceStore.getByUrlPart(route.params.slug)?.canManageNamespace,
+)
+
 // Admin nav items: Modules (with children), Pages (with children), Charts
-const adminNavItems = computed(() => [
-  {
-    _id: 'modules',
-    _parentId: '0',
-    _label: t('sidebar.modules'),
-    _icon: 'pi pi-database',
-    _divider: true,
-    _route: { name: 'admin.modules', params: { slug: route.params.slug } },
-  },
-  ...moduleStore.set.map(m => ({
-    _id: m.moduleID,
-    _parentId: 'modules',
-    _label: m.name || m.handle || m.moduleID,
-    _route: {
-      name: 'admin.modules.edit',
-      params: { slug: route.params.slug, moduleID: m.moduleID },
+const adminNavItems = computed(() => {
+  if (!canManageNamespace.value) return []
+
+  return [
+    {
+      _id: 'modules',
+      _parentId: '0',
+      _label: t('sidebar.modules'),
+      _icon: 'pi pi-database',
+      _route: { name: 'admin.modules', params: { slug: route.params.slug } },
     },
-  })),
-  {
-    _id: 'pages',
-    _parentId: '0',
-    _label: t('sidebar.pages'),
-    _icon: 'pi pi-objects-column',
-    _route: { name: 'admin.pages', params: { slug: route.params.slug } },
-  },
-  ...pageStore.set.map(p => ({
-    _id: `page-${p.pageID}`,
-    _parentId: p.selfID && p.selfID !== '0' ? `page-${p.selfID}` : 'pages',
-    _label: p.title || p.handle || p.pageID,
-    _route: { name: 'admin.pages.edit', params: { slug: route.params.slug, pageID: p.pageID } },
-    weight: p.weight,
-  })),
-  {
-    _id: 'charts',
-    _parentId: '0',
-    _label: t('sidebar.charts'),
-    _icon: 'pi pi-chart-bar',
-    _route: { name: 'admin.charts', params: { slug: route.params.slug } },
-  },
-])
+    ...moduleStore.set.map(m => ({
+      _id: m.moduleID,
+      _parentId: 'modules',
+      _label: m.name || m.handle || m.moduleID,
+      _route: {
+        name: 'admin.modules.edit',
+        params: { slug: route.params.slug, moduleID: m.moduleID },
+      },
+    })),
+    {
+      _id: 'pages',
+      _parentId: '0',
+      _label: t('sidebar.pages'),
+      _icon: 'pi pi-objects-column',
+      _route: { name: 'admin.pages', params: { slug: route.params.slug } },
+    },
+    ...pageStore.set.map(p => ({
+      _id: `page-${p.pageID}`,
+      _parentId: p.selfID && p.selfID !== '0' ? `page-${p.selfID}` : 'pages',
+      _label: p.title || p.handle || p.pageID,
+      _route: { name: 'admin.pages.edit', params: { slug: route.params.slug, pageID: p.pageID } },
+      weight: p.weight,
+    })),
+    {
+      _id: 'charts',
+      _parentId: '0',
+      _label: t('sidebar.charts'),
+      _icon: 'pi pi-chart-bar',
+      _route: { name: 'admin.charts', params: { slug: route.params.slug } },
+    },
+  ]
+})
 
 // Filtered admin nav items: keep matching children + their parent groups
 const filteredAdminNavItems = computed(() => {

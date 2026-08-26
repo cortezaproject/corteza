@@ -1,9 +1,12 @@
 <template>
   <div class="flex flex-col h-full">
-    <CSidebarNamespaceNav v-if="$route.meta.sidebar === 'namespaces'" />
+    <!-- The nav takes the height the switcher leaves rather than a full column
+         of its own: asking for both is what puts a second scrollbar on the
+         sidebar, one for the shell's body and one for the nav inside it. -->
+    <CSidebarNamespaceNav v-if="$route.meta.sidebar === 'namespaces'" class="flex-1 min-h-0" />
     <template v-else>
       <CSidebarNamespaceSwitcher />
-      <CSidebarNavigation />
+      <CSidebarNavigation class="flex-1 min-h-0" />
     </template>
   </div>
 </template>

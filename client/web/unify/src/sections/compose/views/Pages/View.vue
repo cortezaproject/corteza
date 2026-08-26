@@ -6,8 +6,8 @@
 
   <!-- Page builder button in topbar tools -->
   <Teleport to="#topbar-tools" :defer="true">
-    <ButtonGroup v-if="page?.canUpdatePage || showTranslatorButton" class="gap-1">
-      <template v-if="page?.canUpdatePage">
+    <ButtonGroup v-if="canEditPage || showTranslatorButton" class="gap-1">
+      <template v-if="canEditPage">
         <Button
           :label="$t('page.block.general.label.pageBuilder')"
           icon="pi pi-wrench"
@@ -47,7 +47,7 @@
       {{ emptyStateMessage }}
     </p>
     <Button
-      v-if="hasNoLayouts && page.canUpdatePage"
+      v-if="hasNoLayouts && canEditPage"
       :label="$t('page.page-layout.add')"
       icon="pi pi-plus"
       size="small"
@@ -81,7 +81,7 @@ import {
 import { useResourceTranslations } from '@/sections/compose/composables/useResourceTranslations'
 import { evaluatePrefilter, usesRecordVariables } from '@/sections/compose/lib/record-filter'
 
-defineProps({
+const props = defineProps({
   namespace: {
     type: Object,
     required: true,
@@ -112,6 +112,13 @@ const noLayoutMatched = ref(false)
 
 const pageLayouts = computed(() =>
   page.value ? pageLayoutStore.getByPageID(page.value.pageID) : [],
+)
+
+// The builder and the page editor are screens of the namespace's admin panel,
+// so reaching them takes the namespace's `manage` op as well as the page's own
+// update right.
+const canEditPage = computed(
+  () => !!props.namespace?.canManageNamespace && !!page.value?.canUpdatePage,
 )
 
 // A page nobody has given a layout yet is unfinished, not withheld — it says so

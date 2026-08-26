@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col">
     <CInputSearch
       id="namespace-nav-search"
       v-model="searchQuery"

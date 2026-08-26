@@ -128,11 +128,72 @@ describe('Namespace View redirects', () => {
 
   it('lets an admin through to a disabled namespace on an admin route', async () => {
     route.name = 'admin.modules'
-    namespaces = [{ namespaceID: 'N1', slug: 'ns', enabled: false, canUpdateNamespace: true }]
+    namespaces = [
+      {
+        namespaceID: 'N1',
+        slug: 'ns',
+        enabled: false,
+        canUpdateNamespace: true,
+        canManageNamespace: true,
+      },
+    ]
 
     await mountView()
 
     expect(router.replace).not.toHaveBeenCalled()
     expect(moduleStore.load).toHaveBeenCalled()
+  })
+})
+
+// The admin routes under a namespace are its admin panel, and the server's
+// `manage` op is the only thing that opens it. Hiding the way in is not the
+// gate — a bookmark, a pasted link or a namespace switch all arrive here
+// without ever touching the sidebar.
+describe('Namespace View admin guard', () => {
+  it('sends a user without manage back to the namespace pages', async () => {
+    route.name = 'admin.modules'
+    namespaces = [
+      {
+        namespaceID: 'N1',
+        slug: 'ns',
+        enabled: true,
+        canUpdateNamespace: true,
+        canManageNamespace: false,
+      },
+    ]
+
+    await mountView()
+
+    expect(router.push).not.toHaveBeenCalled()
+    expect(router.replace).toHaveBeenCalledWith({ name: 'pages', params: { slug: 'ns' } })
+  })
+
+  it('leaves a user with manage on the admin route', async () => {
+    route.name = 'admin.pages'
+    namespaces = [{ namespaceID: 'N1', slug: 'ns', enabled: true, canManageNamespace: true }]
+
+    await mountView()
+
+    expect(router.replace).not.toHaveBeenCalled()
+  })
+
+  it('bounces when the route turns admin after the namespace has loaded', async () => {
+    namespaces = [{ namespaceID: 'N1', slug: 'ns', enabled: true, canManageNamespace: false }]
+
+    await mountView()
+    expect(router.replace).not.toHaveBeenCalled()
+
+    route.name = 'admin.charts'
+    await flushPromises()
+
+    expect(router.replace).toHaveBeenCalledWith({ name: 'pages', params: { slug: 'ns' } })
+  })
+
+  it('leaves the public pages alone', async () => {
+    namespaces = [{ namespaceID: 'N1', slug: 'ns', enabled: true, canManageNamespace: false }]
+
+    await mountView()
+
+    expect(router.replace).not.toHaveBeenCalled()
   })
 })

@@ -6,13 +6,13 @@
 
       <div class="flex flex-col gap-3 items-center">
         <Button
-          v-if="namespace?.canCreateModule"
+          v-if="canAdmin && namespace?.canCreateModule"
           :label="$t('onboarding.step.module.create')"
           icon="pi pi-database"
           @click="goToModuleAdmin"
         />
         <Button
-          v-if="namespace?.canCreatePage"
+          v-if="canAdmin && namespace?.canCreatePage"
           :label="$t('onboarding.step.page.create')"
           icon="pi pi-objects-column"
           severity="secondary"
@@ -29,7 +29,7 @@ import { NoID } from '@planetcrust/human-js'
 import { computed, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-defineProps({
+const props = defineProps({
   namespace: {
     type: Object,
     required: true,
@@ -39,6 +39,10 @@ defineProps({
 const router = useRouter()
 const route = useRoute()
 const pageStore = usePageStore()
+
+// Both buttons land in the admin panel, which the namespace's `manage` op opens;
+// without it they would bounce straight back here.
+const canAdmin = computed(() => !!props.namespace?.canManageNamespace)
 
 const homePage = computed(
   () =>

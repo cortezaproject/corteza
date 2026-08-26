@@ -6,26 +6,28 @@
 
   <!-- Admin tools in topbar -->
   <Teleport v-if="!inModal" to="#topbar-tools" :defer="true">
-    <ButtonGroup v-if="page?.canUpdatePage" class="gap-1">
+    <ButtonGroup v-if="canEditPage || canEditModule" class="gap-1">
       <Button
-        v-if="page.isRecordPage"
+        v-if="canEditModule"
         :label="$t('page.moduleEdit')"
         icon="pi pi-database"
         size="small"
         @click="goToModuleEdit"
       />
-      <Button
-        :label="$t('page.block.general.label.pageBuilder')"
-        icon="pi pi-wrench"
-        size="small"
-        @click="goToBuilder"
-      />
-      <Button
-        v-tooltip.bottom="$t('navigation.editPage')"
-        icon="pi pi-pencil"
-        size="small"
-        @click="goToEditPage"
-      />
+      <template v-if="canEditPage">
+        <Button
+          :label="$t('page.block.general.label.pageBuilder')"
+          icon="pi pi-wrench"
+          size="small"
+          @click="goToBuilder"
+        />
+        <Button
+          v-tooltip.bottom="$t('navigation.editPage')"
+          icon="pi pi-pencil"
+          size="small"
+          @click="goToEditPage"
+        />
+      </template>
     </ButtonGroup>
   </Teleport>
 
@@ -317,6 +319,19 @@ const isSaving = ref(false)
 const page = ref(null)
 const layout = ref(null)
 const record = ref(null)
+
+// Both buttons open screens of the namespace's admin panel, so each takes the
+// namespace's `manage` op on top of its own resource's right — the module's for
+// the module editor, the page's for the builder and the page editor.
+const canEditPage = computed(
+  () => !!props.namespace?.canManageNamespace && !!page.value?.canUpdatePage,
+)
+const canEditModule = computed(
+  () =>
+    !!props.namespace?.canManageNamespace &&
+    !!page.value?.isRecordPage &&
+    !!moduleStore.getByID(page.value.moduleID)?.canUpdateModule,
+)
 
 /**
  * The record page's displayed title. A layout may override the page title with

@@ -36,7 +36,7 @@ import { usePageStore } from '@planetcrust/human-vue'
 import { usePageLayoutStore } from '@planetcrust/human-vue'
 import { compose, NoID } from '@planetcrust/human-js'
 import { useMinDuration } from '@planetcrust/human-vue'
-import { inject, onMounted, provide, ref, watch } from 'vue'
+import { computed, inject, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import RecordModal from '@/sections/compose/components/Record/RecordModal.vue'
@@ -70,6 +70,9 @@ provide('$namespace', namespace)
 // Provide page store for record field viewer navigation
 provide('$pageStore', pageStore)
 
+// The `admin.*` routes are the namespace's admin panel.
+const isAdminRoute = computed(() => !!route.name?.toString().startsWith('admin.'))
+
 // Methods
 async function loadNamespace() {
   await run(async () => {
@@ -93,8 +96,7 @@ async function loadNamespace() {
       }
 
       if (!ns.enabled) {
-        const isAdminRoute = route.name?.toString().startsWith('admin.')
-        if (ns.canUpdateNamespace && isAdminRoute) {
+        if (ns.canUpdateNamespace && isAdminRoute.value) {
           // allow through — admin configuring a disabled namespace
         } else if (ns.canUpdateNamespace) {
           $toast.toastWarning(t('notification.namespace.disabled'))
@@ -184,5 +186,18 @@ watch(
   () => {
     loadNamespace()
   },
+)
+
+// The server's `manage` op is what opens the admin panel; a user without it is
+// put back on the namespace's pages however they arrived — a bookmark, a stale
+// link, a namespace switch that kept the screen. Replace, not push, so Back does
+// not land on it and bounce again.
+watch(
+  [isAdminRoute, namespace],
+  ([admin, ns]) => {
+    if (!admin || !ns || ns.canManageNamespace) return
+    router.replace({ name: 'pages', params: { slug: props.slug } })
+  },
+  { immediate: true },
 )
 </script>
