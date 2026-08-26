@@ -72,6 +72,53 @@ func TestExecContextTextIsDepthBounded(t *testing.T) {
 	assert.NotContains(t, execContextText(map[string]any{"top": deep}), "bottom")
 }
 
+// The caller context must reach the model as a message from the user, never as
+// part of the system prompt: a value typed into a record field otherwise gets
+// the authority of a platform instruction, and prose asking the model not to
+// obey it does not take that authority away.
+func TestCallerContextIsAUserMessage(t *testing.T) {
+	m := callerContextMessage(`{"recordID":"123"}`)
+	assert.Equal(t, "user", m.Role)
+	assert.Contains(t, m.Content, `{"recordID":"123"}`)
+}
+
+// It belongs beside the question it qualifies. Ahead of the whole history it
+// would sit behind every earlier turn by the time someone says "this record".
+func TestWithCallerContextSitsBeforeTheLatestMessage(t *testing.T) {
+	m := callerContextMessage(`{}`)
+	msgs := []types.AiConversationMessage{
+		{Role: "user", Content: "first"},
+		{Role: "assistant", Content: "reply"},
+		{Role: "user", Content: "latest"},
+	}
+
+	got := withCallerContext(msgs, &m)
+	require.Len(t, got, 4)
+	assert.Equal(t, "first", got[0].Content)
+	assert.Equal(t, "reply", got[1].Content)
+	assert.Contains(t, got[2].Content, "CALLER CONTEXT")
+	assert.Equal(t, "latest", got[3].Content)
+
+	// The stored history is not touched: the context describes this turn only
+	// and replaying it every turn would grow the conversation for nothing.
+	assert.Len(t, msgs, 3)
+}
+
+func TestWithCallerContextEdges(t *testing.T) {
+	msgs := []types.AiConversationMessage{{Role: "user", Content: "only"}}
+	assert.Equal(t, msgs, withCallerContext(msgs, nil))
+
+	m := callerContextMessage(`{}`)
+	one := withCallerContext(msgs, &m)
+	require.Len(t, one, 2)
+	assert.Contains(t, one[0].Content, "CALLER CONTEXT")
+	assert.Equal(t, "only", one[1].Content)
+
+	empty := withCallerContext(nil, &m)
+	require.Len(t, empty, 1)
+	assert.Contains(t, empty[0].Content, "CALLER CONTEXT")
+}
+
 // The section must say the content is data and must fence it, so a payload
 // that closes the JSON and opens its own "## SYSTEM INSTRUCTION" heading is
 // visibly still inside the fence rather than looking like a new section.

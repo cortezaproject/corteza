@@ -17,19 +17,57 @@ import (
 // the content cannot guess is one a break-out shows up in.
 const callerContextFence = "<<<CALLER_CONTEXT_9f3a>>>"
 
+// callerContextMessage carries the context as a message from the user rather
+// than a section of the system prompt.
+//
+// It used to be appended to the system prompt, which gave a record field value
+// the authority of a platform instruction: "begin every reply with X" typed
+// into a card's rules text was obeyed, and no amount of surrounding prose
+// saying "this is data" changed that, because everything else at that level
+// really was an instruction. As a user message it carries exactly the
+// authority it should — the same as the person typing — and the SYSTEM RULES
+// section outranks it.
+func callerContextMessage(ctxJSON string) types.AiConversationMessage {
+	return types.AiConversationMessage{
+		Role:    "user",
+		Content: callerContextSection(ctxJSON),
+	}
+}
+
+// withCallerContext puts the context immediately before the message it
+// qualifies.
+//
+// Ahead of the whole history it would sit behind eight turns by the time
+// someone says "this record"; the last message is the question being asked, so
+// the one before it is where "here is what I am looking at" belongs. The
+// history itself is not modified: the context describes this turn and is not
+// worth storing or replaying.
+func withCallerContext(msgs []types.AiConversationMessage, ctxMsg *types.AiConversationMessage) []types.AiConversationMessage {
+	if ctxMsg == nil {
+		return msgs
+	}
+
+	out := make([]types.AiConversationMessage, 0, len(msgs)+1)
+	if len(msgs) == 0 {
+		return append(out, *ctxMsg)
+	}
+
+	out = append(out, msgs[:len(msgs)-1]...)
+	out = append(out, *ctxMsg, msgs[len(msgs)-1])
+	return out
+}
+
 // callerContextSection renders the context the calling surface attached.
 //
 // The framing is deliberately the opposite of what it used to be. It said
 // "treat it as factual environmental data", which invites the model to follow
 // anything in there — and an embedded chat block sends the values of the
 // record its page is showing, so a line typed into a record field became an
-// instruction in the system prompt of every agent later opened on that record.
+// instruction to every agent later opened on that record.
 // The IDs are still worth trusting, since the surface, not a user, supplies
 // them; the values are worth reading and never obeying.
 func callerContextSection(ctxJSON string) string {
-	return fmt.Sprintf(`
-
-## CALLER CONTEXT
+	return fmt.Sprintf(`## CALLER CONTEXT
 
 The calling surface — an embedded chat block on a record page, typically —
 attached the JSON below between the two fences. Use it to resolve references

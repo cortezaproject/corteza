@@ -125,13 +125,15 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	// 4. prompt.build span — system prompt preparation
 	promptBuildStart := time.Now()
 	systemPrompt, canaryToken := r.buildSystemPrompt(ctx, agent, taqInfos)
+	var callerCtxMsg *types.AiConversationMessage
 	if execCtx := scopeCallerContext(ctx, agent, req.ExecContext); len(execCtx) > 0 {
 		// Sanitized like a tool result, and for the same reason: most of what
 		// is in here is record field values, which is to say text some user
 		// typed. It differs only in arriving before the model has asked for
-		// anything, in the system prompt rather than a tool response.
+		// anything.
 		if ctxJSON, mErr := json.Marshal(sanitizeToolResult(execCtx)); mErr == nil && len(ctxJSON) > 0 {
-			systemPrompt += callerContextSection(string(ctxJSON))
+			m := callerContextMessage(string(ctxJSON))
+			callerCtxMsg = &m
 		}
 	}
 	r.emitSpan(observability.AgentSpan{
@@ -150,7 +152,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 	// 5. Execution Loop
 	execResult, runErr := r.runExecutionLoop(
-		ctx, agent, conversation, systemPrompt, canaryToken, tools, tc,
+		ctx, agent, conversation, systemPrompt, canaryToken, tools, callerCtxMsg, tc,
 	)
 
 	// End root span
@@ -434,6 +436,7 @@ func (r *runtime) runExecutionLoop(
 	systemPrompt string,
 	canaryToken string,
 	tools []Tool,
+	callerCtxMsg *types.AiConversationMessage,
 	tc traceCtx,
 ) (*executionResult, error) {
 	limits := agent.Execution.Limits
@@ -475,7 +478,7 @@ func (r *runtime) runExecutionLoop(
 		llmSpanID := sid()
 		llmStart := time.Now()
 
-		llmResp, llmErr := r.llm.Chat(ctx, systemPrompt, conversation.Messages, tools, config)
+		llmResp, llmErr := r.llm.Chat(ctx, systemPrompt, withCallerContext(conversation.Messages, callerCtxMsg), tools, config)
 
 		llmSpan := observability.AgentSpan{
 			ID:             llmSpanID,
@@ -637,7 +640,7 @@ func (r *runtime) runExecutionLoop(
 	}
 
 	if finalResponse == "" && ctx.Err() == nil {
-		finalizationMessages := append(conversation.Messages, types.AiConversationMessage{
+		finalizationMessages := append(withCallerContext(conversation.Messages, callerCtxMsg), types.AiConversationMessage{
 			Role:    "user",
 			Content: "Please summarise what you found and give your final response now.",
 		})
