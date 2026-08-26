@@ -194,7 +194,6 @@ const listFields = [
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
   useResourceList(params => $AutomationAPI.ngAutomationListCancellable(params), {
     filter: { query: '', deleted: '0', disabled: '1' },
-    sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 50 },
   })
 

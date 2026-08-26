@@ -191,7 +191,6 @@ const {
   filterList,
 } = useResourceList(params => $SystemAPI.userGroupListCancellable(params), {
   filter: { query: '', deleted: '0', archived: '0' },
-  sorting: { sortBy: 'name', sortDesc: false },
   pagination: { limit: 50 },
 })
 

@@ -148,7 +148,6 @@ const fields = [
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
   useResourceList(params => $FederationAPI.nodeSearchCancellable(params), {
     filter: { query: '' },
-    sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 20 },
   })
 

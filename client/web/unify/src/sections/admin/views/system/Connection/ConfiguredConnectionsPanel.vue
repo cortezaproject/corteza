@@ -56,6 +56,10 @@
       />
     </template>
 
+    <template #body-changedAt="{ data }">
+      {{ changedAtText(data) }}
+    </template>
+
     <template #body-actions="{ data }">
       <Button
         icon="pi pi-ellipsis-v"
@@ -201,7 +205,14 @@
 import { inject, nextTick, onMounted, reactive, ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { components, useConfirmDelete, useResourceList, useRBACStore } from '@planetcrust/human-vue'
+import {
+  changedAtField,
+  changedAtText,
+  components,
+  useConfirmDelete,
+  useResourceList,
+  useRBACStore,
+} from '@planetcrust/human-vue'
 
 const { CInputDelete, CResourceList } = components
 
@@ -241,6 +252,7 @@ const configuredConnectionFields = [
     sortable: true,
     header: t('system.connections.list.columns.status'),
   },
+  changedAtField(t('general.columns.changedAt')),
   {
     key: 'actions',
     class: 'text-right w-12',
@@ -302,7 +314,6 @@ const {
   },
   {
     filter: { query: '' },
-    sorting: { sortBy: 'status', sortDesc: false },
     pagination: { limit: 10 },
     immediate: false,
   },

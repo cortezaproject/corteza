@@ -170,7 +170,6 @@ const {
     }),
   {
     filter: { query: '' },
-    sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 50 },
   },
 )

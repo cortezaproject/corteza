@@ -239,7 +239,6 @@ const { items, loading, filter, sorting, pagination, handleSort, handlePageChang
     params => $SystemAPI.dalConnectionListCancellable({ ...params, type: EXTERNAL_TYPE }),
     {
       filter: { query: '', deleted: '0' },
-      sorting: { sortBy: 'name', sortDesc: false },
       pagination: { limit: 50 },
     },
   )

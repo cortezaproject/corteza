@@ -169,7 +169,6 @@ const {
   },
   {
     filter: { query: '' },
-    sorting: { sortBy: 'changedAt', sortDesc: true },
     pagination: { limit: 50 },
   },
 )
@@ -194,9 +193,8 @@ const newDialogVisible = ref(false)
 const renameVisible = ref(false)
 const renameTarget = ref(null)
 
-// name (meta.short) is a JSON column with no sort ident, so it's not sortable.
 const fields = [
-  { key: 'name', sortable: false, header: t('general.label.name') },
+  { key: 'name', sortable: true, header: t('general.label.name') },
   { key: 'status', sortable: true, header: t('general.label.status') },
   changedAtField(t('general.columns.changedAt')),
 ]

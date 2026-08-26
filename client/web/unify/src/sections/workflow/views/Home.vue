@@ -282,7 +282,6 @@ const {
   params => $AutomationAPI.workflowListCancellable({ ...params, labels: labelsFilter.value }),
   {
     filter: { query: '', subWorkflow: '1', disabled: '1', deleted: '0' },
-    sorting: { sortBy: 'name', sortDesc: false },
     pagination: { limit: 50 },
   },
 )

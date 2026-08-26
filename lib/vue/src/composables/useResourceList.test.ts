@@ -60,6 +60,34 @@ describe('useResourceList', () => {
     document.body.innerHTML = ''
   })
 
+  describe('default sorting', () => {
+    it('opens on the changedAt column, newest first', async () => {
+      const api = makeAPI([])
+      mountList(api)
+      await flushPromises()
+
+      expect(api).toHaveBeenCalledWith(
+        expect.objectContaining({ sort: 'coalesce(deletedAt, updatedAt, createdAt) DESC' }),
+      )
+    })
+
+    it('lets a named sorting win', async () => {
+      const api = makeAPI([])
+      mountList(api, { sorting: { sortBy: 'dateDue', sortDesc: true } })
+      await flushPromises()
+
+      expect(api).toHaveBeenCalledWith(expect.objectContaining({ sort: 'dateDue DESC' }))
+    })
+
+    it('treats an empty sorting as opting out, for a resource the server cannot sort', async () => {
+      const api = makeAPI([])
+      mountList(api, { sorting: {} })
+      await flushPromises()
+
+      expect(api).toHaveBeenCalledWith(expect.objectContaining({ sort: undefined }))
+    })
+  })
+
   describe('initial fetch', () => {
     it('calls apiFn on mount and populates items', async () => {
       const api = makeAPI([{ id: 1 }, { id: 2 }])
@@ -184,7 +212,7 @@ describe('useResourceList', () => {
 
     it('sends the changedAt column as a COALESCE expression', async () => {
       const api = makeAPI([])
-      const { list } = mountList(api)
+      const { list } = mountList(api, { sorting: { sortBy: 'name', sortDesc: false } })
       await flushPromises()
       api.mockClear()
 

@@ -48,7 +48,12 @@ export function useResourceList<T = any>(
 
   // Reactive state
   const filter = reactive<FilterState>({ ...options.filter })
-  const sorting = reactive<SortingState>({ ...options.sorting })
+
+  // Lists open on what changed last. Naming `sorting` opts out: a different
+  // order, or `{}` for a resource the server cannot sort at all.
+  const sorting = reactive<SortingState>(
+    options.sorting ?? { sortBy: CHANGED_AT_KEY, sortDesc: true },
+  )
   const pagination = reactive<PaginationState>({
     limit: 100,
     pageCursor: undefined,

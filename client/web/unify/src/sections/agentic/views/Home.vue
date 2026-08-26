@@ -134,7 +134,6 @@ const {
   filterList,
 } = useResourceList(params => $SystemAPI.agentListCancellable(params), {
   filter: { query: '' },
-  sorting: { sortBy: 'name', sortDesc: false },
   pagination: { limit: 50 },
 })
 

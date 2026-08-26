@@ -129,8 +129,8 @@
                   <Tag :value="data.status" :severity="workflowStatusSeverity(data.status)" />
                 </template>
 
-                <template #body-createdAt="{ data }">
-                  {{ locFullDateTime(data.createdAt) }}
+                <template #body-changedAt="{ data }">
+                  {{ changedAtText(data) }}
                 </template>
 
                 <template #filter>
@@ -230,7 +230,13 @@
 <script setup>
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { components, filters, useResourceList } from '@planetcrust/human-vue'
+import {
+  changedAtField,
+  changedAtText,
+  components,
+  filters,
+  useResourceList,
+} from '@planetcrust/human-vue'
 
 const { CResourceList } = components
 const { locFullDateTime } = filters
@@ -362,13 +368,7 @@ const workflowFields = [
   { key: 'workflowID', sortable: false, header: t('automation.sessions.list.columns.workflowID') },
   { key: 'eventType', sortable: false, header: t('automation.sessions.list.columns.eventType') },
   { key: 'status', sortable: false, header: t('automation.sessions.list.columns.status') },
-  {
-    key: 'createdAt',
-    sortable: true,
-    header: t('automation.sessions.list.columns.createdAt'),
-    class: 'text-right',
-    pt: { columnHeaderContent: 'justify-end' },
-  },
+  changedAtField(t('general.columns.changedAt')),
 ]
 
 const {
@@ -382,7 +382,6 @@ const {
   filterList: workflowFilterList,
 } = useResourceList(params => $AutomationAPI.sessionListCancellable({ ...params }), {
   filter: { sessionID: null, workflowID: null, status: null },
-  sorting: { sortBy: 'createdAt', sortDesc: true },
   pagination: { limit: 50 },
   immediate: false,
 })

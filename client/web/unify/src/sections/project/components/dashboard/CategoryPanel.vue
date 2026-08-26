@@ -217,6 +217,10 @@
              `revisionId` is set (the wizard's single-revision scope) — every
              row already shares that one revision there, so the column would
              be redundant on every row instead of informative. -->
+        <template #body-changedAt="{ data }">
+          {{ changedAtText(data) }}
+        </template>
+
         <template #body-revisionID="{ data }">
           <span
             v-if="revisionInfo(data.revisionID).unassigned"
@@ -347,6 +351,8 @@ import { useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { EVENT_RESOURCES, mapEventRow, useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
 import {
+  changedAtField,
+  changedAtText,
   components,
   useConfirmDelete,
   useResourceList,
@@ -763,10 +769,12 @@ const fields = computed(() => {
     header: t(c.headerKey),
     sortable: !!c.sortable,
   }))
-  if (isRevisionScoped.value) return cols
+  const changed = changedAtField(t('general.columns.changedAt'))
+  if (isRevisionScoped.value) return [...cols, changed]
   return [
     ...cols,
     { key: 'revisionID', header: t('project.dashboard.columns.revision'), sortable: true },
+    changed,
   ]
 })
 

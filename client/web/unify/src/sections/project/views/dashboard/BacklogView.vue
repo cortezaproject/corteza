@@ -197,6 +197,10 @@
             <template #body-dateDue="{ data }">
               <span class="text-sm text-muted-color">{{ formatDate(data.dateDue) }}</span>
             </template>
+
+            <template #body-changedAt="{ data }">
+              {{ changedAtText(data) }}
+            </template>
           </CResourceList>
         </div>
       </template>
@@ -280,7 +284,13 @@ import { CATEGORY_COLORS, orderIndex } from '@/sections/project/config/chartColo
 import { mapBacklogRow, useBacklogItemsStore } from '@/sections/project/stores/backlogItems'
 import { useEventsStore } from '@/sections/project/stores/events'
 import { useReportStore } from '@/sections/project/stores/report'
-import { components, useResourceList, useRightSidebarStore } from '@planetcrust/human-vue'
+import {
+  changedAtField,
+  changedAtText,
+  components,
+  useResourceList,
+  useRightSidebarStore,
+} from '@planetcrust/human-vue'
 import { computed, inject, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -490,6 +500,7 @@ const fields = computed(() => [
   { key: 'priority', header: t('project.dashboard.backlog.f.priority'), sortable: true },
   { key: 'status', header: t('project.dashboard.event.f.status'), sortable: true },
   { key: 'dateDue', header: t('project.dashboard.event.f.dateDue'), sortable: true },
+  changedAtField(t('general.columns.changedAt')),
 ])
 
 const dialogVisible = ref(false)
