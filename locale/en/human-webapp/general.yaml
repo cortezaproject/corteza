@@ -296,7 +296,7 @@ resourceList:
     showing: '{from} - {to} of {count} {data}'
     single: No {data} | One {data} | {count} {data}
 save: Save
-searchPlaceholder: Search workflows
+searchPlaceholder: Search for workflows
 subworkflow: Subworkflow
 subworkflows: Subworkflows
 themes:

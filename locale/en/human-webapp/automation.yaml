@@ -124,7 +124,7 @@ taq:
       inclusive:
         label: Including deleted
       query:
-        placeholder: Filter TAQs by name
+        placeholder: Search for TAQs
     new: New TAQ
     title: TAQ
 workflows:
@@ -180,7 +180,7 @@ workflows:
         label: Including
       query:
         label: Filter workflows list
-        placeholder: Filter workflows by name
+        placeholder: Search for workflows
     loading: Loading workflows
     new: New Workflow
     permissions: Permissions

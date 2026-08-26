@@ -178,7 +178,7 @@ public:
       title: '{name} - Viewing Record'
 referencedBlock: This block is used in other layouts
 reordered: Page reordered
-searchPlaceholder: Search pages...
+searchPlaceholder: Search for pages
 showSubPages: Expand sub-pages in the sidebar
 showSubPagesDescription: When this page is opened, show its child pages in the navigation.
 title: List of Pages

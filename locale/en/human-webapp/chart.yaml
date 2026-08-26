@@ -282,6 +282,6 @@ notification:
   loadFailed: Could not load chart
   saveFailed: Could not save this chart
   saved: Chart saved
-searchPlaceholder: Search charts in this namespace
+searchPlaceholder: Search for charts
 title: List of Charts
 undefined: (empty)

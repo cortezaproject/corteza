@@ -259,7 +259,7 @@ list:
   enabled:
     'off': Disabled
     'on': Enabled
-  searchPlaceholder: Search chatbots
+  searchPlaceholder: Search for chatbots
   title: Chatbots
   unnamed: (unnamed)
 sessions:

@@ -281,7 +281,7 @@ recordPage:
   edit: Edit record page
 recordPermissions: Record permissions
 related-pages: Related Pages
-searchPlaceholder: Search modules in this namespace
+searchPlaceholder: Search for modules
 title: List of Modules
 tooltip:
   permissions: Module permissions

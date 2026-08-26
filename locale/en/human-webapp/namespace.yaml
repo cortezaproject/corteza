@@ -68,7 +68,7 @@ name:
   label: Full namespace name
   placeholder: Enter namespace name
 noResults: No namespaces found
-searchPlaceholder: Search namespaces
+searchPlaceholder: Search for namespaces
 setPermissions: Set namespace permissions
 sidebar:
   configure: Namespace pages

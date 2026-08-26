@@ -159,7 +159,7 @@ apigw:
         label: Including
       query:
         label: Filter route list
-        placeholder: Filter routes by name
+        placeholder: Search for routes
     loading: Loading routes
     new: New Route
     permissions: Permissions
@@ -296,7 +296,7 @@ applications:
         label: Including
       query:
         label: Filter applications list
-        placeholder: Filter applications by name
+        placeholder: Search for applications
     loading: Loading applications
     new: New Application
     permissions: Permissions
@@ -415,7 +415,7 @@ authclients:
         label: Including
       query:
         label: Filter clients list
-        placeholder: Filter clients
+        placeholder: Search for auth clients
     loading: Loading clients
     new: New Auth Client
     permissions: Permissions
@@ -471,7 +471,7 @@ configuredConnections:
     deleteConfirm: Are you sure you want to delete this configured connection?
     resourcePlural: configured connections
     resourceSingle: configured connection
-    searchPlaceholder: Filter configured connections by name
+    searchPlaceholder: Search for configured connections
     title: Configured Connections
 connections:
   configurePage:
@@ -540,7 +540,7 @@ connections:
         label: Including
     resourcePlural: connections
     resourceSingle: connection
-    searchPlaceholder: Filter connections by handle or name
+    searchPlaceholder: Search for connections
     sourceValues:
       catalog: Library
       local: Custom
@@ -659,7 +659,7 @@ data-sources:
       inclusive:
         label: Including
       query:
-        placeholder: Filter data sources by name
+        placeholder: Search for data sources
     loading: Loading Data Sources
     title: Data Sources
   primary:
@@ -747,7 +747,7 @@ labels:
     createLabel: New Label
     filterForm:
       query:
-        placeholder: Filter labels by name
+        placeholder: Search for labels
     resourceSingle: label
     title: Labels
 llmProviders:
@@ -852,7 +852,7 @@ queues:
         label: Only
       handle:
         label: Filter queues list
-        placeholder: Filter queues by name
+        placeholder: Search for queues
       inclusive:
         label: Including
     loading: Loading messaging queues
@@ -924,7 +924,7 @@ roles:
         label: Including
       query:
         label: Filter roles list
-        placeholder: Filter roles by name
+        placeholder: Search for roles
     loading: Loading roles
     new: New Role
     permissions: Permissions
@@ -1233,7 +1233,7 @@ templates:
         label: Only
       handle:
         label: Filter templates list
-        placeholder: Filter templates by handle
+        placeholder: Search for templates
       inclusive:
         label: Including
     loading: Loading templates
@@ -1321,7 +1321,7 @@ user-groups:
         label: Including
       query:
         label: Filter user groups list
-        placeholder: Filter user groups by handle
+        placeholder: Search for user groups
     loading: Loading user groups
     new: New User Group
     permissions: Permissions
@@ -1459,7 +1459,7 @@ users:
         label: Including
       query:
         label: Filter users list
-        placeholder: Filter users by name, email
+        placeholder: Search for users
       suspended:
         label: Suspended users
     loading: Loading users

@@ -36,7 +36,7 @@ filterForm:
   inclusive:
     label: Including
   query:
-    placeholder: Filter automations
+    placeholder: Search for TAQs
 new: New TAQ
 title: TAQ Automations
 untitled: Untitled TAQ

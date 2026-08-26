@@ -8,7 +8,7 @@ status:
   deprecated: Deprecated
 list:
   title: Projects
-  searchPlaceholder: Search projects…
+  searchPlaceholder: Search for projects
   filterByStatus: Filter by status
   resourceSingle: project
   resourcePlural: projects
@@ -196,7 +196,7 @@ dashboard:
   # "unassigned only", so there's no honest way to serve it server-side (see
   # CategoryPanel.vue/BacklogView.vue's own module doc comments).
   list:
-    searchPlaceholder: 'Search…'
+    searchPlaceholder: Search for {resource}
     empty: 'Nothing here yet.'
   categories:
     incident: Incidents
@@ -217,7 +217,7 @@ dashboard:
   backlog:
     title: Backlog
     desc: Follow-up work items linked to events across every category.
-    searchPlaceholder: 'Search backlog…'
+    searchPlaceholder: Search for backlog items
     empty: No backlog items yet.
     emptyHint: Create a backlog item here, or add one from any event's detail panel.
     newButton: New item

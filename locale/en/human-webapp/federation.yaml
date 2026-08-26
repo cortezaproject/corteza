@@ -59,7 +59,7 @@ nodes:
       tags: ''
     filter:
       query:
-        placeholder: Filter nodes by name
+        placeholder: Search for nodes
     filterForm:
       query:
         label: Filter servers list

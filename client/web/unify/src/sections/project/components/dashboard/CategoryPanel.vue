@@ -157,7 +157,9 @@
         :loading="listLoading"
         :action-items="actionItemsFor"
         :translations="{
-          searchPlaceholder: $t('project.dashboard.list.searchPlaceholder'),
+          searchPlaceholder: $t('project.dashboard.list.searchPlaceholder', {
+            resource: $t(cfg.titleKey),
+          }),
           noItems: $t('project.dashboard.list.empty'),
         }"
         clickable
