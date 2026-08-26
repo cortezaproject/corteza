@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -154,7 +155,7 @@ func (c *client) authToken() (crd *credentials, err error) {
 		if err = json.NewDecoder(rsp.Body).Decode(&aux); err != nil {
 			return
 		} else if aux.Error != "" {
-			return nil, fmt.Errorf(aux.Error)
+			return nil, errors.New(aux.Error)
 		} else {
 			return nil, fmt.Errorf("can not authenticate, unexpected error")
 		}
