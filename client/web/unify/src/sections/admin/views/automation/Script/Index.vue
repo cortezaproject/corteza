@@ -93,11 +93,11 @@
                 />
               </div>
 
-              <span v-if="data.description" class="text-xs text-muted-color">
+              <span v-if="data.description" class="text-xs text-muted-color truncate max-w-md">
                 {{ data.description }}
               </span>
 
-              <code class="text-xs text-muted-color">{{ data.name }}</code>
+              <code class="text-xs text-muted-color truncate max-w-md">{{ data.name }}</code>
 
               <div v-if="data.errors && data.errors.length" class="flex flex-col gap-1 mt-1">
                 <Message

@@ -52,7 +52,7 @@
       <template #body-name="{ data }">
         <div class="flex flex-col">
           <span>{{ data.name || data.handle || '-' }}</span>
-          <span v-if="data.handle && data.name" class="text-xs text-muted-color truncate">
+          <span v-if="data.handle && data.name" class="text-xs text-muted-color truncate max-w-md">
             {{ data.handle }}
           </span>
         </div>
