@@ -220,7 +220,7 @@ type (
 
 		// Input POST parameter
 		//
-		// User input message
+		// User input message. Omit it when resuming a run with approvedTools.
 		Input string
 
 		// ConversationID POST parameter
@@ -232,6 +232,11 @@ type (
 		//
 		// Caller-supplied execution context exposed to the agent prompt
 		Context map[string]interface{}
+
+		// ApprovedTools POST parameter
+		//
+		// Tools the user has approved this agent to use in this conversation
+		ApprovedTools []string
 	}
 )
 
@@ -1104,6 +1109,7 @@ func (r AgentExec) Auditable() map[string]interface{} {
 		"input":          r.Input,
 		"conversationID": r.ConversationID,
 		"context":        r.Context,
+		"approvedTools":  r.ApprovedTools,
 	}
 }
 
@@ -1125,6 +1131,11 @@ func (r AgentExec) GetConversationID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r AgentExec) GetContext() map[string]interface{} {
 	return r.Context
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AgentExec) GetApprovedTools() []string {
+	return r.ApprovedTools
 }
 
 // Fill processes request and fills internal variables
@@ -1173,6 +1184,7 @@ func (r *AgentExec) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
 		}
 	}
 
@@ -1208,6 +1220,13 @@ func (r *AgentExec) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+
+		//if val, ok := req.Form["approvedTools[]"]; ok && len(val) > 0  {
+		//    r.ApprovedTools, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	{

@@ -127,6 +127,7 @@ func (ctrl *Agent) Exec(ctx context.Context, r *request.AgentExec) (interface{},
 		Input:          r.Input,
 		ConversationID: r.ConversationID,
 		ExecContext:    r.Context,
+		ApprovedTools:  r.ApprovedTools,
 	})
 }
 

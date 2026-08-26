@@ -42,6 +42,16 @@ type (
 		ConversationID uint64         `json:"conversationID,string"`
 		ExecContext    map[string]any `json:"execContext"` // User/system context
 		Attachments    []Attachment   `json:"attachments"`
+
+		// ApprovedTools are the tools the user has agreed this agent may use,
+		// by name. A tool whose mode is "ask" runs only if it is named here.
+		//
+		// They are carried by the request rather than stored on the
+		// conversation deliberately: approving is the user's own act, and a
+		// caller that sends an approval it was never given has done nothing it
+		// could not have done by clicking the prompt. Keeping them out of the
+		// database also means an approval never quietly becomes policy.
+		ApprovedTools []string `json:"approvedTools,omitempty"`
 	}
 
 	// Attachment represents a file or image attached to the request.
@@ -59,6 +69,22 @@ type (
 		Decisions      []DecisionInfo `json:"decisions"`
 		Usage          Usage          `json:"usage"`
 		Context        string         `json:"context,omitempty"`
+
+		// Status is "complete", or "awaiting_approval" when the run stopped to
+		// ask. In the second case Output holds what the agent had to say up to
+		// that point and PendingApproval says what it wants to do next.
+		Status          string           `json:"status,omitempty"`
+		PendingApproval *PendingApproval `json:"pendingApproval,omitempty"`
+	}
+
+	// PendingApproval is the tool call a run stopped on, described well enough
+	// for a person to say yes or no to it.
+	PendingApproval struct {
+		Tool string         `json:"tool"`
+		Args map[string]any `json:"args,omitempty"`
+		// Risk is the tool's own classification — "write" or "destructive" —
+		// so a prompt can say how much is being asked for.
+		Risk string `json:"risk,omitempty"`
 	}
 
 	DecisionInfo struct {
@@ -208,4 +234,10 @@ func (r *runtime) SetSkillRegistry(s skills.Registry) {
 	r.skills = s
 }
 
- 
+// What a run ended as. A run that stopped to ask is not an error: the
+// conversation is saved as it stands, and coming back with the tool approved
+// picks it up.
+const (
+	StatusComplete         = "complete"
+	StatusAwaitingApproval = "awaiting_approval"
+)

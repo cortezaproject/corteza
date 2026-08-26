@@ -32,11 +32,11 @@ func (m *mockRegistry) Get(_ context.Context, _ uint64) (*types.Agent, error) {
 }
 
 type mockLLM struct {
-	responses        []LLMResponse
-	callErrors       []error
-	callIdx          int
-	captured         [][]types.AiConversationMessage
-	capturedPrompts  []string
+	responses       []LLMResponse
+	callErrors      []error
+	callIdx         int
+	captured        [][]types.AiConversationMessage
+	capturedPrompts []string
 }
 
 func (m *mockLLM) Chat(_ context.Context, prompt string, msgs []types.AiConversationMessage, _ []Tool, _ LLMConfig) (*LLMResponse, error) {
@@ -111,18 +111,21 @@ func (m *mockStore) DeleteByID(_ context.Context, _ uint64) error {
 	return nil
 }
 
-// helpers 
+// helpers
 
 func testCtx() context.Context {
 	return auth.SetIdentityToContext(context.Background(), auth.Authenticated(1))
 }
 
+// activeAgent runs its tool without asking. Most of these tests are about what
+// happens once a tool has run; an unstated mode resolves to "ask" for anything
+// the registry does not classify as read-only, and the mock classifies nothing.
 func activeAgent() *types.Agent {
 	return &types.Agent{
 		ID:     42,
 		Status: "active",
 		Access: types.AgentAccess{
-			Tools: []types.AgentAccessTool{{Name: "test_tool"}},
+			Tools: []types.AgentAccessTool{{Name: "test_tool", Permission: "always"}},
 		},
 	}
 }
@@ -150,7 +153,7 @@ func newRuntime(reg Registry, llm LLMClient, mcp MCPClient) *runtime {
 	return Runtime(reg, llm, mcp, &mockStore{}, nil, nil, nil, nil)
 }
 
-//  tests 
+//  tests
 
 func TestRun_AgentNotFound(t *testing.T) {
 	rt := newRuntime(&mockRegistry{err: errors.New("not found")}, nil, nil)
@@ -339,4 +342,73 @@ func TestRun_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "Hello, how can I help?", resp.Output)
 	assert.NotZero(t, resp.ConversationID)
+}
+
+// askingAgent grants one tool the operator wants to be asked about.
+func askingAgent() *types.Agent {
+	a := activeAgent()
+	a.Access.Tools = []types.AgentAccessTool{{Name: "test_tool", Permission: "ask"}}
+	return a
+}
+
+func toolCallingLLM() *mockLLM {
+	return &mockLLM{responses: []LLMResponse{
+		{Text: "using tool", ToolCalls: []ToolCall{{ID: "1", Name: "test_tool", Args: map[string]any{}}}},
+		{Text: "final answer"},
+	}}
+}
+
+// A tool set to "ask" stops the run rather than refusing it: the conversation
+// is saved as it stands and resumes once the caller comes back with it
+// approved.
+func TestRun_StopsForApproval(t *testing.T) {
+	rt := newRuntime(&mockRegistry{agent: askingAgent()}, toolCallingLLM(), &mockMCP{})
+
+	resp, err := rt.Run(testCtx(), &AgentRequest{AgentID: 42, Input: "do it"})
+	require.NoError(t, err)
+	require.Equal(t, StatusAwaitingApproval, resp.Status)
+	require.NotNil(t, resp.PendingApproval)
+	assert.Equal(t, "test_tool", resp.PendingApproval.Tool)
+
+	// The tool must not have run.
+	require.Len(t, resp.ToolCalls, 1)
+	assert.Contains(t, resp.ToolCalls[0].Error, "waiting for the user to approve")
+}
+
+// The same run with the tool approved goes through and never asks.
+func TestRun_ApprovedToolRuns(t *testing.T) {
+	rt := newRuntime(&mockRegistry{agent: askingAgent()}, toolCallingLLM(), &mockMCP{})
+
+	resp, err := rt.Run(testCtx(), &AgentRequest{
+		AgentID:       42,
+		Input:         "do it",
+		ApprovedTools: []string{"test_tool"},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, StatusComplete, resp.Status)
+	assert.Nil(t, resp.PendingApproval)
+	assert.Equal(t, "final answer", resp.Output)
+}
+
+// A resume carries the approval and nothing to say. The turn still needs a user
+// message: the history it resumes ends in tool results saying the work was not
+// done, and something has to tell the agent it may now do it.
+func TestRun_ResumeWithoutInput(t *testing.T) {
+	rt := newRuntime(&mockRegistry{agent: askingAgent()}, toolCallingLLM(), &mockMCP{})
+
+	resp, err := rt.Run(testCtx(), &AgentRequest{
+		AgentID:       42,
+		ApprovedTools: []string{"test_tool"},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, StatusComplete, resp.Status)
+}
+
+// A run that never stops still says so, so a caller can branch on one field.
+func TestRun_ReportsComplete(t *testing.T) {
+	rt := newRuntime(&mockRegistry{agent: activeAgent()}, toolCallingLLM(), &mockMCP{})
+
+	resp, err := rt.Run(testCtx(), &AgentRequest{AgentID: 42, Input: "hi"})
+	require.NoError(t, err)
+	assert.Equal(t, StatusComplete, resp.Status)
 }

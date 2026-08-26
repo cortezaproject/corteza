@@ -41,6 +41,7 @@ endpoints:
               required: false
               title: Client handle
               type: string
+            - { type: string, name: query, title: Search query }
             - name: deleted
               required: false
               title: Exclude (0, default), include (1) or return only (2) deleted clients
@@ -1393,6 +1394,7 @@ endpoints:
             - type: string
               name: type
               title: Search type to match against connections
+            - { type: string, name: query, title: Search query }
             - name: deleted
               title: Exclude (0, default), include (1) or return only (2) deleted connections
               type: uint
@@ -4250,7 +4252,12 @@ endpoints:
           path:
             - { type: uint64, name: agentID, required: true, title: Agent ID }
           post:
-            - { type: string, name: input, required: true, title: User input message }
+            - {
+                type: string,
+                name: input,
+                required: false,
+                title: User input message. Omit it when resuming a run with approvedTools.,
+              }
             - {
                 type: uint64,
                 name: conversationID,
@@ -4263,6 +4270,12 @@ endpoints:
                 parser: parseMapStringInterface,
                 required: false,
                 title: Caller-supplied execution context exposed to the agent prompt,
+              }
+            - {
+                type: '[]string',
+                name: approvedTools,
+                required: false,
+                title: Tools the user has approved this agent to use in this conversation,
               }
 
   - title: LLM Providers
@@ -4285,6 +4298,7 @@ endpoints:
           get:
             - { type: string, name: provider, title: Filter by provider type }
             - { type: string, name: status, title: Filter by status }
+            - { type: string, name: query, title: Search query }
             - { type: 'uint', name: 'limit', title: 'Limit' }
             - { name: 'incTotal', type: 'bool', title: 'Include total counter' }
             - { type: 'string', name: 'pageCursor', title: 'Page cursor' }

@@ -10477,12 +10477,9 @@ export default class System {
 
   // Execute agent
   async agentExec(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { agentID, input, conversationID, context } = (a as KV) || {}
+    const { agentID, input, conversationID, context, approvedTools } = (a as KV) || {}
     if (!agentID) {
       throw Error('field agentID is empty')
-    }
-    if (!input) {
-      throw Error('field input is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -10495,6 +10492,7 @@ export default class System {
       input,
       conversationID,
       context,
+      approvedTools,
     }
     return this.api()
       .request(cfg)
