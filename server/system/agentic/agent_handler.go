@@ -150,7 +150,7 @@ func (h *agentHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mc
 //
 // Naming a namespace on create is the common case, and it answers "where does
 // this agent work", not "what may it do": tools are still granted by hand, and
-// an agent scoped here and granted none refuses every question.
+// an agent scoped here and granted none reaches nothing.
 //
 // The namespace is not stored. What is stored is the scope it produced, so
 // there is no second place where scope appears to live.
@@ -182,7 +182,7 @@ func seedNamespaceAccess(ctx context.Context, a *sysTypes.Agent, ref string) str
 	a.Behavior.InjectSystemContext = true
 
 	return fmt.Sprintf(
-		"Scoped this agent to namespace %q (every module, including ones added later) and turned on the platform context, because 'access' said nothing. It has NO tools yet and will refuse every question — grant some in access.tools.",
+		"Scoped this agent to namespace %q (every module, including ones added later) and turned on the platform context, because 'access' said nothing. It has NO tools yet, so it answers from its prompt and reaches nothing — grant some in access.tools.",
 		ns.Slug,
 	)
 }

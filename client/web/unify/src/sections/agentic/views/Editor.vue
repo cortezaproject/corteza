@@ -413,7 +413,7 @@
                         </div>
 
                         <Button
-                          :label="$t('agent.editor.tools.browse')"
+                          :label="$t('agent.editor.tools.configureTools')"
                           icon="pi pi-sliders-h"
                           severity="secondary"
                           outlined

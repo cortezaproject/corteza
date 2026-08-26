@@ -162,7 +162,7 @@ editor:
   titleCreate: Create Agent
   titleEdit: Edit Agent
   tools:
-    browse: Browse tools…
+    configureTools: Configure tools
     dialog:
       area:
         automation_event: Events
@@ -195,9 +195,9 @@ editor:
         workspace: Workspace
       fromFamily: Granted by a family grant on this agent. Blocking it here writes an
         exception to that grant.
-      inherits: No tools chosen — this agent can call nothing and will refuse every
-        question. Whatever you give it here, it can only ever do what the person invoking
-        it is already allowed to do.
+      inherits: No tools chosen — this agent answers from what it knows, and cannot look
+        anything up or change anything. Whatever you give it here, it can only ever do
+        what the person invoking it is already allowed to do.
       noMatches: No tool matches that.
       risk:
         destructive: deletes
@@ -216,11 +216,12 @@ editor:
       ask: '{n} need approval'
       chosen: '{n} tools chosen'
       inherits: No tools chosen
-      inheritsHelp: This agent will refuse every question until you give it a tool.
+      inheritsHelp: Answers from what it knows. It cannot look anything up or change
+        anything until you give it a tool.
     seed:
       help: Choose the namespace this agent is for and every tool you give it will be
-        confined to that namespace. It does not grant anything on its own — a new agent
-        refuses every question until it has a tool.
+        confined to that namespace. It does not grant anything on its own — until the
+        agent has a tool it reaches nothing.
       label: What is this agent for?
     groups:
       configuring_read: All builder tools — read only
