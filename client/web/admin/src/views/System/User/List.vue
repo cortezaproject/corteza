@@ -33,6 +33,7 @@
     >
       <template #header>
         <b-button
+          v-if="canCreate"
           variant="primary"
           size="lg"
           data-test-id="button-new-user"
@@ -42,10 +43,12 @@
         </b-button>
 
         <c-user-import-modal
+          v-if="canCreate"
           @imported="onImported"
         />
 
         <c-user-export-modal
+          v-if="canGrant"
           @export="onExport"
         />
 
@@ -215,6 +218,10 @@ export default {
 
     canGrant () {
       return this.can('system/', 'grant')
+    },
+
+    canCreate () {
+      return this.can('system/', 'user.create')
     },
   },
 

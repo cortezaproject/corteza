@@ -86,7 +86,6 @@ export default [
           combo('system', 'user'),
           combo('system', 'role'),
           combo('system', 'application'),
-          combo('system', 'script'),
           combo('system', 'template'),
 
           r('system.settings', 'settings', 'System/Settings/Index'),
