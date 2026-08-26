@@ -10,14 +10,16 @@ import (
 
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/pkg/locale"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
+	"github.com/crusttech/human/server/pkg/locale"
 )
 
 type (
 	Module struct {
-		ID     uint64 `json:"moduleID,string"`
-		Handle string `json:"handle"`
+		ID        uint64 `json:"moduleID,string"`
+		TenantID  uint64 `json:"tenantID,string,omitempty"`
+		ProjectID uint64 `json:"projectID,string,omitempty"`
+		Handle    string `json:"handle"`
 
 		// collection of configurations for various subsystems that
 		// use this module and how it affects their behaviour
@@ -40,6 +42,8 @@ type (
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+
+		CreatedByAgent uint64 `json:"createdByAgent,string,omitempty"`
 
 		// Warning: value of this field is now handled via resource-translation facility
 		//          struct field is kept for the convenience for now since it allows us
@@ -114,12 +118,14 @@ type (
 
 	ModuleFilter struct {
 		ModuleID    []string `json:"moduleID"`
+		TenantID    uint64   `json:"tenantID,string,omitempty"`
+		ProjectID   uint64   `json:"projectID,string,omitempty"`
 		NamespaceID uint64   `json:"namespaceID,string"`
 		Query       string   `json:"query"`
 		Handle      string   `json:"handle"`
 		Name        string   `json:"name"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
@@ -140,6 +146,21 @@ func (m Module) Clone() *Module {
 	c := &m
 	c.Fields = m.Fields.Clone()
 	return c
+}
+
+// Dict exposes module attributes for RBAC contextual role evaluation.
+func (m Module) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"ID":             m.ID,
+		"moduleID":       m.ID,
+		"namespaceID":    m.NamespaceID,
+		"handle":         m.Handle,
+		"name":           m.Name,
+		"createdAt":      m.CreatedAt,
+		"createdByAgent": m.CreatedByAgent,
+		"updatedAt":      m.UpdatedAt,
+		"deletedAt":      m.DeletedAt,
+	}
 }
 
 func (m Module) HasIssues() bool {

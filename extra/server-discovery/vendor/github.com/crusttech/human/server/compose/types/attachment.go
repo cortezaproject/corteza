@@ -1,33 +1,14 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"github.com/crusttech/human/server/pkg/sql"
-	"time"
-
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
-	Attachment struct {
-		ID         uint64         `json:"attachmentID,string"`
-		OwnerID    uint64         `json:"ownerID,string"`
-		Kind       string         `json:"-"`
-		Url        string         `json:"url,omitempty"`
-		PreviewUrl string         `json:"previewUrl,omitempty"`
-		Name       string         `json:"name,omitempty"`
-		Meta       AttachmentMeta `json:"meta"`
-
-		NamespaceID uint64 `json:"namespaceID,string"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	}
-
 	// AttachmentFilter is used for filtering and as a return value from Find
 	AttachmentFilter struct {
+		TenantID    uint64 `json:"tenantID,string,omitempty"`
+		ProjectID   uint64 `json:"projectID,string,omitempty"`
 		NamespaceID uint64 `json:"namespaceID,string"`
 		Kind        string `json:"kind,omitempty"`
 		PageID      uint64 `json:"pageID,string,omitempty"`
@@ -47,36 +28,6 @@ type (
 		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
-	}
-
-	AttachmentImageMeta struct {
-		Width    int  `json:"width,omitempty"`
-		Height   int  `json:"height,omitempty"`
-		Animated bool `json:"animated"`
-	}
-
-	AttachmentFileMeta struct {
-		Size      int64                `json:"size"`
-		Extension string               `json:"ext"`
-		Mimetype  string               `json:"mimetype"`
-		Image     *AttachmentImageMeta `json:"image,omitempty"`
-	}
-
-	AttachmentIconMeta struct {
-		Name    string `json:"name"`
-		Library string `json:"library"`
-	}
-
-	AttachmentIconSvgMeta struct {
-		Src string `json:"src"`
-	}
-
-	AttachmentMeta struct {
-		Original AttachmentFileMeta  `json:"original"`
-		Preview  *AttachmentFileMeta `json:"preview,omitempty"`
-
-		Icon    *AttachmentIconMeta    `json:"icon,omitempty"`
-		IconSvg *AttachmentIconSvgMeta `json:"iconSvg,omitempty"`
 	}
 )
 
@@ -112,6 +63,3 @@ func (a *Attachment) imageMeta(in *AttachmentFileMeta, width, height int, animat
 		in.Image.Height = height
 	}
 }
-
-func (meta *AttachmentMeta) Scan(src any) error          { return sql.ParseJSON(src, meta) }
-func (meta AttachmentMeta) Value() (driver.Value, error) { return json.Marshal(meta) }

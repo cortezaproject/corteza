@@ -28,7 +28,11 @@ func TimeFunctions() []gval.Language {
 }
 
 func now() time.Time {
-	return gvalfnc.Now()
+	// Round(0) drops the monotonic clock reading. It is meaningful only inside
+	// the process that took it, and time.Time.String() appends it as a trailing
+	// "m=±<seconds>" field — so a value stringified on its way into a record
+	// stores that suffix, which no date layout reads back.
+	return gvalfnc.Now().Round(0)
 }
 
 func isLeapYear(base interface{}) (bool, error) {

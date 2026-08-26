@@ -1,135 +1,26 @@
 package types
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/crusttech/human/server/pkg/sql"
 	"github.com/modern-go/reflect2"
 
 	"github.com/crusttech/human/server/pkg/filter"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/spf13/cast"
-	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 )
 
 type (
-	Page struct {
-		ID     uint64 `json:"pageID,string"`
-		SelfID uint64 `json:"selfID,string"`
-
-		NamespaceID uint64 `json:"namespaceID,string"`
-
-		ModuleID uint64 `json:"moduleID,string"`
-
-		Handle string `json:"handle"`
-
-		Config PageConfig `json:"config"`
-		Blocks PageBlocks `json:"blocks"`
-
-		Meta PageMeta `json:"meta"`
-
-		Children PageSet `json:"children,omitempty"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		Visible bool `json:"visible"`
-		Weight  int  `json:"weight"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Title string `json:"title"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Description string `json:"description"`
-	}
+	// Page is the resource struct; it is generated into page.gen.go.
 
 	PageBlocks []PageBlock
 
-	PageBlock struct {
-		BlockID uint64 `json:"blockID,string,omitempty"`
-
-		Options map[string]interface{} `json:"options,omitempty"`
-		Style   PageBlockStyle         `json:"style,omitempty"`
-		Kind    string                 `json:"kind"`
-		XYWH    [4]int                 `json:"xywh"` // x,y,w,h
-		Meta    map[string]any         `json:"meta,omitempty"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Title string `json:"title,omitempty"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Description string `json:"description,omitempty"`
-	}
-
-	PageMeta struct {
-		AllowPersonalLayouts bool `json:"allowPersonalLayouts"`
-		Notifications map[string]any `json:"notifications,omitempty"`
-	}
-
-	PageBlockStyle struct {
-		Variants map[string]string      `json:"variants,omitempty"`
-		Wrap     map[string]string      `json:"wrap,omitempty"`
-		Border   map[string]interface{} `json:"border,omitempty"`
-	}
-
-	PageConfig struct {
-		// How page is presented in the navigation
-		NavItem struct {
-			// Expanded menu
-			Expanded bool            `json:"expanded"`
-			Icon     *PageConfigIcon `json:"icon,omitempty"`
-		} `json:"navItem"`
-	}
-
-	PageConfigIcon struct {
-		// Icon types and sources
-		//
-		// Note that backed does not enforce or validate all src value (types due to a limited
-		// awareness of capabilities and
-		//
-		// Type: empty or "link" (default):
-		// Indicate that src will contain an absolute or relative link to an icon.
-		// Can also be used for inline images (storing "base64:" prefixed string in source).
-		// This type and reference is not validated by the backend.
-		//
-		// Type: "library"
-		// Source references an icon from a library. Ref's value should be in the following
-		// notation: "font-awesome://<icon-identifier>".
-		// This type and source is not validated by the backend.
-		//
-		// Type: "svg"
-		// SRC contains raw SVG document
-
-		// //////////////////////////////////////////////////////////////////////////////////////////////////////
-		// Other types that might be implemented in the future:
-		// "attachment"
-		// Reference (ID) to an existing attachment in local Human instance is expected
-		// This type and reference must be validated by the backend.
-
-		Type IconType `json:"type,omitempty"`
-		Src  string   `json:"src"`
-
-		// Any custom styling that should be applied to the icon
-		Style map[string]string `json:"style,omitempty"`
-	}
-
 	PageFilter struct {
+		TenantID    uint64   `json:"tenantID,string,omitempty"`
+		ProjectID   uint64   `json:"projectID,string,omitempty"`
 		NamespaceID uint64   `json:"namespaceID"`
 		PageID      []string `json:"pageID,string"`
 		ParentID    uint64   `json:"parentID,string,omitempty"`
@@ -139,7 +30,7 @@ type (
 		Title       string   `json:"title"`
 		Query       string   `json:"query"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
@@ -155,7 +46,6 @@ type (
 		filter.Paging
 	}
 
-	PageChildrenDeleteStrategy string
 )
 
 const (
@@ -165,9 +55,20 @@ const (
 	PageChildrenOnDeleteCascade PageChildrenDeleteStrategy = "cascade"
 )
 
-func (m Page) Clone() *Page {
-	c := &m
-	return c
+// Dict exposes page attributes for RBAC contextual role evaluation.
+func (p Page) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"ID":             p.ID,
+		"pageID":         p.ID,
+		"selfID":         p.SelfID,
+		"namespaceID":    p.NamespaceID,
+		"moduleID":       p.ModuleID,
+		"handle":         p.Handle,
+		"createdAt":      p.CreatedAt,
+		"createdByAgent": p.CreatedByAgent,
+		"updatedAt":      p.UpdatedAt,
+		"deletedAt":      p.DeletedAt,
+	}
 }
 
 func (p *Page) decodeTranslations(tt locale.ResourceTranslationIndex) {
@@ -418,12 +319,6 @@ func (set PageSet) FindByHandle(handle string) *Page {
 	return nil
 }
 
-func (bb *PageBlocks) Scan(src any) error          { return sql.ParseJSON(src, bb) }
-func (bb PageBlocks) Value() (driver.Value, error) { return json.Marshal(bb) }
-
-func (bb *PageMeta) Scan(src any) error          { return sql.ParseJSON(src, bb) }
-func (bb PageMeta) Value() (driver.Value, error) { return json.Marshal(bb) }
-
 // Helper to extract old encoding to new one
 func (b *PageBlock) UnmarshalJSON(data []byte) (err error) {
 	type internalPageBlock PageBlock
@@ -485,6 +380,3 @@ func (set PageSet) RecursiveWalk(parent *Page, fn func(c *Page, parent *Page) er
 
 	return
 }
-
-func (bb *PageConfig) Scan(src any) error          { return sql.ParseJSON(src, bb) }
-func (bb PageConfig) Value() (driver.Value, error) { return json.Marshal(bb) }

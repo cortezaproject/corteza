@@ -26,7 +26,7 @@ $(EXTERNAL_DIR): $(EXTERNAL_PKG)
 	unzip $@
 
 $(EXTERNAL_PKG):
-	curl -L https://github.com/cortezaproject/corteza-locale/archive/refs/heads/$(VERSION).zip -o $@
+	curl -L https://github.com/crusttech/human-locale/archive/refs/heads/$(VERSION).zip -o $@
 
 clean:
 	rm -rf $(EXTERNAL_PKG) $(EXTERNAL_DIR)

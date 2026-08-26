@@ -1,44 +1,15 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"time"
-
-	"github.com/crusttech/human/server/pkg/sql"
-
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
-
 )
 
 type (
-	Role struct {
-		ID     uint64 `json:"roleID,string"`
-		Name   string `json:"name"`
-		Handle string `json:"handle"`
-
-		Meta   *RoleMeta         `json:"meta"`
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		CreatedAt  time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
-		ArchivedAt *time.Time `json:"archivedAt,omitempty"`
-		DeletedAt  *time.Time `json:"deletedAt,omitempty"`
-	}
-
-	RoleMeta struct {
-		Description string       `json:"description,omitempty"`
-		Context     *RoleContext `json:"context,omitempty"`
-	}
-
-	RoleContext struct {
-		Resource []string `json:"resourceTypes,omitempty" yaml:"resourceType"`
-		Expr     string   `json:"expr,omitempty"`
-	}
-
 	RoleFilter struct {
 		RoleID      []string `json:"roleID"`
+		TenantID    uint64   `json:"tenantID,string,omitempty"`
+		ProjectID   uint64   `json:"projectID,string,omitempty"`
 		MemberID    uint64   `json:"memberID,string"`
 		UserGroupID uint64   `json:"userGroupID,string"`
 
@@ -54,49 +25,15 @@ type (
 		Deleted  filter.State `json:"deleted"`
 		Archived filter.State `json:"archived"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
-		// Check fn is called by store backend for each resource found function can
-		// modify the resource and return false if store should not return it
-		//
-		// Store then loads additional resources to satisfy the paging parameters
 		Check func(*Role) (bool, error) `json:"-"`
 
-		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
 	}
-
-	RoleMetrics struct {
-		Total         uint   `json:"total"`
-		Valid         uint   `json:"valid"`
-		Deleted       uint   `json:"deleted"`
-		Archived      uint   `json:"archived"`
-		DailyCreated  []uint `json:"dailyCreated"`
-		DailyDeleted  []uint `json:"dailyDeleted"`
-		DailyUpdated  []uint `json:"dailyUpdated"`
-		DailyArchived []uint `json:"dailyArchived"`
-	}
 )
-
-func (r *Role) Clone() *Role {
-	if r == nil {
-		return nil
-	}
-
-	return &Role{
-		ID:         r.ID,
-		Name:       r.Name,
-		Handle:     r.Handle,
-		Meta:       r.Meta,
-		Labels:     r.Labels,
-		ArchivedAt: r.ArchivedAt,
-		CreatedAt:  r.CreatedAt,
-		UpdatedAt:  r.UpdatedAt,
-		DeletedAt:  r.DeletedAt,
-	}
-}
 
 // FindByHandle finds role by it's handle
 func (set RoleSet) FindByHandle(handle string) *Role {
@@ -108,6 +45,3 @@ func (set RoleSet) FindByHandle(handle string) *Role {
 
 	return nil
 }
-
-func (vv *RoleMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
-func (vv *RoleMeta) Value() (driver.Value, error) { return json.Marshal(vv) }

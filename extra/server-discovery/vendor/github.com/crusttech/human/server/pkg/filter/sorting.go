@@ -291,12 +291,15 @@ func (s *SortExpr) SetModifier(modifier string) error {
 		return nil
 	}
 	switch strings.ToLower(modifier) {
+	case "":
+		// No modifier at all — the ordinary "createdAt DESC" form.
 	case COALESCE:
 		s.modifier = modifier
 	default:
-		if len(s.modifier) > 0 {
-			return fmt.Errorf("invalid modifier %q", modifier)
-		}
+		// Guarding on s.modifier instead would test the value being assigned,
+		// which is empty until this branch's own case sets it: a typo then
+		// parsed to the bare column and silently reordered the result.
+		return fmt.Errorf("invalid modifier %q", modifier)
 	}
 	return nil
 }

@@ -1,14 +1,10 @@
 package types
 
 import (
-	"database/sql/driver"
-	"encoding/json"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/locale"
-	"github.com/crusttech/human/server/pkg/sql"
 	"github.com/spf13/cast"
 
 	"github.com/crusttech/human/server/pkg/filter"
@@ -16,28 +12,6 @@ import (
 )
 
 type (
-	Chart struct {
-		ID     uint64      `json:"chartID,string"`
-		Handle string      `json:"handle"`
-		Name   string      `json:"name"`
-		Config ChartConfig `json:"config"`
-
-		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-
-		NamespaceID uint64 `json:"namespaceID,string"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	}
-
-	ChartConfig struct {
-		Reports     []*ChartConfigReport   `json:"reports,omitempty"`
-		ColorScheme string                 `json:"colorScheme,omitempty"`
-		NoAnimation bool                   `json:"noAnimation,omitempty"`
-		Toolbox     map[string]interface{} `json:"toolbox,omitempty"`
-	}
-
 	ChartConfigReport struct {
 		ReportID   uint64                   `json:"reportID,string,omitempty"`
 		Filter     string                   `json:"filter"`
@@ -54,13 +28,15 @@ type (
 	}
 
 	ChartFilter struct {
+		TenantID    uint64   `json:"tenantID,string,omitempty"`
+		ProjectID   uint64   `json:"projectID,string,omitempty"`
 		NamespaceID uint64   `json:"namespaceID,string"`
 		ChartID     []string `json:"chartID"`
 		Handle      string   `json:"handle"`
 		Name        string   `json:"name"`
 		Query       string   `json:"query"`
 
-		LabeledIDs []uint64          `json:"-"`
+		LabeledIDs []uint64                         `json:"-"`
 		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
@@ -199,9 +175,6 @@ func (set ChartSet) FindByHandle(handle string) *Chart {
 
 	return nil
 }
-
-func (cc *ChartConfig) Scan(src any) error          { return sql.ParseJSON(src, cc) }
-func (cc ChartConfig) Value() (driver.Value, error) { return json.Marshal(cc) }
 
 func (r *ChartConfigReport) WalkMetrics(fn func(string, map[string]interface{})) {
 	for m := range r.Metrics {

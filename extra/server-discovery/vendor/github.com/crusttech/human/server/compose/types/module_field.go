@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -11,15 +12,17 @@ import (
 	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/filter"
+	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/spf13/cast"
-	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 )
 
 type (
 	// Modules - CRM module definitions
 	ModuleField struct {
 		ID          uint64 `json:"fieldID,string"`
+		TenantID    uint64 `json:"tenantID,string,omitempty"`
+		ProjectID   uint64 `json:"projectID,string,omitempty"`
 		NamespaceID uint64 `json:"namespaceID,string"`
 		ModuleID    uint64 `json:"moduleID,string"`
 		Place       int    `json:"-"`
@@ -45,6 +48,8 @@ type (
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+
+		CreatedByAgent uint64 `json:"createdByAgent,string,omitempty"`
 
 		// Warning: value of this field is now handled via resource-translation facility
 		//          struct field is kept for the convenience for now since it allows us
@@ -129,15 +134,65 @@ type (
 	EncodingStrategyPlain struct{}
 
 	ModuleFieldFilter struct {
-		ModuleID []uint64
-		Deleted  filter.State
-		Limit    uint
+		TenantID  uint64
+		ProjectID uint64
+		ModuleID  []uint64
+		Deleted   filter.State
+		Limit     uint
 	}
 )
 
 var (
 	_ sort.Interface = &ModuleFieldSet{}
 )
+
+// ModuleFieldKinds is the canonical list of field kinds, and the only place a
+// kind is named for anything that has to enumerate them — the agentic tool
+// documentation reads it rather than repeating it, which is how it came to
+// advertise a Currency and a Duration that never existed while omitting
+// Geometry, which did.
+//
+// The webapp is the other half of the contract: a kind is only usable if
+// lib/js/src/compose/types/module-field registers a class for it and
+// lib/vue/src/components/field/registry.ts has an editor and a viewer. That
+// pairing is asserted across the two languages by the snapshot in
+// testdata/module_field_kinds.json and lib/js's module-field contract test.
+//
+// Kinds are ordered as the module editor's own picker orders them.
+var ModuleFieldKinds = []string{
+	"String",
+	"Number",
+	"Bool",
+	"DateTime",
+	"Select",
+	"Email",
+	"Url",
+	"File",
+	"User",
+	"Record",
+	"Geometry",
+}
+
+// IsValidModuleFieldKind reports whether kind is one the platform implements.
+func IsValidModuleFieldKind(kind string) bool {
+	return slices.Contains(ModuleFieldKinds, kind)
+}
+
+// Dict exposes module field attributes for RBAC contextual role evaluation.
+func (f ModuleField) Dict() map[string]interface{} {
+	return map[string]interface{}{
+		"ID":             f.ID,
+		"fieldID":        f.ID,
+		"moduleID":       f.ModuleID,
+		"namespaceID":    f.NamespaceID,
+		"kind":           f.Kind,
+		"name":           f.Name,
+		"createdAt":      f.CreatedAt,
+		"createdByAgent": f.CreatedByAgent,
+		"updatedAt":      f.UpdatedAt,
+		"deletedAt":      f.DeletedAt,
+	}
+}
 
 func (f *ModuleField) SelectOptions() (out []string) {
 	if f.Kind != "Select" {

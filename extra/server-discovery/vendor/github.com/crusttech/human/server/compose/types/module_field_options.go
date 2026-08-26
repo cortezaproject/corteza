@@ -37,6 +37,12 @@ const (
 	moduleFieldNumberOptionPrecision         = "precision"
 	moduleFieldNumberOptionPrecisionMin uint = 0
 	moduleFieldNumberOptionPrecisionMax uint = 6
+
+	// Scale a Number field keeps when its options do not name one. The webapp
+	// writes this on every field it creates; a field made through the API or an
+	// import carries no precision at all, and reading that as zero rounds every
+	// decimal away.
+	moduleFieldNumberOptionPrecisionDefault int64 = 3
 )
 
 func (opt *ModuleFieldOptions) Scan(src any) error          { return sql.ParseJSON(src, opt) }
@@ -156,7 +162,7 @@ func (opt ModuleFieldOptions) SetIsUniqueMultiValue(value bool) {
 }
 
 func (opt ModuleFieldOptions) Precision() (p uint) {
-	p = uint(opt.Int64(moduleFieldNumberOptionPrecision))
+	p = uint(opt.Int64Def(moduleFieldNumberOptionPrecision, moduleFieldNumberOptionPrecisionDefault))
 
 	if p < moduleFieldNumberOptionPrecisionMin {
 		p = moduleFieldNumberOptionPrecisionMin

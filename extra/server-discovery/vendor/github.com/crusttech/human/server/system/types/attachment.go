@@ -4,26 +4,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"github.com/crusttech/human/server/pkg/sql"
-	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
-	Attachment struct {
-		ID         uint64         `json:"attachmentID,string"`
-		OwnerID    uint64         `json:"ownerID,string"`
-		Kind       string         `json:"-"`
-		Url        string         `json:"url,omitempty"`
-		PreviewUrl string         `json:"previewUrl,omitempty"`
-		Name       string         `json:"name,omitempty"`
-		Meta       AttachmentMeta `json:"meta"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	}
-
 	// AttachmentFilter is used for filtering and as a return value from Find
 	AttachmentFilter struct {
 		Kind   string `json:"kind,omitempty"`
@@ -40,33 +25,13 @@ type (
 		filter.Paging
 	}
 
-	AttachmentImageMeta struct {
-		Width           int    `json:"width,omitempty"`
-		Height          int    `json:"height,omitempty"`
-		Animated        bool   `json:"animated"`
-		Initial         string `json:"initial,omitempty"`
-		InitialColor    string `json:"initial-color,omitempty"`
-		BackgroundColor string `json:"background-color,omitempty"`
-	}
-
-	AttachmentFileMeta struct {
-		Size      int64                `json:"size"`
-		Extension string               `json:"ext"`
-		Mimetype  string               `json:"mimetype"`
-		Image     *AttachmentImageMeta `json:"image,omitempty"`
-	}
-
-	AttachmentMeta struct {
-		Original AttachmentFileMeta  `json:"original"`
-		Preview  *AttachmentFileMeta `json:"preview,omitempty"`
-		Labels   map[string]string   `json:"labels,omitempty"`
-	}
 )
 
 const (
 	AttachmentKindSettings       string = "settings"
 	AttachmentKindAvatar         string = "avatar"
 	AttachmentKindAvatarInitials string = "avatar-initials"
+	AttachmentKindChatbot        string = "chatbot"
 )
 
 func (a *Attachment) SetOriginalImageMeta(width, height int, animated bool) *AttachmentFileMeta {

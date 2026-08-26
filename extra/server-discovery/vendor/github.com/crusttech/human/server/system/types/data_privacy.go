@@ -1,38 +1,15 @@
 package types
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"time"
 
 	"github.com/crusttech/human/server/pkg/geolocation"
-	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
-	DataPrivacyRequest struct {
-		ID uint64 `json:"requestID,string"`
-
-		Kind   RequestKind   `json:"kind"`
-		Status RequestStatus `json:"status"`
-
-		Payload DataPrivacyRequestPayloadSet `json:"payload,omitempty"`
-
-		RequestedAt time.Time  `json:"requestedAt,omitempty"`
-		RequestedBy uint64     `json:"requestedBy,string"`
-		CompletedAt *time.Time `json:"completedAt,omitempty"`
-		CompletedBy uint64     `json:"completedBy,string,omitempty" `
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
 	DataPrivacyRequestFilter struct {
 		RequestID   []string `json:"requestID"`
 		RequestedBy []string `json:"requestedBy"`
@@ -72,19 +49,6 @@ type (
 		Name     string `json:"name"`
 		Value    string `json:"value"`
 		Position int    `json:"position"`
-	}
-
-	DataPrivacyRequestComment struct {
-		ID        uint64 `json:"commentID,string"`
-		RequestID uint64 `json:"requestID,string"`
-		Comment   string `json:"comment"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
 	}
 
 	DataPrivacyRequestCommentFilter struct {
@@ -130,27 +94,6 @@ type (
 	PrivacyDalConnectionConfig struct {
 		Privacy DalConnectionConfigPrivacy `json:"privacy"`
 	}
-
-	RequestStatus string
-	RequestKind   string
-)
-
-const (
-	// RequestKindCorrect to correct module fields
-	RequestKindCorrect RequestKind = "correct"
-	// RequestKindDelete to delete module fields
-	RequestKindDelete RequestKind = "delete"
-	// RequestKindExport to export module fields
-	RequestKindExport RequestKind = "export"
-
-	// RequestStatusPending initially request will be in pending status
-	RequestStatusPending RequestStatus = "pending"
-	// RequestStatusCanceled owner of request has cancelled the request
-	RequestStatusCanceled RequestStatus = "canceled"
-	// RequestStatusApproved data officer has of request has cancelled the request
-	RequestStatusApproved RequestStatus = "approved"
-	// RequestStatusRejected data officer has denied the request
-	RequestStatusRejected RequestStatus = "rejected"
 )
 
 func CastToRequestKind(s string) RequestKind {
@@ -202,6 +145,3 @@ func ParseDataPrivacyRequestPayload(ii []string) (out DataPrivacyRequestPayloadS
 
 	return out, err
 }
-
-func (bb *DataPrivacyRequestPayloadSet) Scan(src any) error          { return sql.ParseJSON(src, bb) }
-func (bb DataPrivacyRequestPayloadSet) Value() (driver.Value, error) { return json.Marshal(bb) }

@@ -43,7 +43,6 @@ type (
 		WebappEnabled          bool   `env:"HTTP_WEBAPP_ENABLED"`
 		WebappBaseUrl          string `env:"HTTP_WEBAPP_BASE_URL"`
 		WebappBaseDir          string `env:"HTTP_WEBAPP_BASE_DIR"`
-		WebappList             string `env:"HTTP_WEBAPP_LIST"`
 		SslTerminated          bool   `env:"HTTP_SSL_TERMINATED"`
 		AssetsPath             string `env:"HTTP_SERVER_ASSETS_PATH"`
 		WebConsoleEnabled      bool   `env:"HTTP_SERVER_WEB_CONSOLE_ENABLED"`
@@ -78,9 +77,10 @@ type (
 	}
 
 	ActionLogOpt struct {
-		Enabled                  bool `env:"ACTIONLOG_ENABLED"`
-		Debug                    bool `env:"ACTIONLOG_DEBUG"`
-		WorkflowFunctionsEnabled bool `env:"ACTIONLOG_WORKFLOW_FUNCTIONS_ENABLED"`
+		Enabled                  bool   `env:"ACTIONLOG_ENABLED"`
+		Debug                    bool   `env:"ACTIONLOG_DEBUG"`
+		WorkflowFunctionsEnabled bool   `env:"ACTIONLOG_WORKFLOW_FUNCTIONS_ENABLED"`
+		DbDsn                    string `env:"ACTIONLOG_DB_DSN"`
 	}
 
 	ApigwOpt struct {
@@ -368,7 +368,6 @@ func HttpServer() (o *HttpServerOpt) {
 		ApiBaseUrl:             "/",
 		WebappBaseUrl:          "/",
 		WebappBaseDir:          "./webapp/public",
-		WebappList:             "admin,compose,workflow,reporter,privacy,home",
 		SslTerminated:          isSecure(),
 		WebConsoleEnabled:      false,
 		WebConsoleUsername:     "admin",
@@ -682,7 +681,7 @@ func Eventbus() (o *EventbusOpt) {
 func Federation() (o *FederationOpt) {
 	o = &FederationOpt{
 		Label:                    "federated",
-		Host:                     "local.cortezaproject.org",
+		Host:                     "local.example.com",
 		StructureMonitorInterval: time.Minute * 2,
 		StructurePageSize:        1,
 		DataMonitorInterval:      time.Minute,
@@ -906,6 +905,7 @@ func Provision() (o *ProvisionOpt) {
 func Sentry() (o *SentryOpt) {
 	o = &SentryOpt{
 		AttachStacktrace: true,
+		SampleRate:       1.0,
 		MaxBreadcrumbs:   0,
 		Release:          version.Version,
 	}
@@ -1048,7 +1048,7 @@ func Workflow() (o *WorkflowOpt) {
 		Register:          true,
 		CallStackSize:     16,
 		StackTraceEnabled: true,
-		StackTraceFull:    true,
+		StackTraceFull:    false,
 	}
 
 	// Custom defaults

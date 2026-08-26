@@ -11,8 +11,8 @@ type (
 		TLSServerName string
 	}
 
-    // SmtpCheckResult represents the messages returned after SMTP Host validation,
-    // SMTP Server configurations check and Send test email process
+	// SmtpCheckResult represents the messages returned after SMTP Host validation,
+	// SMTP Server configurations check and Send test email process
 	SmtpCheckResult struct {
 		Host   string `json:"host"`
 		Server string `json:"server"`
