@@ -293,7 +293,6 @@ list:
     duplicate: Duplicate
   columns:
     description: Description
-    handle: Handle
     name: Name
     status: Status
   create: Create agent

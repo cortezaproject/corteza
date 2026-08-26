@@ -51,7 +51,7 @@
       <template #body-name="{ data }">
         <div class="flex flex-col">
           <span>{{ data.meta?.short || '-' }}</span>
-          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-full">
+          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-md">
             {{ data.meta.description }}
           </span>
         </div>
@@ -108,11 +108,6 @@ const agentFields = [
     key: 'name',
     sortable: true,
     header: t('agent.list.columns.name'),
-  },
-  {
-    key: 'handle',
-    sortable: true,
-    header: t('agent.list.columns.handle'),
   },
   {
     key: 'status',
