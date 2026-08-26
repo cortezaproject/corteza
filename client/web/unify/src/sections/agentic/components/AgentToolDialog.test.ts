@@ -518,6 +518,19 @@ describe('AgentToolDialog section headers', () => {
 
     w.unmount()
   })
+
+  // One chevron that turns, rather than two icons swapped for each other.
+  it('turns the chevron with the section rather than swapping icons', async () => {
+    const w = await mountRendered()
+    const chevrons = [...document.querySelectorAll('.tool-section-chevron')]
+
+    expect(chevrons.length).toBeGreaterThan(1)
+    expect(chevrons.every(c => c.classList.contains('pi-chevron-right'))).toBe(true)
+    expect(chevrons.map(c => c.getAttribute('data-open'))).toContain('true')
+    expect(chevrons.map(c => c.getAttribute('data-open'))).toContain('false')
+
+    w.unmount()
+  })
 })
 
 describe('AgentToolDialog blocked rows', () => {

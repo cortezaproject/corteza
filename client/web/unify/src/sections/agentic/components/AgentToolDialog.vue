@@ -41,8 +41,8 @@
               @click="toggleCollapsed(d.key)"
             >
               <i
-                :class="isOpen(d.key) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-                class="text-xs text-muted-color w-3"
+                class="pi pi-chevron-right tool-section-chevron text-xs text-muted-color w-3"
+                :data-open="isOpen(d.key)"
               />
               <span class="text-sm font-semibold text-color">{{ d.label }}</span>
 
@@ -93,65 +93,76 @@
             </Select>
           </div>
 
-          <div v-if="isOpen(d.key)" class="pb-3">
-            <div v-for="area in d.areas" :key="area.key">
-              <!-- A section holding one subject has already named it. -->
-              <div
-                v-if="d.areas.length > 1"
-                class="font-medium text-muted-color text-sm uppercase tracking-wide mt-3 mb-1"
-              >
-                {{ area.label }}
-              </div>
+          <!-- PrimeVue's own collapse, the one Panel and Fieldset use, so a
+               section folds at the same rate as the panels behind the dialog.
+               Accordion is the component for this shape, but its header is a
+               button and ours holds a Select. -->
+          <transition name="p-collapsible">
+            <div v-if="isOpen(d.key)" class="tool-section-body">
+              <div class="pb-3">
+                <div v-for="area in d.areas" :key="area.key">
+                  <!-- A section holding one subject has already named it. -->
+                  <div
+                    v-if="d.areas.length > 1"
+                    class="font-medium text-muted-color text-sm uppercase tracking-wide mt-3 mb-1"
+                  >
+                    {{ area.label }}
+                  </div>
 
-              <div
-                v-for="tool in area.tools"
-                :key="tool.name"
-                class="group flex items-start gap-3 py-2 border-b border-surface last:border-0"
-              >
-                <div
-                  class="flex-1 min-w-0"
-                  :class="{ 'opacity-50': !toolOn(tool) }"
-                  :title="covered(tool) ? $t('agent.editor.tools.dialog.fromFamily') : ''"
-                >
-                  <span class="text-sm text-color block">
-                    <i
-                      :class="[riskIcon(tool.risk), riskColour(tool.risk), 'text-xs mr-1.5']"
-                      :title="riskLabel(tool.risk)"
-                    />
-                    {{ tool.title || tool.name }}
-                  </span>
-                  <span class="text-xs text-muted-color block line-clamp-2">
-                    {{ summarise(tool.description) }}
-                  </span>
-                </div>
+                  <div
+                    v-for="tool in area.tools"
+                    :key="tool.name"
+                    class="group flex items-start gap-3 py-2 border-b border-surface last:border-0"
+                  >
+                    <div
+                      class="flex-1 min-w-0"
+                      :class="{ 'tool-row-blocked': !toolOn(tool) }"
+                      :title="covered(tool) ? $t('agent.editor.tools.dialog.fromFamily') : ''"
+                    >
+                      <span class="text-sm text-color block">
+                        <i
+                          :class="[riskIcon(tool.risk), riskColour(tool.risk), 'text-xs mr-1.5']"
+                          :title="riskLabel(tool.risk)"
+                        />
+                        {{ tool.title || tool.name }}
+                      </span>
+                      <span class="text-xs text-muted-color block line-clamp-2">
+                        {{ summarise(tool.description) }}
+                      </span>
+                    </div>
 
-                <!-- Blocked is the off state, so the row shows nothing until it
+                    <!-- Blocked is the off state, so the row shows nothing until it
                      is reached for. Three segments carry the whole decision:
                      a second control for on and off would only disagree. -->
-                <div class="tool-mode shrink-0" :data-blocked="!toolOn(tool)">
-                  <SelectButton
-                    :model-value="rowMode(tool)"
-                    :options="toolModes"
-                    option-value="value"
-                    :allow-empty="false"
-                    size="small"
-                    :disabled="disabled"
-                    @update:model-value="v => setMode(tool, v)"
-                  >
-                    <!-- Only the chosen segment is coloured. Colouring all three
+                    <div class="tool-mode shrink-0" :data-blocked="!toolOn(tool)">
+                      <SelectButton
+                        :model-value="rowMode(tool)"
+                        :options="toolModes"
+                        option-value="value"
+                        :allow-empty="false"
+                        size="small"
+                        :disabled="disabled"
+                        @update:model-value="v => setMode(tool, v)"
+                      >
+                        <!-- Only the chosen segment is coloured. Colouring all three
                          made every row shout in red about the state it was not
                          in, and left the control unable to show its own. -->
-                    <template #option="{ option }">
-                      <i
-                        :class="[option.icon, rowMode(tool) === option.value ? option.colour : '']"
-                        :title="option.label"
-                      />
-                    </template>
-                  </SelectButton>
+                        <template #option="{ option }">
+                          <i
+                            :class="[
+                              option.icon,
+                              rowMode(tool) === option.value ? option.colour : '',
+                            ]"
+                            :title="option.label"
+                          />
+                        </template>
+                      </SelectButton>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </transition>
         </section>
 
         <div v-if="!domains.length" class="text-sm text-muted-color py-6 text-center">
@@ -493,6 +504,33 @@ function apply() {
 </script>
 
 <style scoped>
+/* The row the collapse animates from 0fr to 1fr. Its child needs a floor of
+   zero to shrink past its own content. */
+.tool-section-body {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.tool-section-body > * {
+  min-height: 0;
+}
+
+/* A blocked row is legible, not erased: it is still a row you can read and
+   turn back on. */
+.tool-row-blocked {
+  opacity: 0.7;
+}
+
+/* One chevron that turns, at the rate the section folds. Two icons swapped for
+   each other snap while everything around them eases. */
+.tool-section-chevron {
+  transition: transform 0.2s ease-out;
+}
+
+.tool-section-chevron[data-open='true'] {
+  transform: rotate(90deg);
+}
+
 /* A pinned header keeps the subject and its permission control in reach while
    thirty rows go past. The dialog's own background rather than a surface class,
    so rows scrolling under it stay hidden in either theme. */
@@ -508,7 +546,7 @@ function apply() {
 }
 
 .tool-mode[data-blocked='true']:not(:focus-within) {
-  opacity: 0.4;
+  opacity: 0.7;
 }
 
 .group:hover .tool-mode[data-blocked='true'] {
