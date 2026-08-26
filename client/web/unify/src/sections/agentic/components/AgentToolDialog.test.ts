@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import AgentToolDialog from './AgentToolDialog.vue'
 
 vi.mock('vue-i18n', () => ({
@@ -341,5 +341,34 @@ describe('AgentToolDialog modes', () => {
 
     const [applied] = w.emitted('apply') as any[]
     expect(applied[0]).toEqual([{ group: 'usage', maxRisk: 'write', allow: [] }])
+  })
+})
+
+describe('AgentToolDialog footer', () => {
+  // Every other dialog in the app footers at `size="small"`; this one shipped
+  // at the default and read a size larger than all of them.
+  it('sizes its footer buttons like every other dialog', async () => {
+    const PrimeVue = (await import('primevue/config')).default
+    const Dialog = (await import('primevue/dialog')).default
+    const Button = (await import('primevue/button')).default
+
+    const w = mount(AgentToolDialog, {
+      props: { visible: true, tools, grants: [], disabled: false },
+      global: {
+        plugins: [PrimeVue],
+        components: { Dialog, Button },
+        mocks: { $t: (k: string) => k },
+        stubs: { Checkbox: true, Select: true, SelectButton: true },
+      },
+    })
+
+    await flushPromises()
+
+    // The dialog teleports to body, so the footer is not inside the wrapper.
+    const buttons = [...document.querySelectorAll('.p-dialog-footer button')]
+    expect(buttons.length).toBe(2)
+    for (const b of buttons) expect([...b.classList]).toContain('p-button-sm')
+
+    w.unmount()
   })
 })

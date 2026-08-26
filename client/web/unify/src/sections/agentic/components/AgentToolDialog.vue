@@ -4,7 +4,7 @@
     modal
     :header="$t('agent.editor.tools.dialog.title')"
     :style="{ width: '72rem', height: '86vh' }"
-    :contentStyle="{ display: 'flex', flexDirection: 'column', minHeight: 0 }"
+    :contentStyle="{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: '1 1 auto' }"
     :breakpoints="{ '1200px': '94vw' }"
     @update:visible="$emit('update:visible', $event)"
   >
@@ -171,13 +171,21 @@
     </div>
 
     <template #footer>
-      <Button
-        :label="$t('general.label.cancel')"
-        severity="secondary"
-        text
-        @click="$emit('update:visible', false)"
-      />
-      <Button :label="$t('general.label.apply')" :disabled="disabled" @click="apply" />
+      <div class="flex justify-end gap-2">
+        <Button
+          :label="$t('general.label.cancel')"
+          severity="secondary"
+          text
+          size="small"
+          @click="$emit('update:visible', false)"
+        />
+        <Button
+          :label="$t('general.label.apply')"
+          size="small"
+          :disabled="disabled"
+          @click="apply"
+        />
+      </div>
     </template>
   </Dialog>
 </template>
