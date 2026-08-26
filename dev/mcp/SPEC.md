@@ -147,7 +147,7 @@ would be two implementations of one thing, drifting.
 
 | Tool                  | Risk        | Does                                                                                                                                                           |
 | --------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dev_server_status`   | read        | Is it up, which build, how stale                                                                                                                               |
+| `dev_server_status`   | read        | Is it up, which build, how stale — `wait` blocks until it is running your code                                                                                 |
 | `dev_server_logs`     | read        | Filtered tail                                                                                                                                                  |
 | `dev_fixture_seed`    | write       | Versioned fixtures from `dev/fixtures/`                                                                                                                        |
 | `dev_fixture_cleanup` | destructive | Removes `agent-` prefixed data only                                                                                                                            |

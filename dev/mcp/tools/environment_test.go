@@ -1,8 +1,11 @@
 package tools
 
 import (
+	"context"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"testing"
 	"time"
 )
@@ -192,5 +195,250 @@ func TestDevServerURLAnswersForItsOwnCheckout(t *testing.T) {
 				t.Errorf("devServerURL() = %q, want %q", got, c.want)
 			}
 		})
+	}
+}
+
+// TestServerProcessPatternMatchesOnlyThisCheckout pins the mismatch that made
+// the freshness flag lie.
+//
+// With a second Corteza tree also running a `gin-bin`, matching on the process
+// name reported THAT process's start time and called a Human server restarted
+// two hours later stale, while the API was already serving the fix.
+func TestServerProcessPatternMatchesOnlyThisCheckout(t *testing.T) {
+	pattern := regexp.MustCompile(serverProcessPattern("/home/dev/Human/human"))
+
+	cases := []struct {
+		name    string
+		cmdline string
+		want    bool
+	}{
+		{
+			name:    "this checkout's child",
+			cmdline: "/home/dev/Human/human/server/build/gin-bin --env-file .env serve",
+			want:    true,
+		},
+		{
+			name:    "another checkout's child",
+			cmdline: "/home/dev/Corteza/server/build/gin-bin --env-file .env serve",
+			want:    false,
+		},
+		{
+			// A worktree is its own checkout with its own server and its own
+			// port; the primary must not answer for it, or a lane's status is
+			// slot 0's.
+			name:    "a worktree's child",
+			cmdline: "/home/dev/Human/human-lanes/fix-chart/server/build/gin-bin --env-file .env serve",
+			want:    false,
+		},
+		{
+			name:    "the watcher, which runs the binary by a relative path",
+			cmdline: "/home/dev/go/bin/gin --laddr localhost --port 3001 --build cmd/human --immediate --bin build/gin-bin -- --env-file .env serve",
+			want:    false,
+		},
+		{
+			name:    "the shell wrapping the watcher's pipeline",
+			cmdline: "/bin/sh -c /home/dev/go/bin/gin --bin build/gin-bin -- serve 2>&1 | tee -a build/dev.log",
+			want:    false,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := pattern.MatchString(c.cmdline); got != c.want {
+				t.Fatalf("match(%q) = %v, want %v", c.cmdline, got, c.want)
+			}
+		})
+	}
+}
+
+// TestWaitBudgetReadsSecondsAndCaps guards the one argument that can block a
+// session: a wait nobody bounded is a session hung on a server nobody is going
+// to restart.
+func TestWaitBudgetReadsSecondsAndCaps(t *testing.T) {
+	cases := []struct {
+		raw     string
+		want    time.Duration
+		wantErr bool
+	}{
+		{raw: "", want: 0},
+		{raw: "60", want: 60 * time.Second},
+		{raw: " 15 ", want: 15 * time.Second},
+		{raw: "0", want: 0},
+		{raw: "99999", want: maxWaitSeconds * time.Second},
+		{raw: "-5", wantErr: true},
+		{raw: "a while", wantErr: true},
+	}
+
+	for _, c := range cases {
+		t.Run(c.raw, func(t *testing.T) {
+			got, err := waitBudget(c.raw)
+
+			if c.wantErr {
+				if err == nil {
+					t.Fatalf("waitBudget(%q) = %v, want an error", c.raw, got)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("waitBudget(%q): %v", c.raw, err)
+			}
+
+			if got != c.want {
+				t.Fatalf("waitBudget(%q) = %v, want %v", c.raw, got, c.want)
+			}
+		})
+	}
+}
+
+// TestStatusNoteNeverPrescribesThePoke keeps the tool from teaching a remedy
+// gin has not needed since --immediate.
+//
+// This note is the widest-read description of the watcher in the repo. While it
+// said "gin rebuilds lazily when its proxy is hit", sessions curled the proxy
+// port for a build that had already happened without them, and reported the
+// instruction onwards as fact.
+func TestStatusNoteNeverPrescribesThePoke(t *testing.T) {
+	banned := []string{"lazily", "proxy is hit", "localhost:3001", "prods it"}
+
+	states := []struct {
+		name           string
+		out            serverStatus
+		haveProcess    bool
+		watcherRunning bool
+	}{
+		{name: "down, watcher running", watcherRunning: true},
+		{name: "down, nothing running"},
+		{name: "up but stale", out: serverStatus{Up: true, Stale: true}, haveProcess: true},
+		{name: "stale with no process", out: serverStatus{Up: true, Stale: true}},
+		{name: "fresh", out: serverStatus{Up: true}, haveProcess: true},
+		{name: "fresh, no process"},
+	}
+
+	for _, s := range states {
+		t.Run(s.name, func(t *testing.T) {
+			note := statusNote(s.out, "server/compose/service/record.go", s.haveProcess, s.watcherRunning)
+
+			if note == "" {
+				t.Fatal("every state must say something")
+			}
+
+			for _, bad := range banned {
+				if strings.Contains(note, bad) {
+					t.Errorf("note prescribes the poke (%q): %s", bad, note)
+				}
+			}
+		})
+	}
+}
+
+// TestAwaitServerPollsUntilTheBudgetRunsOut pins the behaviour that replaces a
+// hand-rolled poll loop: keep checking, and when the answer is still no, say
+// how long it waited rather than reporting a plain snapshot.
+//
+// Written against a checkout with nothing running, which is the shape of the
+// case that matters — a session waiting on a rebuild that is never going to
+// arrive has to be told so, not left holding a status it might read as fresh.
+func TestAwaitServerPollsUntilTheBudgetRunsOut(t *testing.T) {
+	restore := waitPoll
+	waitPoll = 10 * time.Millisecond
+	t.Cleanup(func() { waitPoll = restore })
+
+	root := t.TempDir()
+
+	if err := os.MkdirAll(filepath.Join(root, "server", "build"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// A binary must exist, or the check returns before it reaches staleness.
+	if err := os.WriteFile(filepath.Join(root, "server", "build", "gin-bin"), []byte("x"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// Nothing is listening on this port, so the server never comes up.
+	if err := os.WriteFile(filepath.Join(root, "server", ".env"), []byte("HTTP_ADDR=:1\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	out := awaitServer(context.Background(), root, 60*time.Millisecond)
+
+	if out.Up {
+		t.Fatal("nothing is listening, so it must not report up")
+	}
+
+	if !strings.HasPrefix(out.Note, "waited ") {
+		t.Errorf("a timed-out wait must say it waited, got: %s", out.Note)
+	}
+
+	// Without the budget it returns the first check and never polls at all.
+	snapshot := awaitServer(context.Background(), root, 0)
+
+	if strings.HasPrefix(snapshot.Note, "waited ") {
+		t.Errorf("a snapshot must not claim to have waited, got: %s", snapshot.Note)
+	}
+}
+
+// TestWatcherPatternMatchesOnlyThisCheckoutsWatcher keeps a lane from being told
+// its dead server is "mid-restart" because another slot's watcher is up.
+//
+// gin's proxy-to port is the one thing on its command line that worktree.sh
+// assigns per slot, so it is what separates the watchers.
+func TestWatcherPatternMatchesOnlyThisCheckoutsWatcher(t *testing.T) {
+	pattern := regexp.MustCompile(watcherPattern("1143"))
+
+	cases := []struct {
+		name    string
+		cmdline string
+		want    bool
+	}{
+		{
+			name:    "this slot's watcher",
+			cmdline: "/home/dev/go/bin/gin --laddr localhost --port 3101 --appPort 1143 --build cmd/human --immediate --bin build/gin-bin -- --env-file .env serve",
+			want:    true,
+		},
+		{
+			name:    "the primary's watcher",
+			cmdline: "/home/dev/go/bin/gin --laddr localhost --port 3001 --appPort 1043 --build cmd/human --immediate --bin build/gin-bin -- --env-file .env serve",
+			want:    false,
+		},
+		{
+			// 1143 is a prefix of 11430, and a slot's neighbour is not it.
+			name:    "a port this one is a prefix of",
+			cmdline: "/home/dev/go/bin/gin --laddr localhost --port 3101 --appPort 11430 --bin build/gin-bin",
+			want:    false,
+		},
+		{
+			name:    "the server child, which carries no appPort",
+			cmdline: "/home/dev/Human/human/server/build/gin-bin --env-file .env serve",
+			want:    false,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := pattern.MatchString(c.cmdline); got != c.want {
+				t.Fatalf("match(%q) = %v, want %v", c.cmdline, got, c.want)
+			}
+		})
+	}
+}
+
+// TestDevServerPortIsTheURLsPort keeps the two readers of server/.env from
+// drifting apart: the health check asks one port and the watcher lookup scopes
+// itself by the other, and they have to be the same port.
+func TestDevServerPortIsTheURLsPort(t *testing.T) {
+	root := t.TempDir()
+
+	if err := os.MkdirAll(filepath.Join(root, "server"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "server", ".env"), []byte("HTTP_ADDR=:1543\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := devServerPort(root); got != "1543" {
+		t.Fatalf("devServerPort() = %q, want 1543", got)
+	}
+
+	if got := devServerURL(root); got != "http://localhost:1543" {
+		t.Fatalf("devServerURL() = %q, want http://localhost:1543", got)
 	}
 }
