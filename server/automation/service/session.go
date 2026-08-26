@@ -489,12 +489,8 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		// the frames are going to be kept
 		if state != nil && svc.opt.StackTraceEnabled {
 			frame = state.MakeFrame()
-			// Stacktrace will be set to !nil if frame collection is needed
-			if len(ses.RuntimeStacktrace) > 0 {
-				// calculate how long it took to get to this step
-				frame.ElapsedTime = uint(frame.CreatedAt.Sub(ses.RuntimeStacktrace[0].CreatedAt) / time.Millisecond)
-			}
-
+			// ElapsedTime is calculated on append; the oldest frames can be
+			// dropped, so the session keeps track of when tracing started
 			ses.AppendRuntimeStacktrace(frame)
 		}
 

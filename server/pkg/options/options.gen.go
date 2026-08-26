@@ -1047,7 +1047,7 @@ func Workflow() (o *WorkflowOpt) {
 		Register:          true,
 		CallStackSize:     16,
 		StackTraceEnabled: true,
-		StackTraceFull:    true,
+		StackTraceFull:    false,
 	}
 
 	// Custom defaults
