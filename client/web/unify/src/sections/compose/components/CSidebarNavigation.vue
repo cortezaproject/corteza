@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col border-t surface-border">
+  <div class="flex flex-col min-h-0 border-t surface-border">
     <!-- Search input -->
     <CInputSearch
       id="sidebar-search"
@@ -9,54 +9,55 @@
       class="my-2"
     />
 
-    <!-- The pages take whatever height is going, which is what holds the admin
-         panel at the foot of a namespace that has only a few. There is no
-         scroller here: the shell scrolls this whole sidebar, search box and
-         namespace switcher with it. -->
-    <div class="flex-1">
-      <CSidebarNav
-        v-if="filteredPageNavItems.length"
-        :items="filteredPageNavItems"
-        id-key="pageID"
-        parent-key="selfID"
-        label-key="title"
-        icon-key="_icon"
-        weight-key="weight"
-        route-key="_route"
-        :filter-fn="p => p.visible"
-        :expand-all="hasSearch"
-      />
+    <!-- The nav's one scroller: pages and admin panel scroll together inside
+         it, while the search box and the namespace switcher above stay put.
+         `min-h-full` on the column makes it fill the scroller when there is
+         little to show and grow past it when there is more — so with nothing
+         to scroll the admin panel is pushed to the foot, and with something to
+         scroll it simply travels with the pages. -->
+    <div class="flex-1 overflow-auto">
+      <div class="flex flex-col min-h-full">
+        <div class="flex-1">
+          <CSidebarNav
+            v-if="filteredPageNavItems.length"
+            :items="filteredPageNavItems"
+            id-key="pageID"
+            parent-key="selfID"
+            label-key="title"
+            icon-key="_icon"
+            weight-key="weight"
+            route-key="_route"
+            :filter-fn="p => p.visible"
+            :expand-all="hasSearch"
+          />
 
-      <!-- No results -->
-      <div
-        v-if="hasSearch && !filteredPageNavItems.length && !filteredAdminNavItems.length"
-        class="flex items-center justify-center py-8 text-muted-color text-sm"
-      >
-        {{ $t('sidebar.noResults') }}
-      </div>
-    </div>
+          <!-- No results -->
+          <div
+            v-if="hasSearch && !filteredPageNavItems.length && !filteredAdminNavItems.length"
+            class="flex items-center justify-center py-8 text-muted-color text-sm"
+          >
+            {{ $t('sidebar.noResults') }}
+          </div>
+        </div>
 
-    <!-- The namespace's administration: named, and the one thing that stays put
-         while the rest scrolls past it. Once the panel is itself taller than
-         the sidebar it stops sticking and scrolls like everything else. -->
-    <div
-      v-if="filteredAdminNavItems.length"
-      class="sticky bottom-0 bg-surface pt-2"
-      data-testid="sidebar-admin-panel"
-    >
-      <h2 class="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-color">
-        {{ $t('sidebar.adminPanel') }}
-      </h2>
-      <div class="border-t surface-border pt-1">
-        <CSidebarNav
-          :items="filteredAdminNavItems"
-          id-key="_id"
-          parent-key="_parentId"
-          label-key="_label"
-          icon-key="_icon"
-          route-key="_route"
-          :expand-all="hasSearch"
-        />
+        <!-- The namespace's administration, named so it reads as a different
+             kind of place from the pages above it. -->
+        <div v-if="filteredAdminNavItems.length" class="pt-2" data-testid="sidebar-admin-panel">
+          <h2 class="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-color">
+            {{ $t('sidebar.adminPanel') }}
+          </h2>
+          <div class="border-t surface-border pt-1">
+            <CSidebarNav
+              :items="filteredAdminNavItems"
+              id-key="_id"
+              parent-key="_parentId"
+              label-key="_label"
+              icon-key="_icon"
+              route-key="_route"
+              :expand-all="hasSearch"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>

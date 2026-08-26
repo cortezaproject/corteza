@@ -108,34 +108,36 @@ describe('Compose sidebar admin panel', () => {
     expect(wrapper.text()).toContain('Home')
   })
 
-  it('keeps no scroller of its own', () => {
+  it('scrolls the pages and the admin panel as one region', () => {
     namespace = { namespaceID: 'N1', slug: 'ns', canManageNamespace: true }
 
     mountNav()
 
-    // The shell scrolls the whole sidebar, search box and namespace switcher
-    // included. One here would scroll the page tree on its own instead.
-    expect(wrapper.findAll('.overflow-auto')).toHaveLength(0)
-    expect(wrapper.findAll('.overflow-y-auto')).toHaveLength(0)
+    const scrollers = wrapper.findAll('.overflow-auto')
+    expect(scrollers).toHaveLength(1)
+    // The panel travels with the pages rather than sitting in a band of its own
+    // below a second scrollbar...
+    expect(scrollers[0].find('[data-testid="sidebar-admin-panel"]').exists()).toBe(true)
+    // ...and the search box stays outside it, so it does not scroll away.
+    expect(scrollers[0].findComponent({ name: 'CInputSearch' }).exists()).toBe(false)
   })
 
-  it('holds the panel at the foot of the sidebar', () => {
+  it('drops the panel to the foot when there is nothing to scroll', () => {
     namespace = { namespaceID: 'N1', slug: 'ns', canManageNamespace: true }
 
     mountNav()
 
-    // Sticky keeps it at the bottom while the rest scrolls past...
+    // Flex does the work, not `position: sticky` — the column fills the
+    // scroller and the pages take the slack, which pushes the panel down. Once
+    // there is more than fits, the column grows and the panel simply scrolls.
     const panel = wrapper.find('[data-testid="sidebar-admin-panel"]')
-    expect(panel.classes()).toContain('sticky')
-    expect(panel.classes()).toContain('bottom-0')
-    // ...and it needs its own background, or the pages scroll visibly through it.
-    expect(panel.classes()).toContain('bg-surface')
+    expect(panel.classes()).not.toContain('sticky')
 
-    // ...and the pages growing to fill is what pushes it down there when there
-    // are too few of them to scroll at all.
-    const pages = wrapper.findAll('.flex-1')
-    expect(pages).toHaveLength(1)
-    expect(pages[0].find('[data-testid="sidebar-admin-panel"]').exists()).toBe(false)
+    const column = wrapper.find('.overflow-auto > div')
+    expect(column.classes()).toContain('min-h-full')
+    const pages = column.find('.flex-1')
+    expect(pages.exists()).toBe(true)
+    expect(pages.find('[data-testid="sidebar-admin-panel"]').exists()).toBe(false)
   })
 
   it('names the panel above the rule, not below it', () => {

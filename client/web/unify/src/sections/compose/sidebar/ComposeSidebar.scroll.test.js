@@ -2,11 +2,11 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { reactive } from 'vue'
 
-// The shell wraps this body in the one scroller the sidebar has, so everything
-// here scrolls together — switcher, search, pages. The column must be free to
-// grow past that scroller (`min-h-full`, never `h-full`, which would cap it and
-// leave the nav to scroll on its own) while still filling it when there is
-// little to show, since that is what pushes the admin panel to the foot.
+// The shell wraps this body in a scroller of its own. This column has to fit it
+// exactly, so that one never engages and the namespace switcher stays put — a
+// child that claims a full column on top of the switcher is taller than the
+// scroller, and the sidebar ends up with two scrollbars. The nav takes what the
+// switcher leaves and scrolls what is inside it.
 
 const route = reactive({ meta: {} })
 
@@ -38,11 +38,11 @@ afterEach(() => {
 })
 
 describe('Compose sidebar column', () => {
-  it('fills the shell scroller without being capped by it', () => {
+  it('fits the shell scroller exactly', () => {
     mountSidebar()
 
-    expect(wrapper.classes()).toContain('min-h-full')
-    expect(wrapper.classes()).not.toContain('h-full')
+    expect(wrapper.classes()).toContain('h-full')
+    expect(wrapper.classes()).not.toContain('min-h-full')
   })
 
   it('lets the nav take the height the switcher leaves', () => {
@@ -51,6 +51,7 @@ describe('Compose sidebar column', () => {
     const nav = wrapper.findComponent({ name: 'CSidebarNavigation' })
     expect(nav.exists()).toBe(true)
     expect(nav.classes()).toContain('flex-1')
+    expect(nav.classes()).toContain('min-h-0')
     expect(nav.classes()).not.toContain('h-full')
   })
 
@@ -60,6 +61,7 @@ describe('Compose sidebar column', () => {
     const nav = wrapper.findComponent({ name: 'CSidebarNamespaceNav' })
     expect(nav.exists()).toBe(true)
     expect(nav.classes()).toContain('flex-1')
+    expect(nav.classes()).toContain('min-h-0')
     expect(nav.classes()).not.toContain('h-full')
   })
 })

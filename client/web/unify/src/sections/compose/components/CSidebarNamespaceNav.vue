@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col min-h-0">
     <CInputSearch
       id="namespace-nav-search"
       v-model="searchQuery"
@@ -8,7 +8,7 @@
       class="my-2"
     />
 
-    <div class="flex-1">
+    <div class="flex-1 overflow-auto">
       <CSidebarNav
         :items="navItems"
         id-key="_id"

@@ -1,13 +1,12 @@
 <template>
-  <div class="flex flex-col min-h-full">
-    <!-- `min-h-full`, not `h-full`: the column fills the shell's scroller when
-         there is little to show, so the nav can hold its admin panel at the
-         foot, and grows past it when there is more — the shell's scroller is
-         the only one, and everything above scrolls with the rest. -->
-    <CSidebarNamespaceNav v-if="$route.meta.sidebar === 'namespaces'" class="flex-1" />
+  <div class="flex flex-col h-full">
+    <!-- The column fits the shell's scroller exactly, so that one never engages
+         and the switcher stays put: the nav takes the height its siblings leave
+         and scrolls what is inside it. -->
+    <CSidebarNamespaceNav v-if="$route.meta.sidebar === 'namespaces'" class="flex-1 min-h-0" />
     <template v-else>
       <CSidebarNamespaceSwitcher />
-      <CSidebarNavigation class="flex-1" />
+      <CSidebarNavigation class="flex-1 min-h-0" />
     </template>
   </div>
 </template>
