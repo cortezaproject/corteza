@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-col h-full">
-    <CSidebarNav
+    <CSidebarSearchNav
+      class="flex-1 min-h-0"
       :items="navItems"
       id-key="_id"
       parent-key="_parentId"
@@ -9,6 +10,8 @@
       divider-key="_divider"
       route-key="_route"
       match-type="exact"
+      :placeholder="t('chatbot.list.searchPlaceholder')"
+      :no-results-label="t('sidebar.noResults')"
       expand-all
     />
   </div>
@@ -20,7 +23,7 @@ import { components } from '@planetcrust/human-vue'
 import { computed, inject, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CSidebarNav } = components
+const { CSidebarSearchNav } = components
 const { t } = useI18n()
 
 const $SystemAPI = inject('$SystemAPI')
@@ -58,6 +61,7 @@ const navItems = computed(() => [
       _id: c.chatbotID,
       _parentId: 'chatbots',
       _label: c.name || c.handle || t('chatbot.list.unnamed') || c.chatbotID,
+      _search: c.handle || '',
       _route: { name: 'chatbot.edit', params: { chatbotID: c.chatbotID } },
     })),
 ])

@@ -1,12 +1,15 @@
 <template>
   <div class="flex flex-col h-full">
-    <CSidebarNav
+    <CSidebarSearchNav
+      class="flex-1 min-h-0"
       :items="navItems"
       id-key="_id"
       parent-key="_parentId"
       label-key="_label"
       icon-key="_icon"
       route-key="_route"
+      :placeholder="t('project.list.searchPlaceholder')"
+      :no-results-label="t('sidebar.noResults')"
       expand-all
     >
       <!-- Where each project stands, in the section's own status indicator
@@ -18,7 +21,7 @@
       <template #badge="{ node }">
         <StatusChip v-if="node._status" :status="node._status" icon-only />
       </template>
-    </CSidebarNav>
+    </CSidebarSearchNav>
   </div>
 </template>
 
@@ -32,7 +35,7 @@ import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CSidebarNav } = components
+const { CSidebarSearchNav } = components
 
 const { t } = useI18n()
 const store = useProjectsStore()
@@ -91,6 +94,7 @@ const navItems = computed(() => [
       _id: p.projectID,
       _parentId: 'projects',
       _label: p.name || t('project.list.untitled'),
+      _search: p.handle || '',
       _route: routeFor(p),
       _status: p.status,
     })),

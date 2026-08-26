@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-col h-full">
-    <CSidebarNav
+    <CSidebarSearchNav
+      class="flex-1 min-h-0"
       :items="navItems"
       id-key="_id"
       parent-key="_parentId"
@@ -9,6 +10,8 @@
       divider-key="_divider"
       route-key="_route"
       match-type="exact"
+      :placeholder="t('general.workflow.searchPlaceholder')"
+      :no-results-label="t('sidebar.noResults')"
       expand-all
     />
   </div>
@@ -20,7 +23,7 @@ import { components } from '@planetcrust/human-vue'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CSidebarNav } = components
+const { CSidebarSearchNav } = components
 const { t } = useI18n()
 
 const workflowStore = useWorkflowStore()
@@ -50,6 +53,7 @@ const navItems = computed(() => [
       _id: w.workflowID,
       _parentId: 'workflows',
       _label: w.meta?.name || w.handle || t('workflow.untitled'),
+      _search: w.handle || '',
       _route: { name: 'workflow.edit', params: { workflowID: w.workflowID } },
     })),
 ])
