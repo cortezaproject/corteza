@@ -87,8 +87,8 @@ func TestSession_tracedSessionKeepsEveryFrame(t *testing.T) {
 		req = require.New(t)
 		t0  = time.Now()
 
-		// Apply() sets this when the session is started with Trace: true
-		ses = &Session{Stacktrace: Stacktrace{}}
+		// spawn() calls Traced() when started with Trace: true
+		ses = &Session{runtimeOpts: runtimeOptions{traced: true}}
 	)
 
 	for i := 0; i < maxRuntimeStacktraceFrames*3; i++ {
@@ -164,7 +164,9 @@ func BenchmarkSession_runtimeStacktrace(b *testing.B) {
 		ses  func() *Session
 	}{
 		{"default", func() *Session { return &Session{} }},
-		{"traced", func() *Session { return &Session{Stacktrace: Stacktrace{}} }},
+		{"traced", func() *Session {
+			return &Session{runtimeOpts: runtimeOptions{traced: true}}
+		}},
 		{"full", func() *Session {
 			return &Session{runtimeOpts: runtimeOptions{fullStacktrace: true}}
 		}},
@@ -196,4 +198,12 @@ func BenchmarkSession_runtimeStacktrace(b *testing.B) {
 			b.ReportMetric(float64(retained)/(1<<20), "retained-MB")
 		})
 	}
+}
+
+func TestSession_keepsFrameScope(t *testing.T) {
+	var req = require.New(t)
+
+	req.False((&Session{}).KeepsFrameScope())
+	req.True((&Session{runtimeOpts: runtimeOptions{traced: true}}).KeepsFrameScope())
+	req.True((&Session{runtimeOpts: runtimeOptions{fullStacktrace: true}}).KeepsFrameScope())
 }
