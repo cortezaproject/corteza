@@ -134,6 +134,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		if ctxJSON, mErr := json.Marshal(sanitizeToolResult(execCtx)); mErr == nil && len(ctxJSON) > 0 {
 			m := callerContextMessage(string(ctxJSON))
 			callerCtxMsg = &m
+			systemPrompt += callerContextRule()
 		}
 	}
 	r.emitSpan(observability.AgentSpan{
