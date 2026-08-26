@@ -42,7 +42,7 @@ sentry: schema.#optionsGroup & {
 		max_breadcrumbs: {
 			type:          "int"
 			defaultGoExpr: "0"
-			description:   "Maximum number of bredcrumbs."
+			description:   "Maximum number of breadcrumbs."
 		}
 		server_name: {
 			description: "Set reported Server name."

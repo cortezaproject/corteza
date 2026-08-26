@@ -33,9 +33,9 @@ auth: schema.#optionsGroup & {
 			defaultGoExpr: "\"HS512\""
 			defaultValue:  "HS512"
 			description: """
-				Algoritm to be use for JWT signature.
+				Algorithm to be use for JWT signature.
 
-				Supported valus:
+				Supported values:
 				 - HS256, HS384, HS512
 				 - PS256, PS384, PS512,
 				 - RS256, RS384, RS512
@@ -135,7 +135,7 @@ auth: schema.#optionsGroup & {
 			description: """
 				Maximum time user is allowed to stay idle when logged in without \"remember-me\" option and before session is expired.
 
-				Recomended value is between an hour and a day.
+				Recommended value is between an hour and a day.
 
 				[IMPORTANT]
 				====
@@ -166,7 +166,7 @@ auth: schema.#optionsGroup & {
 		request_rate_limit: {
 			type: "int"
 			description: """
-				How many requests from a cerain IP address are allowed in a time window.
+				How many requests from a certain IP address are allowed in a time window.
 				Set to zero to disable
 				"""
 			defaultGoExpr: "60"
@@ -176,7 +176,7 @@ auth: schema.#optionsGroup & {
 			type:          "time.Duration"
 			defaultGoExpr: "time.Minute"
 			defaultValue:  "1m"
-			description:   "How many requests from a cerain IP address are allowed in a time window"
+			description:   "How many requests from a certain IP address are allowed in a time window"
 		}
 		csrf_secret: {
 			defaultGoExpr: "getSecretFromEnv(\"csrf secret\")"
@@ -209,7 +209,7 @@ auth: schema.#optionsGroup & {
 				Handle for OAuth2 client used for automatic redirect from /auth/oauth2/go endpoint.
 
 				This simplifies configuration for OAuth2 flow for Corteza Web applications as it removes
-				the need to suply redirection URL and client ID (oauth2/go endpoint does that internally)
+				the need to supply redirection URL and client ID (oauth2/go endpoint does that internally)
 
 				"""
 		}

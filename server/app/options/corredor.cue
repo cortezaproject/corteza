@@ -29,7 +29,7 @@ corredor: schema.#optionsGroup & {
 		max_receive_message_size: {
 			type:          "int"
 			defaultGoExpr: "2 << 23"
-			description:   "Max message size that can be recived."
+			description:   "Max message size that can be received."
 		}
 		default_exec_timeout: {
 			type:          "time.Duration"
