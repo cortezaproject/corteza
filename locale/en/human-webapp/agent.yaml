@@ -195,9 +195,9 @@ editor:
         workspace: Workspace
       fromFamily: Granted by a family grant on this agent. Blocking it here writes an
         exception to that grant.
-      inherits: Nothing chosen — the agent can use whatever the person invoking it is
-        already allowed to do, minus anything that deletes. Choose tools here to narrow
-        that.
+      inherits: No tools chosen — this agent can call nothing and will refuse every
+        question. Whatever you give it here, it can only ever do what the person invoking
+        it is already allowed to do.
       noMatches: No tool matches that.
       risk:
         destructive: deletes
@@ -215,14 +215,12 @@ editor:
       always: '{n} run without asking'
       ask: '{n} need approval'
       chosen: '{n} tools chosen'
-      inherits: Inherits your access
-      inheritsHelp: Whatever the person invoking this agent can already do, minus anything
-        that deletes.
+      inherits: No tools chosen
+      inheritsHelp: This agent will refuse every question until you give it a tool.
     seed:
-      help: A new agent can call nothing until it is given a tool, so it will refuse every
-        question. Choose the namespace this agent is for and it will be granted
-        read-only access to it — shown below, where you can change or remove it before
-        saving.
+      help: Choose the namespace this agent is for and every tool you give it will be
+        confined to that namespace. It does not grant anything on its own — a new agent
+        refuses every question until it has a tool.
       label: What is this agent for?
     groups:
       configuring_read: All builder tools — read only
@@ -245,7 +243,8 @@ editor:
     configureAccess: Configure Access
     configureAccessHelp: Define which namespaces and modules this tool can access. Access is restricted by default when not configured.
     descriptionPlaceholder: Optional description for this tool...
-    help: Select which MCP tools this agent is allowed to use
+    help: Choose the tools this agent may call. A tool only ever does what the person
+      invoking the agent is already allowed to do, so granting one never widens access.
     label: Allowed Tools
     modulesPlaceholder: All modules accessible
     namespacePlaceholder: Select namespace...

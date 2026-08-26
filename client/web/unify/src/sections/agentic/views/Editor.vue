@@ -1011,9 +1011,9 @@ const availableTools = ref([])
 const loadingTools = ref(false)
 const selectedTools = ref([])
 
-// What the agent can actually do, read the way the runtime will read it. An
-// agent granted nothing is not an agent that can do nothing: it inherits what
-// the person invoking it may already do, and the panel has to say so.
+// What the agent can actually do, read the way the runtime will read it.
+// Access is deny-by-default, so a total of zero is an agent that refuses every
+// question rather than one that is merely unconfigured.
 const toolSummary = computed(() => {
   const { named, families } = splitGrants(agent.value?.access?.tools || [])
   const counts = tally(availableTools.value, named, families).filter(c => c.mode !== 'deny')
@@ -1424,9 +1424,9 @@ function onToolsApplied(tools) {
 }
 
 // seedNamespaceGrant turns "this agent is for namespace X" into the setting
-// that says so: the agent's own scope, not a tool grant. With no tools named it
-// inherits what the person invoking it can already do, and this is what keeps
-// that inside one namespace however its tools are granted later.
+// that says so: the agent's own scope, not a tool grant. It holds however the
+// tools are granted later, which is why it is written once here rather than
+// repeated on each of them.
 function seedNamespaceGrant(namespaceID) {
   if (!namespaceID || agent.value.access.tools.length || agent.value.access.allow?.length) return
 

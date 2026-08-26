@@ -13,18 +13,6 @@ import (
 // thinking about risk should not be the one that lets an agent delete records.
 const defaultGrantRisk = "read"
 
-// inheritedGroups is what an agent that configures no tools at all is given.
-//
-// It runs as the user who invoked it, so RBAC already bounds everything it can
-// touch; listing tools by hand on top of that was the single thing that made an
-// agent tedious to set up and stale afterwards. Destructive tools are the
-// exception and still have to be named: a deletion is the one action no
-// approval prompt reliably takes back.
-var inheritedGroups = []types.AgentAccessTool{
-	{Group: "usage", MaxRisk: "write", Description: "Inherited: data and execution, within what you can reach"},
-	{Group: "configuring", MaxRisk: "write", Description: "Inherited: schema and definitions, within what you can reach"},
-}
-
 // expandToolGrants replaces every group grant with the tools it stands for.
 //
 // A grant may name one tool, or a group and a risk ceiling — "everything in
@@ -40,10 +28,15 @@ func expandToolGrants(agent *types.Agent, reg MCPClient) *types.Agent {
 		return agent
 	}
 
+	// Access is deny-by-default: an agent that grants nothing has nothing, and
+	// running as the invoking user is the ceiling on what a grant can reach,
+	// never a grant in itself.
 	configured := agent.Access.Tools
 	if len(configured) == 0 {
-		configured = inheritedGroups
-	} else if !slices.ContainsFunc(configured, func(t types.AgentAccessTool) bool { return t.Group != "" }) {
+		return agent
+	}
+
+	if !slices.ContainsFunc(configured, func(t types.AgentAccessTool) bool { return t.Group != "" }) {
 		return withResolvedPermissions(agent, reg)
 	}
 

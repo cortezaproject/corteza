@@ -126,35 +126,26 @@ func TestExpandToolGrants(t *testing.T) {
 	})
 }
 
-// An agent that names no tools inherits what the invoking user can already do.
-// Listing tools by hand was the single thing that made an agent tedious to set
-// up; the agent runs as that user, so RBAC bounds it either way.
-func TestExpandToolGrantsInherits(t *testing.T) {
+// TL;DR: an agent that grants nothing has nothing.
+// Example: an agent with no tools was handed every read and write tool on the
+// instance. Running as the invoking user bounds what a grant can reach; it is
+// not a grant in itself, and an unconfigured agent that can rewrite the data
+// model is not a safe thing to create by accident.
+func TestExpandToolGrantsGrantsNothingByDefault(t *testing.T) {
 	reg := grantRegistry()
 	out := expandToolGrants(&types.Agent{}, reg)
 
-	require.NotEmpty(t, out.Access.Tools)
-	require.Contains(t, namesOf(out), "compose_record_create", "writing is inherited")
-	require.Contains(t, namesOf(out), "compose_module_lookup", "both groups are inherited")
-
-	// Both groups are asked for at the write ceiling — never destructive.
-	require.Contains(t, reg.calls, "usage/write")
-	require.Contains(t, reg.calls, "configuring/write")
-	for _, c := range reg.calls {
-		require.NotContains(t, c, "destructive", "a deletion is never inherited")
-	}
-
-	// Nothing is narrowed: the agent's own scope is what bounds an inherited
-	// tool, and it carries no allow list of its own.
-	for _, e := range out.Access.Tools {
-		require.Empty(t, e.Allow, "%s must not invent a scope", e.Name)
-	}
+	require.Empty(t, out.Access.Tools)
+	require.Empty(t, reg.calls, "no group is expanded for an agent that named none")
 }
 
 // Reading changes nothing and runs unannounced; anything that writes is put to
 // the user first.
 func TestExpandToolGrantsResolvesModesByRisk(t *testing.T) {
-	out := expandToolGrants(&types.Agent{}, grantRegistry())
+	out := expandToolGrants(grantingAgent(
+		types.AgentAccessTool{Group: "usage", MaxRisk: "write"},
+		types.AgentAccessTool{Group: "configuring", MaxRisk: "write"},
+	), grantRegistry())
 
 	modes := map[string]string{}
 	for _, e := range out.Access.Tools {
@@ -168,9 +159,9 @@ func TestExpandToolGrantsResolvesModesByRisk(t *testing.T) {
 	require.Equal(t, "ask", modes["compose_module_create"])
 }
 
-// A configured agent is narrowed exactly as it was written — inheritance is
-// what happens when nothing was written, not a floor under everything.
-func TestExpandToolGrantsDoesNotInheritOverAConfiguredAgent(t *testing.T) {
+// A configured agent is narrowed exactly as it was written, and nothing is
+// added underneath it.
+func TestExpandToolGrantsAddsNothingToAConfiguredAgent(t *testing.T) {
 	out := expandToolGrants(grantingAgent(
 		types.AgentAccessTool{Name: "compose_record_lookup"},
 	), grantRegistry())

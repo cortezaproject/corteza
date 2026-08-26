@@ -146,15 +146,13 @@ func (h *agentHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mc
 	return toolkit.JSONResultWith(a, withNote(agentLinks(a), seeded))
 }
 
-// seedNamespaceAccess gives a new agent something to do, and says so.
+// seedNamespaceAccess confines a new agent to the namespace it is for.
 //
-// Access is deny-by-default, so an agent created without a grant can call
-// nothing: it refuses every question, which reads as broken rather than as
-// unconfigured. Naming a namespace on create is the common case, and the useful
-// reading of it is "let this agent read that namespace" — the one posture that
-// is immediately useful and cannot damage anything.
+// Naming a namespace on create is the common case, and it answers "where does
+// this agent work", not "what may it do": tools are still granted by hand, and
+// an agent scoped here and granted none refuses every question.
 //
-// The namespace is not stored. What is stored is the grant it produced, so
+// The namespace is not stored. What is stored is the scope it produced, so
 // there is no second place where scope appears to live.
 func seedNamespaceAccess(ctx context.Context, a *sysTypes.Agent, ref string) string {
 	if ref == "" {
@@ -168,23 +166,23 @@ func seedNamespaceAccess(ctx context.Context, a *sysTypes.Agent, ref string) str
 	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, ref)
 	if err != nil || ns == nil {
 		return fmt.Sprintf(
-			"Namespace %q could not be resolved, so the agent was not scoped to it. It still inherits the invoking user's tools across every namespace — set access.allow if that is not what you want.",
+			"Namespace %q could not be resolved, so the agent was not scoped to it. Set access.allow to confine it.",
 			ref,
 		)
 	}
 
-	// The agent's own scope rather than a tool grant: with no tools named it
-	// inherits what the invoking user can do, and this is the setting that
-	// keeps that inside one namespace however its tools are granted later.
+	// The agent's own scope rather than a tool grant: it holds however its tools
+	// are granted later, so it is the one place "this agent is for namespace X"
+	// has to be written.
 	a.Access.Allow = []sysTypes.AgentAccessAllow{{NamespaceID: ns.ID}}
 
-	// The grant is only worth anything if the agent is told what it reaches;
+	// A scope is only worth anything if the agent is told what it reaches;
 	// without the platform context it guesses handles and reports they do not
 	// exist.
 	a.Behavior.InjectSystemContext = true
 
 	return fmt.Sprintf(
-		"Scoped this agent to namespace %q (every module, including ones added later) and turned on the platform context, because 'access' said nothing. Within that namespace it inherits what the invoking user can do; name tools in access.tools to narrow it further.",
+		"Scoped this agent to namespace %q (every module, including ones added later) and turned on the platform context, because 'access' said nothing. It has NO tools yet and will refuse every question — grant some in access.tools.",
 		ns.Slug,
 	)
 }

@@ -33,8 +33,9 @@ const (
 
 	agentAccessDoc = `JSON object: what the agent may reach. ` +
 		`{"allow":[{"namespaceID":"<id>","moduleIDs":[]}],"tools":[{"name":"compose_record_lookup","permission":"always","description":"Read leads","allow":[{"namespaceID":"<id>","moduleIDs":["<id>"]}]}],"taqs":[{"id":"<taqID>","description":"Escalate"}],"workflows":[{"id":"<workflowID>","description":"Notify"}]}. ` +
-		`An agent runs as the person who invoked it, so RBAC bounds everything it can reach. 'tools' NARROWS that further. Leave it EMPTY and the agent inherits every read and write tool — never a destructive one, which always has to be named. ` +
-		`'allow' on the access object itself scopes the whole agent to namespaces and modules however its tools were granted, including the ones it inherits; that is the setting to use for "this agent is only for namespace X". ` +
+		`Access is deny-by-default: an agent whose 'tools' is EMPTY can call nothing and will refuse every question. ` +
+		`Granting a tool does not widen anything — an agent runs as the person who invoked it, so RBAC is the ceiling on every call and the agent can never do what that user could not. ` +
+		`'allow' on the access object itself scopes the whole agent to namespaces and modules however its tools were granted; that is the setting to use for "this agent is only for namespace X". ` +
 		`Granting an agent system_agent_update lets it re-grant itself any tool, so treat that entry the way you would a permission change. ` +
 		`Every name is checked against the registry when you write it, and an unknown one is refused with the near matches: the runtime resolves the allow-list as a whole, so a single typo would stop the agent running at all rather than cost it one tool. ` +
 		`An entry's "moduleIDs" narrows it to those modules; leave it EMPTY to mean every module in that namespace, now and in future. Prefer empty unless you actually need to withhold a module: an enumerated list has to be edited on every tool entry each time a module is added, and until it is the agent cannot see the new module and nothing says so. ` +
@@ -77,9 +78,9 @@ func (h *agentHandler) register() {
 		mcp.NewTool("system_agent_create",
 			mcp.WithDescription(
 				"Create an AI agent. "+agentSectionDoc+" "+
-					"A new agent is 'active' unless you say otherwise, and with no 'access' it inherits "+
-					"every read and write tool the invoking user can already use — never a destructive "+
-					"one. Name a model in 'execution.model' unless this instance has exactly one LLM "+
+					"A new agent is 'active' unless you say otherwise, and with no tools in 'access' it "+
+					"can call nothing and will refuse every question — grant it something in the same "+
+					"call. Name a model in 'execution.model' unless this instance has exactly one LLM "+
 					"provider, which is then used. "+
 					"To let people talk to it in a widget, create a chatbot with a conversation scenario "+
 					"pointing at this agent — system_chatbot_create.",
@@ -91,11 +92,11 @@ func (h *agentHandler) register() {
 			mcp.WithString("execution", mcp.Description(agentExecutionDoc)),
 			mcp.WithString("access", mcp.Description(agentAccessDoc)),
 			mcp.WithString("namespace", mcp.Description(
-				"Compose namespace this agent is for, by handle, slug or ID. A convenience for the common case: "+
-					"when 'access' grants nothing, this seeds a read-only grant over that namespace and turns on "+
-					"the platform context, so the new agent can answer questions immediately instead of refusing "+
-					"everything. Ignored when 'access' already grants something. It is not stored — what is stored "+
-					"is the grant it produced, which you can then edit.")),
+				"Compose namespace this agent is for, by handle, slug or ID. Sets 'access.allow' to that "+
+					"namespace and turns on the platform context, so whatever tools you grant are confined to "+
+					"it and the agent knows what it is looking at. It does NOT grant any tool: an agent scoped "+
+					"here and granted nothing still refuses every question. Ignored when 'access' already says "+
+					"something. It is not stored — what is stored is the scope it produced.")),
 			mcp.WithString("invocation", mcp.Description(agentInvocationDoc)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),

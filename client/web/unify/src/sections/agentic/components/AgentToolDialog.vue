@@ -19,9 +19,10 @@
         />
       </IconField>
 
-      <!-- Nothing chosen is not "no access": the agent inherits what the person
-           invoking it can already do. Saying so here is the difference between
-           an empty panel that reads as broken and one that reads as a default. -->
+      <!-- Access is deny-by-default, so an agent granted nothing does nothing.
+           The other half is the part that is never otherwise on screen: a tool
+           runs as the person invoking the agent, so it is a ceiling, not a
+           widening. -->
       <Message v-if="!chosenCount" severity="secondary" :closable="false" class="!my-0">
         {{ $t('agent.editor.tools.dialog.inherits') }}
       </Message>
