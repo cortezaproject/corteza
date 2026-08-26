@@ -193,7 +193,6 @@ editor:
         system_skill: Skills
         system_theme: Theme
         system_user: Users
-      chosen: '{count} chosen'
       inherits: Nothing chosen — the agent can use whatever the person invoking it is already allowed to do, minus anything that deletes. Choose tools here to narrow that.
       mode:
         always: Always allow
@@ -261,7 +260,7 @@ list:
     status: Status
   create: Create agent
   delete: Are you sure you want to delete this agent?
-  searchPlaceholder: Search agents
+  searchPlaceholder: Search for agents
   status:
     active: Active
     inactive: Inactive

@@ -174,3 +174,61 @@ describe('AgentToolDialog overrides', () => {
     expect(applied[0]).toEqual([{ group: 'usage', maxRisk: 'write', allow: [] }])
   })
 })
+
+describe('AgentToolDialog ordering', () => {
+  const many = [
+    { name: 'compose_chart_lookup', title: 'Lookup chart', groups: ['usage'], risk: 'read' },
+    {
+      name: 'compose_record_delete',
+      title: 'Delete record',
+      groups: ['usage'],
+      risk: 'destructive',
+    },
+    { name: 'compose_record_create', title: 'Create record', groups: ['usage'], risk: 'write' },
+    { name: 'compose_record_lookup', title: 'Lookup record', groups: ['usage'], risk: 'read' },
+    { name: 'system_skill_lookup', title: 'Lookup skill', groups: ['configuring'], risk: 'read' },
+  ]
+
+  function mountMany() {
+    return mount(AgentToolDialog, {
+      props: { visible: true, tools: many, grants: [], disabled: false },
+      global: { mocks: { $t: (k: string) => k } },
+    })
+  }
+
+  // Alphabetical put Charts first, which is nobody's starting point.
+  it('leads with what gets built on, not with C', () => {
+    const vm = mountMany().vm as any
+    const usage = vm.groups.find((g: any) => g.key === 'usage')
+    expect(usage.areas.map((a: any) => a.key)).toEqual(['compose_record', 'compose_chart'])
+  })
+
+  // Reads first, then writes, then the one that cannot be taken back.
+  it('orders a section by risk, then by name', () => {
+    const vm = mountMany().vm as any
+    const records = vm.groups
+      .find((g: any) => g.key === 'usage')
+      .areas.find((a: any) => a.key === 'compose_record')
+    expect(records.tools.map((t: any) => t.name)).toEqual([
+      'compose_record_lookup',
+      'compose_record_create',
+      'compose_record_delete',
+    ])
+  })
+
+  // A skill is injected when the tool that triggers it is used; offering it
+  // here invites a choice that changes nothing.
+  it('does not offer skills', () => {
+    const vm = mountMany().vm as any
+    expect(toolNames(vm)).not.toContain('system_skill_lookup')
+  })
+
+  it('folds a section shut and back open', () => {
+    const vm = mountMany().vm as any
+    expect(vm.collapsed.has('usage')).toBe(false)
+    vm.toggleCollapsed('usage')
+    expect(vm.collapsed.has('usage')).toBe(true)
+    vm.toggleCollapsed('usage')
+    expect(vm.collapsed.has('usage')).toBe(false)
+  })
+})

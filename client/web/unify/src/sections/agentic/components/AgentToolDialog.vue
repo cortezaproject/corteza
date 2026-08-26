@@ -9,20 +9,15 @@
     @update:visible="$emit('update:visible', $event)"
   >
     <div class="flex flex-col gap-3 min-h-0 flex-1">
-      <div class="flex items-center gap-3">
-        <IconField class="flex-1">
-          <InputIcon class="pi pi-search" />
-          <InputText
-            v-model="search"
-            :placeholder="$t('agent.editor.tools.dialog.search')"
-            class="w-full"
-            data-testid="tool-dialog-search"
-          />
-        </IconField>
-        <span class="text-sm text-muted-color whitespace-nowrap">
-          {{ $t('agent.editor.tools.dialog.chosen', { count: chosenCount }) }}
-        </span>
-      </div>
+      <IconField>
+        <InputIcon class="pi pi-search" />
+        <InputText
+          v-model="search"
+          :placeholder="$t('agent.editor.tools.dialog.search')"
+          class="w-full"
+          data-testid="tool-dialog-search"
+        />
+      </IconField>
 
       <!-- Nothing chosen is not "no access": the agent inherits what the
            person invoking it can already do. Saying so here is the difference
@@ -39,6 +34,16 @@
           <div
             class="flex items-center gap-3 pb-2 mb-2 border-b border-surface sticky top-0 bg-surface-0 dark:bg-surface-900 z-10"
           >
+            <Button
+              :icon="collapsed.has(grp.key) ? 'pi pi-chevron-right' : 'pi pi-chevron-down'"
+              severity="secondary"
+              text
+              rounded
+              size="small"
+              :aria-label="grp.label"
+              :data-testid="`collapse-${grp.key}`"
+              @click="toggleCollapsed(grp.key)"
+            />
             <Checkbox
               :model-value="!!groupGrant(grp.key)"
               binary
@@ -62,8 +67,15 @@
             />
           </div>
 
-          <div v-for="area in grp.areas" :key="area.key" class="mb-3">
-            <div class="text-sm font-medium text-muted-color mb-1 pl-1">{{ area.label }}</div>
+          <div
+            v-for="area in grp.areas"
+            :key="area.key"
+            v-show="!collapsed.has(grp.key)"
+            class="mb-3"
+          >
+            <div class="font-medium text-muted-color text-sm uppercase tracking-wide mb-1 pl-1">
+              {{ area.label }}
+            </div>
 
             <div
               v-for="tool in area.tools"
@@ -85,9 +97,14 @@
                 </span>
               </label>
 
-              <Tag :severity="riskSeverity(tool.risk)" rounded class="mt-0.5 shrink-0">
-                <span class="text-xs">{{ riskLabel(tool.risk) }}</span>
-              </Tag>
+              <i
+                :class="[
+                  riskIcon(tool.risk),
+                  riskColour(tool.risk),
+                  'text-sm mt-1 shrink-0 w-4 text-center',
+                ]"
+                :title="riskLabel(tool.risk)"
+              />
 
               <!-- The default mode is stored as an empty string, which PrimeVue
                    reads as "no value" and renders blank; the placeholder is what
@@ -150,6 +167,17 @@ const groupDraft = ref(new Map()) // group key -> maxRisk
 
 const chosen = computed(() => new Set(draft.value.keys()))
 
+// Which group sections are folded shut. Ninety tools in one scroller is a lot
+// to pass on the way to the one you want.
+const collapsed = ref(new Set())
+
+function toggleCollapsed(key) {
+  const next = new Set(collapsed.value)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  collapsed.value = next
+}
+
 // The tools the agent was opened with, so an override added in this session can
 // be told from an entry that was already there.
 const named = ref(new Set())
@@ -186,6 +214,43 @@ const riskCeilings = computed(() => [
 
 const GROUP_KEYS = ['usage', 'configuring']
 
+// Skills are attached to a tool, not chosen: the runtime injects one when the
+// tool that triggers it is used. Offering them here invites a choice that
+// changes nothing.
+const HIDDEN_AREAS = new Set(['system_skill'])
+
+// Areas in the order someone builds in, rather than the order the alphabet
+// puts them — which led with Charts. Anything unlisted falls to the end, by
+// name, so a new tool family appears rather than disappearing.
+const AREA_ORDER = [
+  'compose_record',
+  'automation_taq',
+  'automation_workflow',
+  'automation_trigger',
+  'automation_event',
+  'compose_module',
+  'compose_namespace',
+  'compose_page',
+  'compose_chart',
+  'system_user',
+  'system_role',
+  'system_agent',
+  'system_chatbot',
+  'system_application',
+  'system_reminder',
+  'system_auth',
+  'system_theme',
+]
+
+// Reads first, then writes, then deletes: the harmless surface leads, and the
+// one that cannot be taken back is last.
+const RISK_ORDER = { read: 0, write: 1, destructive: 2 }
+
+function areaRank(key) {
+  const i = AREA_ORDER.indexOf(key)
+  return i === -1 ? AREA_ORDER.length : i
+}
+
 // Two levels: the group is what a grant can name, and the areas inside it are
 // what a person scans by. One level of either alone is a list of ninety.
 const groups = computed(() => {
@@ -199,6 +264,7 @@ const groups = computed(() => {
       if (q && !matches(tool, q)) continue
 
       const areaKey = areaOf(tool.name)
+      if (HIDDEN_AREAS.has(areaKey)) continue
       if (!byArea.has(areaKey)) {
         byArea.set(areaKey, {
           key: areaKey,
@@ -213,10 +279,18 @@ const groups = computed(() => {
       key,
       label: t(`agent.editor.tools.dialog.group.${key}`),
       help: t(`agent.editor.tools.dialog.group.${key}_help`),
-      areas: [...byArea.values()].sort((a, b) => a.label.localeCompare(b.label)),
+      areas: [...byArea.values()]
+        .map(a => ({ ...a, tools: [...a.tools].sort(byRiskThenName) }))
+        .sort((a, b) => areaRank(a.key) - areaRank(b.key) || a.label.localeCompare(b.label)),
     }
   }).filter(g => g.areas.length)
 })
+
+function byRiskThenName(a, b) {
+  const ra = RISK_ORDER[a.risk] ?? RISK_ORDER.read
+  const rb = RISK_ORDER[b.risk] ?? RISK_ORDER.read
+  return ra - rb || (a.title || a.name).localeCompare(b.title || b.name)
+}
 
 function matches(tool, q) {
   return `${tool.name} ${tool.title || ''} ${tool.description || ''}`.toLowerCase().includes(q)
@@ -281,10 +355,18 @@ function riskLabel(risk) {
   return t(`agent.editor.tools.dialog.risk.${risk || 'read'}`)
 }
 
-function riskSeverity(risk) {
-  if (risk === 'destructive') return 'danger'
-  if (risk === 'write') return 'warn'
-  return 'secondary'
+// The word is a tooltip rather than a badge: it repeats on every row and the
+// shape carries it faster than reading does.
+function riskIcon(risk) {
+  if (risk === 'destructive') return 'pi pi-trash'
+  if (risk === 'write') return 'pi pi-pencil'
+  return 'pi pi-eye'
+}
+
+function riskColour(risk) {
+  if (risk === 'destructive') return 'text-red-500'
+  if (risk === 'write') return 'text-amber-500'
+  return 'text-muted-color'
 }
 
 // Applying keeps whatever scope a grant already carried: the dialog chooses
