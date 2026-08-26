@@ -2,6 +2,7 @@
   <v-chart
     ref="chartRef"
     :option="chart"
+    :update-options="updateOptions"
     :theme="theme"
     autoresize
     class="w-full h-full overflow-hidden"
@@ -58,6 +59,13 @@ const props = defineProps({
 })
 
 const chartRef = ref(null)
+
+// Left to itself, vue-echarts diffs the option and puts every top-level array
+// that lost an entry into replaceMerge. `color` is one — the palette, not a
+// list of components — and echarts refuses it, then reports the update after it
+// as arriving mid-process. Naming the component arrays here keeps the replace a
+// rebuilt option needs and keeps the palette out of it.
+const updateOptions = { replaceMerge: ['series', 'xAxis', 'yAxis'] }
 
 const theme = computed(() => {
   const { darkMode } = props.chart || {}
