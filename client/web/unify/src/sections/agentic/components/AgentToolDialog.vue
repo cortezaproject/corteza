@@ -3,12 +3,13 @@
     :visible="visible"
     modal
     :header="$t('agent.editor.tools.dialog.title')"
-    :style="{ width: '54rem' }"
-    :breakpoints="{ '960px': '90vw' }"
+    :style="{ width: '72rem', height: '86vh' }"
+    :contentStyle="{ display: 'flex', flexDirection: 'column', minHeight: 0 }"
+    :breakpoints="{ '1200px': '94vw' }"
     @update:visible="$emit('update:visible', $event)"
   >
-    <div class="flex flex-col gap-3 min-h-0">
-      <div class="flex items-center gap-2">
+    <div class="flex flex-col gap-3 min-h-0 flex-1">
+      <div class="flex items-center gap-3">
         <IconField class="flex-1">
           <InputIcon class="pi pi-search" />
           <InputText
@@ -19,7 +20,7 @@
           />
         </IconField>
         <span class="text-sm text-muted-color whitespace-nowrap">
-          {{ $t('agent.editor.tools.dialog.chosen', { count: chosen.size }) }}
+          {{ $t('agent.editor.tools.dialog.chosen', { count: chosenCount }) }}
         </span>
       </div>
 
@@ -27,56 +28,86 @@
            person invoking it can already do. Saying so here is the difference
            between an empty panel that reads as broken and one that reads as a
            default. -->
-      <Message v-if="!chosen.size" severity="secondary" :closable="false" class="!my-0">
+      <Message v-if="!chosenCount" severity="secondary" :closable="false" class="!my-0">
         {{ $t('agent.editor.tools.dialog.inherits') }}
       </Message>
 
-      <div class="overflow-y-auto max-h-[26rem] flex flex-col gap-4 pr-1">
-        <div v-for="section in sections" :key="section.key">
-          <div class="flex items-baseline gap-2 mb-1">
-            <span class="text-sm font-semibold text-color">{{ section.label }}</span>
-            <span class="text-xs text-muted-color">{{ section.group }}</span>
-          </div>
-
+      <div class="overflow-y-auto flex-1 min-h-0 flex flex-col gap-5 pr-1">
+        <section v-for="grp in groups" :key="grp.key">
+          <!-- The whole group in one grant. It keeps meaning "every data tool"
+               as tools are added, which naming them one by one does not. -->
           <div
-            v-for="tool in section.tools"
-            :key="tool.name"
-            class="flex items-center gap-3 py-1.5 border-b border-surface last:border-0"
+            class="flex items-center gap-3 pb-2 mb-2 border-b border-surface sticky top-0 bg-surface-0 dark:bg-surface-900 z-10"
           >
             <Checkbox
-              :model-value="chosen.has(tool.name)"
+              :model-value="!!groupGrant(grp.key)"
               binary
               :disabled="disabled"
-              :inputId="`tool-${tool.name}`"
-              @update:model-value="v => toggle(tool, v)"
+              :inputId="`grp-${grp.key}`"
+              @update:model-value="v => toggleGroup(grp.key, v)"
             />
-            <label :for="`tool-${tool.name}`" class="flex-1 min-w-0 cursor-pointer">
-              <span class="text-sm text-color block truncate">{{ tool.title || tool.name }}</span>
-              <span class="text-xs text-muted-color block truncate">{{ tool.name }}</span>
+            <label :for="`grp-${grp.key}`" class="flex-1 min-w-0 cursor-pointer">
+              <span class="text-base font-semibold text-color block">{{ grp.label }}</span>
+              <span class="text-xs text-muted-color block">{{ grp.help }}</span>
             </label>
-
-            <Tag :severity="riskSeverity(tool.risk)" rounded>
-              <span class="text-xs">{{ riskLabel(tool.risk) }}</span>
-            </Tag>
-
-            <!-- The default mode is stored as an empty string, which PrimeVue
-                 reads as "no value" and renders blank; the placeholder is what
-                 makes the row say what it will actually do. -->
             <Select
-              :model-value="modeOf(tool)"
-              :options="modeOptions"
+              :model-value="groupGrant(grp.key)?.maxRisk || 'read'"
+              :options="riskCeilings"
               option-label="label"
               option-value="value"
-              :placeholder="$t('agent.editor.tools.dialog.mode.default')"
               size="small"
-              class="w-40"
-              :disabled="disabled || !chosen.has(tool.name)"
-              @update:model-value="v => setMode(tool, v)"
+              class="w-52"
+              :disabled="disabled || !groupGrant(grp.key)"
+              @update:model-value="v => setGroupRisk(grp.key, v)"
             />
           </div>
-        </div>
 
-        <div v-if="!sections.length" class="text-sm text-muted-color py-4 text-center">
+          <div v-for="area in grp.areas" :key="area.key" class="mb-3">
+            <div class="text-sm font-medium text-muted-color mb-1 pl-1">{{ area.label }}</div>
+
+            <div
+              v-for="tool in area.tools"
+              :key="tool.name"
+              class="flex items-start gap-3 py-2 border-b border-surface last:border-0"
+            >
+              <Checkbox
+                :model-value="chosen.has(tool.name)"
+                binary
+                :disabled="disabled || !!groupGrant(grp.key)"
+                :inputId="`tool-${tool.name}`"
+                class="mt-0.5"
+                @update:model-value="v => toggle(tool, v)"
+              />
+              <label :for="`tool-${tool.name}`" class="flex-1 min-w-0 cursor-pointer">
+                <span class="text-sm text-color block">{{ tool.title || tool.name }}</span>
+                <span class="text-xs text-muted-color block line-clamp-2">
+                  {{ summarise(tool.description) }}
+                </span>
+              </label>
+
+              <Tag :severity="riskSeverity(tool.risk)" rounded class="mt-0.5 shrink-0">
+                <span class="text-xs">{{ riskLabel(tool.risk) }}</span>
+              </Tag>
+
+              <!-- The default mode is stored as an empty string, which PrimeVue
+                   reads as "no value" and renders blank; the placeholder is what
+                   makes the row say what it will actually do. -->
+              <Select
+                :model-value="modeOf(tool)"
+                :options="modeOptions"
+                option-label="label"
+                option-value="value"
+                :placeholder="$t('agent.editor.tools.dialog.mode.default')"
+                size="small"
+                class="w-40 shrink-0"
+                :disabled="disabled || !(chosen.has(tool.name) || groupGrant(grp.key))"
+                @update:model-value="v => setMode(tool, v)"
+              />
+            </div>
+          </div>
+        </section>
+
+        <div v-if="!groups.length" class="text-sm text-muted-color py-6 text-center">
           {{ $t('agent.editor.tools.dialog.noMatches') }}
         </div>
       </div>
@@ -111,11 +142,18 @@ const emit = defineEmits(['update:visible', 'apply'])
 const { t } = useI18n()
 
 const search = ref('')
-// Editing happens on a copy: closing the dialog with Cancel has to leave the
-// agent exactly as it was.
-const draft = ref(new Map())
+
+// Editing happens on copies: closing with Cancel has to leave the agent
+// exactly as it was.
+const draft = ref(new Map()) // tool name -> permission
+const groupDraft = ref(new Map()) // group key -> maxRisk
 
 const chosen = computed(() => new Set(draft.value.keys()))
+
+// The tools the agent was opened with, so an override added in this session can
+// be told from an entry that was already there.
+const named = ref(new Set())
+const chosenCount = computed(() => draft.value.size + groupDraft.value.size)
 
 watch(
   () => props.visible,
@@ -125,6 +163,10 @@ watch(
     draft.value = new Map(
       (props.grants || []).filter(g => g.name).map(g => [g.name, g.permission || '']),
     )
+    groupDraft.value = new Map(
+      (props.grants || []).filter(g => g.group).map(g => [g.group, g.maxRisk || 'read']),
+    )
+    named.value = new Set(draft.value.keys())
   },
   { immediate: true },
 )
@@ -136,38 +178,72 @@ const modeOptions = computed(() => [
   { value: 'deny', label: t('agent.editor.tools.dialog.mode.deny') },
 ])
 
-// Sections are the tool's own areas — the prefix its name already carries —
-// rather than the two coarse groups, which put ninety tools under one heading.
-const sections = computed(() => {
+const riskCeilings = computed(() => [
+  { value: 'read', label: t('agent.editor.tools.dialog.ceiling.read') },
+  { value: 'write', label: t('agent.editor.tools.dialog.ceiling.write') },
+  { value: 'destructive', label: t('agent.editor.tools.dialog.ceiling.destructive') },
+])
+
+const GROUP_KEYS = ['usage', 'configuring']
+
+// Two levels: the group is what a grant can name, and the areas inside it are
+// what a person scans by. One level of either alone is a list of ninety.
+const groups = computed(() => {
   const q = search.value.trim().toLowerCase()
-  const byArea = new Map()
 
-  for (const tool of props.tools) {
-    if (q && !`${tool.name} ${tool.title || ''}`.toLowerCase().includes(q)) continue
+  return GROUP_KEYS.map(key => {
+    const byArea = new Map()
 
-    const key = areaOf(tool.name)
-    if (!byArea.has(key)) {
-      byArea.set(key, {
-        key,
-        label: t(`agent.editor.tools.dialog.area.${key}`, key),
-        group: (tool.groups || []).join(' · '),
-        tools: [],
-      })
+    for (const tool of props.tools) {
+      if (!(tool.groups || []).includes(key)) continue
+      if (q && !matches(tool, q)) continue
+
+      const areaKey = areaOf(tool.name)
+      if (!byArea.has(areaKey)) {
+        byArea.set(areaKey, {
+          key: areaKey,
+          label: t(`agent.editor.tools.dialog.area.${areaKey}`, areaKey),
+          tools: [],
+        })
+      }
+      byArea.get(areaKey).tools.push(tool)
     }
-    byArea.get(key).tools.push(tool)
-  }
 
-  return [...byArea.values()].sort((a, b) => a.label.localeCompare(b.label))
+    return {
+      key,
+      label: t(`agent.editor.tools.dialog.group.${key}`),
+      help: t(`agent.editor.tools.dialog.group.${key}_help`),
+      areas: [...byArea.values()].sort((a, b) => a.label.localeCompare(b.label)),
+    }
+  }).filter(g => g.areas.length)
 })
 
-// compose_record_lookup -> compose_record; system_user_create -> system_user.
+function matches(tool, q) {
+  return `${tool.name} ${tool.title || ''} ${tool.description || ''}`.toLowerCase().includes(q)
+}
+
+// compose_record_lookup -> compose_record; discovery_search -> discovery.
 function areaOf(name) {
   const parts = String(name).split('_')
   return parts.length > 2 ? `${parts[0]}_${parts[1]}` : parts[0]
 }
 
+// The first sentence, which is what a tool description leads with. The rest is
+// written for the model that has already decided to call it.
+function summarise(description) {
+  const text = String(description || '').trim()
+  if (!text) return ''
+  const end = text.search(/\.\s/)
+  return end > 0 ? text.slice(0, end + 1) : text
+}
+
 function modeOf(tool) {
   return draft.value.get(tool.name) ?? ''
+}
+
+function groupGrant(key) {
+  const maxRisk = groupDraft.value.get(key)
+  return maxRisk ? { group: key, maxRisk } : null
 }
 
 function toggle(tool, on) {
@@ -177,10 +253,27 @@ function toggle(tool, on) {
   draft.value = next
 }
 
+function toggleGroup(key, on) {
+  const next = new Map(groupDraft.value)
+  if (on) next.set(key, next.get(key) || 'read')
+  else next.delete(key)
+  groupDraft.value = next
+}
+
+function setGroupRisk(key, maxRisk) {
+  if (!groupDraft.value.has(key)) return
+  const next = new Map(groupDraft.value)
+  next.set(key, maxRisk)
+  groupDraft.value = next
+}
+
+// Setting a mode on a tool the group already covers writes a named entry beside
+// the group grant, which is how "all data tools, but ask before deleting" is
+// said. The named entry wins: the runtime expands groups after them.
 function setMode(tool, mode) {
-  if (!draft.value.has(tool.name)) return
   const next = new Map(draft.value)
-  next.set(tool.name, mode || '')
+  if (!mode && !named.value.has(tool.name)) next.delete(tool.name)
+  else next.set(tool.name, mode || '')
   draft.value = next
 }
 
@@ -197,16 +290,22 @@ function riskSeverity(risk) {
 // Applying keeps whatever scope a grant already carried: the dialog chooses
 // tools and modes, and namespace scoping is set elsewhere.
 function apply() {
-  const existing = new Map((props.grants || []).filter(g => g.name).map(g => [g.name, g]))
-  const groupGrants = (props.grants || []).filter(g => !g.name)
+  const named = new Map((props.grants || []).filter(g => g.name).map(g => [g.name, g]))
+  const grouped = new Map((props.grants || []).filter(g => g.group).map(g => [g.group, g]))
 
-  const tools = [...draft.value.entries()].map(([name, permission]) => ({
-    ...(existing.get(name) || { name, description: '', allow: [] }),
+  const groupEntries = [...groupDraft.value.entries()].map(([group, maxRisk]) => ({
+    ...(grouped.get(group) || { description: '', allow: [] }),
+    group,
+    maxRisk,
+  }))
+
+  const toolEntries = [...draft.value.entries()].map(([name, permission]) => ({
+    ...(named.get(name) || { name, description: '', allow: [] }),
     name,
     permission,
   }))
 
-  emit('apply', [...groupGrants, ...tools])
+  emit('apply', [...groupEntries, ...toolEntries])
   emit('update:visible', false)
 }
 </script>

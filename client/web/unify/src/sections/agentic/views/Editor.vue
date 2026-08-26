@@ -401,33 +401,16 @@
                         />
                       </CFormGroup>
 
-                      <div class="flex items-center gap-2">
-                        <Select
-                          v-model="toolPickerSelection"
-                          :options="unselectedGroupGrants"
-                          option-label="description"
-                          :placeholder="$t('agent.editor.tools.groupPlaceholder')"
-                          class="flex-1"
-                          fluid
-                          showClear
-                          @update:model-value="onToolPickerSelect"
-                          :disabled="!canEdit"
-                        >
-                          <template #option="{ option }">
-                            <span>{{ option.title }}</span>
-                          </template>
-                        </Select>
-                        <Button
-                          :label="$t('agent.editor.tools.browse')"
-                          icon="pi pi-sliders-h"
-                          severity="secondary"
-                          outlined
-                          :loading="loadingTools"
-                          :disabled="!canEdit"
-                          data-testid="browse-tools"
-                          @click="toolDialogOpen = true"
-                        />
-                      </div>
+                      <Button
+                        :label="$t('agent.editor.tools.browse')"
+                        icon="pi pi-sliders-h"
+                        severity="secondary"
+                        outlined
+                        :loading="loadingTools"
+                        :disabled="!canEdit"
+                        data-testid="browse-tools"
+                        @click="toolDialogOpen = true"
+                      />
 
                       <AgentToolDialog
                         v-model:visible="toolDialogOpen"
@@ -993,7 +976,6 @@ const statusOptions = computed(() => [
 
 const availableTools = ref([])
 const loadingTools = ref(false)
-const toolPickerSelection = ref(null)
 const selectedTools = ref([])
 
 // Tool configuration dialog
@@ -1380,40 +1362,11 @@ function initToolSelection() {
   selectedTools.value = pickableTools.value.filter(t => enabled.has(t.name))
 }
 
-const unselectedTools = computed(() => {
-  const selectedNames = new Set(selectedTools.value.map(t => t.name))
-  return pickableTools.value.filter(t => !selectedNames.has(t.name))
-})
-
-// The panel offers the four group grants directly; individual tools live in the
-// dialog, where there is room to say what each one is and how it should behave.
-const unselectedGroupGrants = computed(() => {
-  const selectedNames = new Set(selectedTools.value.map(t => t.name))
-  return groupToolOptions.value.filter(t => !selectedNames.has(t.name))
-})
-
 const toolDialogOpen = ref(false)
 
 function onToolsApplied(tools) {
   agent.value.access.tools = tools
   initToolSelection()
-}
-
-function onToolPickerSelect(tool) {
-  if (!tool) return
-  selectedTools.value = [...selectedTools.value, tool]
-
-  agent.value.access.tools.push(
-    tool.group
-      ? { group: tool.group, maxRisk: tool.maxRisk, description: '', allow: [] }
-      : { name: tool.name, hints: '' },
-  )
-
-  // Clear in nextTick so the Select component sees the v-model change
-  // after the current update cycle completes
-  nextTick(() => {
-    toolPickerSelection.value = null
-  })
 }
 
 // seedNamespaceGrant turns "this agent is for namespace X" into the setting

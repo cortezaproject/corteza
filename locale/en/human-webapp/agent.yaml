@@ -164,6 +164,15 @@ editor:
   tools:
     browse: Browse tools…
     dialog:
+      ceiling:
+        destructive: everything, deletes included
+        read: reading only
+        write: reading and writing
+      group:
+        configuring: Schema and configuration
+        configuring_help: Modules, pages, charts, users, roles, agents — the things a namespace is built from.
+        usage: Data and execution
+        usage_help: Records, reports and running automations — the things a built namespace holds and does.
       area:
         automation_taq: TAQs
         automation_trigger: Triggers
@@ -198,7 +207,6 @@ editor:
         write: writes
       search: Search tools…
       title: Tools this agent may use
-    groupPlaceholder: Add a whole group…
     seed:
       help: A new agent can call nothing until it is given a tool, so it will refuse every
         question. Choose the namespace this agent is for and it will be granted
