@@ -28,8 +28,8 @@ workflow: schema.#optionsGroup & {
 		}
 		stack_trace_full: {
 			type:          "bool"
-			defaultGoExpr: "true"
-			description:   "Forces the stack trace to record all steps"
+			defaultGoExpr: "false"
+			description:   "Forces the stack trace to record all steps; intended for testing, memory use grows with every executed step"
 		}
 	}
 	title: "Workflow"
