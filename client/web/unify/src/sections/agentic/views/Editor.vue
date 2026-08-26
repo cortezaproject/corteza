@@ -55,11 +55,18 @@
                   <Panel :header="$t('agent.editor.panels.general')" toggleable>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <CFormGroup
+                        name="name"
                         :label="$t('agent.editor.name.label')"
                         :description="$t('agent.editor.name.help')"
                         input-id="name"
+                        required
                       >
-                        <InputText id="name" v-model="agent.meta.short" :disabled="!canEdit" />
+                        <InputText
+                          id="name"
+                          name="name"
+                          v-model="agent.meta.short"
+                          :disabled="!canEdit"
+                        />
                       </CFormGroup>
                       <CFormGroup
                         :label="$t('agent.editor.handle.label')"
@@ -998,6 +1005,7 @@ function applyAgentData(res) {
 }
 
 const initialValues = computed(() => ({
+  name: agent.value?.meta?.short || '',
   systemPrompt: agent.value?.behavior?.systemPrompt || '',
 }))
 
@@ -1019,6 +1027,9 @@ function onProviderResolved(llmProviderID) {
 
 const resolver = ref(({ values }) => {
   const errors = {}
+  if (!values.name || values.name.trim().length === 0) {
+    errors.name = [{ message: t('agent.editor.name.required') }]
+  }
   if (!values.systemPrompt || values.systemPrompt.trim().length === 0) {
     errors.systemPrompt = [{ message: t('agent.editor.systemPrompt.required') }]
   }

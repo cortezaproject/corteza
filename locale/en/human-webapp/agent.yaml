@@ -102,6 +102,7 @@ editor:
   name:
     help: A short, human-readable name for this agent
     label: Name
+    required: Name is required
   outputFormat:
     help: Expected output format for system invocations (e.g. JSON schema)
     label: Output Format
