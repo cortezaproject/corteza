@@ -58,10 +58,12 @@ Only proceed on approval.
 ## Phase 4 — Verify & close
 
 1. prettier (FE) / gofmt (Go) on changed files only.
-2. Run the touched package's unit tests. Do NOT run e2e specs — they are slow
-   and human-run for now. Instead, list the affected specs in the report:
-   `node .intent/intent.mjs affected <changed files>` prints them; the human
-   runs `npx playwright test <specs>` themselves.
+2. Run the touched package's unit tests, and the e2e specs
+   `node .intent/intent.mjs affected <changed files>` names — report which ones
+   and what they said. That list is dependency-derived, so add the spec that
+   actually drives what changed and drop the ones that only import something
+   nearby. On the shared primary, re-run a failure against a settled server
+   before believing it.
 
    Parallelize with background Bash, not agents: launch unit tests as
    background commands and run the format→sync→check chain (steps 1 and 3,

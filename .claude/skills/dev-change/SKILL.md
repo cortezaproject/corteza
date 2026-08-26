@@ -102,11 +102,13 @@ In this order, because each one can invalidate the next:
    pre-existing baseline. Reconcile the docs listed under `yours`. Leave the
    baseline alone.
 4. `dev_intent_affected` — anything under `unitTests` you run with
-   `dev_test_run`. **In a worktree, run the e2e specs it names** as well: the
-   worktree has its own server and its own database, so a slow suite there
-   disturbs nobody. **In the primary, name them and stop** — that server is
-   shared, and the rule against running them was always about the sharing
-   rather than the slowness.
+   `dev_test_run`, and **the e2e specs too, in a worktree or the primary**:
+   naming them and stopping leaves the human to find out whether the change
+   works. Read the list before running it — it comes off the dependency graph,
+   so it names specs that only import something nearby and misses the one that
+   drives the changed screen. In the primary a peer's rebuild fails a spec
+   exactly like a regression, so re-run against a settled server before
+   believing one.
 
 ## 6. Prove the test has teeth
 

@@ -343,8 +343,12 @@ func registerIntentAffected(reg *mcpkit.Registry, root string) {
 
 			switch {
 			case len(out.Specs) > 0:
-				out.Note = fmt.Sprintf("%d e2e spec(s) affected. Hand these to the human to run with "+
-					"'npx playwright test <specs>' — do not run them yourself, they are slow", len(out.Specs))
+				out.Note = fmt.Sprintf("%d e2e spec(s) affected — run them with 'npx playwright test <specs>' "+
+					"and report what they said. This list comes off the dependency graph, not the screens: "+
+					"it names specs that only import something nearby and misses the one that drives what "+
+					"changed, so read it before running it. On the shared primary a peer's rebuild fails a "+
+					"spec exactly like a regression — re-run against a settled server before believing one",
+					len(out.Specs))
 			case len(out.UnitTests) > 0:
 				out.Note = fmt.Sprintf("no e2e specs, but %d unit test file(s) are associated. Run those "+
 					"with dev_test_run", len(out.UnitTests))

@@ -205,9 +205,16 @@ Review means exercising the claims, not reading the diff.
 - **Check against the step-6 criteria**, one at a time, out loud.
 - **Prove the tests have teeth**: break what they cover, watch them fail, put it
   back.
-- **Verify at the layer the bug lives in** — pick the instrument as in step 3.
-  In a worktree that includes the e2e specs `dev_intent_affected` names; in the
-  primary those go to the human, because that server is shared.
+- **Verify at the layer the bug lives in** — pick the instrument as in step 3,
+  e2e included: run the specs and report which ones and what they said. Handing
+  a list to the human is not verification.
+- **`dev_intent_affected` names too many specs and misses the right one.** It
+  reads the dependency graph, not the screens. Add the spec that drives what
+  changed, drop the ones that only import something nearby, run that set.
+- **On the shared primary a peer's rebuild fails a spec exactly like a
+  regression.** Re-run against a settled server (`dev_server_status`) before
+  believing one; a spec that still fails and cannot be reached from the change
+  is its own task, named in `⚠️ NOT DONE`, not absorbed into this one.
 - **Re-run anything a subagent claimed.** Their transcripts are evidence, not
   proof.
 - For substantial work, consider a cold adversarial pass: a fresh agent, no
