@@ -162,6 +162,43 @@ editor:
   titleCreate: Create Agent
   titleEdit: Edit Agent
   tools:
+    browse: Browse tools…
+    dialog:
+      area:
+        automation_taq: TAQs
+        automation_trigger: Triggers
+        automation_workflow: Workflows
+        compose_chart: Charts
+        compose_module: Modules
+        compose_namespace: Namespaces
+        compose_page: Pages and layouts
+        compose_record: Records
+        discovery_search: Search
+        human_tool: Tool discovery
+        system_agent: Agents
+        system_application: Applications
+        system_auth: Authentication
+        system_chatbot: Chatbots
+        system_reminder: Reminders
+        system_role: Roles
+        system_skill: Skills
+        system_theme: Theme
+        system_user: Users
+      chosen: '{count} chosen'
+      inherits: Nothing chosen — the agent can use whatever the person invoking it is already allowed to do, minus anything that deletes. Choose tools here to narrow that.
+      mode:
+        always: Always allow
+        ask: Ask each chat
+        default: Default
+        deny: Never allow
+      noMatches: No tool matches that.
+      risk:
+        destructive: deletes
+        read: reads
+        write: writes
+      search: Search tools…
+      title: Tools this agent may use
+    groupPlaceholder: Add a whole group…
     seed:
       help: A new agent can call nothing until it is given a tool, so it will refuse every
         question. Choose the namespace this agent is for and it will be granted

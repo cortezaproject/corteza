@@ -401,23 +401,41 @@
                         />
                       </CFormGroup>
 
-                      <Select
-                        v-model="toolPickerSelection"
-                        :options="unselectedTools"
-                        option-label="description"
-                        :placeholder="$t('agent.editor.tools.selectPlaceholder')"
-                        :loading="loadingTools"
-                        class="w-full"
-                        filter
-                        fluid
-                        showClear
-                        @update:model-value="onToolPickerSelect"
+                      <div class="flex items-center gap-2">
+                        <Select
+                          v-model="toolPickerSelection"
+                          :options="unselectedGroupGrants"
+                          option-label="description"
+                          :placeholder="$t('agent.editor.tools.groupPlaceholder')"
+                          class="flex-1"
+                          fluid
+                          showClear
+                          @update:model-value="onToolPickerSelect"
+                          :disabled="!canEdit"
+                        >
+                          <template #option="{ option }">
+                            <span>{{ option.title }}</span>
+                          </template>
+                        </Select>
+                        <Button
+                          :label="$t('agent.editor.tools.browse')"
+                          icon="pi pi-sliders-h"
+                          severity="secondary"
+                          outlined
+                          :loading="loadingTools"
+                          :disabled="!canEdit"
+                          data-testid="browse-tools"
+                          @click="toolDialogOpen = true"
+                        />
+                      </div>
+
+                      <AgentToolDialog
+                        v-model:visible="toolDialogOpen"
+                        :tools="availableTools"
+                        :grants="agent.access.tools"
                         :disabled="!canEdit"
-                      >
-                        <template #option="{ option }">
-                          <span>{{ option.title }}</span>
-                        </template>
-                      </Select>
+                        @apply="onToolsApplied"
+                      />
 
                       <CFormItemList
                         :items="selectedTools"
@@ -846,6 +864,7 @@ import { system } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
 import AiChat from '../components/AiChat.vue'
 import AiTrace from '../components/AiTrace.vue'
+import AgentToolDialog from '../components/AgentToolDialog.vue'
 import { useEditorSplit } from '../composables/useEditorSplit'
 
 const {
@@ -1365,6 +1384,20 @@ const unselectedTools = computed(() => {
   const selectedNames = new Set(selectedTools.value.map(t => t.name))
   return pickableTools.value.filter(t => !selectedNames.has(t.name))
 })
+
+// The panel offers the four group grants directly; individual tools live in the
+// dialog, where there is room to say what each one is and how it should behave.
+const unselectedGroupGrants = computed(() => {
+  const selectedNames = new Set(selectedTools.value.map(t => t.name))
+  return groupToolOptions.value.filter(t => !selectedNames.has(t.name))
+})
+
+const toolDialogOpen = ref(false)
+
+function onToolsApplied(tools) {
+  agent.value.access.tools = tools
+  initToolSelection()
+}
 
 function onToolPickerSelect(tool) {
   if (!tool) return
