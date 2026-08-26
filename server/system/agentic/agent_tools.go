@@ -32,10 +32,13 @@ const (
 		`Sending a 'temperature' makes the server call the provider to check it, which also validates 'llmProviderID' and the model name — an unrecognised model fails with the provider's own error. Omit temperature and none of that is checked: the model name is stored as given.`
 
 	agentAccessDoc = `JSON object: what the agent may reach. ` +
-		`{"tools":[{"name":"compose_record_lookup","description":"Read leads","allow":[{"namespaceID":"<id>","moduleIDs":["<id>"]}]}],"taqs":[{"id":"<taqID>","description":"Escalate"}],"workflows":[{"id":"<workflowID>","description":"Notify"}]}. ` +
-		`'tools' is an allow-list of tool names from this same registry and is deny-by-default: an agent can call nothing that is not listed. It NARROWS only — RBAC on the agent's own identity still applies on top. Granting an agent system_agent_update lets it re-grant itself any tool, so treat that entry the way you would a permission change. ` +
+		`{"allow":[{"namespaceID":"<id>","moduleIDs":[]}],"tools":[{"name":"compose_record_lookup","permission":"always","description":"Read leads","allow":[{"namespaceID":"<id>","moduleIDs":["<id>"]}]}],"taqs":[{"id":"<taqID>","description":"Escalate"}],"workflows":[{"id":"<workflowID>","description":"Notify"}]}. ` +
+		`An agent runs as the person who invoked it, so RBAC bounds everything it can reach. 'tools' NARROWS that further. Leave it EMPTY and the agent inherits every read and write tool — never a destructive one, which always has to be named. ` +
+		`'allow' on the access object itself scopes the whole agent to namespaces and modules however its tools were granted, including the ones it inherits; that is the setting to use for "this agent is only for namespace X". ` +
+		`Granting an agent system_agent_update lets it re-grant itself any tool, so treat that entry the way you would a permission change. ` +
 		`Every name is checked against the registry when you write it, and an unknown one is refused with the near matches: the runtime resolves the allow-list as a whole, so a single typo would stop the agent running at all rather than cost it one tool. ` +
 		`An entry's "moduleIDs" narrows it to those modules; leave it EMPTY to mean every module in that namespace, now and in future. Prefer empty unless you actually need to withhold a module: an enumerated list has to be edited on every tool entry each time a module is added, and until it is the agent cannot see the new module and nothing says so. ` +
+		`Each entry may carry a "permission": "always" runs the tool unannounced, "ask" stops the run and puts it to the user (the exec call comes back with status "awaiting_approval" and the pending call; send it again with that tool in "approvedTools" to carry on), and "deny" refuses it whatever the scope says. Omit it and the mode follows the tool's risk — reading always, anything that writes asks. ` +
 		`An entry names ONE tool via "name", or a whole set via "group" plus "maxRisk" — {"group":"usage","maxRisk":"read","allow":[{"namespaceID":"<id>","moduleIDs":[]}]} grants every read-only data tool in that namespace and picks up tools added later. "group" is "usage" (data and execution) or "configuring" (schema and definitions); "maxRisk" is "read", "write" or "destructive" and defaults to "read". Set one or the other, never both. Prefer a group: naming tools one at a time is what makes an agent tedious to set up and stale afterwards.`
 
 	agentInvocationDoc = `JSON object: who may start it. ` +
@@ -74,9 +77,9 @@ func (h *agentHandler) register() {
 		mcp.NewTool("system_agent_create",
 			mcp.WithDescription(
 				"Create an AI agent. "+agentSectionDoc+" "+
-					"A new agent is 'active' unless you say otherwise, and starts able to call NOTHING: "+
-					"access.tools is deny-by-default, so an agent created without it can run but has no "+
-					"tools. Name a model in 'execution.model' unless this instance has exactly one LLM "+
+					"A new agent is 'active' unless you say otherwise, and with no 'access' it inherits "+
+					"every read and write tool the invoking user can already use — never a destructive "+
+					"one. Name a model in 'execution.model' unless this instance has exactly one LLM "+
 					"provider, which is then used. "+
 					"To let people talk to it in a widget, create a chatbot with a conversation scenario "+
 					"pointing at this agent — system_chatbot_create.",
