@@ -36,33 +36,166 @@ const tools = [
 ]
 
 function toolNames(vm: any): string[] {
-  return vm.groups.flatMap((g: any) => g.areas.flatMap((a: any) => a.tools.map((t: any) => t.name)))
+  return vm.domains.flatMap((d: any) =>
+    d.areas.flatMap((a: any) => a.tools.map((t: any) => t.name)),
+  )
 }
 
-function mountDialog(grants: any[] = []) {
+function domain(vm: any, key: string) {
+  return vm.domains.find((d: any) => d.key === key)
+}
+
+function mountDialog(grants: any[] = [], list = tools) {
   return mount(AgentToolDialog, {
-    props: { visible: true, tools, grants, disabled: false },
+    props: { visible: true, tools: list, grants, disabled: false },
     global: { mocks: { $t: (k: string, p?: any) => (p ? `${k}:${JSON.stringify(p)}` : k) } },
   })
 }
 
-describe('AgentToolDialog', () => {
-  // Two levels: a grant can name a group, and a person scans by area. One level
-  // of either alone is a list of ninety.
-  it('nests areas inside the group a grant can name', () => {
-    const vm = mountDialog().vm as any
-    expect(vm.groups.map((g: any) => g.key)).toEqual(['usage', 'configuring'])
+describe('AgentToolDialog grouping', () => {
+  // Grouping by `usage` and `configuring` split five subjects across both
+  // sections — every TAQ tool but `exec` in one, `exec` in the other. Asking
+  // "what can this agent do to TAQs?" then meant looking in two places.
+  it('keeps a subject whole, whichever group each tool belongs to', () => {
+    const split = [
+      { name: 'automation_taq_exec', title: 'Execute TAQ', groups: ['usage'], risk: 'write' },
+      {
+        name: 'automation_taq_create',
+        title: 'Create TAQ',
+        groups: ['configuring'],
+        risk: 'write',
+      },
+    ]
+    const vm = mountDialog([], split).vm as any
 
-    const usage = vm.groups.find((g: any) => g.key === 'usage')
-    expect(usage.areas.map((a: any) => a.key)).toContain('compose_record')
-
-    const configuring = vm.groups.find((g: any) => g.key === 'configuring')
-    expect(configuring.areas.map((a: any) => a.key)).toContain('system_user')
+    expect(vm.domains.map((d: any) => d.key)).toEqual(['automation'])
+    expect(toolNames(vm)).toEqual(['automation_taq_create', 'automation_taq_exec'])
   })
 
-  // A group grant keeps meaning "every data tool" as tools are added; naming
+  it('counts what a section holds', () => {
+    const vm = mountDialog().vm as any
+    expect(domain(vm, 'data').count).toBe(2)
+    expect(domain(vm, 'people').count).toBe(1)
+  })
+
+  // A tool family nobody has placed yet gets a section of its own rather than
+  // disappearing from a dialog that claims to list everything.
+  it('gives an unplaced family a section rather than dropping it', () => {
+    const vm = mountDialog(
+      [],
+      [...tools, { name: 'discovery_search', title: 'Search', groups: ['usage'], risk: 'read' }],
+    ).vm as any
+
+    expect(domain(vm, 'other').areas.map((a: any) => a.key)).toEqual(['discovery'])
+    expect(vm.domains.at(-1).key).toBe('other')
+  })
+
+  // Alphabetical put Charts first, which is nobody's starting point.
+  it('leads with what an agent works with, not with C', () => {
+    const many = [
+      { name: 'compose_chart_lookup', title: 'Lookup chart', groups: ['usage'], risk: 'read' },
+      { name: 'compose_record_lookup', title: 'Lookup record', groups: ['usage'], risk: 'read' },
+      { name: 'system_user_create', title: 'Create user', groups: ['configuring'], risk: 'write' },
+    ]
+    const vm = mountDialog([], many).vm as any
+    expect(vm.domains.map((d: any) => d.key)).toEqual(['data', 'structure', 'people'])
+  })
+
+  // Reads first, then writes, then the one that cannot be taken back.
+  it('orders an area by risk, then by name', () => {
+    const records = [
+      {
+        name: 'compose_record_delete',
+        title: 'Delete record',
+        groups: ['usage'],
+        risk: 'destructive',
+      },
+      { name: 'compose_record_create', title: 'Create record', groups: ['usage'], risk: 'write' },
+      { name: 'compose_record_lookup', title: 'Lookup record', groups: ['usage'], risk: 'read' },
+    ]
+    const vm = mountDialog([], records).vm as any
+    expect(toolNames(vm)).toEqual([
+      'compose_record_lookup',
+      'compose_record_create',
+      'compose_record_delete',
+    ])
+  })
+
+  // A skill is injected when the tool that triggers it is used; offering it
+  // here invites a choice that changes nothing.
+  it('does not offer skills', () => {
+    const vm = mountDialog(
+      [],
+      [
+        ...tools,
+        {
+          name: 'system_skill_lookup',
+          title: 'Lookup skill',
+          groups: ['configuring'],
+          risk: 'read',
+        },
+      ],
+    ).vm as any
+    expect(toolNames(vm)).not.toContain('system_skill_lookup')
+  })
+})
+
+describe('AgentToolDialog sections', () => {
+  // Six shut sections give a fresh agent nothing to act on; six open ones are
+  // a list of ninety.
+  it('opens the first section when the agent has no named tool', () => {
+    const vm = mountDialog().vm as any
+    expect(vm.isOpen('data')).toBe(true)
+    expect(vm.isOpen('people')).toBe(false)
+  })
+
+  it('opens on the sections holding what the agent already has', () => {
+    const vm = mountDialog([{ name: 'system_user_create' }]).vm as any
+    expect(vm.isOpen('people')).toBe(true)
+    expect(vm.isOpen('data')).toBe(false)
+  })
+
+  it('folds a section shut and back open', () => {
+    const vm = mountDialog().vm as any
+    expect(vm.isOpen('data')).toBe(true)
+    vm.toggleCollapsed('data')
+    expect(vm.isOpen('data')).toBe(false)
+    vm.toggleCollapsed('data')
+    expect(vm.isOpen('data')).toBe(true)
+  })
+
+  // A search that only looked inside open sections would report nothing while
+  // showing a shut section holding the match.
+  it('shows a match inside a section that is shut', async () => {
+    const w = mountDialog()
+    const vm = w.vm as any
+
+    expect(vm.isOpen('people')).toBe(false)
+    vm.search = 'Create user'
+    await w.vm.$nextTick()
+
+    expect(toolNames(vm)).toEqual(['system_user_create'])
+    expect(vm.isOpen('people')).toBe(true)
+  })
+
+  it('narrows by search, over descriptions too', async () => {
+    const w = mountDialog()
+    const vm = w.vm as any
+
+    vm.search = 'delete'
+    await w.vm.$nextTick()
+    expect(toolNames(vm)).toEqual(['compose_record_delete'])
+
+    vm.search = 'removes a row'
+    await w.vm.$nextTick()
+    expect(toolNames(vm)).toEqual(['compose_record_delete'])
+  })
+})
+
+describe('AgentToolDialog family grants', () => {
+  // A family grant keeps meaning "every data tool" as tools are added; naming
   // them one at a time does not.
-  it('stores a group grant with its risk ceiling', () => {
+  it('stores a family grant with its risk ceiling', () => {
     const w = mountDialog()
     const vm = w.vm as any
 
@@ -74,12 +207,40 @@ describe('AgentToolDialog', () => {
     expect(applied[0]).toEqual([{ group: 'usage', maxRisk: 'write', description: '', allow: [] }])
   })
 
-  it('opens showing a group grant it was given', () => {
+  it('opens showing a family grant it was given', () => {
     const vm = mountDialog([{ group: 'configuring', maxRisk: 'destructive', allow: [] }]).vm as any
     expect(vm.groupGrant('configuring')).toEqual({ group: 'configuring', maxRisk: 'destructive' })
     expect(vm.groupGrant('usage')).toBeNull()
   })
 
+  // A ceiling admits its own level and everything below it. Reading coverage
+  // off the section instead said a `write` family covered the delete tool
+  // sitting in it, and left every covered row's checkbox unticked.
+  it('covers a tool at or below the ceiling, and no higher', () => {
+    const vm = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }]).vm as any
+
+    expect(vm.coveredByGroup({ groups: ['usage'], risk: 'read' })).toBe(true)
+    expect(vm.coveredByGroup({ groups: ['usage'], risk: 'write' })).toBe(true)
+    expect(vm.coveredByGroup({ groups: ['usage'], risk: 'destructive' })).toBe(false)
+    expect(vm.coveredByGroup({ groups: ['configuring'], risk: 'read' })).toBe(false)
+  })
+
+  // A family grant has no name; applying must leave it alone rather than
+  // delete it.
+  it('leaves family grants untouched', () => {
+    const group = { group: 'usage', maxRisk: 'read', allow: [] }
+    const w = mountDialog([group, { name: 'compose_record_lookup' }])
+    const vm = w.vm as any
+
+    vm.toggle({ name: 'compose_record_lookup' }, false)
+    vm.apply()
+
+    const [applied] = w.emitted('apply') as any[]
+    expect(applied[0]).toEqual([group])
+  })
+})
+
+describe('AgentToolDialog modes', () => {
   // The description says what a tool does; the handle says nothing a person
   // needs. Only the first sentence — the rest is written for the model.
   it('summarises a description to its first sentence', () => {
@@ -104,6 +265,21 @@ describe('AgentToolDialog', () => {
     expect(vm.effectiveMode({ name: 'compose_record_lookup', risk: 'read' })).toBe('always')
     expect(vm.effectiveMode({ name: 'compose_record_create', risk: 'write' })).toBe('ask')
     expect(vm.effectiveMode({ name: 'compose_record_delete', risk: 'destructive' })).toBe('ask')
+  })
+
+  // The rail marks the one state the risk rule would not have produced: an
+  // allow set by hand on a tool that writes. Tightening never needs a warning.
+  it('rails only a hand-set allow on a tool that writes', () => {
+    const w = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }])
+    const vm = w.vm as any
+    const create = { name: 'compose_record_create', risk: 'write' }
+
+    expect(vm.loosened(create)).toBe(false)
+    vm.setMode(create, 'always')
+    expect(vm.loosened(create)).toBe(true)
+
+    vm.setMode({ name: 'compose_record_lookup', risk: 'read' }, 'always')
+    expect(vm.loosened({ name: 'compose_record_lookup', risk: 'read' })).toBe(false)
   })
 
   // Choosing the mode the risk would have given anyway is not a decision to
@@ -137,38 +313,9 @@ describe('AgentToolDialog', () => {
     expect(applied[0]).toEqual([{ ...scoped, permission: 'ask' }])
   })
 
-  // A group grant has no name; it belongs to the panel, not this dialog, and
-  // applying must leave it alone rather than delete it.
-  it('leaves group grants untouched', () => {
-    const group = { group: 'usage', maxRisk: 'read', allow: [] }
-    const w = mountDialog([group, { name: 'compose_record_lookup' }])
-    const vm = w.vm as any
-
-    vm.toggle({ name: 'compose_record_lookup' }, false)
-    vm.apply()
-
-    const [applied] = w.emitted('apply') as any[]
-    expect(applied[0]).toEqual([group])
-  })
-
-  it('narrows by search, over descriptions too', async () => {
-    const w = mountDialog()
-    const vm = w.vm as any
-
-    vm.search = 'delete'
-    await w.vm.$nextTick()
-    expect(toolNames(vm)).toEqual(['compose_record_delete'])
-
-    vm.search = 'removes a row'
-    await w.vm.$nextTick()
-    expect(toolNames(vm)).toEqual(['compose_record_delete'])
-  })
-})
-
-describe('AgentToolDialog overrides', () => {
-  // "All data tools, but ask before deleting" is a group grant plus a named
-  // entry. Setting a mode on a tool the group covers has to write that entry.
-  it('writes a named override beside a group grant', () => {
+  // "All data tools, but ask before deleting" is a family grant plus a named
+  // entry. Setting a mode on a tool the family covers has to write that entry.
+  it('writes a named override beside a family grant', () => {
     const w = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }])
     const vm = w.vm as any
 
@@ -194,63 +341,5 @@ describe('AgentToolDialog overrides', () => {
 
     const [applied] = w.emitted('apply') as any[]
     expect(applied[0]).toEqual([{ group: 'usage', maxRisk: 'write', allow: [] }])
-  })
-})
-
-describe('AgentToolDialog ordering', () => {
-  const many = [
-    { name: 'compose_chart_lookup', title: 'Lookup chart', groups: ['usage'], risk: 'read' },
-    {
-      name: 'compose_record_delete',
-      title: 'Delete record',
-      groups: ['usage'],
-      risk: 'destructive',
-    },
-    { name: 'compose_record_create', title: 'Create record', groups: ['usage'], risk: 'write' },
-    { name: 'compose_record_lookup', title: 'Lookup record', groups: ['usage'], risk: 'read' },
-    { name: 'system_skill_lookup', title: 'Lookup skill', groups: ['configuring'], risk: 'read' },
-  ]
-
-  function mountMany() {
-    return mount(AgentToolDialog, {
-      props: { visible: true, tools: many, grants: [], disabled: false },
-      global: { mocks: { $t: (k: string) => k } },
-    })
-  }
-
-  // Alphabetical put Charts first, which is nobody's starting point.
-  it('leads with what gets built on, not with C', () => {
-    const vm = mountMany().vm as any
-    const usage = vm.groups.find((g: any) => g.key === 'usage')
-    expect(usage.areas.map((a: any) => a.key)).toEqual(['compose_record', 'compose_chart'])
-  })
-
-  // Reads first, then writes, then the one that cannot be taken back.
-  it('orders a section by risk, then by name', () => {
-    const vm = mountMany().vm as any
-    const records = vm.groups
-      .find((g: any) => g.key === 'usage')
-      .areas.find((a: any) => a.key === 'compose_record')
-    expect(records.tools.map((t: any) => t.name)).toEqual([
-      'compose_record_lookup',
-      'compose_record_create',
-      'compose_record_delete',
-    ])
-  })
-
-  // A skill is injected when the tool that triggers it is used; offering it
-  // here invites a choice that changes nothing.
-  it('does not offer skills', () => {
-    const vm = mountMany().vm as any
-    expect(toolNames(vm)).not.toContain('system_skill_lookup')
-  })
-
-  it('folds a section shut and back open', () => {
-    const vm = mountMany().vm as any
-    expect(vm.collapsed.has('usage')).toBe(false)
-    vm.toggleCollapsed('usage')
-    expect(vm.collapsed.has('usage')).toBe(true)
-    vm.toggleCollapsed('usage')
-    expect(vm.collapsed.has('usage')).toBe(false)
   })
 })
