@@ -125,12 +125,12 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	// 4. prompt.build span — system prompt preparation
 	promptBuildStart := time.Now()
 	systemPrompt, canaryToken := r.buildSystemPrompt(ctx, agent, taqInfos)
-	if len(req.ExecContext) > 0 {
+	if execCtx := scopeCallerContext(ctx, agent, req.ExecContext); len(execCtx) > 0 {
 		// Sanitized like a tool result, and for the same reason: most of what
 		// is in here is record field values, which is to say text some user
 		// typed. It differs only in arriving before the model has asked for
 		// anything, in the system prompt rather than a tool response.
-		if ctxJSON, mErr := json.Marshal(sanitizeToolResult(req.ExecContext)); mErr == nil && len(ctxJSON) > 0 {
+		if ctxJSON, mErr := json.Marshal(sanitizeToolResult(execCtx)); mErr == nil && len(ctxJSON) > 0 {
 			systemPrompt += callerContextSection(string(ctxJSON))
 		}
 	}

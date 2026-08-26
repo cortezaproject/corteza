@@ -1,8 +1,12 @@
 package runtime
 
 import (
+	"context"
 	"fmt"
 	"strings"
+
+	"github.com/crusttech/human/server/system/agentic/policy"
+	"github.com/crusttech/human/server/system/types"
 )
 
 // callerContextFence delimits the caller context.
@@ -115,4 +119,59 @@ func collectStrings(b *strings.Builder, v any, depth int) {
 			collectStrings(b, val, depth+1)
 		}
 	}
+}
+
+// callerContextValueKeys are the parts of the context that carry data read out
+// of the database rather than identifiers supplied by the surface.
+var callerContextValueKeys = []string{"recordValues"}
+
+// scopeCallerContext removes record data the agent is not allowed to read.
+//
+// The IDs in the context come from the calling surface and say only where the
+// user is standing; the values come from a record, and an agent scoped to one
+// namespace was being handed the field values of another simply because
+// someone embedded its chat block on that page. Proven: a probe agent granted
+// nothing but its own namespace read back a marker planted in an MTG record,
+// verbatim, without making a single tool call.
+//
+// The check is the one the agent would face if it fetched the record itself,
+// so a correctly-granted agent loses nothing.
+func scopeCallerContext(ctx context.Context, agent *types.Agent, execCtx map[string]any) map[string]any {
+	if len(execCtx) == 0 {
+		return execCtx
+	}
+
+	nsID, _ := execCtx["namespaceID"].(string)
+	if nsID == "" {
+		return execCtx
+	}
+
+	args := policy.MapValues{"namespaceID": nsID}
+	if modID, ok := execCtx["moduleID"].(string); ok && modID != "" {
+		args["moduleID"] = modID
+	}
+
+	if d := policy.Evaluate(ctx, agent, "compose_record_lookup", args, nil); d.Allowed {
+		return execCtx
+	}
+
+	out := make(map[string]any, len(execCtx))
+	for k, v := range execCtx {
+		out[k] = v
+	}
+
+	var dropped bool
+	for _, k := range callerContextValueKeys {
+		if _, ok := out[k]; ok {
+			delete(out, k)
+			dropped = true
+		}
+	}
+	if !dropped {
+		return execCtx
+	}
+
+	out["note"] = "This agent is not allowed to read records here, so the record's values were withheld. " +
+		"Do not guess at them: say you cannot see this record."
+	return out
 }

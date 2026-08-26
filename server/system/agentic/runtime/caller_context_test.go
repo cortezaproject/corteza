@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -101,4 +102,62 @@ func TestCallerContextIsSanitizedLikeAToolResult(t *testing.T) {
 	assert.NotContains(t, text, "##")
 	assert.NotContains(t, text, "SYSTEM:")
 	assert.Contains(t, text, "fine text", "the readable content must survive")
+}
+
+func ctxAgent(nsID uint64) *types.Agent {
+	return &types.Agent{Access: types.AgentAccess{Tools: []types.AgentAccessTool{{
+		Name:  "compose_record_lookup",
+		Allow: []types.AgentAccessAllow{{NamespaceID: nsID}},
+	}}}}
+}
+
+// An embedded chat block sends the values of whatever record its page shows,
+// which had nothing to do with what the agent was granted: a probe agent
+// scoped to its own namespace read back a marker planted in another one's
+// record, verbatim, without a single tool call.
+func TestScopeCallerContextWithholdsUngrantedValues(t *testing.T) {
+	execCtx := map[string]any{
+		"namespaceID":  "100",
+		"moduleID":     "11",
+		"recordID":     "7",
+		"recordValues": map[string]any{"secret": "marker"},
+	}
+
+	t.Run("a granted namespace keeps its values", func(t *testing.T) {
+		got := scopeCallerContext(nil, ctxAgent(100), execCtx)
+		assert.Contains(t, got, "recordValues")
+		assert.NotContains(t, got, "note")
+	})
+
+	t.Run("an ungranted namespace loses them", func(t *testing.T) {
+		got := scopeCallerContext(nil, ctxAgent(200), execCtx)
+		assert.NotContains(t, got, "recordValues")
+		assert.Contains(t, got, "note")
+
+		// The IDs come from the surface, not the database — they say where the
+		// user is standing and are worth keeping either way.
+		assert.Equal(t, "100", got["namespaceID"])
+		assert.Equal(t, "7", got["recordID"])
+
+		// The caller's map must not be edited under them.
+		assert.Contains(t, execCtx, "recordValues")
+	})
+
+	t.Run("an agent that can read nothing loses them", func(t *testing.T) {
+		got := scopeCallerContext(nil, &types.Agent{}, execCtx)
+		assert.NotContains(t, got, "recordValues")
+	})
+}
+
+func TestScopeCallerContextLeavesWhatItCannotJudge(t *testing.T) {
+	// No namespace named: nothing to check the values against, and nothing
+	// claiming to be from a namespace either.
+	only := map[string]any{"pageID": "9"}
+	assert.Equal(t, only, scopeCallerContext(nil, &types.Agent{}, only))
+
+	assert.Nil(t, scopeCallerContext(nil, &types.Agent{}, nil))
+
+	// A context that names a namespace but carries no values needs no copy.
+	ids := map[string]any{"namespaceID": "100"}
+	assert.Equal(t, ids, scopeCallerContext(nil, ctxAgent(200), ids))
 }
