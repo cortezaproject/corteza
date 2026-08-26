@@ -231,6 +231,7 @@
 import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
+  CHANGED_AT_KEY,
   changedAtField,
   changedAtText,
   components,
@@ -382,6 +383,8 @@ const {
   filterList: workflowFilterList,
 } = useResourceList(params => $AutomationAPI.sessionListCancellable({ ...params }), {
   filter: { sessionID: null, workflowID: null, status: null },
+  // Sessions have no name; newest first is the useful order for a run log.
+  sorting: { sortBy: CHANGED_AT_KEY, sortDesc: true },
   pagination: { limit: 50 },
   immediate: false,
 })

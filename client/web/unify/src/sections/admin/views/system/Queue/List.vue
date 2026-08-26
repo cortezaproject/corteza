@@ -145,6 +145,8 @@ const fields = [
 const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
   useResourceList(params => $SystemAPI.queuesListCancellable({ ...params }), {
     filter: { query: '', deleted: '0' },
+    // Queues have no name; the list is keyed on the queue.
+    sorting: { sortBy: 'queue', sortDesc: false },
     pagination: { limit: 50 },
   })
 

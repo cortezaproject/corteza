@@ -49,11 +49,11 @@ export function useResourceList<T = any>(
   // Reactive state
   const filter = reactive<FilterState>({ ...options.filter })
 
-  // Lists open on what changed last. Naming `sorting` opts out: a different
-  // order, or `{}` for a resource the server cannot sort at all.
-  const sorting = reactive<SortingState>(
-    options.sorting ?? { sortBy: CHANGED_AT_KEY, sortDesc: true },
-  )
+  // Lists open alphabetically. Naming `sorting` opts out, and a list whose
+  // resource has no sortable `name` must: the server rejects the whole request
+  // with "invalid column name: name" rather than ignoring it. `{}` means a
+  // resource the server cannot sort at all.
+  const sorting = reactive<SortingState>(options.sorting ?? { sortBy: 'name', sortDesc: false })
   const pagination = reactive<PaginationState>({
     limit: 100,
     pageCursor: undefined,
