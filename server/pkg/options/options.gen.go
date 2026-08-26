@@ -905,6 +905,7 @@ func Provision() (o *ProvisionOpt) {
 func Sentry() (o *SentryOpt) {
 	o = &SentryOpt{
 		AttachStacktrace: true,
+		SampleRate:       1.0,
 		MaxBreadcrumbs:   0,
 		Release:          version.Version,
 	}

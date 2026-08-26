@@ -37,7 +37,9 @@ sentry: schema.#optionsGroup & {
 			description:   "Attach stacktraces"
 		}
 		sample_rate: {
-			type:        "float64"
+			type:          "float64"
+			defaultGoExpr: "1.0"
+			defaultValue:  "1.0"
 			description: "Sample rate for event submission (0.0 - 1.0. defaults to 1.0)"
 		}
 		max_breadcrumbs: {
