@@ -75,9 +75,9 @@ func (h *recordHandler) resolveNsMod(ctx context.Context, args map[string]any) (
 		return 0, 0, err
 	}
 
-	mod, err := cmpService.DefaultModule.FindByAny(ctx, ns.ID, args["module"])
+	mod, err := resolveModuleArg(ctx, ns, args["module"])
 	if err != nil {
-		return 0, 0, toolkit.Errf("module lookup", err)
+		return 0, 0, err
 	}
 
 	return ns.ID, mod.ID, nil

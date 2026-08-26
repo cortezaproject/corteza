@@ -91,9 +91,12 @@ func (h *namespaceHandler) lookup(ctx context.Context, req mcp.CallToolRequest) 
 		})
 	}
 
-	ns, err := cmpService.DefaultNamespace.FindByAny(ctx, nsRef)
+	// The same rule the runtime resolves an argument by: an unambiguous partial
+	// name is the namespace that was meant, so "mtg" fetches MTG Collection
+	// rather than costing a listing to scan.
+	ns, err := resolveNamespaceRef(ctx, toolkit.Str(args, "namespace"))
 	if err != nil {
-		// Namespace not found — return the list alongside the error so the caller
+		// Ambiguous or absent — return the list alongside the error so the caller
 		// can pick the correct one without a second round trip.
 		items, next, listErr := h.searchNamespaces(ctx, page)
 		if listErr != nil {
@@ -101,7 +104,7 @@ func (h *namespaceHandler) lookup(ctx context.Context, req mcp.CallToolRequest) 
 		}
 
 		return toolkit.JSONResult(map[string]any{
-			"error":          fmt.Sprintf("namespace %q not found", nsRef),
+			"error":          err.Error(),
 			"namespaces":     items,
 			"nextPageCursor": next,
 		})

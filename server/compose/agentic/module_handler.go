@@ -42,9 +42,9 @@ func (h *moduleHandler) resolveModule(ctx context.Context, args map[string]any) 
 		return nil, err
 	}
 
-	mod, err := cmpService.DefaultModule.FindByAny(ctx, ns.ID, modRef)
+	mod, err := resolveModuleRef(ctx, ns, modRef)
 	if err != nil {
-		return nil, toolkit.Errf("module lookup", err)
+		return nil, err
 	}
 
 	return mod, nil
@@ -62,9 +62,11 @@ func (h *moduleHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 	}
 
 	if modRef := toolkit.Str(args, "module"); modRef != "" {
-		mod, err := cmpService.DefaultModule.FindByAny(ctx, ns.ID, modRef)
+		// The same rule the other module tools resolve by: an unambiguous
+		// partial name is the module that was meant.
+		mod, err := resolveModuleRef(ctx, ns, modRef)
 		if err != nil {
-			return nil, toolkit.Errf("module lookup", err)
+			return nil, err
 		}
 
 		if strings.EqualFold(toolkit.Str(args, "detail"), "full") {
