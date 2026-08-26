@@ -259,9 +259,11 @@ export function useResourceList<T = any>(
       if (sorting.sortBy === sortField) {
         sorting.sortDesc = !sorting.sortDesc
       } else {
-        // New field, default to ascending
+        // A new field starts ascending, except the "last change" column:
+        // asking to sort by when something changed means newest first. Due
+        // dates are the other way round, so this is not "dates descending".
         sorting.sortBy = sortField
-        sorting.sortDesc = sortOrder === -1
+        sorting.sortDesc = sortField === CHANGED_AT_KEY || sortOrder === -1
       }
 
       filterList()

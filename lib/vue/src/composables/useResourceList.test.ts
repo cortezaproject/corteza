@@ -218,6 +218,31 @@ describe('useResourceList', () => {
       expect(api).not.toHaveBeenCalled()
     })
 
+    it('starts the changedAt column newest-first, not oldest', async () => {
+      const api = makeAPI([])
+      const { list } = mountList(api)
+      await flushPromises()
+
+      // What PrimeVue emits on a first click of a column that is not the
+      // active sort.
+      list.handleSort({ sortField: 'changedAt', sortOrder: 1 })
+      await flushPromises()
+
+      expect(list.sorting.sortDesc).toBe(true)
+    })
+
+    it('still starts any other new field ascending', async () => {
+      const api = makeAPI([])
+      const { list } = mountList(api)
+      await flushPromises()
+
+      list.handleSort({ sortField: 'dateDue', sortOrder: 1 })
+      await flushPromises()
+
+      expect(list.sorting.sortBy).toBe('dateDue')
+      expect(list.sorting.sortDesc).toBe(false)
+    })
+
     it('sends the changedAt column as a COALESCE expression', async () => {
       const api = makeAPI([])
       const { list } = mountList(api)
