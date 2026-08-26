@@ -236,6 +236,7 @@ function undeleteWorkflow() {
       .then(() => {
         workflow.value.deletedAt = undefined
         workflow.value.deletedBy = undefined
+        workflowStore.updateInList(workflow.value)
         toast.add({
           severity: 'success',
           summary: t('notification.workflow.restore.success'),

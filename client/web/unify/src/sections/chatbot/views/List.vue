@@ -225,8 +225,10 @@ async function handleDuplicate(cb) {
 async function handleRestore(cb) {
   resourceListRef.value.hideActionsMenu()
   try {
-    const restored = await $SystemAPI.chatbotUndelete({ chatbotID: cb.chatbotID })
-    chatbotStore.updateInList(restored || { ...cb, deletedAt: null })
+    // Undelete answers with a bare OK, so the row that comes back into the
+    // sidebar is the one the list is holding, with its deletion cleared.
+    await $SystemAPI.chatbotUndelete({ chatbotID: cb.chatbotID })
+    chatbotStore.updateInList({ ...cb, deletedAt: null })
     $toast.toastSuccess(t('notification.chatbot.restored'))
     filterList()
   } catch (e) {

@@ -433,18 +433,22 @@ async function importJSON(workflows = []) {
     workflows.map(({ triggers = [], ...wf }) =>
       $AutomationAPI
         .workflowCreate({ ownedBy: userID.value, runAs: '0', ...wf })
-        .then(({ workflowID }) =>
-          Promise.all(
+        .then(created => {
+          // An import is a create like any other: the sidebar reads the store,
+          // so an imported workflow that never lands there is invisible until
+          // the next reload.
+          workflowStore.updateInList(created)
+          return Promise.all(
             triggers.map(tr =>
               $AutomationAPI.triggerCreate({
                 ...tr,
-                workflowID,
+                workflowID: created.workflowID,
                 workflowStepID: tr.stepID,
                 ownedBy: userID.value,
               }),
             ),
-          ),
-        )
+          )
+        })
         .catch(({ message }) => {
           if (wf.handle) skipped.push(`${wf.handle}${message ? ' - ' + message : ''}`)
         }),
@@ -553,10 +557,10 @@ async function handleDelete(workflow) {
 async function handleRestore(workflow) {
   resourceListRef.value.hideActionsMenu()
   try {
-    const restored = await $AutomationAPI.workflowUndelete({
-      workflowID: workflow.workflowID,
-    })
-    workflowStore.updateInList(restored)
+    // Undelete answers with a bare OK, so the row that comes back into the
+    // sidebar is the one the list is holding, with its deletion cleared.
+    await $AutomationAPI.workflowUndelete({ workflowID: workflow.workflowID })
+    workflowStore.updateInList({ ...workflow, deletedAt: null })
     toast.add({
       severity: 'success',
       summary: t('notification.workflow.restore.success'),

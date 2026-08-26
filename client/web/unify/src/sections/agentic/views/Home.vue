@@ -269,9 +269,10 @@ async function handleDuplicate(agent) {
 async function handleRestore(agent) {
   resourceListRef.value.hideActionsMenu()
   try {
-    await $SystemAPI.agentUndelete({
-      agentID: agent.agentID,
-    })
+    // Undelete answers with a bare OK, so the row that comes back into the
+    // sidebar is the one the list is holding, with its deletion cleared.
+    await $SystemAPI.agentUndelete({ agentID: agent.agentID })
+    agentStore.updateInList({ ...agent, deletedAt: null })
     $toast.toastSuccess(t('notification.agent.restored'))
     filterList()
   } catch (e) {

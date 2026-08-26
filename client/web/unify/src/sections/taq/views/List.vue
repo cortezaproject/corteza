@@ -272,10 +272,10 @@ async function handleDelete(automation) {
 async function handleRestore(automation) {
   resourceListRef.value.hideActionsMenu()
   try {
-    const restored = await $AutomationAPI.ngAutomationUndelete({
-      automationID: automation.automationID,
-    })
-    automationStore.updateInList(restored || { ...automation, deletedAt: null })
+    // Undelete answers with a bare OK, so the row that comes back into the
+    // sidebar is the one the list is holding, with its deletion cleared.
+    await $AutomationAPI.ngAutomationUndelete({ automationID: automation.automationID })
+    automationStore.updateInList({ ...automation, deletedAt: null })
     $toast.toastSuccess(t('notification.taq.restore.success'))
     filterList()
   } catch (e) {
