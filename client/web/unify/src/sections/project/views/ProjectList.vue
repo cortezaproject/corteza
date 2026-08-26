@@ -22,8 +22,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('project.list.resourceSingle'),
-        resourcePlural: $t('project.list.resourcePlural'),
+        resourceSingle: $t('general.label.project.single'),
+        resourcePlural: $t('general.label.project.plural'),
         noItems: $t('project.list.noItems'),
       }"
       clickable

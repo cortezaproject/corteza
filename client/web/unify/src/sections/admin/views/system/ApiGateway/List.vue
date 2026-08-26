@@ -58,8 +58,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('system.apigw.list.new'),
-        resourcePlural: $t('system.apigw.list.title'),
+        resourceSingle: $t('general.label.route.single'),
+        resourcePlural: $t('general.label.route.plural'),
       }"
       clickable
       class="h-full"

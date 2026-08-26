@@ -81,8 +81,8 @@
           prevPagination: $t('general.resourceList.pagination.prev'),
           nextPagination: $t('general.resourceList.pagination.next'),
           recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-          resourceSingle: $t('system.data-sources.list.add-button'),
-          resourcePlural: $t('system.data-sources.list.title'),
+          resourceSingle: $t('general.label.data-source.single'),
+          resourcePlural: $t('general.label.data-source.plural'),
         }"
         clickable
         class="h-full"

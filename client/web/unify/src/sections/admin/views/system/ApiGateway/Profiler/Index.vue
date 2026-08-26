@@ -14,8 +14,8 @@
       :loading="loading"
       :action-items="getProfilerActions"
       :translations="{
-        resourceSingle: $t('system.apigw.profiler.title'),
-        resourcePlural: $t('system.apigw.profiler.title'),
+        resourceSingle: $t('general.label.route.single'),
+        resourcePlural: $t('general.label.route.plural'),
       }"
       hide-search
       hide-pagination

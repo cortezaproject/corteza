@@ -621,8 +621,8 @@
                       prevPagination: $t('general.resourceList.pagination.prev'),
                       nextPagination: $t('general.resourceList.pagination.next'),
                       recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-                      resourceSingle: $t('agent.editor.history.resourceSingle'),
-                      resourcePlural: $t('agent.editor.history.resourcePlural'),
+                      resourceSingle: $t('general.label.conversation.single'),
+                      resourcePlural: $t('general.label.conversation.plural'),
                     }"
                     @row-click="openHistoryChat($event)"
                     @page-change="onConversationsPageChange"

@@ -469,7 +469,6 @@ configuredConnections:
       updatedAt: Changed at
     createLabel: New Configured Connection
     deleteConfirm: Are you sure you want to delete this configured connection?
-    resourcePlural: configured connections
     resourceSingle: configured connection
     searchPlaceholder: Search for configured connections
     title: Configured Connections
@@ -538,7 +537,6 @@ connections:
         label: Only
       inclusive:
         label: Including
-    resourcePlural: connections
     resourceSingle: connection
     searchPlaceholder: Search for connections
     sourceValues:
@@ -748,7 +746,6 @@ labels:
     filterForm:
       query:
         placeholder: Search for labels
-    resourceSingle: label
     title: Labels
 llmProviders:
   editor:
@@ -1470,7 +1467,6 @@ users:
       filters:
         deleted: Deleted
         suspended: Suspended
-    single: user
     suspend: Suspend
     title: Users
     unsuspend: Unsuspend

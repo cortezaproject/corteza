@@ -13,8 +13,10 @@
       hide-search
       :action-items="getActionsMenuItems"
       :translations="{
-        resourceSingle: $t('system.llmProviders.list.new'),
-        resourcePlural: $t('system.llmProviders.list.title'),
+        showingPagination: 'general.resourceList.pagination.showing',
+        singlePluralPagination: 'general.resourceList.pagination.single',
+        resourceSingle: $t('general.label.llm-provider.single'),
+        resourcePlural: $t('general.label.llm-provider.plural'),
       }"
       clickable
       class="h-full"

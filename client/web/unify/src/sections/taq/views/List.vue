@@ -21,8 +21,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('list.new'),
-        resourcePlural: $t('list.title'),
+        resourceSingle: $t('general.label.taq.single'),
+        resourcePlural: $t('general.label.taq.plural'),
       }"
       clickable
       class="h-full"

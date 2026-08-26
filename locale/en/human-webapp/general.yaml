@@ -80,6 +80,8 @@ import:
   upload-files: Browse or drop files to upload...
 including: Including
 label:
+  'no': 'No'
+  'yes': 'Yes'
   actions: Actions
   active: Active
   add: Add
@@ -87,6 +89,9 @@ label:
   addAll: Add all
   addNew: Add new
   addValue: Add new value
+  agent:
+    plural: Agents
+    single: Agent
   all: All
   any: Any
   app-name:
@@ -127,13 +132,22 @@ label:
   chart:
     plural: Charts
     single: Chart
+  chatbot:
+    plural: Chatbots
+    single: Chatbot
   clear: Clear
   clone: Clone
   close: Close
   collapse: Collapse
+  configured-connection:
+    plural: Configured Connections
+    single: Configured Connection
   connection:
     plural: Connections
     single: Connection
+  conversation:
+    plural: Conversations
+    single: Conversation
   copied: Copied
   copy: Copy
   create: Create
@@ -154,9 +168,15 @@ label:
   edit: Edit
   enabled: Enabled
   examples: Examples
+  execution:
+    plural: Executions
+    single: Execution
   expand: Expand
   experimental: Experimental
   export: Export
+  federation-node:
+    plural: Federated Nodes
+    single: Federated Node
   field: Field
   fileTypeNotAllowed: File type not allowed
   general: General
@@ -166,7 +186,12 @@ label:
   hours: hours
   import: Import
   importPlaceholder: Upload files to import
-  label: Label
+  label:
+    plural: Labels
+    single: Label
+  llm-provider:
+    plural: LLM Providers
+    single: LLM Provider
   loadMore: Load more
   loadOlder: Load older
   loading: Loading...
@@ -182,7 +207,6 @@ label:
     single: Namespace
   newRecord: New Record
   next: Next
-  'no': 'No'
   noHandle: No handle
   noResults: No results found
   none: None
@@ -200,6 +224,9 @@ label:
   privacy: Privacy
   private: Private
   processing: Processing...
+  project:
+    plural: Projects
+    single: Project
   queue:
     plural: Messaging Queues
     single: Messaging Queue
@@ -209,6 +236,9 @@ label:
   remove: Remove
   removeAll: Remove all
   removeDefault: Remove default
+  request:
+    plural: Requests
+    single: Request
   requests: Requests
   required: Required
   reset: Reset
@@ -237,6 +267,9 @@ label:
     single: Session
   status: Status
   submit: Submit
+  taq:
+    plural: TAQs
+    single: TAQ
   template:
     plural: Templates
     single: Template
@@ -260,7 +293,6 @@ label:
   workflow:
     plural: Workflows
     single: Workflow
-  'yes': 'Yes'
 loading: Loading
 name: Name
 navigation:
@@ -326,7 +358,5 @@ webcam:
   tooltip: Open webcam to capture photo
 without: Without
 workflow:
-  plural: Workflows
   searchPlaceholder: Search for workflows
-  single: Workflow
 workflow-list: List of Workflows

@@ -22,8 +22,8 @@
           prevPagination: $t('general.resourceList.pagination.prev'),
           nextPagination: $t('general.resourceList.pagination.next'),
           recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-          resourceSingle: $t('federation.nodes.list.new'),
-          resourcePlural: $t('federation.nodes.list.title'),
+          resourceSingle: $t('general.label.federation-node.single'),
+          resourcePlural: $t('general.label.federation-node.plural'),
         }"
         clickable
         @update:filter="Object.assign(filter, $event)"

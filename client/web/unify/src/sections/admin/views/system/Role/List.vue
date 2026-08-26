@@ -22,8 +22,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('system.roles.list.new'),
-        resourcePlural: $t('system.roles.list.title'),
+        resourceSingle: $t('general.label.role.single'),
+        resourcePlural: $t('general.label.role.plural'),
       }"
       clickable
       @sort="handleSort"

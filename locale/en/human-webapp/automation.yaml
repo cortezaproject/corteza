@@ -71,7 +71,6 @@ sessions:
       suspended:
         label: Suspended
     loading: Loading sessions
-    single: session
     tabs:
       taq: TAQ
       workflow: Workflows

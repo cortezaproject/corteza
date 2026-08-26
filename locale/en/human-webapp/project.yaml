@@ -10,8 +10,6 @@ list:
   title: Projects
   searchPlaceholder: Search for projects
   filterByStatus: Filter by status
-  resourceSingle: project
-  resourcePlural: projects
   noItems: No projects yet.
   newProject: New Project
   untitled: Untitled project

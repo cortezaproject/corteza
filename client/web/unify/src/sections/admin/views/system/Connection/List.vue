@@ -22,8 +22,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('system.connections.list.resourceSingle'),
-        resourcePlural: $t('system.connections.list.resourcePlural'),
+        resourceSingle: $t('general.label.connection.single'),
+        resourcePlural: $t('general.label.connection.plural'),
       }"
       clickable
       class="h-full"

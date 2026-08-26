@@ -21,8 +21,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('chatbot.list.title'),
-        resourcePlural: $t('chatbot.list.title'),
+        resourceSingle: $t('general.label.chatbot.single'),
+        resourcePlural: $t('general.label.chatbot.plural'),
       }"
       clickable
       class="h-full"

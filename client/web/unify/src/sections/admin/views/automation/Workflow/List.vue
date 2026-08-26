@@ -21,8 +21,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('automation.workflows.list.new'),
-        resourcePlural: $t('automation.workflows.list.title'),
+        resourceSingle: $t('general.label.workflow.single'),
+        resourcePlural: $t('general.label.workflow.plural'),
       }"
       clickable
       class="h-full"

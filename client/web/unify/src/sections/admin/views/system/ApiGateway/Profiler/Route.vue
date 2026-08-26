@@ -14,8 +14,8 @@
       :loading="loading && items.length === 0"
       :action-items="getHitActions"
       :translations="{
-        resourceSingle: $t('system.apigw.profiler.hit.title'),
-        resourcePlural: $t('system.apigw.profiler.hit.title'),
+        resourceSingle: $t('general.label.request.single'),
+        resourcePlural: $t('general.label.request.plural'),
       }"
       hide-search
       hide-pagination

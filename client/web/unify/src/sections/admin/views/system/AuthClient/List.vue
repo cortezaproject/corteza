@@ -21,8 +21,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('system.authclients.list.new'),
-        resourcePlural: $t('system.authclients.list.title'),
+        resourceSingle: $t('general.label.auth-client.single'),
+        resourcePlural: $t('general.label.auth-client.plural'),
       }"
       clickable
       class="h-full"

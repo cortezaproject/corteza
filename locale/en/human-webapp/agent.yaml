@@ -37,8 +37,6 @@ editor:
       tokens: Tokens
     empty: No conversations recorded yet
     loadError: Failed to load conversations
-    resourcePlural: conversations
-    resourceSingle: conversation
   injectSystemContext:
     help: Inject platform context into the system prompt, giving the agent knowledge about the data model and capabilities
     label: System Context

@@ -31,8 +31,8 @@
                 :pagination="{}"
                 :loading="taqLoading"
                 :translations="{
-                  resourceSingle: $t('automation.sessions.list.tabs.taq'),
-                  resourcePlural: $t('automation.sessions.list.tabs.taq'),
+                  resourceSingle: $t('general.label.execution.single'),
+                  resourcePlural: $t('general.label.execution.plural'),
                 }"
                 hide-search
                 hide-pagination
@@ -109,8 +109,8 @@
                   prevPagination: $t('general.resourceList.pagination.prev'),
                   nextPagination: $t('general.resourceList.pagination.next'),
                   recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-                  resourceSingle: $t('automation.sessions.list.single'),
-                  resourcePlural: $t('automation.sessions.list.title'),
+                  resourceSingle: $t('general.label.session.single'),
+                  resourcePlural: $t('general.label.session.plural'),
                 }"
                 clickable
                 hide-search

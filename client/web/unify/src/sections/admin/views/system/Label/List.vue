@@ -20,8 +20,8 @@
         prevPagination: $t('general.resourceList.pagination.prev'),
         nextPagination: $t('general.resourceList.pagination.next'),
         recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('system.labels.list.resourceSingle'),
-        resourcePlural: $t('system.labels.list.title'),
+        resourceSingle: $t('general.label.label.single'),
+        resourcePlural: $t('general.label.label.plural'),
       }"
       class="h-full"
       clickable
