@@ -146,7 +146,7 @@ func addConsumedEndpoints(document *ContractDocument) {
 		Method: "POST", Path: "/integrations/civicworks/events", Direction: EndpointProvidedByCRM,
 		Authentication:  authenticationContract("HMAC-SHA256 signature over exact request body"),
 		RequiredHeaders: []string{"Content-Type", "X-CivicWorks-Event-Id", "X-CivicWorks-Signature"},
-		RequestSchema:   "civicworks_event", ResponseSchema: "event_acknowledgement", SuccessStatuses: map[string]int{"acknowledged": 204, "duplicate_acknowledged": 204},
+		RequestSchema:   "civicworks_event", ResponseSchema: "empty_response", SuccessStatuses: map[string]int{"acknowledged": 204, "duplicate_acknowledged": 204},
 		ErrorStatuses: map[string]int{string(ErrorInvalidSignature): 401, string(ErrorValidation): 422},
 	}
 }

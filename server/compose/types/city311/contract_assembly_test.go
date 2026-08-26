@@ -110,6 +110,9 @@ func TestCivicWorksCallbackAndLocationRules(t *testing.T) {
 	if contract.Endpoints["mapping_geocode"].Path != "/internal/integrations/mapping/geocode" {
 		t.Fatal("mapping geocode must use a server-only path separate from the browser proxy")
 	}
+	if callback.ResponseSchema != "empty_response" {
+		t.Fatal("CivicWorks callback must publish an empty response schema for HTTP 204")
+	}
 
 	for serviceType, required := range map[string]bool{
 		"TREE_MAINTENANCE": true, "POTHOLE": true, "MISSED_TRASH": true, "GENERAL_INQUIRY": false,

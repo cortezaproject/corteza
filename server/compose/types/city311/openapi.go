@@ -164,10 +164,11 @@ func openAPIResponses(contract ContractDocument, endpointName string, endpoint E
 		response := responseAt(responses, key, label)
 		response["x-city311-example"] = map[string]interface{}{"status": status, "body": nil}
 		if status != 204 && endpoint.ResponseSchema != "" && endpoint.ResponseSchema != "empty_response" {
-			response["x-city311-example"] = map[string]interface{}{"status": status, "body": exampleForSchema(contract, endpoint.ResponseSchema, map[string]bool{})}
+			body := responseExampleBody(contract, endpointName, status, exampleForSchema(contract, endpoint.ResponseSchema, map[string]bool{}))
+			response["x-city311-example"] = map[string]interface{}{"status": status, "body": body}
 			content := responseContent(response, map[string]interface{}{"$ref": schemaRef(endpoint.ResponseSchema)})
 			examples := content["examples"].(map[string]interface{})
-			examples[label] = map[string]interface{}{"value": exampleForSchema(contract, endpoint.ResponseSchema, map[string]bool{})}
+			examples[label] = map[string]interface{}{"value": body}
 			attachResponseMocks(contract, endpointName, status, false, examples)
 		}
 	}
@@ -175,17 +176,35 @@ func openAPIResponses(contract ContractDocument, endpointName string, endpoint E
 		status := endpoint.ErrorStatuses[code]
 		key := strconv.Itoa(status)
 		response := responseAt(responses, key, code)
-		response["x-city311-example"] = map[string]interface{}{"status": status, "body": map[string]interface{}{
+		body := responseExampleBody(contract, endpointName, status, map[string]interface{}{
 			"error": code, "message": humanizeError(code), "retryable": status >= 500,
-		}}
+		})
+		response["x-city311-example"] = map[string]interface{}{"status": status, "body": body}
 		content := responseContent(response, map[string]interface{}{"$ref": schemaRef("error")})
 		examples := content["examples"].(map[string]interface{})
-		examples[strings.ToLower(code)] = map[string]interface{}{"value": map[string]interface{}{
-			"error": code, "message": humanizeError(code), "retryable": status >= 500,
-		}}
+		examples[strings.ToLower(code)] = map[string]interface{}{"value": body}
 		attachResponseMocks(contract, endpointName, status, true, examples)
 	}
 	return responses
+}
+
+func responseExampleBody(contract ContractDocument, endpointName string, status int, fallback interface{}) interface{} {
+	for _, name := range sortedMockNames(contract.Mocks) {
+		mock := contract.Mocks[name]
+		if mock.Endpoint == endpointName && mock.Role == "response" && mock.HTTPStatus == status {
+			return normalizedJSON(mock.Body)
+		}
+	}
+	return fallback
+}
+
+func sortedMockNames(mocks map[string]MockContract) []string {
+	names := make([]string, 0, len(mocks))
+	for name := range mocks {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
 }
 
 func responseAt(responses map[string]interface{}, status, description string) map[string]interface{} {

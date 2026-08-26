@@ -1336,7 +1336,7 @@
         "X-CivicWorks-Signature"
       ],
       "request_schema": "civicworks_event",
-      "response_schema": "event_acknowledgement",
+      "response_schema": "empty_response",
       "success_statuses": {
         "acknowledged": 204,
         "duplicate_acknowledged": 204
@@ -7461,13 +7461,13 @@
       "endpoint": "civicworks_event_callback",
       "role": "response",
       "http_status": 204,
-      "body": {}
+      "body": null
     },
     "civicworks_event_acknowledged": {
       "endpoint": "civicworks_event_callback",
       "role": "response",
       "http_status": 204,
-      "body": {}
+      "body": null
     },
     "civicworks_invalid_signature": {
       "endpoint": "civicworks_event_callback",

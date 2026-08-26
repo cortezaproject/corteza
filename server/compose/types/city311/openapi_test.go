@@ -70,6 +70,27 @@ func TestOpenAPICoversEveryProvidedOperationAndDeclaredExample(t *testing.T) {
 	}
 }
 
+func TestOpenAPIUsesPrivacySafe404AndEmptyCallback(t *testing.T) {
+	document := NewOpenAPIDocument()
+	paths := document["paths"].(map[string]interface{})
+	lookup := paths["/api/v1/public/service-request-status"].(map[string]interface{})["post"].(map[string]interface{})
+	lookupResponse := lookup["responses"].(map[string]interface{})["404"].(map[string]interface{})
+	lookupExample := lookupResponse["x-city311-example"].(map[string]interface{})["body"].(map[string]interface{})
+	if detail, present := lookupExample["request_detail"]; !present || detail != nil {
+		t.Fatalf("anonymous lookup 404 must use a null request_detail: %#v", lookupExample)
+	}
+
+	callback := paths["/integrations/civicworks/events"].(map[string]interface{})["post"].(map[string]interface{})
+	callbackResponse := callback["responses"].(map[string]interface{})["204"].(map[string]interface{})
+	if _, present := callbackResponse["content"]; present {
+		t.Fatal("CivicWorks 204 response must not declare a response body")
+	}
+	callbackExample := callbackResponse["x-city311-example"].(map[string]interface{})
+	if body, present := callbackExample["body"]; !present || body != nil {
+		t.Fatalf("CivicWorks 204 example must have a null body: %#v", callbackExample)
+	}
+}
+
 func TestOpenAPIUsesStandardSchemaKeywordsAndResolvedReferences(t *testing.T) {
 	document := NewOpenAPIDocument()
 	raw, err := json.Marshal(document)
