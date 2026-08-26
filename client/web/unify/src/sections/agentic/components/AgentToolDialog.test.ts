@@ -193,29 +193,9 @@ describe('AgentToolDialog sections', () => {
 })
 
 describe('AgentToolDialog family grants', () => {
-  // A family grant keeps meaning "every data tool" as tools are added; naming
-  // them one at a time does not.
-  it('stores a family grant with its risk ceiling', () => {
-    const w = mountDialog()
-    const vm = w.vm as any
-
-    vm.toggleGroup('usage', true)
-    vm.setGroupRisk('usage', 'write')
-    vm.apply()
-
-    const [applied] = w.emitted('apply') as any[]
-    expect(applied[0]).toEqual([{ group: 'usage', maxRisk: 'write', description: '', allow: [] }])
-  })
-
-  it('opens showing a family grant it was given', () => {
-    const vm = mountDialog([{ group: 'configuring', maxRisk: 'destructive', allow: [] }]).vm as any
-    expect(vm.groupGrant('configuring')).toEqual({ group: 'configuring', maxRisk: 'destructive' })
-    expect(vm.groupGrant('usage')).toBeNull()
-  })
-
-  // A ceiling admits its own level and everything below it. Reading coverage
-  // off the section instead said a `write` family covered the delete tool
-  // sitting in it, and left every covered row's checkbox unticked.
+  // The dialog chooses tools; a grant naming a whole family is set elsewhere in
+  // the editor. It still has to know what a family already covers, and hand
+  // every family back exactly as it found it.
   it('covers a tool at or below the ceiling, and no higher', () => {
     const vm = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }]).vm as any
 
@@ -225,18 +205,73 @@ describe('AgentToolDialog family grants', () => {
     expect(vm.coveredByGroup({ groups: ['configuring'], risk: 'read' })).toBe(false)
   })
 
-  // A family grant has no name; applying must leave it alone rather than
-  // delete it.
+  it('shows a covered tool as one the agent has', () => {
+    const vm = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }]).vm as any
+    const lookup = { name: 'compose_record_lookup', groups: ['usage'], risk: 'read' }
+
+    expect(vm.chosen.has(lookup.name)).toBe(false)
+    expect(vm.toolOn(lookup)).toBe(true)
+  })
+
   it('leaves family grants untouched', () => {
     const group = { group: 'usage', maxRisk: 'read', allow: [] }
     const w = mountDialog([group, { name: 'compose_record_lookup' }])
     const vm = w.vm as any
 
-    vm.toggle({ name: 'compose_record_lookup' }, false)
+    vm.setMode({ name: 'compose_record_lookup' }, 'deny')
     vm.apply()
 
     const [applied] = w.emitted('apply') as any[]
     expect(applied[0]).toEqual([group])
+  })
+})
+
+describe('AgentToolDialog section control', () => {
+  function dataSection(vm: any) {
+    return domain(vm, 'data')
+  }
+
+  // A subject is the unit an agent is actually given: every record tool, or
+  // none of them. Ticking six boxes to say that is six chances to miss one.
+  it('turns a whole section on at one mode', () => {
+    const w = mountDialog()
+    const vm = w.vm as any
+
+    vm.setSectionMode(dataSection(vm), 'always')
+    expect(vm.sectionMode(dataSection(vm))).toBe('always')
+    expect([...vm.chosen].sort()).toEqual(['compose_record_delete', 'compose_record_lookup'])
+  })
+
+  it('turns a whole section off', () => {
+    const w = mountDialog()
+    const vm = w.vm as any
+
+    vm.setSectionMode(dataSection(vm), 'ask')
+    expect(vm.sectionMode(dataSection(vm))).toBe('ask')
+
+    vm.setSectionMode(dataSection(vm), 'deny')
+    expect(vm.sectionMode(dataSection(vm))).toBe('deny')
+    expect([...vm.chosen]).toEqual([])
+  })
+
+  // Custom is what the control reads as once the tools disagree — the state it
+  // shows back, never a state it is asked to produce.
+  it('reads as custom once the tools disagree, and setting it changes nothing', () => {
+    const w = mountDialog()
+    const vm = w.vm as any
+
+    vm.setSectionMode(dataSection(vm), 'always')
+    vm.setMode({ name: 'compose_record_delete', risk: 'destructive' }, 'ask')
+    expect(vm.sectionMode(dataSection(vm))).toBe('custom')
+
+    const before = [...vm.chosen].sort()
+    vm.setSectionMode(dataSection(vm), 'custom')
+    expect([...vm.chosen].sort()).toEqual(before)
+  })
+
+  it('reads a section nothing has been chosen in as blocked', () => {
+    const vm = mountDialog().vm as any
+    expect(vm.sectionMode(domain(vm, 'people'))).toBe('deny')
   })
 })
 
@@ -288,10 +323,10 @@ describe('AgentToolDialog modes', () => {
     const w = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }])
     const vm = w.vm as any
 
-    vm.setMode({ name: 'compose_record_create', risk: 'write' }, 'ask')
+    vm.setMode({ name: 'compose_record_create', groups: ['usage'], risk: 'write' }, 'ask')
     expect(vm.chosen.has('compose_record_create')).toBe(false)
 
-    vm.setMode({ name: 'compose_record_create', risk: 'write' }, 'always')
+    vm.setMode({ name: 'compose_record_create', groups: ['usage'], risk: 'write' }, 'always')
     expect(vm.chosen.has('compose_record_create')).toBe(true)
   })
 
@@ -316,58 +351,127 @@ describe('AgentToolDialog modes', () => {
   // "All data tools, but ask before deleting" is a family grant plus a named
   // entry. Setting a mode on a tool the family covers has to write that entry.
   it('writes a named override beside a family grant', () => {
-    const w = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }])
+    const family = { group: 'usage', maxRisk: 'destructive', allow: [] }
+    const w = mountDialog([family])
     const vm = w.vm as any
 
-    vm.setMode({ name: 'compose_record_delete', risk: 'destructive' }, 'deny')
+    vm.setMode({ name: 'compose_record_delete', groups: ['usage'], risk: 'destructive' }, 'deny')
     vm.apply()
 
     const [applied] = w.emitted('apply') as any[]
     expect(applied[0]).toEqual([
-      { group: 'usage', maxRisk: 'write', allow: [] },
+      family,
       { name: 'compose_record_delete', description: '', allow: [], permission: 'deny' },
     ])
+  })
+
+  // Blocking a tool nothing else grants is saying nothing about it: the entry
+  // goes, rather than staying behind as a grant that grants nothing.
+  it('drops the entry when blocking a tool no family covers', () => {
+    const w = mountDialog()
+    const vm = w.vm as any
+    const create = { name: 'compose_record_create', risk: 'write' }
+
+    vm.setMode(create, 'ask')
+    expect(vm.toolOn(create)).toBe(true)
+
+    vm.setMode(create, 'deny')
+    expect(vm.toolOn(create)).toBe(false)
+
+    vm.apply()
+    const [applied] = w.emitted('apply') as any[]
+    expect(applied[0]).toEqual([])
   })
 
   // Clearing an override the session added removes the entry rather than
   // leaving a grant that says nothing.
   it('drops an override cleared back to default', () => {
-    const w = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }])
+    const family = { group: 'usage', maxRisk: 'destructive', allow: [] }
+    const w = mountDialog([family])
     const vm = w.vm as any
+    const del = { name: 'compose_record_delete', groups: ['usage'], risk: 'destructive' }
 
-    vm.setMode({ name: 'compose_record_delete', risk: 'destructive' }, 'deny')
-    vm.setMode({ name: 'compose_record_delete', risk: 'destructive' }, 'ask')
+    vm.setMode(del, 'deny')
+    vm.setMode(del, 'ask')
     vm.apply()
 
     const [applied] = w.emitted('apply') as any[]
-    expect(applied[0]).toEqual([{ group: 'usage', maxRisk: 'write', allow: [] }])
+    expect(applied[0]).toEqual([family])
   })
 })
+
+// The dialog teleports to body, so what it renders is not inside the wrapper.
+async function mountRendered(grants: any[] = []) {
+  const PrimeVue = (await import('primevue/config')).default
+  const Dialog = (await import('primevue/dialog')).default
+  const Button = (await import('primevue/button')).default
+
+  const w = mount(AgentToolDialog, {
+    props: { visible: true, tools, grants, disabled: false },
+    global: {
+      plugins: [PrimeVue],
+      components: { Dialog, Button },
+      mocks: { $t: (k: string) => k },
+      stubs: {
+        Checkbox: true,
+        Select: true,
+        Message: true,
+        SelectButton: { template: '<div data-testid="mode-toggle" />' },
+      },
+    },
+  })
+
+  await flushPromises()
+  return w
+}
 
 describe('AgentToolDialog footer', () => {
   // Every other dialog in the app footers at `size="small"`; this one shipped
   // at the default and read a size larger than all of them.
   it('sizes its footer buttons like every other dialog', async () => {
-    const PrimeVue = (await import('primevue/config')).default
-    const Dialog = (await import('primevue/dialog')).default
-    const Button = (await import('primevue/button')).default
+    const w = await mountRendered()
 
-    const w = mount(AgentToolDialog, {
-      props: { visible: true, tools, grants: [], disabled: false },
-      global: {
-        plugins: [PrimeVue],
-        components: { Dialog, Button },
-        mocks: { $t: (k: string) => k },
-        stubs: { Checkbox: true, Select: true, SelectButton: true },
-      },
-    })
-
-    await flushPromises()
-
-    // The dialog teleports to body, so the footer is not inside the wrapper.
     const buttons = [...document.querySelectorAll('.p-dialog-footer button')]
     expect(buttons.length).toBe(2)
     for (const b of buttons) expect([...b.classList]).toContain('p-button-sm')
+
+    w.unmount()
+  })
+})
+
+describe('AgentToolDialog blocked rows', () => {
+  // Blocked is the off state, so a row the agent does not have reads as blocked
+  // rather than showing a default it is not following.
+  it('reads a tool the agent does not have as blocked', () => {
+    const vm = mountDialog().vm as any
+    const lookup = { name: 'compose_record_lookup', risk: 'read' }
+
+    expect(vm.rowMode(lookup)).toBe('deny')
+    vm.setMode(lookup, 'always')
+    expect(vm.rowMode(lookup)).toBe('always')
+  })
+
+  // The row shows nothing until it is reached for: a permission control on
+  // every one of ninety tools the agent does not have reads as ninety
+  // decisions waiting to be made.
+  it('keeps the control out of sight on a blocked row, and reachable', async () => {
+    const w = await mountRendered()
+    const rows = [...document.querySelectorAll('[data-blocked]')]
+
+    expect(rows.length).toBe(2)
+    expect(rows.every(r => r.getAttribute('data-blocked') === 'true')).toBe(true)
+    expect(rows.every(r => r.classList.contains('tool-mode'))).toBe(true)
+    expect(rows.every(r => r.querySelector('[data-testid="mode-toggle"]'))).toBe(true)
+
+    w.unmount()
+  })
+
+  it('shows the control on a tool the agent has', async () => {
+    const w = await mountRendered([{ name: 'compose_record_lookup' }])
+    const shown = [...document.querySelectorAll('[data-blocked="false"]')]
+
+    expect(shown.length).toBe(1)
+    expect(shown[0].getAttribute('data-blocked')).toBe('false')
 
     w.unmount()
   })

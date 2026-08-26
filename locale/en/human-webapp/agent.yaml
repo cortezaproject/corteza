@@ -164,15 +164,6 @@ editor:
   tools:
     browse: Browse tools…
     dialog:
-      ceiling:
-        destructive: everything, deletes included
-        read: reading only
-        write: reading and writing
-      group:
-        configuring: Schema and configuration
-        configuring_help: Modules, pages, charts, users, roles, agents — the things a namespace is built from.
-        usage: Data and execution
-        usage_help: Records, reports and running automations — the things a built namespace holds and does.
       area:
         automation_event: Events
         automation_taq: TAQs
@@ -194,11 +185,6 @@ editor:
         system_skill: Skills
         system_theme: Theme
         system_user: Users
-      broad:
-        help: A family keeps covering tools added to it later, which naming tools one at a
-          time does not.
-        label: Broad access
-        upTo: up to
       domain:
         ai: Agents and chatbots
         automation: Automations
@@ -207,14 +193,17 @@ editor:
         people: People and access
         structure: Application structure
         workspace: Workspace
-      fromFamily: Granted by a family above. Set it to never allow to make an exception.
+      fromFamily: Granted by a family grant on this agent. Blocking it here writes an
+        exception to that grant.
       inherits: Nothing chosen — the agent can use whatever the person invoking it is
-        already allowed to do, minus anything that deletes. Grant a family below, or
-        choose tools one at a time, to narrow that.
+        already allowed to do, minus anything that deletes. Choose tools here to narrow
+        that.
       mode:
         always: Always allow
-        ask: Ask each chat
-        deny: Never allow
+        ask: Needs approval
+        custom: Custom
+        deny: Blocked
+        section: Permission for every tool in this section
       noMatches: No tool matches that.
       risk:
         destructive: deletes

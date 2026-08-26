@@ -19,78 +19,65 @@
         />
       </IconField>
 
-      <!-- A family grant is a standing rule, not a selection: it keeps meaning
-           "every data tool" as tools are added. That is a different kind of
-           statement from picking tools, so it is stated in one place rather
-           than repeated in every section header. -->
-      <div class="rounded-border border border-surface p-3 flex flex-col gap-3">
-        <div>
-          <span class="font-medium text-color text-sm block">
-            {{ $t('agent.editor.tools.dialog.broad.label') }}
-          </span>
-          <!-- Nothing chosen is not "no access": the agent inherits what the
-               person invoking it can already do. Saying so here is the
-               difference between an empty panel that reads as broken and one
-               that reads as a default. -->
-          <span class="text-xs text-muted-color block">
-            {{
-              chosenCount
-                ? $t('agent.editor.tools.dialog.broad.help')
-                : $t('agent.editor.tools.dialog.inherits')
-            }}
-          </span>
-        </div>
-
-        <div v-for="key in GROUP_KEYS" :key="key" class="flex items-center gap-3">
-          <Checkbox
-            :model-value="!!groupGrant(key)"
-            binary
-            :disabled="disabled"
-            :inputId="`grp-${key}`"
-            :data-testid="`group-${key}`"
-            @update:model-value="v => toggleGroup(key, v)"
-          />
-          <label :for="`grp-${key}`" class="flex-1 min-w-0 cursor-pointer">
-            <span class="text-sm text-color block">
-              {{ $t(`agent.editor.tools.dialog.group.${key}`) }}
-            </span>
-            <span class="text-xs text-muted-color block">
-              {{ $t(`agent.editor.tools.dialog.group.${key}_help`) }}
-            </span>
-          </label>
-          <span class="text-xs text-muted-color shrink-0">
-            {{ $t('agent.editor.tools.dialog.broad.upTo') }}
-          </span>
-          <Select
-            :model-value="groupGrant(key)?.maxRisk || 'read'"
-            :options="riskCeilings"
-            option-label="label"
-            option-value="value"
-            size="small"
-            class="w-52 shrink-0"
-            :disabled="disabled || !groupGrant(key)"
-            @update:model-value="v => setGroupRisk(key, v)"
-          />
-        </div>
-      </div>
+      <!-- Nothing chosen is not "no access": the agent inherits what the person
+           invoking it can already do. Saying so here is the difference between
+           an empty panel that reads as broken and one that reads as a default. -->
+      <Message v-if="!chosenCount" severity="secondary" :closable="false" class="!my-0">
+        {{ $t('agent.editor.tools.dialog.inherits') }}
+      </Message>
 
       <!-- The scroller is pulled into the dialog's own padding so rows line up
            with the search field while the scrollbar sits in the gutter. -->
       <div class="overflow-y-auto flex-1 min-h-0 -mr-2 pr-2">
         <section v-for="d in domains" :key="d.key">
-          <button
-            type="button"
-            class="w-full flex items-center gap-2 py-2 text-left border-b border-surface"
-            :data-testid="`collapse-${d.key}`"
-            @click="toggleCollapsed(d.key)"
-          >
-            <i
-              :class="isOpen(d.key) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-              class="text-xs text-muted-color w-3"
-            />
-            <span class="text-sm font-semibold text-color">{{ d.label }}</span>
-            <span class="text-xs text-muted-color ml-auto tabular-nums">{{ d.count }}</span>
-          </button>
+          <div class="flex items-center gap-2 py-2 border-b border-surface">
+            <button
+              type="button"
+              class="flex items-center gap-2 flex-1 min-w-0 text-left"
+              :data-testid="`collapse-${d.key}`"
+              @click="toggleCollapsed(d.key)"
+            >
+              <i
+                :class="isOpen(d.key) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                class="text-xs text-muted-color w-3"
+              />
+              <span class="text-sm font-semibold text-color">{{ d.label }}</span>
+              <span
+                class="text-xs text-muted-color tabular-nums rounded border border-surface px-1.5 py-0.5"
+              >
+                {{ d.count }}
+              </span>
+            </button>
+
+            <!-- One statement about the whole section: what every tool in it
+                 should do. It reads back as Custom when they disagree, which is
+                 the normal state once anything has been set by hand. -->
+            <Select
+              :model-value="sectionMode(d)"
+              :options="sectionModes"
+              option-label="label"
+              option-value="value"
+              size="small"
+              class="w-56 shrink-0"
+              :disabled="disabled"
+              :aria-label="$t('agent.editor.tools.dialog.mode.section')"
+              :data-testid="`section-mode-${d.key}`"
+              @update:model-value="v => setSectionMode(d, v)"
+            >
+              <template #value="{ value }">
+                <span class="flex items-center gap-2">
+                  <i :class="modeIcon(value)" class="text-xs" />
+                  {{ modeLabel(value) }}
+                </span>
+              </template>
+              <template #option="{ option }">
+                <span class="flex items-center gap-2">
+                  <i :class="option.icon" class="text-xs" />
+                  {{ option.label }}
+                </span>
+              </template>
+            </Select>
+          </div>
 
           <div v-if="isOpen(d.key)" class="pb-3">
             <div v-for="area in d.areas" :key="area.key">
@@ -101,34 +88,21 @@
               <div
                 v-for="tool in area.tools"
                 :key="tool.name"
-                class="flex items-start gap-3 py-2 border-b border-surface last:border-0"
+                class="group flex items-start gap-3 py-2 border-b border-surface last:border-0"
               >
                 <!-- A rail only where the choice loosens what the risk would
-                     have done. The list stays quiet until there is something
-                     to notice, and the thing to notice is an allow you set on
-                     a tool that writes, not a deny. -->
+                     have done. The list stays quiet until there is something to
+                     notice, and the thing to notice is an allow set by hand on
+                     a tool that writes. -->
                 <span
                   class="w-0.5 self-stretch rounded-full shrink-0"
                   :class="loosened(tool) ? 'bg-amber-500' : 'bg-transparent'"
                 />
 
-                <span
+                <div
+                  class="flex-1 min-w-0"
+                  :class="{ 'opacity-50': !toolOn(tool) }"
                   :title="coveredByGroup(tool) ? $t('agent.editor.tools.dialog.fromFamily') : ''"
-                >
-                  <Checkbox
-                    :model-value="chosen.has(tool.name) || coveredByGroup(tool)"
-                    binary
-                    :disabled="disabled || coveredByGroup(tool)"
-                    :inputId="`tool-${tool.name}`"
-                    class="mt-0.5"
-                    @update:model-value="v => toggle(tool, v)"
-                  />
-                </span>
-
-                <label
-                  :for="`tool-${tool.name}`"
-                  class="flex-1 min-w-0 cursor-pointer"
-                  :class="{ 'opacity-50': effectiveMode(tool) === 'deny' }"
                 >
                   <span class="text-sm text-color block">
                     <i
@@ -140,25 +114,26 @@
                   <span class="text-xs text-muted-color block line-clamp-2">
                     {{ summarise(tool.description) }}
                   </span>
-                </label>
+                </div>
 
-                <!-- Three states, always all three visible. The one that reads
-                     as chosen is the effective mode: what the operator set, or
-                     what the tool's risk decides until they set something. -->
-                <SelectButton
-                  :model-value="effectiveMode(tool)"
-                  :options="modeOptions"
-                  option-value="value"
-                  :allow-empty="false"
-                  size="small"
-                  class="shrink-0"
-                  :disabled="disabled || !(chosen.has(tool.name) || coveredByGroup(tool))"
-                  @update:model-value="v => setMode(tool, v)"
-                >
-                  <template #option="{ option }">
-                    <i :class="option.icon" :title="option.label" />
-                  </template>
-                </SelectButton>
+                <!-- Blocked is the off state, so the row shows nothing until it
+                     is reached for. Three segments carry the whole decision:
+                     a second control for on and off would only disagree. -->
+                <div class="tool-mode shrink-0" :data-blocked="!toolOn(tool)">
+                  <SelectButton
+                    :model-value="rowMode(tool)"
+                    :options="toolModes"
+                    option-value="value"
+                    :allow-empty="false"
+                    size="small"
+                    :disabled="disabled"
+                    @update:model-value="v => setMode(tool, v)"
+                  >
+                    <template #option="{ option }">
+                      <i :class="option.icon" :title="option.label" />
+                    </template>
+                  </SelectButton>
+                </div>
               </div>
             </div>
           </div>
@@ -211,14 +186,18 @@ const search = ref('')
 // Editing happens on copies: closing with Cancel has to leave the agent
 // exactly as it was.
 const draft = ref(new Map()) // tool name -> permission
-const groupDraft = ref(new Map()) // group key -> maxRisk
+
+// A grant may name a whole family instead of a tool. This dialog chooses tools
+// and no longer writes families, but it still has to know which tools an
+// existing family already covers, and hand every family back untouched.
+const families = ref([])
 
 const chosen = computed(() => new Set(draft.value.keys()))
 
 // The tools the agent was opened with, so an override added in this session can
 // be told from an entry that was already there.
 const named = ref(new Set())
-const chosenCount = computed(() => draft.value.size + groupDraft.value.size)
+const chosenCount = computed(() => draft.value.size + families.value.length)
 
 // Which domains are folded shut, or null while the default still stands.
 const collapsed = ref(null)
@@ -232,26 +211,53 @@ watch(
     draft.value = new Map(
       (props.grants || []).filter(g => g.name).map(g => [g.name, g.permission || '']),
     )
-    groupDraft.value = new Map(
-      (props.grants || []).filter(g => g.group).map(g => [g.group, g.maxRisk || 'read']),
-    )
+    families.value = (props.grants || []).filter(g => g.group)
     named.value = new Set(draft.value.keys())
   },
   { immediate: true },
 )
 
-const modeOptions = computed(() => [
-  {
-    value: 'always',
-    icon: 'pi pi-check-circle',
-    label: t('agent.editor.tools.dialog.mode.always'),
-  },
-  { value: 'ask', icon: 'pi pi-question-circle', label: t('agent.editor.tools.dialog.mode.ask') },
-  { value: 'deny', icon: 'pi pi-ban', label: t('agent.editor.tools.dialog.mode.deny') },
-])
+const MODE_ICONS = {
+  always: 'pi pi-check-circle',
+  ask: 'pi pi-question-circle',
+  deny: 'pi pi-ban',
+  custom: 'pi pi-ellipsis-h',
+}
 
-// What the tool will actually do: the mode set on it, or the one its risk
-// decides until someone sets another. There is no fourth "default" segment —
+function modeIcon(mode) {
+  return MODE_ICONS[mode] || MODE_ICONS.custom
+}
+
+function modeLabel(mode) {
+  return t(`agent.editor.tools.dialog.mode.${mode || 'custom'}`)
+}
+
+function modeOption(value) {
+  return { value, icon: modeIcon(value), label: modeLabel(value) }
+}
+
+const toolModes = computed(() => ['always', 'ask', 'deny'].map(modeOption))
+
+// Custom is not a choice, it is what the section reads as once its tools
+// disagree — offered so the control can show it back rather than lie.
+const sectionModes = computed(() => ['always', 'ask', 'deny', 'custom'].map(modeOption))
+
+// Whether the agent has the tool at all. Blocked and off are one state: an
+// agent that may not use a tool and an agent that was never given it come to
+// the same thing, and two ways of saying it would only disagree.
+function toolOn(tool) {
+  if (coveredByGroup(tool)) return draft.value.get(tool.name) !== 'deny'
+  return chosen.value.has(tool.name)
+}
+
+// What the segments read as. A tool the agent does not have reads as blocked,
+// which is the same statement an unticked box used to make beside it.
+function rowMode(tool) {
+  return toolOn(tool) ? effectiveMode(tool) : 'deny'
+}
+
+// What the tool will actually do once the agent has it: the mode set on it, or
+// the one its risk decides until someone sets another. There is no fourth "default" segment —
 // the default IS one of the three, shown as the chosen one.
 function effectiveMode(tool) {
   return draft.value.get(tool.name) || defaultModeFor(tool.risk)
@@ -264,16 +270,8 @@ function defaultModeFor(risk) {
 // An allow set by hand on a tool that writes: the one state where the choice
 // permits more than the risk rule would have.
 function loosened(tool) {
-  return effectiveMode(tool) === 'always' && !!tool.risk && tool.risk !== 'read'
+  return toolOn(tool) && effectiveMode(tool) === 'always' && !!tool.risk && tool.risk !== 'read'
 }
-
-const riskCeilings = computed(() => [
-  { value: 'read', label: t('agent.editor.tools.dialog.ceiling.read') },
-  { value: 'write', label: t('agent.editor.tools.dialog.ceiling.write') },
-  { value: 'destructive', label: t('agent.editor.tools.dialog.ceiling.destructive') },
-])
-
-const GROUP_KEYS = ['usage', 'configuring']
 
 // Skills are attached to a tool, not chosen: the runtime injects one when the
 // tool that triggers it is used. Offering them here invites a choice that
@@ -347,8 +345,63 @@ const domains = computed(() => {
     .filter(d => d.areas.length)
 })
 
-// Open where there is already something to see, so a configured agent shows
-// its own grants and a fresh one still opens on something it can act on.
+function toolsIn(d) {
+  return d.areas.flatMap(a => a.tools)
+}
+
+// What the section reads as: the mode its tools agree on, or Custom.
+function sectionMode(d) {
+  const tools = toolsIn(d)
+  if (!tools.length) return 'custom'
+  if (tools.every(tool => !toolOn(tool))) return 'deny'
+
+  const first = effectiveMode(tools[0])
+  const agreed = tools.every(tool => toolOn(tool) && effectiveMode(tool) === first)
+  return agreed ? first : 'custom'
+}
+
+// One click for a whole subject, which is the unit an agent is actually given:
+// every record tool, or none of them.
+function setSectionMode(d, mode) {
+  if (mode === 'custom') return
+
+  const next = new Map(draft.value)
+  for (const tool of toolsIn(d)) applyMode(next, tool, mode)
+  draft.value = next
+}
+
+// Setting a mode on a tool a family already covers writes a named entry beside
+// the family grant, which is how "all data tools, but never delete" is said.
+// The named entry wins: the runtime expands families after them.
+function setMode(tool, mode) {
+  const next = new Map(draft.value)
+  applyMode(next, tool, mode)
+  draft.value = next
+}
+
+function applyMode(next, tool, mode) {
+  // Blocking a tool nothing else grants is saying nothing about it, so the
+  // entry goes rather than staying behind as a grant that grants nothing.
+  if (mode === 'deny') {
+    if (coveredByGroup(tool)) next.set(tool.name, 'deny')
+    else next.delete(tool.name)
+    return
+  }
+
+  // Choosing the mode the risk would have given anyway clears the override
+  // rather than pinning it, so a tool that should simply follow the rule keeps
+  // doing so if the rule ever changes.
+  const isDefault = mode === defaultModeFor(tool.risk)
+  if (isDefault && coveredByGroup(tool) && !named.value.has(tool.name)) {
+    next.delete(tool.name)
+    return
+  }
+
+  next.set(tool.name, isDefault ? '' : mode)
+}
+
+// Open where there is already something to see, so a configured agent shows its
+// own grants and a fresh one still opens on something it can act on.
 function defaultOpen(key) {
   const configured = domains.value.filter(d =>
     d.areas.some(a => a.tools.some(tool => named.value.has(tool.name))),
@@ -399,57 +452,15 @@ function summarise(description) {
   return end > 0 ? text.slice(0, end + 1) : text
 }
 
-function groupGrant(key) {
-  const maxRisk = groupDraft.value.get(key)
-  return maxRisk ? { group: key, maxRisk } : null
-}
-
 // A ceiling admits its own level and everything below it, which is what the
 // runtime expands. A destructive tool under a write ceiling is not covered and
 // stays available to grant by name.
 function coveredByGroup(tool) {
-  return (tool.groups || []).some(g => {
-    const ceiling = groupDraft.value.get(g)
-    return !!ceiling && (RISK_ORDER[tool.risk] ?? 0) <= (RISK_ORDER[ceiling] ?? 0)
-  })
-}
-
-function toggle(tool, on) {
-  const next = new Map(draft.value)
-  if (on) next.set(tool.name, '')
-  else next.delete(tool.name)
-  draft.value = next
-}
-
-function toggleGroup(key, on) {
-  const next = new Map(groupDraft.value)
-  if (on) next.set(key, next.get(key) || 'read')
-  else next.delete(key)
-  groupDraft.value = next
-}
-
-function setGroupRisk(key, maxRisk) {
-  if (!groupDraft.value.has(key)) return
-  const next = new Map(groupDraft.value)
-  next.set(key, maxRisk)
-  groupDraft.value = next
-}
-
-// Setting a mode on a tool a family already covers writes a named entry beside
-// the family grant, which is how "all data tools, but ask before deleting" is
-// said. The named entry wins: the runtime expands families after them.
-//
-// Choosing the mode the risk would have given anyway clears the override rather
-// than pinning it, so a tool that should simply follow the rule keeps doing so
-// if the rule ever changes.
-function setMode(tool, mode) {
-  const next = new Map(draft.value)
-  const isDefault = mode === defaultModeFor(tool.risk)
-
-  if (isDefault && !named.value.has(tool.name)) next.delete(tool.name)
-  else next.set(tool.name, isDefault ? '' : mode)
-
-  draft.value = next
+  return families.value.some(
+    f =>
+      (tool.groups || []).includes(f.group) &&
+      (RISK_ORDER[tool.risk] ?? 0) <= (RISK_ORDER[f.maxRisk || 'read'] ?? 0),
+  )
 }
 
 function riskLabel(risk) {
@@ -474,13 +485,6 @@ function riskColour(risk) {
 // tools and modes, and namespace scoping is set elsewhere.
 function apply() {
   const byName = new Map((props.grants || []).filter(g => g.name).map(g => [g.name, g]))
-  const byGroup = new Map((props.grants || []).filter(g => g.group).map(g => [g.group, g]))
-
-  const groupEntries = [...groupDraft.value.entries()].map(([group, maxRisk]) => ({
-    ...(byGroup.get(group) || { description: '', allow: [] }),
-    group,
-    maxRisk,
-  }))
 
   const toolEntries = [...draft.value.entries()].map(([name, permission]) => ({
     ...(byName.get(name) || { name, description: '', allow: [] }),
@@ -488,7 +492,23 @@ function apply() {
     permission,
   }))
 
-  emit('apply', [...groupEntries, ...toolEntries])
+  emit('apply', [...families.value, ...toolEntries])
   emit('update:visible', false)
 }
 </script>
+
+<style scoped>
+/* A blocked row shows nothing until it is reached for. Written here rather than
+   as utilities so the rule survives whatever else styles the row. */
+.tool-mode {
+  transition: opacity 0.15s ease;
+}
+
+.tool-mode[data-blocked='true']:not(:focus-within) {
+  opacity: 0;
+}
+
+.group:hover .tool-mode[data-blocked='true'] {
+  opacity: 1;
+}
+</style>
