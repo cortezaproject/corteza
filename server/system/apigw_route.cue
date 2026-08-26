@@ -115,11 +115,13 @@ apigw_route: {
 			route: {goType: "string", storeIdent: "id"}
 			endpoint: {goType: "string"}
 			method: {goType: "string"}
+			query: {goType: "string"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}
 
+		query: ["endpoint", "method"]
 		byValue: ["apigw_route_id", "route", "method"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]

@@ -123,9 +123,11 @@ auth_client: {
 			tenant_id: schema.TenantFilterField
 			project_id: schema.ProjectFilterField
 			handle: {goType: "string"}
+			query: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
+		query: ["handle", "name"]
 		byValue: ["handle"]
 		byNilState: ["deleted"]
 	}

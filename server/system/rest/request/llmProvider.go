@@ -45,6 +45,11 @@ type (
 		// Filter by status
 		Status string
 
+		// Query GET parameter
+		//
+		// Search query
+		Query string
+
 		// Limit GET parameter
 		//
 		// Limit
@@ -174,6 +179,7 @@ func (r LlmProviderList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"provider":   r.Provider,
 		"status":     r.Status,
+		"query":      r.Query,
 		"limit":      r.Limit,
 		"incTotal":   r.IncTotal,
 		"pageCursor": r.PageCursor,
@@ -189,6 +195,11 @@ func (r LlmProviderList) GetProvider() string {
 // Auditable returns all auditable/loggable parameters
 func (r LlmProviderList) GetStatus() string {
 	return r.Status
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r LlmProviderList) GetQuery() string {
+	return r.Query
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -226,6 +237,12 @@ func (r *LlmProviderList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["status"]; ok && len(val) > 0 {
 			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
 			if err != nil {
 				return err
 			}

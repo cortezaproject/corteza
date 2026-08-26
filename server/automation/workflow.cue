@@ -230,7 +230,7 @@ workflow: {
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}
 
-		query: ["handle"]
+		query: ["handle", "name"]
 		byValue: ["workflow_id", "handle"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]

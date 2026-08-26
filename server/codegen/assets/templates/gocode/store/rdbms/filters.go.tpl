@@ -89,11 +89,19 @@ func {{ .expIdent }}Filter(d drivers.Dialect, f {{ .goFilterType }})(ee []goqu.E
 
 	{{ if .filter.query }}
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
+		qq := make([]goqu.Expression, 0, {{ len .filter.query }})
 		{{- range .filter.query }}
-			goqu.C({{ printf "%q" .storeIdent }}).ILike("%" + f.Query + "%"),
+		{{- if .queryJSON }}
+		if expr, err := queryJSONExpr(d, {{ printf "%q" .queryJSON }}, f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		{{- else }}
+		qq = append(qq, goqu.C({{ printf "%q" .storeIdent }}).ILike("%" + f.Query + "%"))
 		{{- end }}
-		))
+		{{- end }}
+		ee = append(ee, goqu.Or(qq...))
 	}
 	{{ end }}
 

@@ -110,7 +110,7 @@ template: {
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
-		query: ["handle", "type"]
+		query: ["handle", "name", "type"]
 		byValue: ["template_id", "handle", "partial", "type", "owner_id"]
 		byNilState: ["deleted"]
 	}

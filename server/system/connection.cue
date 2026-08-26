@@ -239,6 +239,7 @@ connection: {
 			query:  {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
+		query: ["handle", "name"]
 		byValue: ["handle", "status", "source"]
 		byNilState: ["deleted"]
 	}

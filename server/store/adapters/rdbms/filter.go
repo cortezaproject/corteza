@@ -610,23 +610,46 @@ func sortColumnExpr(dialect drivers.Dialect, val string) (goqu.Expression, error
 	if !strings.HasPrefix(val, jsonPrefix) {
 		return goqu.I(val), nil
 	}
+
+	return jsonPathExpr(dialect, strings.TrimPrefix(val, jsonPrefix))
+}
+
+// queryJSONExpr matches f.Query against a value held inside a JSON column,
+// for a `query` field declared as a JSON-backed virtual attribute. Path is
+// "<column>.<key>[.<key>...]" — the same shape sortColumnExpr's sentinel
+// carries, so a name is searched exactly where it is sorted.
+func queryJSONExpr(dialect drivers.Dialect, path, query string) (goqu.Expression, error) {
+	expr, err := jsonPathExpr(dialect, path)
+	if err != nil {
+		return nil, err
+	}
+
+	return expr.ILike("%" + query + "%"), nil
+}
+
+// jsonPathExpr builds the dialect's extract-and-unquote for "<column>.<key>…",
+// coalesced to the empty string. The wrap is what makes NULL behave: sorting
+// puts NULL last in postgres and first in mysql, and a NULL ILIKE is neither
+// true nor false.
+func jsonPathExpr(dialect drivers.Dialect, path string) (exp.SQLFunctionExpression, error) {
 	if dialect == nil {
-		return nil, fmt.Errorf("cannot sort by JSON column without dialect: %s", val)
+		return nil, fmt.Errorf("cannot address a JSON column without dialect: %s", path)
 	}
-	parts := strings.Split(strings.TrimPrefix(val, jsonPrefix), ".")
+
+	parts := strings.Split(path, ".")
 	if len(parts) < 2 {
-		return nil, fmt.Errorf("invalid JSON sortable: %s (expected json:<column>.<key>[.<key>...])", val)
+		return nil, fmt.Errorf("invalid JSON path: %s (expected <column>.<key>[.<key>...])", path)
 	}
+
 	pathArgs := make([]any, len(parts)-1)
 	for i, p := range parts[1:] {
 		pathArgs[i] = p
 	}
+
 	expr, err := dialect.JsonExtractUnquote(goqu.C(parts[0]), pathArgs...)
 	if err != nil {
 		return nil, err
 	}
-	// Wrap in COALESCE(..., '') so NULL meta or missing key sorts as empty
-	// string. Without this, postgres puts NULL last in ASC and mysql puts it
-	// first — inconsistent across dialects.
+
 	return goqu.COALESCE(expr, ""), nil
 }

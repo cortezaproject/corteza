@@ -65,6 +65,7 @@ func (ctrl AuthClient) makeFilter(ctx context.Context, r *request.AuthClientList
 		err error
 		f   = types.AuthClientFilter{
 			Handle:  r.Handle,
+			Query:   r.Query,
 			Labels:  r.Labels,
 			Deleted: filter.State(r.Deleted),
 		}

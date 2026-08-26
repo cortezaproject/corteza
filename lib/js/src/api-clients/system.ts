@@ -159,7 +159,7 @@ export default class System {
 
   // List clients
   async authClientList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, deleted, labels, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { handle, query, deleted, labels, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -167,6 +167,7 @@ export default class System {
     }
     cfg.params = {
       handle,
+      query,
       deleted,
       labels,
       limit,
@@ -3214,7 +3215,7 @@ export default class System {
 
   // Search connections (Directory)
   async dalConnectionList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { connectionID, handle, type, deleted, incTotal, limit, pageCursor, sort } =
+    const { connectionID, handle, type, query, deleted, incTotal, limit, pageCursor, sort } =
       (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -3225,6 +3226,7 @@ export default class System {
       connectionID,
       handle,
       type,
+      query,
       deleted,
       incTotal,
       limit,
@@ -10521,7 +10523,7 @@ export default class System {
 
   // List LLM providers
   async llmProviderList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { provider, status, limit, incTotal, pageCursor, sort } = (a as KV) || {}
+    const { provider, status, query, limit, incTotal, pageCursor, sort } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -10530,6 +10532,7 @@ export default class System {
     cfg.params = {
       provider,
       status,
+      query,
       limit,
       incTotal,
       pageCursor,

@@ -295,7 +295,7 @@ ng_automation: {
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}
 
-		query: ["handle"]
+		query: ["handle", "name"]
 		byValue: ["automation_id", "project_id", "handle"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]

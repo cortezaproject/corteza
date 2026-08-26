@@ -52,8 +52,15 @@ _StoreResource: {
 		}]
 
 		filter: {
-			// query fields as defined in struct
-			"query":        [ for name in res.filter.query        {res.model.attributes[name]}],
+			// query fields as defined in struct; a JSON-backed virtual
+			// attribute carries its path so the filter searches the value
+			// rather than a column that does not exist
+			"query": [ for name in res.filter.query {
+				res.model.attributes[name]
+				if res.model.attributes[name].sortableJSON != _|_ {
+					"queryJSON": res.model.attributes[name].sortableJSON.json
+				}
+			}],
 
 			// filter by nil state as defined in filter
 			"byNilState":   [ for name in res.filter.byNilState   {res.filter.struct[name]}]

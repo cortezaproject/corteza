@@ -128,6 +128,15 @@ project: {
 				omitSetter: true
 				omitGetter: true
 			}
+			// Virtual sortable mapped onto meta->>'short'.
+			name: {
+				sortableJSON: {json: "meta.short", accessor: "Meta.Short", nullable: false}
+				store:      false
+				goType:     "string"
+				omitSetter: true
+				omitGetter: true
+				envoy: {yaml: {omitEncoder: true}}
+			}
 			// Revision chain: root project ID, immediate parent revision, and the
 			// revision number. Column names are explicit (root_project_id) and differ
 			// from the exported idents; no getters/setters are generated.
@@ -273,7 +282,7 @@ project: {
 			archived: {goType: "filter.State", storeIdent: "archived_at"}
 		}
 
-		query: ["handle"]
+		query: ["handle", "name"]
 		byValue: ["project_id", "root_project_id", "handle"]
 		byNilState: ["deleted", "archived"]
 	}

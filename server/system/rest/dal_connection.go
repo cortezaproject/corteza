@@ -65,6 +65,7 @@ func (ctrl DalConnection) makeFilter(ctx context.Context, r *request.DalConnecti
 		DalConnectionID: r.ConnectionID,
 		Handle:          r.Handle,
 		Type:            r.Type,
+		Query:           r.Query,
 
 		Deleted: filter.State(r.Deleted),
 	}

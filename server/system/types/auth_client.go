@@ -13,6 +13,7 @@ type (
 		AuthClientID []string `json:"authClientID"`
 
 		Handle string `json:"handle"`
+		Query  string `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
 
@@ -99,4 +100,3 @@ func (r *AuthClient) Verify() error {
 
 	return nil
 }
-

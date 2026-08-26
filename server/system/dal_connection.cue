@@ -116,10 +116,12 @@ dal_connection: {
 			dal_connection_id: {goType: "[]uint64", ident: "dalConnectionID", storeIdent: "id"}
 			handle: {goType: "string"}
 			type: {goType: "string"}
+			query: {goType: "string"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
+		query: ["handle", "name"]
 		byValue: ["dal_connection_id", "handle", "type"]
 		byNilState: ["deleted"]
 	}

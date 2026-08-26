@@ -58,9 +58,8 @@ func (ctrl *ApigwRoute) makeFilter(ctx context.Context, r *request.ApigwRouteLis
 	var (
 		err error
 		f   = types.ApigwRouteFilter{
-			// todo: this should renamed to r.Endpoint after UI is aligned with this
-			Endpoint: r.Query,
-			Deleted:  filter.State(r.Deleted),
+			Query:   r.Query,
+			Deleted: filter.State(r.Deleted),
 
 			// todo: this should dynamic as Delete
 			//		but making it default to `1`, until UI is aligned with this

@@ -66,6 +66,7 @@ func (ctrl LlmProvider) makeFilter(r *request.LlmProviderList) (f types.LlmProvi
 	f = types.LlmProviderFilter{
 		Provider: r.Provider,
 		Status:   r.Status,
+		Query:    r.Query,
 	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {

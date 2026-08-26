@@ -97,7 +97,7 @@ user_group: {
 			archived: {goType: "filter.State", storeIdent: "archived_at"}
 		}
 
-		query: ["handle"]
+		query: ["handle", "name"]
 		byValue: ["user_group_id", "handle"]
 		byNilState: ["deleted", "archived"]
 	}

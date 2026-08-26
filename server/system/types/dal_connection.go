@@ -9,6 +9,7 @@ type (
 		DalConnectionID []string `json:"connectionID"`
 		Handle          string   `json:"handle"`
 		Type            string   `json:"type"`
+		Query           string   `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
 

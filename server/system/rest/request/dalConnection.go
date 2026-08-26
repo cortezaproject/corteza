@@ -51,6 +51,11 @@ type (
 		// Search type to match against connections
 		Type string
 
+		// Query GET parameter
+		//
+		// Search query
+		Query string
+
 		// Deleted GET parameter
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted connections
@@ -164,6 +169,7 @@ func (r DalConnectionList) Auditable() map[string]interface{} {
 		"connectionID": r.ConnectionID,
 		"handle":       r.Handle,
 		"type":         r.Type,
+		"query":        r.Query,
 		"deleted":      r.Deleted,
 		"incTotal":     r.IncTotal,
 		"limit":        r.Limit,
@@ -185,6 +191,11 @@ func (r DalConnectionList) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r DalConnectionList) GetType() string {
 	return r.Type
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalConnectionList) GetQuery() string {
+	return r.Query
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -238,6 +249,12 @@ func (r *DalConnectionList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["type"]; ok && len(val) > 0 {
 			r.Type, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
 			if err != nil {
 				return err
 			}

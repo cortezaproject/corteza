@@ -364,13 +364,7 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 	)
 
 	filter.Check = func(res *types.Connection) (bool, error) {
-		if !svc.ac.CanReadConnection(ctx, res) {
-			return false, nil
-		}
-		if filter.Query != "" && !matchesQuery(filter.Query, res.Meta.Short) {
-			return false, nil
-		}
-		return true, nil
+		return svc.ac.CanReadConnection(ctx, res), nil
 	}
 
 	err = func() error {
@@ -441,8 +435,10 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 				// Build catalog-only entries (handle not in DB).
 				for _, s := range allSummaries {
 					if _, ok := dbByHandle[s.Handle]; !ok {
-						// Filter by query if specified
-						if filter.Query != "" && !matchesQuery(filter.Query, s.Short) {
+						// Catalog-only entries are not in the DB, so the
+						// store's query filter never saw them. Match the same
+						// two fields it does.
+						if filter.Query != "" && !matchesQuery(filter.Query, s.Short) && !matchesQuery(filter.Query, s.Handle) {
 							continue
 						}
 						catalogOnly = append(catalogOnly, &types.Connection{

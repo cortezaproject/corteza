@@ -333,10 +333,15 @@ func AgentFilter(d drivers.Dialect, f systemType.AgentFilter) (ee []goqu.Express
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-			goqu.C("status").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 3)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.short", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		qq = append(qq, goqu.C("status").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -423,6 +428,13 @@ func ApigwRouteFilter(d drivers.Dialect, f systemType.ApigwRouteFilter) (ee []go
 		ee = append(ee, goqu.C("method").Eq(f.Method))
 	}
 
+	if f.Query != "" {
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("endpoint").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("method").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
+	}
+
 	return ee, f, err
 }
 
@@ -452,9 +464,9 @@ func ApplicationFilter(d drivers.Dialect, f systemType.ApplicationFilter) (ee []
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("name").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 1)
+		qq = append(qq, goqu.C("name").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -495,6 +507,17 @@ func AuthClientFilter(d drivers.Dialect, f systemType.AuthClientFilter) (ee []go
 
 	if len(f.LabeledIDs) > 0 {
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	}
+
+	if f.Query != "" {
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.name", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -582,9 +605,14 @@ func AutomationNgAutomationFilter(d drivers.Dialect, f automationType.NgAutomati
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.short", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -699,9 +727,14 @@ func AutomationWorkflowFilter(d drivers.Dialect, f automationType.WorkflowFilter
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.name", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -741,10 +774,10 @@ func ChatbotFilter(d drivers.Dialect, f systemType.ChatbotFilter) (ee []goqu.Exp
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-			goqu.C("name").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("name").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -776,9 +809,9 @@ func ChatbotSessionFilter(d drivers.Dialect, f systemType.ChatbotSessionFilter) 
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("status").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 1)
+		qq = append(qq, goqu.C("status").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -810,9 +843,9 @@ func ChatbotSessionHandoffFilter(d drivers.Dialect, f systemType.ChatbotSessionH
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("status").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 1)
+		qq = append(qq, goqu.C("status").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -848,9 +881,9 @@ func ChatbotSessionStepFilter(d drivers.Dialect, f systemType.ChatbotSessionStep
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("status").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 1)
+		qq = append(qq, goqu.C("status").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -910,10 +943,10 @@ func ComposeChartFilter(d drivers.Dialect, f composeType.ChartFilter) (ee []goqu
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-			goqu.C("name").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("name").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -953,10 +986,10 @@ func ComposeModuleFilter(d drivers.Dialect, f composeType.ModuleFilter) (ee []go
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-			goqu.C("name").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("name").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1012,10 +1045,10 @@ func ComposeNamespaceFilter(d drivers.Dialect, f composeType.NamespaceFilter) (e
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("name").ILike("%"+f.Query+"%"),
-			goqu.C("slug").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("name").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("slug").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1059,11 +1092,11 @@ func ComposePageFilter(d drivers.Dialect, f composeType.PageFilter) (ee []goqu.E
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-			goqu.C("title").ILike("%"+f.Query+"%"),
-			goqu.C("description").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 3)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("title").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("description").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1107,9 +1140,9 @@ func ComposePageLayoutFilter(d drivers.Dialect, f composeType.PageLayoutFilter) 
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 1)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1176,6 +1209,17 @@ func ConnectionFilter(d drivers.Dialect, f systemType.ConnectionFilter) (ee []go
 		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
 
+	if f.Query != "" {
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.short", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		ee = append(ee, goqu.Or(qq...))
+	}
+
 	return ee, f, err
 }
 
@@ -1230,6 +1274,17 @@ func DalConnectionFilter(d drivers.Dialect, f systemType.DalConnectionFilter) (e
 
 	if val := strings.TrimSpace(f.Type); len(val) > 0 {
 		ee = append(ee, goqu.C("type").Eq(f.Type))
+	}
+
+	if f.Query != "" {
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.name", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1323,10 +1378,10 @@ func DataPrivacyRequestFilter(d drivers.Dialect, f systemType.DataPrivacyRequest
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("kind").ILike("%"+f.Query+"%"),
-			goqu.C("status").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("kind").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("status").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1486,10 +1541,10 @@ func FederationNodeFilter(d drivers.Dialect, f federationType.NodeFilter) (ee []
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("name").ILike("%"+f.Query+"%"),
-			goqu.C("base_url").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("name").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("base_url").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1549,10 +1604,10 @@ func FederationSharedModuleFilter(d drivers.Dialect, f federationType.SharedModu
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("name").ILike("%"+f.Query+"%"),
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("name").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1608,10 +1663,10 @@ func KnowledgeBaseFilter(d drivers.Dialect, f systemType.KnowledgeBaseFilter) (e
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-			goqu.C("title").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("title").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1664,6 +1719,17 @@ func LlmProviderFilter(d drivers.Dialect, f systemType.LlmProviderFilter) (ee []
 
 	if val := strings.TrimSpace(f.Provider); len(val) > 0 {
 		ee = append(ee, goqu.C("provider").Eq(f.Provider))
+	}
+
+	if f.Query != "" {
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.short", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1731,9 +1797,14 @@ func ProjectFilter(d drivers.Dialect, f systemType.ProjectFilter) (ee []goqu.Exp
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.short", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1769,9 +1840,9 @@ func ProjectAiSystemFilter(d drivers.Dialect, f systemType.ProjectAiSystemFilter
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 1)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1831,9 +1902,9 @@ func ProjectBacklogItemFilter(d drivers.Dialect, f systemType.ProjectBacklogItem
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("title").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 1)
+		qq = append(qq, goqu.C("title").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1869,10 +1940,10 @@ func ProjectFeatureFilter(d drivers.Dialect, f systemType.ProjectFeatureFilter) 
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("title").ILike("%"+f.Query+"%"),
-			goqu.C("status").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("title").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("status").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1908,9 +1979,9 @@ func ProjectFriaScenarioFilter(d drivers.Dialect, f systemType.ProjectFriaScenar
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("title").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 1)
+		qq = append(qq, goqu.C("title").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -1946,10 +2017,10 @@ func ProjectIncidentFilter(d drivers.Dialect, f systemType.ProjectIncidentFilter
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("title").ILike("%"+f.Query+"%"),
-			goqu.C("status").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("title").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("status").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -2013,10 +2084,10 @@ func ProjectPrivacyFilter(d drivers.Dialect, f systemType.ProjectPrivacyFilter) 
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("title").ILike("%"+f.Query+"%"),
-			goqu.C("status").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("title").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("status").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -2052,10 +2123,10 @@ func ProjectReviewFilter(d drivers.Dialect, f systemType.ProjectReviewFilter) (e
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("title").ILike("%"+f.Query+"%"),
-			goqu.C("status").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("title").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("status").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -2091,10 +2162,10 @@ func ProjectTaskFilter(d drivers.Dialect, f systemType.ProjectTaskFilter) (ee []
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("title").ILike("%"+f.Query+"%"),
-			goqu.C("status").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("title").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("status").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -2118,10 +2189,10 @@ func QueueFilter(d drivers.Dialect, f systemType.QueueFilter) (ee []goqu.Express
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("queue").ILike("%"+f.Query+"%"),
-			goqu.C("consumer").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("queue").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("consumer").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -2205,9 +2276,14 @@ func ReportFilter(d drivers.Dialect, f systemType.ReportFilter) (ee []goqu.Expre
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.name", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -2291,10 +2367,10 @@ func RoleFilter(d drivers.Dialect, f systemType.RoleFilter) (ee []goqu.Expressio
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-			goqu.C("name").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("name").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -2374,10 +2450,15 @@ func TemplateFilter(d drivers.Dialect, f systemType.TemplateFilter) (ee []goqu.E
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-			goqu.C("type").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 3)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.short", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		qq = append(qq, goqu.C("type").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -2409,9 +2490,9 @@ func TenantFilter(d drivers.Dialect, f systemType.TenantFilter) (ee []goqu.Expre
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 1)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -2479,12 +2560,12 @@ func UserFilter(d drivers.Dialect, f systemType.UserFilter) (ee []goqu.Expressio
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("email").ILike("%"+f.Query+"%"),
-			goqu.C("username").ILike("%"+f.Query+"%"),
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-			goqu.C("name").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 4)
+		qq = append(qq, goqu.C("email").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("username").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		qq = append(qq, goqu.C("name").ILike("%"+f.Query+"%"))
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err
@@ -2520,9 +2601,14 @@ func UserGroupFilter(d drivers.Dialect, f systemType.UserGroupFilter) (ee []goqu
 	}
 
 	if f.Query != "" {
-		ee = append(ee, goqu.Or(
-			goqu.C("handle").ILike("%"+f.Query+"%"),
-		))
+		qq := make([]goqu.Expression, 0, 2)
+		qq = append(qq, goqu.C("handle").ILike("%"+f.Query+"%"))
+		if expr, err := queryJSONExpr(d, "meta.short", f.Query); err != nil {
+			return nil, f, err
+		} else {
+			qq = append(qq, expr)
+		}
+		ee = append(ee, goqu.Or(qq...))
 	}
 
 	return ee, f, err

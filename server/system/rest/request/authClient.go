@@ -43,6 +43,11 @@ type (
 		// Client handle
 		Handle string
 
+		// Query GET parameter
+		//
+		// Search query
+		Query string
+
 		// Deleted GET parameter
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted clients
@@ -243,6 +248,7 @@ func NewAuthClientList() *AuthClientList {
 func (r AuthClientList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"handle":     r.Handle,
+		"query":      r.Query,
 		"deleted":    r.Deleted,
 		"labels":     r.Labels,
 		"limit":      r.Limit,
@@ -255,6 +261,11 @@ func (r AuthClientList) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r AuthClientList) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AuthClientList) GetQuery() string {
+	return r.Query
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -296,6 +307,12 @@ func (r *AuthClientList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
 			if err != nil {
 				return err
 			}

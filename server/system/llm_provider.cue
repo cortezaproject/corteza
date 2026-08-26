@@ -89,9 +89,11 @@ llm_provider: {
 			handle: {goType: "string"}
 			status: {goType: "string"}
 			provider: {goType: "string"}
+			query: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
+		query: ["handle", "name"]
 		byValue: ["llm_provider_id", "handle", "status", "provider"]
 		byNilState: ["deleted"]
 	}
