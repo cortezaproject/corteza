@@ -34,27 +34,38 @@ func callerContextMessage(ctxJSON string) types.AiConversationMessage {
 	}
 }
 
-// withCallerContext puts the context immediately before the message it
+// withCallerContext puts the context immediately before the question it
 // qualifies.
 //
-// Ahead of the whole history it would sit behind eight turns by the time
-// someone says "this record"; the last message is the question being asked, so
-// the one before it is where "here is what I am looking at" belongs. The
-// history itself is not modified: the context describes this turn and is not
-// worth storing or replaying.
+// Ahead of the whole history it would sit behind every earlier turn by the time
+// someone says "this record". It goes before the last USER message rather than
+// simply the last message: from the second iteration onward the tail is an
+// assistant turn and its tool results, and a user message wedged between those
+// two is rejected outright — "Unexpected role 'tool' after role 'user'".
+//
+// The history itself is not modified: the context describes this turn and is
+// not worth storing or replaying.
 func withCallerContext(msgs []types.AiConversationMessage, ctxMsg *types.AiConversationMessage) []types.AiConversationMessage {
 	if ctxMsg == nil {
 		return msgs
 	}
 
+	at := lastUserMessage(msgs)
 	out := make([]types.AiConversationMessage, 0, len(msgs)+1)
-	if len(msgs) == 0 {
-		return append(out, *ctxMsg)
-	}
+	out = append(out, msgs[:at]...)
+	out = append(out, *ctxMsg)
+	return append(out, msgs[at:]...)
+}
 
-	out = append(out, msgs[:len(msgs)-1]...)
-	out = append(out, *ctxMsg, msgs[len(msgs)-1])
-	return out
+// lastUserMessage is where the current question sits, or the end of the list
+// when there is no user turn to sit before.
+func lastUserMessage(msgs []types.AiConversationMessage) int {
+	for i := len(msgs) - 1; i >= 0; i-- {
+		if msgs[i].Role == "user" {
+			return i
+		}
+	}
+	return len(msgs)
 }
 
 // callerContextSection renders the context the calling surface attached.

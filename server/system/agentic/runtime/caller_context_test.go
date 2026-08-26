@@ -104,6 +104,42 @@ func TestWithCallerContextSitsBeforeTheLatestMessage(t *testing.T) {
 	assert.Len(t, msgs, 3)
 }
 
+// From the second iteration on, the tail of the history is an assistant turn
+// and its tool results. A user message wedged between those two is rejected by
+// the provider outright — "Unexpected role 'tool' after role 'user'" — which
+// broke every agent that made a tool call.
+func TestWithCallerContextNeverSplitsToolResults(t *testing.T) {
+	m := callerContextMessage(`{}`)
+	msgs := []types.AiConversationMessage{
+		{Role: "user", Content: "the question"},
+		{Role: "assistant", ToolCalls: []types.AiConversationToolCall{{CallID: "c1"}}},
+		{Role: "tool", ToolResults: []types.AiConversationToolResult{{CallID: "c1"}}},
+	}
+
+	got := withCallerContext(msgs, &m)
+	require.Len(t, got, 4)
+	assert.Contains(t, got[0].Content, "CALLER CONTEXT")
+	assert.Equal(t, "the question", got[1].Content)
+	assert.Equal(t, "assistant", got[2].Role)
+	assert.Equal(t, "tool", got[3].Role)
+}
+
+// With no user turn at all there is nothing to sit before, and the context
+// must not land between an assistant and its results by default either.
+func TestWithCallerContextWithNoUserTurn(t *testing.T) {
+	m := callerContextMessage(`{}`)
+	msgs := []types.AiConversationMessage{
+		{Role: "assistant", ToolCalls: []types.AiConversationToolCall{{CallID: "c1"}}},
+		{Role: "tool", ToolResults: []types.AiConversationToolResult{{CallID: "c1"}}},
+	}
+
+	got := withCallerContext(msgs, &m)
+	require.Len(t, got, 3)
+	assert.Equal(t, "assistant", got[0].Role)
+	assert.Equal(t, "tool", got[1].Role)
+	assert.Contains(t, got[2].Content, "CALLER CONTEXT")
+}
+
 func TestWithCallerContextEdges(t *testing.T) {
 	msgs := []types.AiConversationMessage{{Role: "user", Content: "only"}}
 	assert.Equal(t, msgs, withCallerContext(msgs, nil))
