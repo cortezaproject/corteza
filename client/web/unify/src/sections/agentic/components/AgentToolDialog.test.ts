@@ -84,6 +84,83 @@ describe('AgentToolDialog grouping', () => {
     expect(vm.domains.at(-1).key).toBe('other')
   })
 
+  // Reminders are a personal surface — create, snooze, dismiss — and share
+  // nothing with records but the group they are registered in.
+  it('keeps a subject out of a section it only shares a group with', () => {
+    const vm = mountDialog(
+      [],
+      [
+        { name: 'compose_record_lookup', title: 'Lookup record', groups: ['usage'], risk: 'read' },
+        {
+          name: 'system_reminder_snooze',
+          title: 'Snooze reminder',
+          groups: ['usage'],
+          risk: 'write',
+        },
+      ],
+    ).vm as any
+
+    expect(domain(vm, 'records').areas.map((a: any) => a.key)).toEqual(['compose_record'])
+    expect(domain(vm, 'reminders').areas.map((a: any) => a.key)).toEqual(['system_reminder'])
+  })
+
+  // The schema a namespace defines is a different job from the pages that
+  // display it, and one 26-tool section buried the twelve page tools.
+  it('separates what defines the data from what displays it', () => {
+    const vm = mountDialog(
+      [],
+      [
+        {
+          name: 'compose_module_create',
+          title: 'Create module',
+          groups: ['configuring'],
+          risk: 'write',
+        },
+        {
+          name: 'compose_page_create',
+          title: 'Create page',
+          groups: ['configuring'],
+          risk: 'write',
+        },
+      ],
+    ).vm as any
+
+    expect(domain(vm, 'datamodel').areas.map((a: any) => a.key)).toEqual(['compose_module'])
+    expect(domain(vm, 'interface').areas.map((a: any) => a.key)).toEqual(['compose_page'])
+  })
+
+  // A subject listed under two sections renders its tools twice, and a mode set
+  // on one copy reads as unset on the other.
+  it('places every subject in exactly one section', () => {
+    const areas = [
+      'compose_record',
+      'compose_namespace',
+      'compose_module',
+      'compose_page',
+      'compose_chart',
+      'automation_taq',
+      'automation_workflow',
+      'automation_trigger',
+      'automation_event',
+      'system_user',
+      'system_role',
+      'system_auth',
+      'system_agent',
+      'system_chatbot',
+      'system_reminder',
+      'system_application',
+      'system_theme',
+    ]
+    const vm = mountDialog(
+      [],
+      areas.map(a => ({ name: `${a}_lookup`, title: a, groups: ['usage'], risk: 'read' })),
+    ).vm as any
+
+    const names = toolNames(vm)
+    expect(names).toHaveLength(areas.length)
+    expect(new Set(names).size).toBe(areas.length)
+  })
+
   // Alphabetical put Charts first, which is nobody's starting point.
   it('leads with what an agent works with, not with C', () => {
     const many = [
@@ -92,7 +169,7 @@ describe('AgentToolDialog grouping', () => {
       { name: 'system_user_create', title: 'Create user', groups: ['configuring'], risk: 'write' },
     ]
     const vm = mountDialog([], many).vm as any
-    expect(vm.domains.map((d: any) => d.key)).toEqual(['data', 'structure', 'people'])
+    expect(vm.domains.map((d: any) => d.key)).toEqual(['records', 'interface', 'people'])
   })
 
   // Reads first, then writes, then the one that cannot be taken back.
@@ -139,23 +216,23 @@ describe('AgentToolDialog sections', () => {
   // a list of ninety.
   it('opens the first section when the agent has no named tool', () => {
     const vm = mountDialog().vm as any
-    expect(vm.isOpen('data')).toBe(true)
+    expect(vm.isOpen('records')).toBe(true)
     expect(vm.isOpen('people')).toBe(false)
   })
 
   it('opens on the sections holding what the agent already has', () => {
     const vm = mountDialog([{ name: 'system_user_create' }]).vm as any
     expect(vm.isOpen('people')).toBe(true)
-    expect(vm.isOpen('data')).toBe(false)
+    expect(vm.isOpen('records')).toBe(false)
   })
 
   it('folds a section shut and back open', () => {
     const vm = mountDialog().vm as any
-    expect(vm.isOpen('data')).toBe(true)
-    vm.toggleCollapsed('data')
-    expect(vm.isOpen('data')).toBe(false)
-    vm.toggleCollapsed('data')
-    expect(vm.isOpen('data')).toBe(true)
+    expect(vm.isOpen('records')).toBe(true)
+    vm.toggleCollapsed('records')
+    expect(vm.isOpen('records')).toBe(false)
+    vm.toggleCollapsed('records')
+    expect(vm.isOpen('records')).toBe(true)
   })
 
   // A search that only looked inside open sections would report nothing while
@@ -212,8 +289,8 @@ describe('AgentToolDialog family grants', () => {
 })
 
 describe('AgentToolDialog section control', () => {
-  function dataSection(vm: any) {
-    return domain(vm, 'data')
+  function recordsSection(vm: any) {
+    return domain(vm, 'records')
   }
 
   // A subject is the unit an agent is actually given: every record tool, or
@@ -222,8 +299,8 @@ describe('AgentToolDialog section control', () => {
     const w = mountDialog()
     const vm = w.vm as any
 
-    vm.setSectionMode(dataSection(vm), 'always')
-    expect(vm.sectionMode(dataSection(vm))).toBe('always')
+    vm.setSectionMode(recordsSection(vm), 'always')
+    expect(vm.sectionMode(recordsSection(vm))).toBe('always')
     expect([...vm.chosen].sort()).toEqual(['compose_record_delete', 'compose_record_lookup'])
   })
 
@@ -231,11 +308,11 @@ describe('AgentToolDialog section control', () => {
     const w = mountDialog()
     const vm = w.vm as any
 
-    vm.setSectionMode(dataSection(vm), 'ask')
-    expect(vm.sectionMode(dataSection(vm))).toBe('ask')
+    vm.setSectionMode(recordsSection(vm), 'ask')
+    expect(vm.sectionMode(recordsSection(vm))).toBe('ask')
 
-    vm.setSectionMode(dataSection(vm), 'deny')
-    expect(vm.sectionMode(dataSection(vm))).toBe('deny')
+    vm.setSectionMode(recordsSection(vm), 'deny')
+    expect(vm.sectionMode(recordsSection(vm))).toBe('deny')
     expect([...vm.chosen]).toEqual([])
   })
 
@@ -245,12 +322,12 @@ describe('AgentToolDialog section control', () => {
     const w = mountDialog()
     const vm = w.vm as any
 
-    vm.setSectionMode(dataSection(vm), 'always')
+    vm.setSectionMode(recordsSection(vm), 'always')
     vm.setMode({ name: 'compose_record_delete', risk: 'destructive' }, 'ask')
-    expect(vm.sectionMode(dataSection(vm))).toBe('custom')
+    expect(vm.sectionMode(recordsSection(vm))).toBe('custom')
 
     const before = [...vm.chosen].sort()
-    vm.setSectionMode(dataSection(vm), 'custom')
+    vm.setSectionMode(recordsSection(vm), 'custom')
     expect([...vm.chosen].sort()).toEqual(before)
   })
 
@@ -260,7 +337,7 @@ describe('AgentToolDialog section control', () => {
     const w = mountDialog([{ name: 'compose_record_lookup' }])
     const vm = w.vm as any
 
-    expect(vm.sectionCounts(domain(vm, 'data'))).toEqual([
+    expect(vm.sectionCounts(domain(vm, 'records'))).toEqual([
       { mode: 'always', n: 1 },
       { mode: 'deny', n: 1 },
     ])
@@ -450,6 +527,17 @@ describe('AgentToolDialog blocked rows', () => {
     expect(rows.every(r => r.classList.contains('tool-mode'))).toBe(true)
     expect(rows.every(r => r.querySelector('[data-testid="mode-toggle"]'))).toBe(true)
 
+    w.unmount()
+  })
+
+  it('leaves out the sub-label when a section holds one subject', async () => {
+    const w = await mountRendered()
+    const labels = [...document.querySelectorAll('.p-dialog .uppercase')].map(e =>
+      e.textContent.trim(),
+    )
+
+    // The open section is Records, whose only area repeats its own name.
+    expect(labels).toEqual([])
     w.unmount()
   })
 

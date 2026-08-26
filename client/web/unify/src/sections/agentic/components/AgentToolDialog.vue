@@ -93,7 +93,11 @@
 
           <div v-if="isOpen(d.key)" class="pb-3">
             <div v-for="area in d.areas" :key="area.key">
-              <div class="font-medium text-muted-color text-sm uppercase tracking-wide mt-3 mb-1">
+              <!-- A section holding one subject has already named it. -->
+              <div
+                v-if="d.areas.length > 1"
+                class="font-medium text-muted-color text-sm uppercase tracking-wide mt-3 mb-1"
+              >
                 {{ area.label }}
               </div>
 
@@ -285,18 +289,21 @@ const HIDDEN_AREAS = new Set(['system_skill'])
 // 94 in the other, and split five subjects across both — every TAQ tool but
 // `exec` in one section, `exec` in the other. A subject now appears once, with
 // all of its tools, whichever group each one belongs to.
+//
+// A section holds one subject and not two: reminders are a personal surface and
+// share nothing with records but their group, and the schema a namespace
+// defines is a different job from the pages that display it.
 const DOMAINS = [
-  { key: 'data', areas: ['compose_record', 'system_reminder'] },
+  { key: 'records', areas: ['compose_record'] },
+  { key: 'datamodel', areas: ['compose_namespace', 'compose_module'] },
+  { key: 'interface', areas: ['compose_page', 'compose_chart'] },
   {
     key: 'automation',
     areas: ['automation_taq', 'automation_workflow', 'automation_trigger', 'automation_event'],
   },
-  {
-    key: 'structure',
-    areas: ['compose_namespace', 'compose_module', 'compose_page', 'compose_chart'],
-  },
   { key: 'people', areas: ['system_user', 'system_role', 'system_auth'] },
   { key: 'ai', areas: ['system_agent', 'system_chatbot'] },
+  { key: 'reminders', areas: ['system_reminder'] },
   { key: 'workspace', areas: ['system_application', 'system_theme'] },
 ]
 

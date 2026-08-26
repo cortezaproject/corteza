@@ -187,11 +187,13 @@ editor:
         system_user: Users
       domain:
         ai: Agents and chatbots
-        automation: Automations
-        data: Records and reminders
+        automation: Automation
+        datamodel: Data model
+        interface: Pages and charts
         other: Everything else
         people: People and access
-        structure: Application structure
+        records: Records
+        reminders: Reminders
         workspace: Workspace
       fromFamily: Granted by a family grant on this agent. Blocking it here writes an
         exception to that grant.
