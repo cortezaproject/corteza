@@ -28197,5 +28197,16 @@
     "first_published_version": "1.0.0",
     "supported_major": 1,
     "major_version_rule": "after first publication, any consumer-incompatible contract revision increments the major version"
+  },
+  "x-city311-server-error-policy": {
+    "declared_statuses": [
+      503
+    ],
+    "rule": "only declared 5xx statuses have a stable City 311 error mapping; undeclared 5xx responses are terminal transport failures outside this contract",
+    "undeclared_statuses": [
+      500,
+      502,
+      504
+    ]
   }
 }

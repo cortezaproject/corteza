@@ -140,6 +140,11 @@ func contractProtocol() map[string]interface{} {
 			"filter_echo":     true,
 			"empty_total":     0,
 		},
+		"server_error_policy": map[string]interface{}{
+			"declared_statuses":   []int{503},
+			"undeclared_statuses": []int{500, 502, 504},
+			"rule":                "only declared 5xx statuses have a stable City 311 error mapping; undeclared 5xx responses are terminal transport failures outside this contract",
+		},
 		"idempotency": map[string]interface{}{
 			"request_header":    IdempotencyHeader,
 			"required_for":      []string{"portal_service_request_submit", "service_request_create", "staff_request_bulk", "mail_send", "workflow_action_execute", "civicworks_work_order_create"},

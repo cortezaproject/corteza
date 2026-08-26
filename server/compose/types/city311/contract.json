@@ -335,6 +335,17 @@
       "stale_status": 409,
       "syntax": "quoted decimal resource version, for example \"7\""
     },
+    "server_error_policy": {
+      "declared_statuses": [
+        503
+      ],
+      "rule": "only declared 5xx statuses have a stable City 311 error mapping; undeclared 5xx responses are terminal transport failures outside this contract",
+      "undeclared_statuses": [
+        500,
+        502,
+        504
+      ]
+    },
     "session_and_authorization": {
       "actor_class_enum_ref": "authenticated_actor_class",
       "anonymous_role": "public_visitor",

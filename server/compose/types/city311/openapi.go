@@ -73,6 +73,7 @@ func NewOpenAPIDocument() map[string]interface{} {
 			},
 		},
 		"x-city311-contract-versioning": contract.Versioning,
+		"x-city311-server-error-policy": contract.Protocol["server_error_policy"],
 		"x-city311-consumed-operations": consumed,
 	}
 }

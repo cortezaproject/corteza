@@ -77,6 +77,10 @@ func TestCrossCuttingBrowserProtocolIsFrozen(t *testing.T) {
 	if _, present := errorProperties["failing_request_id"]; !present {
 		t.Fatal("bulk failures must identify the failing request")
 	}
+	serverErrors := contract.Protocol["server_error_policy"].(map[string]interface{})
+	if !reflect.DeepEqual(serverErrors["declared_statuses"], []int{503}) || !reflect.DeepEqual(serverErrors["undeclared_statuses"], []int{500, 502, 504}) {
+		t.Fatalf("server error policy has unexpected status boundary: %#v", serverErrors)
+	}
 }
 
 func TestCivicWorksCallbackAndLocationRules(t *testing.T) {

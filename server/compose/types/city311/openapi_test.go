@@ -91,6 +91,17 @@ func TestOpenAPIUsesPrivacySafe404AndEmptyCallback(t *testing.T) {
 	}
 }
 
+func TestOpenAPIPublishesServerErrorPolicy(t *testing.T) {
+	document := NewOpenAPIDocument()
+	policy := document["x-city311-server-error-policy"].(map[string]interface{})
+	if !reflect.DeepEqual(policy["declared_statuses"], []int{503}) {
+		t.Fatalf("OpenAPI must declare only 503 as stable 5xx: %#v", policy)
+	}
+	if !reflect.DeepEqual(policy["undeclared_statuses"], []int{500, 502, 504}) {
+		t.Fatalf("OpenAPI must record undeclared 5xx statuses: %#v", policy)
+	}
+}
+
 func TestOpenAPIUsesStandardSchemaKeywordsAndResolvedReferences(t *testing.T) {
 	document := NewOpenAPIDocument()
 	raw, err := json.Marshal(document)
