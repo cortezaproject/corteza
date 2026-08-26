@@ -14,7 +14,6 @@ noResults: No results
 page: Pages
 pages: Pages
 pickNamespace: Select a namespace
-publicPages: Public pages
 searchPlaceholder:
   admin: Search resources...
   public: Search pages...
