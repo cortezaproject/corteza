@@ -17,12 +17,12 @@ ver=$(curl -sf -m 5 "$HUMAN_BASE/version" | json_get response.version 2>/dev/nul
 if [[ -n "${ver:-}" ]]; then
   ok "server up (version: $ver)"
 else
-  # gin rebuilds on any .go write and the API is down for ~15s while it does;
-  # "start it" is the wrong instruction then, and waiting is the right one.
-  # Match this repo's build target — a second Corteza checkout on this machine
-  # runs its own gin (cmd/corteza) and holding a port is not the same server.
-  if pgrep -fa 'gin .*--build cmd/human' >/dev/null 2>&1; then
-    bad "server is building at $HUMAN_BASE — gin is up but the binary is not serving yet."
+  # The watcher rebuilds on any .go write and the API is down for a moment while
+  # it swaps the binary; "start it" is the wrong instruction then, and waiting is
+  # the right one. Matched by this checkout's own binary path, because another
+  # checkout on this machine runs a watcher of the same name.
+  if pgrep -f "devwatch .*-bin $SERVER_DIR/build/dev-bin" >/dev/null 2>&1; then
+    bad "server is building at $HUMAN_BASE — the watcher is up but the binary is not serving yet."
     echo "    Retry in ~15s; dev/agent/logs.sh -n 20 shows the build." >&2
   else
     bad "server not reachable at $HUMAN_BASE — start it: cd server && make watch"

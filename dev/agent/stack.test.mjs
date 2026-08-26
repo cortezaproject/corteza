@@ -41,7 +41,6 @@ function resolve({ serverEnv, e2e, playwright, registry, env = {} } = {}) {
         ...process.env,
         HUMAN_API: '',
         HUMAN_WEBAPP: '',
-        HUMAN_GIN: '',
         STACK_ROOT: root,
         ...env,
       },
@@ -141,34 +140,30 @@ test('the webapp URL comes from .env.e2e, whose fallback is the config literal',
   })
 })
 
-test("gin's proxy port is only recorded in the worktree registry", async t => {
-  await t.test('a registered lane', () => {
-    const s = resolve({
-      serverEnv: 'HTTP_ADDR=:1143\n',
-      registry: root =>
-        JSON.stringify({ name: 'lane', path: root, slot: 1, api: 1143, gin: 3101 }, null, 2),
-    })
-    assert.equal(s.HUMAN_GIN, 'http://localhost:3101')
-  })
+// The registry is read for one key now, and these two guards decide whether it
+// is read at all: without them a lane is handed ports in front of somebody
+// else's stack, and every check it runs passes against a server it never built.
+test('a registry entry is read only when it is this checkout, at this port', async t => {
+  const literal = "baseURL: process.env.E2E_BASE_URL || 'http://localhost:5173',\n"
 
   await t.test('an entry for a different checkout is not this one', () => {
     const s = resolve({
+      serverEnv: 'HTTP_ADDR=:1143\n',
+      playwright: literal,
       registry: () =>
-        JSON.stringify({ name: 'other', path: '/elsewhere', api: 1143, gin: 3201 }, null, 2),
+        JSON.stringify({ name: 'other', path: '/elsewhere', api: 1143, vite: 5174 }, null, 2),
     })
-    assert.equal(s.HUMAN_GIN, 'http://localhost:3001')
+    assert.equal(s.HUMAN_WEBAPP, 'http://localhost:5173')
   })
 
   await t.test('a stale entry, for the port this checkout no longer serves', () => {
     const s = resolve({
       serverEnv: 'HTTP_ADDR=:1943\n',
-      registry: root => JSON.stringify({ name: 'lane', path: root, api: 1143, gin: 3101 }, null, 2),
+      playwright: literal,
+      registry: root =>
+        JSON.stringify({ name: 'lane', path: root, api: 1143, vite: 5174 }, null, 2),
     })
-    assert.equal(s.HUMAN_GIN, 'http://localhost:3001')
-  })
-
-  await t.test('the primary, with no registry at all', () => {
-    assert.equal(resolve().HUMAN_GIN, 'http://localhost:3001')
+    assert.equal(s.HUMAN_WEBAPP, 'http://localhost:5173')
   })
 })
 

@@ -52,21 +52,14 @@ DEV_MINIO_PORT        ?= 9000
 DEV_MAILHOG_SMTP_ADDR ?= 1025
 DEV_MAILHOG_HTTP_ADDR ?= 8025
 
-GIN_ARG_LADDR ?= localhost
-GIN_ARG_PORT  ?= 3001
-# Where the server itself listens, read from the env file gin will hand it.
-# gin's own default for this is 3001, which is also GIN_ARG_PORT — leaving it
-# unset makes gin proxy to the port it is listening on and answer its own
-# requests until the ephemeral port range runs out.
-#
-# The host half of the bind address is skipped rather than optional: with
-# HTTP_ADDR=127.0.0.1:1043 an optional-colon pattern captures 127. The LAST
-# assignment is the one godotenv hands the server, so it is the one to proxy to.
-GIN_ARG_APP_PORT ?= $(shell sed -nE 's/^[[:space:]]*HTTP_ADDR=["'"'"']?[^:"'"'"' ]*:([0-9]+).*/\1/p' $(GIN_HUMAN_ENV_FILE) 2>/dev/null | tail -1)
-GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --port $(GIN_ARG_PORT) --appPort $(GIN_ARG_APP_PORT) --build cmd/human --immediate --bin build/gin-bin
+# The dev server the watcher builds and runs. Absolute, because it is also how
+# every tool that asks "is this checkout's server running my code" finds the
+# process: two checkouts on one machine run binaries of the same name.
+DEV_BIN       ?= $(CURDIR)/build/dev-bin
+DEV_WATCHER   ?= build/devwatch
 
-GIN_HUMAN_ENV_FILE ?= .env
-GIN_HUMAN_BIN_ARGS ?= --env-file $(GIN_HUMAN_ENV_FILE)
+DEV_HUMAN_ENV_FILE ?= .env
+DEV_HUMAN_BIN_ARGS ?= --env-file $(DEV_HUMAN_ENV_FILE)
 
 DOCKER                ?= docker
 
@@ -122,12 +115,13 @@ $(RELEASE_PKEY):
 # errors (dev/agent/logs.sh). Production runs the binary directly (serve-api)
 # and is unaffected.
 #
-# tee -a, not tee: running this while a watcher is already up fails on the port
-# and would otherwise truncate the running server's log on its way out, throwing
-# away the history someone was in the middle of reading. Readers tail it
-# (logs.sh -n), so appending across restarts costs nothing.
-watch: $(GIN)
-	$(GIN) $(GIN_ARGS) -- $(GIN_HUMAN_BIN_ARGS) serve 2>&1 | tee -a build/dev.log
+# tee -a, not tee: running this while a watcher is already up is refused by the
+# watcher's own lock, and plain tee would truncate the running server's log on
+# its way out, throwing away the history someone was in the middle of reading.
+# Readers tail it (logs.sh -n), so appending across restarts costs nothing.
+watch:
+	@ $(GO) build -o $(DEV_WATCHER) ./cmd/devwatch
+	$(DEV_WATCHER) -root $(CURDIR) -build ./cmd/human -bin $(DEV_BIN) -- $(DEV_HUMAN_BIN_ARGS) serve 2>&1 | tee -a build/dev.log
 
 dev: watch # Alias for watch
 

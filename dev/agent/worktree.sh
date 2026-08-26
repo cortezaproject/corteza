@@ -19,7 +19,7 @@
 #   worktree.sh rm   NAME [--keep-branch]  stop, drop DB, remove checkout
 #
 # Ports are derived from the slot, so two worktrees can never collide:
-#   API 1043+slot*100 · gin 3001+slot*100 · vite 5173+slot
+#   API 1043+slot*100 · vite 5173+slot
 #
 set -euo pipefail
 
@@ -46,7 +46,6 @@ primary_repo() {
 worktrees_root() { echo "$(dirname "$(primary_repo)")/human-worktrees"; }
 
 slot_api() { echo $((1043 + $1 * 100)); }
-slot_gin() { echo $((3001 + $1 * 100)); }
 slot_vite() { echo $((5173 + $1)); }
 slot_db() { echo "$(db_name_base)_wt$1"; }
 
@@ -162,18 +161,17 @@ cmd_new() {
   [[ "$name" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "name must be kebab-case"
   [[ -f "$(meta "$name")" ]] && die "'$name' already exists"
 
-  local primary root slot path api gin vite db srcdb
+  local primary root slot path api vite db srcdb
   primary="$(primary_repo)"
   root="$(worktrees_root)"
   slot="$(claim_slot "$name")"
   path="$root/$name"
   api="$(slot_api "$slot")"
-  gin="$(slot_gin "$slot")"
   vite="$(slot_vite "$slot")"
   srcdb="$(db_name_base)"
   db="$(slot_db "$slot")"
 
-  for p in "$api" "$gin" "$vite"; do
+  for p in "$api" "$vite"; do
     port_busy "$p" && {
       release_slot "$slot"
       die "port $p is already listening — slot $slot is not free after all"
@@ -193,7 +191,7 @@ cmd_new() {
     echo "      worktree — it checks out $base. Commit first if you need them." >&2
   fi
 
-  echo "worktree '$name' → slot $slot (api $api · gin $gin · vite $vite · db $db)"
+  echo "worktree '$name' → slot $slot (api $api · vite $vite · db $db)"
 
   mkdir -p "$root"
   git -C "$primary" worktree add -b "$name" "$path" "$base" >/dev/null
@@ -231,13 +229,13 @@ EOF
 
   python3 -c '
 import json, sys, time
-name, path, slot, api, gin, vite, db, base, session, out = sys.argv[1:11]
+name, path, slot, api, vite, db, base, session, out = sys.argv[1:10]
 json.dump({
     "name": name, "path": path, "slot": int(slot), "branch": name, "base": base,
-    "api": int(api), "gin": int(gin), "vite": int(vite), "db": db,
+    "api": int(api), "vite": int(vite), "db": db,
     "session": session, "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
 }, open(out, "w"), indent=2)
-' "$name" "$path" "$slot" "$api" "$gin" "$vite" "$db" "$base" "$AGENT_SESSION" "$(meta "$name")"
+' "$name" "$path" "$slot" "$api" "$vite" "$db" "$base" "$AGENT_SESSION" "$(meta "$name")"
 
   trap - ERR
 
@@ -252,14 +250,13 @@ EOF
 # ------------------------------------------------------------- up / down -----
 
 cmd_up() {
-  local name path api gin vite
+  local name path api vite
   name="$(resolve_name "${1:-}")"
   path="$(read_meta "$name" path)"
   api="$(read_meta "$name" api)"
-  gin="$(read_meta "$name" gin)"
   vite="$(read_meta "$name" vite)"
-  # Both are gitignored, so a fresh checkout has neither: gin writes its binary
-  # into build/ and the Makefile tees its log there.
+  # Both are gitignored, so a fresh checkout has neither: the watcher writes its
+  # binary into build/ and the Makefile tees its log there.
   mkdir -p "$path/.run" "$path/server/build"
 
   # setsid forks when the caller is already a group leader, so $! names the
@@ -277,21 +274,20 @@ cmd_up() {
     (cd "$path" && pnpm install --silent)
   fi
 
-  # gin runs the binary immediately and does not retry a failed exec, so a
-  # fresh checkout with no build/gin-bin leaves it proxying to a server that
-  # never starts. Building first means the immediate start has something to
-  # run.
-  if [[ ! -x "$path/server/build/gin-bin" ]]; then
+  # A first build is minutes. Doing it here reports that, where leaving it to
+  # the watcher would have `up` announce a server and return while the port is
+  # still dead.
+  if [[ ! -x "$path/server/build/dev-bin" ]]; then
     echo "building the server (first run in this worktree) …"
-    (cd "$path/server" && go build -o build/gin-bin ./cmd/human)
+    (cd "$path/server" && go build -o build/dev-bin ./cmd/human)
   fi
 
-  if port_busy "$gin"; then
-    orphan_warning "$gin" "$path/.run/server.pid" server
+  if port_busy "$api"; then
+    orphan_warning "$api" "$path/.run/server.pid" server
   else
     start_svc "$path/.run/server.pid" "$path/.run/server.log" "$path/server" \
-      make watch GIN_ARG_PORT="$gin"
-    echo "server   gin :$gin → api :$api   (log $path/.run/server.log)"
+      make watch
+    echo "server   api :$api   (log $path/.run/server.log)"
   fi
 
   if port_busy "$vite"; then
@@ -303,8 +299,7 @@ cmd_up() {
   fi
 
   echo
-  echo "gin rebuilds and respawns on its own on any .go write — give it ~15s."
-  echo "It only misses an edit that lands mid-build; re-save the file if one does."
+  echo "The server rebuilds and restarts itself on any .go write — give it ~15s."
 }
 
 cmd_down() {
@@ -335,7 +330,7 @@ cmd_down() {
   # The slot owns these ports, so anything still holding one is this
   # worktree's orphan — but only --force reaches for a pid nothing recorded.
   local stuck=0 holder
-  for p in "$(read_meta "$name" gin)" "$(read_meta "$name" vite)" "$(read_meta "$name" api)"; do
+  for p in "$(read_meta "$name" vite)" "$(read_meta "$name" api)"; do
     port_busy "$p" || continue
     holder="$(port_holder "$p")"
     if [[ -n "$force" && -n "$holder" ]]; then
@@ -354,19 +349,19 @@ cmd_down() {
 # ------------------------------------------------------------ list / info ----
 
 cmd_list() {
-  printf '%-4s %-18s %-6s %-6s %-6s %-24s %s\n' SLOT NAME API GIN VITE DB STATUS
-  printf '%-4s %-18s %-6s %-6s %-6s %-24s %s\n' 0 '(primary)' 1043 3001 5173 \
-    "$(db_name_base)" "$(port_busy 3001 && echo up || echo down)"
+  printf '%-4s %-18s %-6s %-6s %-24s %s\n' SLOT NAME API VITE DB STATUS
+  printf '%-4s %-18s %-6s %-6s %-24s %s\n' 0 '(primary)' 1043 5173 \
+    "$(db_name_base)" "$(port_busy 1043 && echo up || echo down)"
   for f in "$WT_DIR"/*.json; do
     [[ -f "$f" ]] || continue
     local n s
     n="$(json_get name <"$f")"
     s=""
-    port_busy "$(json_get gin <"$f")" && s="server "
+    port_busy "$(json_get api <"$f")" && s="server "
     port_busy "$(json_get vite <"$f")" && s="${s}webapp"
-    printf '%-4s %-18s %-6s %-6s %-6s %-24s %s\n' \
+    printf '%-4s %-18s %-6s %-6s %-24s %s\n' \
       "$(json_get slot <"$f")" "$n" "$(json_get api <"$f")" \
-      "$(json_get gin <"$f")" "$(json_get vite <"$f")" \
+      "$(json_get vite <"$f")" \
       "$(json_get db <"$f")" "${s:-down}"
   done
   report_orphans
@@ -501,7 +496,7 @@ cmd_gc() {
     fi
 
     running=""
-    port_busy "$(json_get gin <"$f")" && running="serving"
+    port_busy "$(json_get api <"$f")" && running="serving"
     port_busy "$(json_get vite <"$f")" && running="serving"
 
     dirty="$(git -C "$path" status --porcelain 2>/dev/null |

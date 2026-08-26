@@ -20,15 +20,14 @@ import (
 // is the thing I am about to test actually running my code?
 //
 // A reproduction against a stale binary is worse than no reproduction, because
-// it looks like evidence. `gin` rebuilds on change, but a build that failed
-// leaves the previous binary serving happily, and nothing about the API's
-// responses says so.
+// it looks like evidence. The watcher rebuilds on change, but a build that
+// failed leaves the previous binary serving happily, and nothing about the
+// API's responses says so.
 //
-// `make watch` runs gin with --immediate, so it rebuilds AND respawns on any
-// .go write on its own — no request to its proxy is involved, and a request to
-// the proxy does not start a build. What it drops is an edit that lands while a
-// build is already running: gin stamps its watch clock after the build returns,
-// which puts that file's mtime in the past, and it is then skipped for good.
+// `make watch` runs server/cmd/devwatch, which rebuilds and restarts the server
+// on any .go write. It has no proxy and no port of its own, and it cannot drop
+// an edit that lands mid-build: a write becomes a pending signal rather than a
+// timestamp compared against a clock.
 //
 // The authority on "is it running my code" is the START TIME OF THE PROCESS
 // serving requests, never a file mtime. Comparing the binary's mtime to the
@@ -169,10 +168,10 @@ func checkServer(ctx context.Context, root string) serverStatus {
 		out.Healthy = true
 	}
 
-	bin := filepath.Join(root, "server", "build", "gin-bin")
+	bin := filepath.Join(root, "server", "build", "dev-bin")
 	info, err := os.Stat(bin)
 	if err != nil {
-		out.Note = "no dev binary at server/build/gin-bin — the dev server is started with 'cd server && make watch'"
+		out.Note = "no dev binary at server/build/dev-bin — the dev server is started with 'cd server && make watch'"
 		return out
 	}
 
@@ -199,31 +198,28 @@ func checkServer(ctx context.Context, root string) serverStatus {
 
 // statusNote says what the timestamps mean and what to do about them.
 //
-// It is the widest-read description of gin's behaviour in the repo — a session
+// It is the widest-read description of the dev loop in the repo — a session
 // calls this tool, reads the note, and acts on it — so what it says has to be
-// what gin actually does. A note prescribing a poke at gin's proxy port sends
-// every session curling it for a build that has already happened without them,
-// and they carry the instruction onwards as fact.
+// what the watcher actually does. A note prescribing a remedy the watcher does
+// not need sends every session performing it, and they carry the instruction
+// onwards as fact.
 func statusNote(out serverStatus, newest string, haveProcess, watcherRunning bool) string {
 	switch {
 	case !out.Up && watcherRunning:
-		return "the dev server is not answering, but gin IS running — it is most likely mid-restart, so " +
-			"check again before concluding anything, or call this with wait. Do NOT start a second " +
-			"'make watch': it will fail with 'address already in use' and its 'tee build/dev.log' " +
-			"truncates the log on the way out"
+		return "the dev server is not answering, but the watcher IS running — it is most likely mid-restart, " +
+			"so check again before concluding anything, or call this with wait. A second 'make watch' is " +
+			"not the answer and the watcher refuses it anyway: one checkout gets one watcher"
 	case !out.Up:
-		return "the dev server is not answering and no gin watcher is running. Start it with " +
+		return "the dev server is not answering and no watcher is running. Start it with " +
 			"'cd server && make watch', or ask the human to"
 	case out.Stale && haveProcess:
 		return fmt.Sprintf("the process serving requests started BEFORE %s was last edited, so it is "+
 			"running code older than your change. Anything you reproduce against it right now describes the "+
-			"OLD build — including a failure, which will look exactly like a fix that did not work. gin "+
-			"rebuilds and respawns on its own, so the first move is to wait about 15s (call this with "+
-			"wait). Poking gin's proxy port does nothing here and is not the remedy. What gin drops is an "+
-			"edit that landed WHILE a build was running: it is skipped for good, and only re-saving the "+
-			"file gets it built. That restarts the server, so on the shared primary it is the human's call. "+
-			"If nothing comes back, read server/build/dev.log with dev_server_logs — a failed build leaves "+
-			"the old process serving happily", newest)
+			"OLD build — including a failure, which will look exactly like a fix that did not work. The "+
+			"watcher rebuilds and restarts on its own and cannot miss a write, so the answer is to wait "+
+			"about 15s: call this with wait rather than doing anything to the server. If it does not come "+
+			"back, read server/build/dev.log with dev_server_logs — a build that fails leaves the previous "+
+			"process serving happily, and the compiler output is the only thing that says so", newest)
 	case out.Stale:
 		return fmt.Sprintf("the binary is OLDER than %s and no running process was found to check against. "+
 			"It is still serving the previous build — check server/build/dev.log with dev_server_logs, "+
@@ -240,8 +236,8 @@ func statusNote(out serverStatus, newest string, haveProcess, watcherRunning boo
 // staleAgainst decides whether what is answering requests predates the newest
 // source, preferring the running process over the binary on disk.
 //
-// The two are not interchangeable. gin can start compiling before an edit lands
-// and finish after it, which produces a binary whose mtime is newer than every
+// The two are not interchangeable. A build can start before an edit lands and
+// finish after it, which produces a binary whose mtime is newer than every
 // source while its contents are older — so the mtime comparison reports fresh
 // for a process that is serving the previous build. It is only the fallback.
 func staleAgainst(newestSourceAt, processStartedAt, binaryBuiltAt time.Time, haveProcess bool) bool {
@@ -288,32 +284,33 @@ func serverProcessStart(ctx context.Context, root string) (time.Time, bool) {
 
 // serverProcessPattern matches THIS checkout's server child and nothing else.
 //
-// Matching the process name (`pgrep -x gin-bin`) matched any checkout's: with a
-// second Corteza tree also running one, this reported that server's start time
-// and called a Human server restarted two hours later stale, while the API was
-// already serving the fix. gin runs the child by absolute path, so anchoring on
-// the path separates them — and separates the child from the watcher and from
-// the shell wrapping the pipeline, both of which carry a relative
-// "build/gin-bin" in their command line.
+// Matching the process name matches any checkout's: with a second Corteza tree
+// running a dev server too, this reports that process's start time and calls a
+// Human server restarted two hours later stale, while the API is already
+// serving the fix. The watcher runs the child by absolute path, so anchoring on
+// the path separates them — and separates the child from the watcher, which
+// carries the same path as an argument rather than as its command.
 func serverProcessPattern(root string) string {
-	bin := filepath.Join(root, "server", "build", "gin-bin")
+	bin := filepath.Join(root, "server", "build", "dev-bin")
 
 	return "^" + regexp.QuoteMeta(bin) + "( |$)"
 }
 
-// watcherRunning answers whether THIS checkout has a gin watcher up, which is
-// the difference between "mid-restart, ask again" and "nothing is running".
+// watcherRunning answers whether THIS checkout has a watcher up, which is the
+// difference between "mid-restart, ask again" and "nothing is running".
 //
-// Scoped by the port gin was told to proxy to, which worktree.sh assigns per
-// slot: a bare `pgrep -x gin` finds any checkout's watcher, and would tell a
-// lane whose server is down that it is merely restarting because slot 0's is up.
+// Scoped by the binary it was told to build, for the same reason the child is:
+// a bare match on the watcher's name finds any checkout's, and would tell a lane
+// whose server is down that it is merely restarting because slot 0's is up.
 func watcherRunning(ctx context.Context, root string) bool {
-	out, err := runAllowFail(ctx, root, "pgrep", "-f", watcherPattern(devServerPort(root)))
+	out, err := runAllowFail(ctx, root, "pgrep", "-f", watcherPattern(root))
 	return err == nil && strings.TrimSpace(out) != ""
 }
 
-func watcherPattern(port string) string {
-	return "gin .*--appPort " + regexp.QuoteMeta(port) + "( |$)"
+func watcherPattern(root string) string {
+	bin := filepath.Join(root, "server", "build", "dev-bin")
+
+	return "devwatch .*-bin " + regexp.QuoteMeta(bin) + "( |$)"
 }
 
 // newestGoSource finds the most recently modified Go source under server/.

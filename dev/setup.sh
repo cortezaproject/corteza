@@ -30,7 +30,7 @@ MODE=setup
 # Where this checkout's stack listens. Re-read after anything writes server/.env
 # or .env.e2e, since those files are what it reads.
 reload_stack() {
-  eval "$(HUMAN_API= HUMAN_BASE= HUMAN_AUTH= HUMAN_WEBAPP= HUMAN_GIN= \
+  eval "$(HUMAN_API= HUMAN_BASE= HUMAN_AUTH= HUMAN_WEBAPP= \
     bash "$REPO_DIR/dev/agent/stack.sh")"
 }
 reload_stack
@@ -349,7 +349,7 @@ setup_agent() {
   non-system user in the database is auto-promoted to super-admin, and
   agent@local.dev is about to take that slot. For a login created later:
 
-    cd server && ./build/gin-bin --env-file .env roles useradd super-admin you@example.tld
+    cd server && ./build/dev-bin --env-file .env roles useradd super-admin you@example.tld
 
 EOF
 
@@ -410,8 +410,7 @@ Setup done$([[ "$PROBLEMS" == 0 ]] || echo " — $PROBLEMS thing(s) marked ! abo
   3. open $HUMAN_WEBAPP and sign up — the FIRST user becomes super-admin
   4. make setup-agent                        the agent toolkit's own identities
 
-gin rebuilds and respawns on its own on any .go write — give it ~15s. It only
-misses an edit that lands mid-build; re-save the file if one does.
+The server rebuilds and restarts itself on any .go write — give it ~15s.
 EOF
     ;;
 esac

@@ -59,7 +59,7 @@ def post(body, sid=None):
     if sid:
         h["Mcp-Session-Id"] = sid
     req = urllib.request.Request(MCP, data=json.dumps(body).encode(), headers=h, method="POST")
-    # A gin rebuild answers 503 for a few seconds. Left to urllib that surfaces
+    # A rebuild answers 503 for a few seconds. Left to urllib that surfaces
     # as an HTTPError traceback with nothing on stdout, so every caller parsing
     # stdout dies with "Expecting value: line 1 column 1" — a message about the
     # parser rather than about the server being mid-restart.

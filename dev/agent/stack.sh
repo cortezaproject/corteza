@@ -11,7 +11,7 @@
 # Precedence, highest first:
 #   1. the environment          — an explicit HUMAN_API/HUMAN_WEBAPP always wins
 #   2. this checkout's own files — server/.env, .env.e2e, the worktree registry
-#   3. the primary's ports       — 1043 / 3001 / 5173
+#   3. the primary's ports       — 1043 / 5173
 #
 #   source dev/agent/stack.sh      sets the variables
 #   eval "$(dev/agent/stack.sh)"   the same, from a subshell
@@ -61,9 +61,8 @@ _stack_webapp() { # _stack_webapp ROOT API_PORT
     "s#.*E2E_BASE_URL \|\| '([^']+)'.*#\1#p"
 }
 
-# gin's proxy port never reaches an env file — worktree.sh passes it on the
-# command line — so the worktree registry is the only record of it, and of the
-# vite port before .env.e2e exists to name it.
+# The registry is the only record of the vite port before .env.e2e exists to
+# name it.
 #
 # The entry has to agree with server/.env about the API port before anything in
 # it is worth reading: a checkout repointed after it was registered would
@@ -81,7 +80,6 @@ _stack_registry() { # _stack_registry ROOT API_PORT KEY
 
 _stack_port="$(_stack_api_port "$STACK_ROOT")"
 _stack_base="$(_stack_api_base "$STACK_ROOT")"
-_stack_gin="$(_stack_registry "$STACK_ROOT" "$_stack_port" gin)"
 
 # Falling back rather than failing keeps every script usable on a checkout that
 # has not been set up yet — `make setup` itself runs before server/.env exists.
@@ -90,8 +88,7 @@ HUMAN_BASE="${HUMAN_API%"${_stack_base:-/api}"}"
 HUMAN_AUTH="${HUMAN_AUTH:-$HUMAN_BASE/auth}"
 HUMAN_WEBAPP="${HUMAN_WEBAPP:-$(_stack_webapp "$STACK_ROOT" "$_stack_port")}"
 HUMAN_WEBAPP="${HUMAN_WEBAPP:-http://localhost:5173}"
-HUMAN_GIN="${HUMAN_GIN:-http://localhost:${_stack_gin:-3001}}"
-unset _stack_port _stack_base _stack_gin
+unset _stack_port _stack_base
 
 # Executed rather than sourced: print what a non-bash caller should read.
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
@@ -100,6 +97,5 @@ HUMAN_API=$HUMAN_API
 HUMAN_BASE=$HUMAN_BASE
 HUMAN_AUTH=$HUMAN_AUTH
 HUMAN_WEBAPP=$HUMAN_WEBAPP
-HUMAN_GIN=$HUMAN_GIN
 EOF
 fi

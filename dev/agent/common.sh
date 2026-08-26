@@ -7,7 +7,7 @@ REPO_DIR="$(cd "$AGENT_DIR/../.." && pwd)"
 SERVER_DIR="$REPO_DIR/server"
 STATE_DIR="$AGENT_DIR/.state"
 
-# HUMAN_API / HUMAN_BASE / HUMAN_AUTH / HUMAN_WEBAPP / HUMAN_GIN, resolved from
+# HUMAN_API / HUMAN_BASE / HUMAN_AUTH / HUMAN_WEBAPP, resolved from
 # this checkout's own files so a worktree answers for its own server.
 source "$AGENT_DIR/stack.sh"
 
@@ -74,8 +74,8 @@ print(d if not isinstance(d, (dict, list)) else json.dumps(d))
 }
 
 server_bin() {
-  if [[ -x "$SERVER_DIR/build/gin-bin" ]]; then
-    echo "$SERVER_DIR/build/gin-bin"
+  if [[ -x "$SERVER_DIR/build/dev-bin" ]]; then
+    echo "$SERVER_DIR/build/dev-bin"
   else
     ls -t "$SERVER_DIR"/build/human-server-* 2>/dev/null | head -1
   fi

@@ -13,9 +13,9 @@ import (
 // TestStaleAgainstPrefersTheRunningProcess pins the case that made this check
 // worth having.
 //
-// A fix was on disk and its unit test was green, gin rebuilt, and the tool said
-// "up, and the binary is newer than every Go source" — while the API kept
-// returning pre-fix results. gin had begun compiling before the edit landed and
+// A fix was on disk and its unit test was green, the watcher rebuilt, and the
+// tool said "up, and the binary is newer than every Go source" — while the API
+// kept returning pre-fix results. The build had begun before the edit landed and
 // finished after it, so the binary's mtime was newer than every source and its
 // contents were older. Judged by mtime alone the server looked fresh; judged by
 // when the process started, it plainly was not.
@@ -201,7 +201,7 @@ func TestDevServerURLAnswersForItsOwnCheckout(t *testing.T) {
 // TestServerProcessPatternMatchesOnlyThisCheckout pins the mismatch that made
 // the freshness flag lie.
 //
-// With a second Corteza tree also running a `gin-bin`, matching on the process
+// With a second Corteza tree also running a dev server, matching on the process
 // name reported THAT process's start time and called a Human server restarted
 // two hours later stale, while the API was already serving the fix.
 func TestServerProcessPatternMatchesOnlyThisCheckout(t *testing.T) {
@@ -214,12 +214,12 @@ func TestServerProcessPatternMatchesOnlyThisCheckout(t *testing.T) {
 	}{
 		{
 			name:    "this checkout's child",
-			cmdline: "/home/dev/Human/human/server/build/gin-bin --env-file .env serve",
+			cmdline: "/home/dev/Human/human/server/build/dev-bin --env-file .env serve",
 			want:    true,
 		},
 		{
 			name:    "another checkout's child",
-			cmdline: "/home/dev/Corteza/server/build/gin-bin --env-file .env serve",
+			cmdline: "/home/dev/Corteza/server/build/dev-bin --env-file .env serve",
 			want:    false,
 		},
 		{
@@ -227,17 +227,19 @@ func TestServerProcessPatternMatchesOnlyThisCheckout(t *testing.T) {
 			// port; the primary must not answer for it, or a lane's status is
 			// slot 0's.
 			name:    "a worktree's child",
-			cmdline: "/home/dev/Human/human-lanes/fix-chart/server/build/gin-bin --env-file .env serve",
+			cmdline: "/home/dev/Human/human-lanes/fix-chart/server/build/dev-bin --env-file .env serve",
 			want:    false,
 		},
 		{
-			name:    "the watcher, which runs the binary by a relative path",
-			cmdline: "/home/dev/go/bin/gin --laddr localhost --port 3001 --build cmd/human --immediate --bin build/gin-bin -- --env-file .env serve",
+			// The watcher carries the same path, as an argument rather than as
+			// the command it is running.
+			name:    "the watcher for this very checkout",
+			cmdline: "build/devwatch -root /home/dev/Human/human/server -build ./cmd/human -bin /home/dev/Human/human/server/build/dev-bin -- --env-file .env serve",
 			want:    false,
 		},
 		{
 			name:    "the shell wrapping the watcher's pipeline",
-			cmdline: "/bin/sh -c /home/dev/go/bin/gin --bin build/gin-bin -- serve 2>&1 | tee -a build/dev.log",
+			cmdline: "/bin/sh -c build/devwatch -bin /home/dev/Human/human/server/build/dev-bin -- serve 2>&1 | tee -a build/dev.log",
 			want:    false,
 		},
 	}
@@ -292,12 +294,13 @@ func TestWaitBudgetReadsSecondsAndCaps(t *testing.T) {
 }
 
 // TestStatusNoteNeverPrescribesThePoke keeps the tool from teaching a remedy
-// gin has not needed since --immediate.
+// the dev loop does not have.
 //
 // This note is the widest-read description of the watcher in the repo. While it
-// said "gin rebuilds lazily when its proxy is hit", sessions curled the proxy
-// port for a build that had already happened without them, and reported the
-// instruction onwards as fact.
+// said "rebuilds lazily when its proxy is hit", sessions curled a port for a
+// build that had already happened without them, and reported the instruction
+// onwards as fact. There is no proxy at all now, so any note naming one is
+// describing a stack that does not exist.
 func TestStatusNoteNeverPrescribesThePoke(t *testing.T) {
 	banned := []string{"lazily", "proxy is hit", "localhost:3001", "prods it"}
 
@@ -350,7 +353,7 @@ func TestAwaitServerPollsUntilTheBudgetRunsOut(t *testing.T) {
 		t.Fatal(err)
 	}
 	// A binary must exist, or the check returns before it reaches staleness.
-	if err := os.WriteFile(filepath.Join(root, "server", "build", "gin-bin"), []byte("x"), 0o755); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "server", "build", "dev-bin"), []byte("x"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	// Nothing is listening on this port, so the server never comes up.
@@ -379,10 +382,10 @@ func TestAwaitServerPollsUntilTheBudgetRunsOut(t *testing.T) {
 // TestWatcherPatternMatchesOnlyThisCheckoutsWatcher keeps a lane from being told
 // its dead server is "mid-restart" because another slot's watcher is up.
 //
-// gin's proxy-to port is the one thing on its command line that worktree.sh
-// assigns per slot, so it is what separates the watchers.
+// The binary it was told to build is the one thing on its command line that is
+// unique to a checkout, so it is what separates the watchers.
 func TestWatcherPatternMatchesOnlyThisCheckoutsWatcher(t *testing.T) {
-	pattern := regexp.MustCompile(watcherPattern("1143"))
+	pattern := regexp.MustCompile(watcherPattern("/home/dev/Human/human-lanes/fix-chart"))
 
 	cases := []struct {
 		name    string
@@ -390,24 +393,24 @@ func TestWatcherPatternMatchesOnlyThisCheckoutsWatcher(t *testing.T) {
 		want    bool
 	}{
 		{
-			name:    "this slot's watcher",
-			cmdline: "/home/dev/go/bin/gin --laddr localhost --port 3101 --appPort 1143 --build cmd/human --immediate --bin build/gin-bin -- --env-file .env serve",
+			name:    "this lane's watcher",
+			cmdline: "build/devwatch -root /home/dev/Human/human-lanes/fix-chart/server -build ./cmd/human -bin /home/dev/Human/human-lanes/fix-chart/server/build/dev-bin -- --env-file .env serve",
 			want:    true,
 		},
 		{
 			name:    "the primary's watcher",
-			cmdline: "/home/dev/go/bin/gin --laddr localhost --port 3001 --appPort 1043 --build cmd/human --immediate --bin build/gin-bin -- --env-file .env serve",
+			cmdline: "build/devwatch -root /home/dev/Human/human/server -build ./cmd/human -bin /home/dev/Human/human/server/build/dev-bin -- --env-file .env serve",
 			want:    false,
 		},
 		{
-			// 1143 is a prefix of 11430, and a slot's neighbour is not it.
-			name:    "a port this one is a prefix of",
-			cmdline: "/home/dev/go/bin/gin --laddr localhost --port 3101 --appPort 11430 --bin build/gin-bin",
+			// A sibling lane whose path this one is a prefix of.
+			name:    "a lane this one's path prefixes",
+			cmdline: "build/devwatch -bin /home/dev/Human/human-lanes/fix-chart-2/server/build/dev-bin -- serve",
 			want:    false,
 		},
 		{
-			name:    "the server child, which carries no appPort",
-			cmdline: "/home/dev/Human/human/server/build/gin-bin --env-file .env serve",
+			name:    "this lane's server child, which is not a watcher",
+			cmdline: "/home/dev/Human/human-lanes/fix-chart/server/build/dev-bin --env-file .env serve",
 			want:    false,
 		},
 	}
