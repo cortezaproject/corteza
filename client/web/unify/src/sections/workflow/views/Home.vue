@@ -16,7 +16,7 @@
       :loading="loading"
       :action-items="getActionsMenuItems"
       :translations="{
-        searchPlaceholder: $t('general.searchPlaceholder'),
+        searchPlaceholder: $t('general.workflow.searchPlaceholder'),
         showingPagination: 'general.resourceList.pagination.showing',
         singlePluralPagination: 'general.resourceList.pagination.single',
         prevPagination: $t('general.resourceList.pagination.prev'),
