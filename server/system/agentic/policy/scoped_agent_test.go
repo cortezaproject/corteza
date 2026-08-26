@@ -96,17 +96,26 @@ func TestReadOnlyNamespaceScopedAgent(t *testing.T) {
 		assert.False(t, d.Allowed, "another namespace must still be refused")
 	})
 
-	// Listing a resource-mapped tool with no allow entries reads as
-	// "unrestricted" and is the opposite: checkAllow denies it outright. Worth
-	// pinning, because the mistake is silent — the agent simply cannot work.
-	t.Run("an empty allow denies rather than widens", func(t *testing.T) {
+	// A tool listed with no allow entries reads as "unrestricted", and that is
+	// now what it means: the agent runs as the invoking user, so RBAC is the
+	// floor. Scoping an agent to one namespace therefore takes an allow entry —
+	// on the tool, or on the agent, which covers the tools it inherits too.
+	t.Run("an empty allow does not narrow", func(t *testing.T) {
 		bare := &types.Agent{
 			Access: types.AgentAccess{
 				Tools: []types.AgentAccessTool{{Name: "compose_namespace_lookup"}},
 			},
 		}
-		d := Evaluate(ctx, bare, "compose_namespace_lookup", MapValues{"namespaceID": ns}, nil)
+		d := Evaluate(ctx, bare, "compose_namespace_lookup", MapValues{"namespaceID": other}, nil)
+		assert.True(t, d.Allowed, d.Reason)
+
+		scoped := &types.Agent{
+			Access: types.AgentAccess{
+				Allow: []types.AgentAccessAllow{{NamespaceID: 100}},
+				Tools: []types.AgentAccessTool{{Name: "compose_namespace_lookup"}},
+			},
+		}
+		d = Evaluate(ctx, scoped, "compose_namespace_lookup", MapValues{"namespaceID": other}, nil)
 		assert.False(t, d.Allowed)
-		assert.Contains(t, d.Reason, "allow entries")
 	})
 }

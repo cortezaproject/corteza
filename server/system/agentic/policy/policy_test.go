@@ -6,6 +6,7 @@ import (
 
 	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEvaluate(t *testing.T) {
@@ -31,7 +32,11 @@ func TestEvaluate(t *testing.T) {
 		assert.Equal(t, "123", d.SanitizedArgs["recordID"])
 	})
 
-	t.Run("denied when tool has no allow entries", func(t *testing.T) {
+	// A named tool with no allow entries is not narrowed, and the agent reaches
+	// whatever the invoking user reaches — it runs as that user. This used to
+	// deny, which is what made an agent unusable until every tool was scoped by
+	// hand.
+	t.Run("a tool with no allow entries is not narrowed", func(t *testing.T) {
 		agent := &types.Agent{
 			Access: types.AgentAccess{
 				Tools: []types.AgentAccessTool{
@@ -40,7 +45,50 @@ func TestEvaluate(t *testing.T) {
 			},
 		}
 		d := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "1", "recordID": "123"}, nil)
+		assert.True(t, d.Allowed, d.Reason)
+	})
+
+	// The agent's own scope holds however its tools were granted — including
+	// the ones it inherits, which carry no allow list of their own.
+	t.Run("the agent scope narrows an unnarrowed tool", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				Allow: []types.AgentAccessAllow{{NamespaceID: 100}},
+				Tools: []types.AgentAccessTool{{Name: "compose_record_lookup"}},
+			},
+		}
+
+		in := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "100"}, nil)
+		assert.True(t, in.Allowed, in.Reason)
+
+		out := Evaluate(ctx, agent, "compose_record_lookup", MapValues{"namespaceID": "200"}, nil)
+		assert.False(t, out.Allowed)
+	})
+
+	t.Run("a tool set to deny is refused whatever its scope says", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				Tools: []types.AgentAccessTool{{
+					Name:       "compose_record_delete",
+					Permission: PermissionDeny,
+					Allow:      []types.AgentAccessAllow{{NamespaceID: 100}},
+				}},
+			},
+		}
+		d := Evaluate(ctx, agent, "compose_record_delete", MapValues{"namespaceID": "100"}, nil)
 		assert.False(t, d.Allowed)
+		assert.Contains(t, d.Reason, "deny")
+	})
+
+	t.Run("the permission mode travels with the decision", func(t *testing.T) {
+		agent := &types.Agent{
+			Access: types.AgentAccess{
+				Tools: []types.AgentAccessTool{{Name: "compose_record_create", Permission: PermissionAsk}},
+			},
+		}
+		d := Evaluate(ctx, agent, "compose_record_create", MapValues{"namespaceID": "100"}, nil)
+		require.True(t, d.Allowed, d.Reason)
+		assert.Equal(t, PermissionAsk, d.Permission)
 	})
 
 	t.Run("tool-level defaults fill missing args", func(t *testing.T) {

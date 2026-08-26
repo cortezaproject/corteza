@@ -29,6 +29,15 @@ func ToolAliases() map[string]string {
 	return out
 }
 
+// How an allowed tool call should be treated. A grant that names no mode is
+// resolved from the tool's risk when the agent loads, so an empty string
+// reaching a caller means "nothing said otherwise" rather than a fourth mode.
+const (
+	PermissionAlways = "always"
+	PermissionAsk    = "ask"
+	PermissionDeny   = "deny"
+)
+
 type (
 	OwnershipFallback func(ctx context.Context, args ValueGetter) bool
 
@@ -44,8 +53,14 @@ type (
 	MapValues map[string]any
 
 	Decision struct {
-		Allowed       bool
-		Reason        string
+		Allowed bool
+		Reason  string
+		// Permission is how the caller should treat an allowed call:
+		// PermissionAlways to run it, PermissionAsk to put it to the user
+		// first. It is empty on a denial, and on the grants that carry no mode
+		// of their own (a TAQ or workflow, which had to be named explicitly to
+		// be reachable at all).
+		Permission    string
 		SanitizedArgs map[string]any
 	}
 )
@@ -123,6 +138,13 @@ func Evaluate(ctx context.Context, agent *types.Agent, tool string, args ValueGe
 		}
 	}
 
+	// A tool set to deny is refused whatever its scope says. It is the one mode
+	// that needs checking before anything else: an operator turning a tool off
+	// means off, not "off unless the resource happens to be in range".
+	if entry.Permission == PermissionDeny {
+		return Decision{Allowed: false, Reason: fmt.Sprintf("tool %q is set to deny on this agent", tool)}
+	}
+
 	// Namespace create has no source namespace to validate against — the namespace
 	// doesn't exist yet. RBAC handles the real permission check inside the service.
 	if tool == "compose_namespace_create" {
@@ -142,7 +164,15 @@ func Evaluate(ctx context.Context, agent *types.Agent, tool string, args ValueGe
 	// that it was permissive.
 	resource, _ := buildResource(tool, args)
 
-	if d := checkAllow(entry.Allow, resource); !d.Allowed {
+	// Two narrowings, both optional and both applying: the agent's own scope
+	// bounds everything it can reach, and the tool entry bounds that tool.
+	// Naming a namespace on the agent is the one setting that holds however
+	// its tools are granted, including the ones it inherits.
+	for _, allow := range [][]types.AgentAccessAllow{agent.Access.Allow, entry.Allow} {
+		d := checkAllow(allow, resource)
+		if d.Allowed {
+			continue
+		}
 		if ownsTarget != nil && ownsTarget(ctx, args) {
 			return allowedDecision(agent, entry, args)
 		}
@@ -171,11 +201,15 @@ func allowedDecision(agent *types.Agent, entry *types.AgentAccessTool, args Valu
 		}
 	}
 
-	return Decision{
+	d := Decision{
 		Allowed:       true,
 		Reason:        "tool is in agent's allow-list",
 		SanitizedArgs: sanitized,
 	}
+	if entry != nil {
+		d.Permission = entry.Permission
+	}
+	return d
 }
 
 func findTAQ(agent *types.Agent, ref string) *types.AgentAccessTAQ {
@@ -444,14 +478,18 @@ func buildResource(tool string, args ValueGetter) (string, bool) {
 	}
 }
 
-// checkAllow returns denied if allow is non-empty and no entry covers the resource.
-// Each allow entry covers a namespace; if ModuleIDs is empty it covers all modules in that namespace.
+// checkAllow narrows a tool to the namespaces and modules an allow list names.
+// Each entry covers a namespace; an empty ModuleIDs covers every module in it.
+//
+// An EMPTY list means the tool was not narrowed, and the agent reaches whatever
+// the invoking user's own permissions reach — it runs as that user, so RBAC is
+// the floor either way. It used to mean denied, on the reasoning that an
+// unscoped grant was too broad to have been intended; that reading is what made
+// an agent unusable until every tool was scoped by hand, and it is the opposite
+// of the default this now has.
 func checkAllow(allow []types.AgentAccessAllow, resource string) Decision {
-	if resource == "" {
+	if resource == "" || len(allow) == 0 {
 		return Decision{Allowed: true}
-	}
-	if len(allow) == 0 {
-		return Decision{Allowed: false, Reason: "tool has no allow entries"}
 	}
 
 	// An allow entry describes a compose namespace and its modules, and can say
