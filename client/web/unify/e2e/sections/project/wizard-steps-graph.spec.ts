@@ -148,8 +148,8 @@ test.describe.serial('wizard Build pipeline + resource graph contract', () => {
 
       // Search narrows server-side (handle OR meta name since the 2026-07-24
       // filter fix); the text filter still pins the exact row.
-      await page.getByPlaceholder('Search projects…').fill(projectName)
-      const row = page.locator('tbody tr').filter({ hasText: projectName })
+      await page.getByPlaceholder('Search for projects').fill(projectName)
+      let row = page.locator('tbody tr').filter({ hasText: projectName })
       try {
         await expect(row).toHaveCount(1, { timeout: 15000 })
       } catch {
@@ -161,6 +161,15 @@ test.describe.serial('wizard Build pipeline + resource graph contract', () => {
       // icons) — scope a CSS locator to the matched row rather than the page.
       await row.locator('.row-action-btn').click()
       await page.getByRole('menuitem', { name: 'Archive' }).click()
+
+      // Archiving takes the row off the default list, which asks for
+      // archived: 0 (ProjectList.vue's statusFilterParams) — the delete
+      // happens on the shelf, where the row now is.
+      await page.goto('/project/projects?status=archived')
+      await page.waitForLoadState('networkidle')
+      await page.getByPlaceholder('Search for projects').fill(projectName)
+      row = page.locator('tbody tr').filter({ hasText: projectName })
+      await expect(row).toHaveCount(1, { timeout: 15000 })
 
       await row.locator('.row-action-btn').click()
       await page.getByRole('menuitem', { name: 'Delete' }).click()

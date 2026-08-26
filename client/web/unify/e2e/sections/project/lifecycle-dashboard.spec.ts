@@ -38,7 +38,7 @@ test.describe.serial('project lifecycle & dashboard', () => {
     // debounced and rewrites the URL (?query=) when it lands — wait for that
     // rewrite BEFORE returning, or a row click races it and its navigation
     // is lost.
-    await page.getByPlaceholder('Search projects').fill(name)
+    await page.getByPlaceholder('Search for projects').fill(name)
     await page.waitForURL(u => u.searchParams.get('query') === name)
     await page.waitForLoadState('networkidle')
     return page.locator('tbody tr').filter({ hasText: name })
@@ -68,25 +68,38 @@ test.describe.serial('project lifecycle & dashboard', () => {
     await expect(dialog).toBeHidden()
   }
 
-  // Best-effort and idempotent: archive first (an active project can't be
-  // deleted directly — see ProjectList.vue's row actions), then delete. Safe
-  // to call more than once (e.g. from the afterAll safety net below) — a
-  // missing row just means there's nothing left to clean up.
-  async function cleanupProject(page: Page, name: string) {
-    await page.goto('/project/projects')
+  // The default list asks for archived: 0 (ProjectList.vue's statusFilterParams),
+  // so a project drops off it the moment it is shelved. `?status=archived` is
+  // the shelf, and the status survives the search box's URL rewrite.
+  async function openProjects(page: Page, status = '') {
+    await page.goto(`/project/projects${status ? `?status=${status}` : ''}`)
     await page.waitForLoadState('networkidle')
-    const row = await findRow(page, name)
-    if ((await row.count()) === 0) return
+  }
 
-    let menu = await openRowMenu(row)
-    if ((await menu.getByRole('menuitem', { name: 'Unarchive' }).count()) === 0) {
-      await menu.getByRole('menuitem', { name: 'Archive', exact: true }).click()
-      await expect(row.getByText('Archived', { exact: true })).toBeVisible()
-    } else {
-      await page.keyboard.press('Escape')
+  // Best-effort and idempotent: archive first (an active project can't be
+  // deleted directly — see ProjectList.vue's row actions), then delete on the
+  // archived shelf, where the row now lives. Safe to call more than once (e.g.
+  // from the afterAll safety net below) — a missing row on both the working
+  // list and the shelf means there's nothing left to clean up.
+  async function cleanupProject(page: Page, name: string) {
+    await openProjects(page)
+    let row = await findRow(page, name)
+
+    if ((await row.count()) > 0) {
+      const menu = await openRowMenu(row)
+      if ((await menu.getByRole('menuitem', { name: 'Unarchive' }).count()) === 0) {
+        await menu.getByRole('menuitem', { name: 'Archive', exact: true }).click()
+      } else {
+        await page.keyboard.press('Escape')
+      }
     }
 
-    menu = await openRowMenu(row)
+    await openProjects(page, 'archived')
+    row = await findRow(page, name)
+    if ((await row.count()) === 0) return
+    await expect(row.getByText('Archived', { exact: true })).toBeVisible()
+
+    const menu = await openRowMenu(row)
     await menu.getByRole('menuitem', { name: 'Delete' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete', exact: true }).click()
     await expect(row).toHaveCount(0)

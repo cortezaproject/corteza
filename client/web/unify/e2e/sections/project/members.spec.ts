@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 // Locked members contract (sections/project/project.intent.md +
 // components/project/project.intent.md): users hold per-project roles, and
@@ -103,6 +103,12 @@ test.describe.serial('project members dialog', () => {
     await expect(rows.first().getByText(new RegExp(`^(${presetLabels.join('|')})$`))).toBeVisible()
   })
 
+  async function search(page: Page, name: string) {
+    await page.getByPlaceholder('Search for projects').fill(name)
+    await page.waitForURL(u => u.searchParams.get('query') === name)
+    await page.waitForLoadState('networkidle')
+  }
+
   test.afterAll(async ({ browser }) => {
     if (!projectId) return
 
@@ -113,9 +119,12 @@ test.describe.serial('project members dialog', () => {
       await page.waitForLoadState('networkidle')
 
       // Search narrows server-side (handle OR meta name since the 2026-07-24
-      // filter fix); the text filter still pins the exact row.
-      await page.getByPlaceholder('Search projects').fill(projectName)
-      const row = page.locator('tbody tr').filter({ hasText: projectName })
+      // filter fix); the text filter still pins the exact row. It is debounced
+      // and rewrites the URL when it lands — wait for that before touching a
+      // row, or the refresh replaces the node mid-click and the menu never
+      // opens.
+      await search(page, projectName)
+      let row = page.locator('tbody tr').filter({ hasText: projectName })
       await expect(row).toHaveCount(1)
 
       // Archive first (defensive, in case delete requires a non-draft
@@ -123,6 +132,14 @@ test.describe.serial('project members dialog', () => {
       // actions menu (rename / archive-unarchive / delete).
       await row.getByRole('button').click()
       await page.getByRole('menuitem', { name: 'Archive' }).click()
+
+      // Archiving takes the row off the default list, which asks for
+      // archived: 0 (ProjectList.vue's statusFilterParams) — the delete
+      // happens on the shelf, where the row now is.
+      await page.goto('/project/projects?status=archived')
+      await page.waitForLoadState('networkidle')
+      await search(page, projectName)
+      row = page.locator('tbody tr').filter({ hasText: projectName })
       await expect(row.getByText('Archived', { exact: true })).toBeVisible()
 
       await row.getByRole('button').click()
