@@ -36,6 +36,12 @@ function mountChat(agentExec: ReturnType<typeof vi.fn>) {
   })
 }
 
+// Every message the store holds for one agent, whichever conversation it is in.
+function messagesFor(vm: any, agentID: string): string[] {
+  const convs = vm.$.setupState.agentStore.conversations[agentID] || []
+  return convs.flatMap((c: any) => (c.messages || []).map((m: any) => String(m.content ?? '')))
+}
+
 describe('CAgentChat approvals', () => {
   // A run that stopped to ask has nothing to say yet. The output fallback used
   // to print the whole response object as the agent's answer — a wall of JSON
@@ -56,7 +62,13 @@ describe('CAgentChat approvals', () => {
     await flushPromises()
 
     expect(vm.$.setupState.pending?.tool).toBe('compose_record_update')
-    expect(JSON.stringify(w.text())).not.toContain('conversationID')
+
+    // Assert on what the store was actually given. The rendered text lags and
+    // the filtered view depends on which agent is active, so a check against
+    // either passes whether or not the JSON was ever added.
+    const contents = messagesFor(vm, '1')
+    expect(contents.join('\n')).not.toContain('conversationID')
+    expect(contents.join('\n')).not.toContain('awaiting_approval')
   })
 
   // Approving "for this chat" must be remembered, or every call asks again.
