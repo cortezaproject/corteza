@@ -94,7 +94,29 @@ describe('AgentToolDialog', () => {
   it('opens showing what the agent already has', () => {
     const vm = mountDialog([{ name: 'compose_record_lookup', permission: 'ask' }]).vm as any
     expect([...vm.chosen]).toEqual(['compose_record_lookup'])
-    expect(vm.modeOf({ name: 'compose_record_lookup' })).toBe('ask')
+    expect(vm.effectiveMode({ name: 'compose_record_lookup', risk: 'read' })).toBe('ask')
+  })
+
+  // There is no fourth "default" segment: the default IS one of the three, and
+  // a row with nothing set shows the one its risk decides.
+  it('shows the risk default as the chosen segment', () => {
+    const vm = mountDialog().vm as any
+    expect(vm.effectiveMode({ name: 'compose_record_lookup', risk: 'read' })).toBe('always')
+    expect(vm.effectiveMode({ name: 'compose_record_create', risk: 'write' })).toBe('ask')
+    expect(vm.effectiveMode({ name: 'compose_record_delete', risk: 'destructive' })).toBe('ask')
+  })
+
+  // Choosing the mode the risk would have given anyway is not a decision to
+  // store: pinning it would freeze the tool if the rule ever changed.
+  it('stores an override only when it differs from the risk default', () => {
+    const w = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }])
+    const vm = w.vm as any
+
+    vm.setMode({ name: 'compose_record_create', risk: 'write' }, 'ask')
+    expect(vm.chosen.has('compose_record_create')).toBe(false)
+
+    vm.setMode({ name: 'compose_record_create', risk: 'write' }, 'always')
+    expect(vm.chosen.has('compose_record_create')).toBe(true)
   })
 
   // A grant carries a namespace scope set elsewhere in the editor; the dialog
@@ -108,11 +130,11 @@ describe('AgentToolDialog', () => {
     const w = mountDialog([scoped])
     const vm = w.vm as any
 
-    vm.setMode({ name: 'compose_record_lookup' }, 'always')
+    vm.setMode({ name: 'compose_record_lookup', risk: 'read' }, 'ask')
     vm.apply()
 
     const [applied] = w.emitted('apply') as any[]
-    expect(applied[0]).toEqual([{ ...scoped, permission: 'always' }])
+    expect(applied[0]).toEqual([{ ...scoped, permission: 'ask' }])
   })
 
   // A group grant has no name; it belongs to the panel, not this dialog, and
@@ -150,7 +172,7 @@ describe('AgentToolDialog overrides', () => {
     const w = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }])
     const vm = w.vm as any
 
-    vm.setMode({ name: 'compose_record_delete' }, 'deny')
+    vm.setMode({ name: 'compose_record_delete', risk: 'destructive' }, 'deny')
     vm.apply()
 
     const [applied] = w.emitted('apply') as any[]
@@ -166,8 +188,8 @@ describe('AgentToolDialog overrides', () => {
     const w = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }])
     const vm = w.vm as any
 
-    vm.setMode({ name: 'compose_record_delete' }, 'deny')
-    vm.setMode({ name: 'compose_record_delete' }, '')
+    vm.setMode({ name: 'compose_record_delete', risk: 'destructive' }, 'deny')
+    vm.setMode({ name: 'compose_record_delete', risk: 'destructive' }, 'ask')
     vm.apply()
 
     const [applied] = w.emitted('apply') as any[]

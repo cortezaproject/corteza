@@ -197,7 +197,6 @@ editor:
       mode:
         always: Always allow
         ask: Ask each chat
-        default: Default
         deny: Never allow
       noMatches: No tool matches that.
       risk:

@@ -90,7 +90,11 @@
                 class="mt-0.5"
                 @update:model-value="v => toggle(tool, v)"
               />
-              <label :for="`tool-${tool.name}`" class="flex-1 min-w-0 cursor-pointer">
+              <label
+                :for="`tool-${tool.name}`"
+                class="flex-1 min-w-0 cursor-pointer"
+                :class="{ 'opacity-50': effectiveMode(tool) === 'deny' }"
+              >
                 <span class="text-sm text-color block">{{ tool.title || tool.name }}</span>
                 <span class="text-xs text-muted-color block line-clamp-2">
                   {{ summarise(tool.description) }}
@@ -106,20 +110,23 @@
                 :title="riskLabel(tool.risk)"
               />
 
-              <!-- The default mode is stored as an empty string, which PrimeVue
-                   reads as "no value" and renders blank; the placeholder is what
-                   makes the row say what it will actually do. -->
-              <Select
-                :model-value="modeOf(tool)"
+              <!-- Three states, always all three visible. The one that reads as
+                   chosen is the effective mode: what the operator set, or what
+                   the tool's risk decides until they set something. -->
+              <SelectButton
+                :model-value="effectiveMode(tool)"
                 :options="modeOptions"
-                option-label="label"
                 option-value="value"
-                :placeholder="$t('agent.editor.tools.dialog.mode.default')"
+                :allow-empty="false"
                 size="small"
-                class="w-40 shrink-0"
+                class="shrink-0"
                 :disabled="disabled || !(chosen.has(tool.name) || groupGrant(grp.key))"
                 @update:model-value="v => setMode(tool, v)"
-              />
+              >
+                <template #option="{ option }">
+                  <i :class="option.icon" :title="option.label" />
+                </template>
+              </SelectButton>
             </div>
           </div>
         </section>
@@ -200,11 +207,25 @@ watch(
 )
 
 const modeOptions = computed(() => [
-  { value: '', label: t('agent.editor.tools.dialog.mode.default') },
-  { value: 'always', label: t('agent.editor.tools.dialog.mode.always') },
-  { value: 'ask', label: t('agent.editor.tools.dialog.mode.ask') },
-  { value: 'deny', label: t('agent.editor.tools.dialog.mode.deny') },
+  {
+    value: 'always',
+    icon: 'pi pi-check-circle',
+    label: t('agent.editor.tools.dialog.mode.always'),
+  },
+  { value: 'ask', icon: 'pi pi-question-circle', label: t('agent.editor.tools.dialog.mode.ask') },
+  { value: 'deny', icon: 'pi pi-ban', label: t('agent.editor.tools.dialog.mode.deny') },
 ])
+
+// What the tool will actually do: the mode set on it, or the one its risk
+// decides until someone sets another. There is no fourth "default" segment —
+// the default IS one of the three, shown as the chosen one.
+function effectiveMode(tool) {
+  return draft.value.get(tool.name) || defaultModeFor(tool.risk)
+}
+
+function defaultModeFor(risk) {
+  return risk && risk !== 'read' ? 'ask' : 'always'
+}
 
 const riskCeilings = computed(() => [
   { value: 'read', label: t('agent.editor.tools.dialog.ceiling.read') },
@@ -311,10 +332,6 @@ function summarise(description) {
   return end > 0 ? text.slice(0, end + 1) : text
 }
 
-function modeOf(tool) {
-  return draft.value.get(tool.name) ?? ''
-}
-
 function groupGrant(key) {
   const maxRisk = groupDraft.value.get(key)
   return maxRisk ? { group: key, maxRisk } : null
@@ -344,10 +361,17 @@ function setGroupRisk(key, maxRisk) {
 // Setting a mode on a tool the group already covers writes a named entry beside
 // the group grant, which is how "all data tools, but ask before deleting" is
 // said. The named entry wins: the runtime expands groups after them.
+//
+// Choosing the mode the risk would have given anyway clears the override rather
+// than pinning it, so a tool that should simply follow the rule keeps doing so
+// if the rule ever changes.
 function setMode(tool, mode) {
   const next = new Map(draft.value)
-  if (!mode && !named.value.has(tool.name)) next.delete(tool.name)
-  else next.set(tool.name, mode || '')
+  const isDefault = mode === defaultModeFor(tool.risk)
+
+  if (isDefault && !named.value.has(tool.name)) next.delete(tool.name)
+  else next.set(tool.name, isDefault ? '' : mode)
+
   draft.value = next
 }
 
