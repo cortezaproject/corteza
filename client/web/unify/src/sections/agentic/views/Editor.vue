@@ -469,12 +469,20 @@
                         {{ $t('general.label.loading') }}
                       </span>
 
+                      <!-- A readout, bounded the way the pickers below it are.
+                           Loose text under a button, between two framed
+                           controls, read as something that had come adrift. The
+                           fill says it is read rather than typed into. -->
+
                       <!-- How much of this agent runs unattended, and over
                            which subjects. Grouped by permission rather than by
                            subject: two columns of bare glyphs made the reader
                            hover to learn what they counted, and the question
                            the panel is here to answer is the split itself. -->
-                      <div v-else-if="toolSummary.total" class="text-sm flex flex-col gap-3">
+                      <div
+                        v-else-if="toolSummary.total"
+                        class="max-w-lg rounded-border border border-surface bg-emphasis p-3 text-sm flex flex-col gap-3"
+                      >
                         <span class="text-color">
                           {{ $t('agent.editor.tools.summary.chosen', { n: toolSummary.total }) }}
                         </span>
@@ -498,9 +506,12 @@
                         </div>
                       </div>
 
-                      <span v-else class="text-sm text-muted-color">
+                      <div
+                        v-else
+                        class="max-w-lg rounded-border border border-surface bg-emphasis p-3 text-sm text-muted-color"
+                      >
                         {{ $t('agent.editor.tools.summary.inheritsHelp') }}
-                      </span>
+                      </div>
 
                       <Divider class="my-4" />
 
