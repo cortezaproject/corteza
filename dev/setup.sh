@@ -35,15 +35,18 @@ reload_stack() {
 }
 reload_stack
 
+# shellcheck source=dev/agent/tty.sh
+source "$REPO_DIR/dev/agent/tty.sh"
+
 PROBLEMS=0
 
-say() { printf '  %-12s %s\n' "$1" "$2"; }
+say() { printf '  %s %-12s %s\n' "$(paint "$C_GREEN" "$G_OK")" "$1" "$2"; }
 bad() {
-  printf '  %-12s ! %s\n' "$1" "$2"
+  printf '  %s %-12s %s\n' "$(paint "$C_RED" "$G_BAD")" "$1" "$(paint "$C_RED" "$2")"
   PROBLEMS=$((PROBLEMS + 1))
 }
-hint() { printf '  %-12s   %s\n' '' "$1"; }
-head_() { printf '\n%s\n' "$1"; }
+hint() { printf '    %s\n' "$(paint "$C_DIM" "$G_HINT $1")"; }
+head_() { printf '\n%s\n' "$(paint "$C_BOLD" "$G_SECTION $1")"; }
 
 writing() { [[ "$MODE" != check ]]; }
 
@@ -393,7 +396,11 @@ EOF
     write_config_js
     write_e2e_env
     check_database
-    head_ "$([[ "$PROBLEMS" == 0 ]] && echo 'Nothing to fix.' || echo "$PROBLEMS problem(s) above.")"
+    if [[ "$PROBLEMS" == 0 ]]; then
+      printf '\n%s\n' "$(paint "$C_GREEN" "$G_OK Nothing to fix.")"
+    else
+      printf '\n%s\n' "$(paint "$C_RED" "$G_BAD $PROBLEMS problem(s) above.")"
+    fi
     [[ "$PROBLEMS" == 0 ]]
     ;;
 
@@ -404,16 +411,22 @@ EOF
     write_config_js
     write_e2e_env
     check_database
-    cat <<EOF
+    if [[ "$PROBLEMS" == 0 ]]; then
+      printf '\n%s\n' "$(paint "$C_GREEN$C_BOLD" "$G_OK Setup done.")"
+    else
+      printf '\n%s\n' "$(paint "$C_YELLOW$C_BOLD" "$G_BAD Setup done — $PROBLEMS thing(s) marked $G_BAD above need you.")"
+    fi
 
-Setup done$([[ "$PROBLEMS" == 0 ]] || echo " — $PROBLEMS thing(s) marked ! above need you"). Next:
-
-  1. cd server && make watch                 API on $HUMAN_BASE
-  2. cd client/web/unify && pnpm dev         webapp on $HUMAN_WEBAPP
-  3. open $HUMAN_WEBAPP and sign up — the FIRST user becomes super-admin
-  4. make setup-agent                        the agent toolkit's own identities
-
-The server rebuilds and restarts itself on any .go write — give it ~15s.
-EOF
+    printf '\n%s\n' "$(paint "$C_BOLD" "$G_SECTION Next")"
+    printf '  %s cd server && make watch                 %s\n' \
+      "$(paint "$C_CYAN" 1.)" "$(paint "$C_DIM" "API on $HUMAN_BASE")"
+    printf '  %s cd client/web/unify && pnpm dev         %s\n' \
+      "$(paint "$C_CYAN" 2.)" "$(paint "$C_DIM" "webapp on $HUMAN_WEBAPP")"
+    printf '  %s open %s and sign up %s\n' \
+      "$(paint "$C_CYAN" 3.)" "$HUMAN_WEBAPP" "$(paint "$C_DIM" "— the FIRST user becomes super-admin")"
+    printf '  %s make setup-agent                        %s\n' \
+      "$(paint "$C_CYAN" 4.)" "$(paint "$C_DIM" "the agent toolkit's own identities")"
+    printf '\n%s\n' \
+      "$(paint "$C_DIM" "The server rebuilds and restarts itself on any .go write — give it ~15s.")"
     ;;
 esac

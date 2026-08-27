@@ -36,9 +36,11 @@ function freePort(taken = new Set()) {
 }
 
 function portBusy(port) {
-  return execFileSync('bash', ['-c', `ss -ltn "sport = :${port}" | grep -c LISTEN || true`])
-    .toString()
-    .trim() !== '0'
+  return (
+    execFileSync('bash', ['-c', `ss -ltn "sport = :${port}" | grep -c LISTEN || true`])
+      .toString()
+      .trim() !== '0'
+  )
 }
 
 // A checkout with just enough of dev/agent for worktree.sh to run, plus one
@@ -47,7 +49,8 @@ function checkout(api, vite) {
   const root = mkdtempSync(join(tmpdir(), 'wt-down-'))
   const agent = join(root, 'dev', 'agent')
   mkdirSync(join(agent, '.state', 'worktrees'), { recursive: true })
-  for (const f of ['worktree.sh', 'common.sh', 'stack.sh']) copyFileSync(join(HERE, f), join(agent, f))
+  for (const f of ['worktree.sh', 'common.sh', 'stack.sh', 'tty.sh'])
+    copyFileSync(join(HERE, f), join(agent, f))
   const path = join(root, 'wt')
   mkdirSync(join(path, '.run'), { recursive: true })
   // stack.sh resolves this checkout's ports from these two, and refuses to
@@ -55,7 +58,10 @@ function checkout(api, vite) {
   mkdirSync(join(root, 'server'), { recursive: true })
   mkdirSync(join(root, 'client', 'web', 'unify'), { recursive: true })
   writeFileSync(join(root, 'server', '.env'), `HTTP_ADDR=:${api}\n`)
-  writeFileSync(join(root, 'client', 'web', 'unify', '.env.e2e'), `E2E_BASE_URL=http://localhost:${vite}\n`)
+  writeFileSync(
+    join(root, 'client', 'web', 'unify', '.env.e2e'),
+    `E2E_BASE_URL=http://localhost:${vite}\n`,
+  )
   writeFileSync(
     join(agent, '.state', 'worktrees', 'fake.json'),
     JSON.stringify({ name: 'fake', path, slot: 7, branch: 'fake', api, vite, db: 'none' }, null, 2),
@@ -99,7 +105,9 @@ test('down frees a port held outside the recorded process group', async t => {
   const { root, agent, path } = checkout(api, vite)
   t.after(() => {
     try {
-      execFileSync('bash', [join(agent, 'worktree.sh'), 'down', 'fake', '--force'], { stdio: 'ignore' })
+      execFileSync('bash', [join(agent, 'worktree.sh'), 'down', 'fake', '--force'], {
+        stdio: 'ignore',
+      })
     } catch {}
     rmSync(root, { recursive: true, force: true })
   })
@@ -111,7 +119,9 @@ test('down frees a port held outside the recorded process group', async t => {
   // point of the fixture, and asserting it keeps the test honest if the dev
   // stack ever stops working that way.
   const leader = readFileSync(pidfile, 'utf8').trim()
-  const leaderPgid = execFileSync('bash', ['-c', `ps -o pgid= -p ${leader} | tr -d ' '`]).toString().trim()
+  const leaderPgid = execFileSync('bash', ['-c', `ps -o pgid= -p ${leader} | tr -d ' '`])
+    .toString()
+    .trim()
   const holderPgid = execFileSync('bash', [
     '-c',
     `p=$(ss -ltnp "sport = :${api}" | sed -nE 's/.*pid=([0-9]+).*/\\1/p' | head -1); ps -o pgid= -p $p | tr -d ' '`,

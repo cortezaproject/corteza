@@ -11,6 +11,9 @@ STATE_DIR="$AGENT_DIR/.state"
 # this checkout's own files so a worktree answers for its own server.
 source "$AGENT_DIR/stack.sh"
 
+# C_* and G_* for the scripts that report to a human.
+source "$AGENT_DIR/tty.sh"
+
 AGENT_EMAIL="agent@local.dev"
 AGENT_CLIENT="dev_agent"
 AGENT_SCOPE="profile api"

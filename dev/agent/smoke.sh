@@ -5,13 +5,13 @@ set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 fail=0
-ok() { echo "  ✓ $*"; }
+ok() { echo "  $(paint "$C_GREEN" "$G_OK") $*"; }
 bad() {
-  echo "  ✗ $*" >&2
+  echo "  $(paint "$C_RED" "$G_BAD") $(paint "$C_RED" "$*")" >&2
   fail=1
 }
 
-echo "smoke: $HUMAN_API"
+echo "$(paint "$C_BOLD" "$G_SECTION smoke") $(paint "$C_DIM" "$HUMAN_API")"
 
 ver=$(curl -sf -m 5 "$HUMAN_BASE/version" | json_get response.version 2>/dev/null)
 if [[ -n "${ver:-}" ]]; then
@@ -23,7 +23,7 @@ else
   # checkout on this machine runs a watcher of the same name.
   if pgrep -f "devwatch .*-bin $SERVER_DIR/build/dev-bin" >/dev/null 2>&1; then
     bad "server is building at $HUMAN_BASE — the watcher is up but the binary is not serving yet."
-    echo "    Retry in ~15s; dev/agent/logs.sh -n 20 shows the build." >&2
+    echo "    $(paint "$C_DIM" "$G_HINT Retry in ~15s; dev/agent/logs.sh -n 20 shows the build.")" >&2
   else
     bad "server not reachable at $HUMAN_BASE — start it: cd server && make watch"
   fi
