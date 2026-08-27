@@ -225,7 +225,7 @@ DOM as it is; use a visibility assertion when visibility is the question.
   behaviour against a fix that is genuinely there, which reads as the fix not
   working. Confirm what is actually served before believing a UI result about
   a lib change:
-  `curl -s 'localhost:5173/@fs<abs-path-to-file>' | head`.
+  `curl -s "$(dev/agent/stack.sh | sed -n 's/^HUMAN_WEBAPP=//p')/@fs<abs-path-to-file>" | head`.
   Only a vite restart clears it — ask the human, never restart it yourself.
 - **A same-origin `/api/…` fetch from inside a drive check hits the SPA, not
   the API.** Vite proxies exactly two paths (`/custom.css`,
@@ -277,10 +277,11 @@ worktree.sh gc   [--reap]            find abandoned worktrees and databases
 worktree.sh rm   NAME                stop, drop the DB, remove the checkout
 ```
 
-Ports come from the slot, so two worktrees cannot collide — API `1043+slot*100`,
-vite `5173+slot`. The primary is slot 0 and is never
-reassigned. `new` writes `server/.env`, `public/config.js` and `.env.e2e`
-pointed at those ports; all three are gitignored, so nothing shows up in the
+Ports come from the slot, so two worktrees cannot collide — API `+slot*100`
+and vite `+slot`, counted off whatever the primary itself serves rather than
+off a fixed number. The primary is slot 0 and is never reassigned. `new` writes
+`server/.env`, `public/config.js`, `.env.local` (the vite port) and `.env.e2e`
+pointed at those ports; all four are gitignored, so nothing shows up in the
 worktree's `git status`, and they are what `stack.sh` reads back — so a
 worktree needs no `make setup` and no `HUMAN_API` in its environment.
 

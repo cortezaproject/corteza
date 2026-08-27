@@ -256,11 +256,11 @@ dev/agent/worktree.sh land alpha   # rebase onto main, ff-merge, remove
 dev/agent/worktree.sh gc           # find leftovers; --reap removes them
 ```
 
-`new` writes that slot's `server/.env`, `public/config.js` and `.env.e2e` for
-you, so a worktree needs no `make setup`. Ports derive from the slot (API
-`1043+slot*100`, vite `5173+slot`), the primary is slot 0,
-and nothing cleans itself up when a terminal closes: only `rm` and `land`
-remove anything.
+`new` writes that slot's `server/.env`, `public/config.js`, `.env.local` and
+`.env.e2e` for you, so a worktree needs no `make setup`. Ports derive from the
+slot, counted off whatever the primary serves (API `+slot*100`, vite `+slot`);
+the primary is slot 0, and nothing cleans itself up when a terminal closes:
+only `rm` and `land` remove anything.
 
 Every script reads those files rather than a literal, so a call made inside a
 worktree reaches that worktree — `dev/agent/stack.sh` is the one resolver, and
@@ -278,7 +278,7 @@ dev/agent/stack.sh    # HUMAN_API · HUMAN_BASE · HUMAN_AUTH · HUMAN_WEBAPP
 - **Compose updates are POST, not PUT** — a PUT is a bare 405.
 - **Vite never picks up edits under `lib/`** — it serves its startup transform
   forever, so a UI check reports old behaviour for a fix that is really there.
-  Confirm with `curl -s 'localhost:5173/@fs<abs-path>' | head`.
+  Confirm with `curl -s "$(dev/agent/stack.sh | sed -n 's/^HUMAN_WEBAPP=//p')/@fs<abs-path>" | head`.
 - **An unknown webapp path renders the home page**, not an error — so a wrong
   path can come back as a pass with a screenshot of a healthy page nobody asked
   about.

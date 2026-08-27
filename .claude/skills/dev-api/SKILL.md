@@ -21,7 +21,9 @@ hand-roll the oauth dance or guess ports — use the toolkit.
    dev/agent/api.sh POST /compose/namespace/ -d '{"name":"X","slug":"agent-x"}'
    ```
 
-   Paths are relative to `http://localhost:1043/api`. Output is pretty JSON;
+   Paths are relative to this checkout's API base — `dev/agent/stack.sh`
+   prints it as `HUMAN_API`, and `api.sh` resolves it the same way, so never
+   type a port. Output is pretty JSON;
    API errors exit non-zero with the message on stderr.
 
 3. Raw token when needed (websockets, custom curl): `dev/agent/token.sh`.
