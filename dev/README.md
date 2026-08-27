@@ -52,6 +52,35 @@ With **no** `DB_DSN` at all the server still boots, on an in-memory database
 that vanishes on restart: fine for a smoke test, no good for development.
 SQLite works too — see the commented `DB_DSN` in `server/.env.min.example`.
 
+### If 1043 or 5173 is taken
+
+Two knobs, and everything else follows them. Set both **before** `make setup`:
+
+```sh
+cp server/.env.min.example server/.env
+#   HTTP_ADDR=:8080  and  DOMAIN=localhost:8080   — they must agree
+echo 'VITE_PORT=3000' > client/web/unify/.env.local
+make setup
+```
+
+`config.js`, `.env.e2e`, the `human-local` MCP URL, playwright, `dev_ui_verify`
+and every worktree slot are derived from those two — nothing else names a port.
+`.env.local` is gitignored and is what vite reads; `strictPort` is on, so a
+clash fails at startup rather than drifting onto the next port while the rest of
+the toolkit keeps naming this one.
+
+Order matters, because `make setup` writes `config.js` and `.env.e2e` from the
+resolved values and never rewrites a file you already have. Change the ports
+afterwards and `make doctor` flags both: delete those two files and re-run it.
+
+`DB_DSN` is yours entirely — user, password, host, port and name are carried
+into every worktree's own database. The role in it usually cannot `CREATE
+DATABASE`, though, and cloning a worktree needs one that can:
+
+```sh
+export PGSUPERUSER=postgres PGSUPERPASS=postgres
+```
+
 ```sh
 make doctor
 ```
