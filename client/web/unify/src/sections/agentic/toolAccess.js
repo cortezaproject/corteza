@@ -195,3 +195,29 @@ export function confineTo(grants, namespaceID) {
 
   return { tools, cleared }
 }
+
+// The two modes a granted tool can be in. Blocked is not among them: an agent
+// that may not use a tool and one that was never given it come to the same
+// thing, and neither is something the agent has.
+export const SUMMARY_MODES = ['always', 'ask']
+
+// What an agent's grants amount to, grouped by permission: how much of it runs
+// unattended, and over which subjects.
+//
+// The total is summed from the sections themselves. Tallying the whole tool
+// list instead counted the tools no section holds — a skill is attached to the
+// tool that triggers it rather than chosen, so it has no section — and the
+// headline came out above the rows beneath it.
+export function summaryOf(tools, named, families, label) {
+  const sections = sectionsOf(tools, named, families, label)
+
+  const groups = SUMMARY_MODES.map(mode => {
+    const held = sections
+      .map(s => ({ key: s.key, label: s.label, n: s.counts.find(c => c.mode === mode)?.n || 0 }))
+      .filter(s => s.n)
+
+    return { mode, n: held.reduce((sum, s) => sum + s.n, 0), sections: held }
+  }).filter(group => group.n)
+
+  return { total: groups.reduce((sum, group) => sum + group.n, 0), groups }
+}

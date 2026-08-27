@@ -8,6 +8,7 @@ import {
   modeOf,
   scopeBlocked,
   scopesModules,
+  summaryOf,
   sectionsOf,
   splitGrants,
   tally,
@@ -231,5 +232,68 @@ describe('confineTo', () => {
       '200',
     )
     expect(cleared).toBe(0)
+  })
+})
+
+describe('summaryOf', () => {
+  const label = (key: string) => key
+  const tools = [
+    { name: 'compose_record_lookup', groups: ['usage'], risk: 'read' },
+    { name: 'compose_record_create', groups: ['usage'], risk: 'write' },
+    { name: 'compose_record_delete', groups: ['usage'], risk: 'destructive' },
+    { name: 'system_user_create', groups: ['configuring'], risk: 'write' },
+    // A skill is attached to the tool that triggers it, not chosen, so no
+    // section holds it.
+    { name: 'system_skill_lookup', groups: ['usage'], risk: 'read' },
+  ]
+
+  it('groups by permission and names the subjects inside each', () => {
+    const { named, families } = splitGrants([
+      { name: 'compose_record_lookup' },
+      { name: 'compose_record_create' },
+      { name: 'system_user_create' },
+    ])
+
+    expect(summaryOf(tools, named, families, label)).toEqual({
+      total: 3,
+      groups: [
+        { mode: 'always', n: 1, sections: [{ key: 'records', label: 'records', n: 1 }] },
+        {
+          mode: 'ask',
+          n: 2,
+          sections: [
+            { key: 'records', label: 'records', n: 1 },
+            { key: 'people', label: 'people', n: 1 },
+          ],
+        },
+      ],
+    })
+  })
+
+  // The total is the sum of the rows under it. Counted over the whole tool list
+  // instead, a granted skill — which no section holds — put the headline one
+  // above what it was heading.
+  it('counts what the rows show and nothing else', () => {
+    const { named, families } = splitGrants([
+      { name: 'compose_record_lookup' },
+      { name: 'system_skill_lookup' },
+    ])
+
+    const summary = summaryOf(tools, named, families, label)
+    const shown = summary.groups.flatMap(g => g.sections).reduce((n, s) => n + s.n, 0)
+
+    expect(summary.total).toBe(shown)
+    expect(summary.total).toBe(1)
+    expect(summary.groups.flatMap(g => g.sections.map(s => s.key))).toEqual(['records'])
+  })
+
+  it('leaves out a mode nothing sits in', () => {
+    const { named, families } = splitGrants([{ name: 'compose_record_lookup' }])
+    expect(summaryOf(tools, named, families, label).groups.map(g => g.mode)).toEqual(['always'])
+  })
+
+  it('is empty for an agent holding nothing', () => {
+    const { named, families } = splitGrants([])
+    expect(summaryOf(tools, named, families, label)).toEqual({ total: 0, groups: [] })
   })
 })

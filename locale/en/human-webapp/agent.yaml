@@ -253,6 +253,8 @@ editor:
       label: Works in
       placeholder: Every namespace the invoker can reach
     summary:
+      always: '{n} run without asking'
+      ask: '{n} need approval'
       chosen: '{n} tools chosen'
       inheritsHelp: Answers from what it knows. It cannot look anything up or change
         anything until you give it a tool.
