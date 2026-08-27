@@ -423,23 +423,22 @@
                       <CFormGroup
                         :label="$t('agent.editor.tools.label')"
                         :description="$t('agent.editor.tools.help')"
-                      />
-
-                      <!-- What the agent can do, then the way to change it.
-                           The tools themselves are not listed: an agent can
-                           hold ninety of them, and the section it works in is
-                           what someone reading this panel wants to know. -->
-                      <Button
-                        :label="$t('agent.editor.tools.configureTools')"
-                        icon="pi pi-sliders-h"
-                        outlined
-                        size="small"
-                        class="self-start"
-                        :loading="loadingTools"
-                        :disabled="!canEdit || toolsFailed"
-                        data-testid="browse-tools"
-                        @click="toolDialogOpen = true"
-                      />
+                      >
+                        <!-- Beside the thing it edits. Under the description it
+                             read as the first item of the summary below it. -->
+                        <template #actions>
+                          <Button
+                            :label="$t('agent.editor.tools.configureTools')"
+                            icon="pi pi-sliders-h"
+                            severity="secondary"
+                            size="small"
+                            :loading="loadingTools"
+                            :disabled="!canEdit || toolsFailed"
+                            data-testid="browse-tools"
+                            @click="toolDialogOpen = true"
+                          />
+                        </template>
+                      </CFormGroup>
 
                       <AgentToolDialog
                         v-model:visible="toolDialogOpen"
@@ -470,27 +469,36 @@
                         {{ $t('general.label.loading') }}
                       </span>
 
-                      <div v-else-if="toolSummary.total" class="flex flex-col gap-1">
-                        <span class="text-sm text-color">
+                      <!-- What the agent can do, by subject. The tools are not
+                           listed: an agent can hold ninety, and which subjects
+                           it reaches is the question this panel answers.
+                           A column per mode rather than a run of pairs, so a
+                           section missing one still lines up with the sections
+                           that have it. -->
+                      <div v-else-if="toolSummary.total" class="text-sm">
+                        <span class="text-color">
                           {{ $t('agent.editor.tools.summary.chosen', { n: toolSummary.total }) }}
                         </span>
-                        <div
-                          v-for="section in toolSummary.sections"
-                          :key="section.key"
-                          class="flex items-center gap-3 text-sm"
-                        >
-                          <span class="text-muted-color w-52 shrink-0 truncate">
-                            {{ section.label }}
-                          </span>
-                          <span
-                            v-for="c in section.counts"
-                            :key="c.mode"
-                            class="flex items-center gap-1 text-xs text-muted-color"
-                            :title="$t(`agent.editor.tools.mode.${c.mode}`)"
-                          >
-                            <i :class="[modeIcon(c.mode), modeColour(c.mode)]" />
-                            <span class="tabular-nums">{{ c.n }}</span>
-                          </span>
+
+                        <div class="tool-summary mt-2">
+                          <template v-for="section in toolSummary.sections" :key="section.key">
+                            <span class="text-muted-color">{{ section.label }}</span>
+                            <span
+                              v-for="mode in SUMMARY_MODES"
+                              :key="mode"
+                              class="flex items-center gap-1.5 text-muted-color"
+                              :title="
+                                countOf(section, mode)
+                                  ? $t(`agent.editor.tools.mode.${mode}`)
+                                  : undefined
+                              "
+                            >
+                              <template v-if="countOf(section, mode)">
+                                <i :class="[modeIcon(mode), modeColour(mode)]" class="text-xs" />
+                                <span class="tabular-nums">{{ countOf(section, mode) }}</span>
+                              </template>
+                            </span>
+                          </template>
                         </div>
                       </div>
 
@@ -960,6 +968,14 @@ watch(
   { immediate: true },
 )
 
+// The two a granted tool can be in. Blocked is not among them: the summary says
+// what the agent has, and a tool it does not have is not a line on that list.
+const SUMMARY_MODES = ['always', 'ask']
+
+function countOf(section, mode) {
+  return section.counts.find(c => c.mode === mode)?.n || 0
+}
+
 function modeIcon(mode) {
   return MODE_ICONS[mode] || MODE_ICONS.custom
 }
@@ -1400,6 +1416,16 @@ function removeWorkflow(idx) {
 </script>
 
 <style scoped>
+/* Subject, then one column per mode. A row of flex pairs put each section's
+   second count wherever its first one happened to end. */
+.tool-summary {
+  display: grid;
+  grid-template-columns: max-content max-content max-content;
+  column-gap: 2rem;
+  row-gap: 0.375rem;
+  align-items: center;
+}
+
 .resize-handle {
   width: 8px;
   flex-shrink: 0;
