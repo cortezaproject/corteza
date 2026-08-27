@@ -96,13 +96,19 @@ describe('System user list permissions', () => {
     expect(wrapper.find('[data-test-id="button-delete-user"]').exists()).to.equal(true)
   })
 
-  it('keeps the list readable but hides management controls for a restricted user', () => {
+  it('keeps read-only export available while hiding mutation controls for a search-only user', () => {
     const wrapper = mountUserList((_resource, operation) => operation === 'users.search')
 
     expect(wrapper.find('[data-test-id="button-new-user"]').exists()).to.equal(false)
     expect(wrapper.find('[data-test-id="button-import"]').exists()).to.equal(false)
-    expect(wrapper.find('[data-test-id="button-export"]').exists()).to.equal(false)
+    expect(wrapper.find('[data-test-id="button-export"]').exists()).to.equal(true)
     expect(wrapper.find('[data-test-id="user-actions"]').exists()).to.equal(false)
     expect(wrapper.find('[data-test-id="button-delete-user"]').exists()).to.equal(false)
+  })
+
+  it('hides export when user search is unavailable', () => {
+    const wrapper = mountUserList(() => false)
+
+    expect(wrapper.find('[data-test-id="button-export"]').exists()).to.equal(false)
   })
 })

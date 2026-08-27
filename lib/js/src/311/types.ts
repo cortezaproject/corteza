@@ -244,19 +244,26 @@ export interface PageResponse<T> {
   sort: string[]
 }
 
-export interface RequestListQuery {
+export interface ListQuery {
   page_token?: string
   page_size?: number
   filters?: Record<string, unknown>
+  sort?: string
+}
+
+export interface RequestListQuery extends ListQuery {
   status?: ServiceRequestStatus
   service_type?: ServiceType
   department?: DepartmentCode
   district?: DistrictCode
   origin_class?: OriginClass
   source_channel?: SourceChannel
+  assignee?: string
+  collaborator?: string
+  category?: ContactCategory
   created_from?: string
   created_to?: string
-  sort?: string
+  duplicate_group?: string
 }
 
 export interface DraftWrite extends Partial<PortalServiceRequestCreate> {
