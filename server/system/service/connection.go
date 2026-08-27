@@ -430,6 +430,10 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 				for _, s := range allSummaries {
 					if dbConn, ok := dbByHandle[s.Handle]; ok {
 						dbConn.CatalogID = s.ID
+						// Keep brand icon/tags live from the catalog so source
+						// edits show up without a re-import (display only).
+						dbConn.Meta.Icon = s.Icon
+						dbConn.Meta.Tags = s.Tags
 					}
 				}
 
@@ -449,6 +453,8 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 							Meta: types.ConnectionMeta{
 								Short:       s.Short,
 								Description: s.Description,
+								Icon:        s.Icon,
+								Tags:        s.Tags,
 							},
 							Source:    "catalog",
 							CatalogID: s.ID,
@@ -552,6 +558,16 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 // Import fetches a connection definition from the appstore by its catalog ID and
 // creates it locally. If a connection with the same handle already exists the
 // existing record is returned without error.
+// ListOAuthApps returns the provider blueprints from the catalog (public
+// endpoints, no secrets) so the admin can pick a provider to register. Returns
+// an empty list when the catalog is not configured.
+func (svc *connection) ListOAuthApps(ctx context.Context) ([]appstore.OAuthApp, error) {
+	if svc.services.catalog == nil {
+		return nil, nil
+	}
+	return svc.services.catalog.ListOAuthApps(ctx)
+}
+
 func (svc *connection) Import(ctx context.Context, catalogID string) (res *types.Connection, err error) {
 	if svc.services.catalog == nil {
 		return nil, fmt.Errorf("appstore catalog is not configured")

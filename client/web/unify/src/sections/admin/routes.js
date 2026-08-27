@@ -25,6 +25,11 @@ export const adminRoutes = [
     component: () => import('./views/system/Connection/Editor.vue'),
   },
   {
+    path: '/system/connections/oauth-apps',
+    name: 'system.connections.oauthApps',
+    component: () => import('./views/system/Connection/OAuthApps.vue'),
+  },
+  {
     path: '/system/connections/:connectionID',
     name: 'system.connections.edit',
     component: () => import('./views/system/Connection/Editor.vue'),

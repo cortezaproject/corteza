@@ -28,6 +28,7 @@ type (
 		Enable(context.Context, *request.ConnectionEnable) (interface{}, error)
 		Generate(context.Context, *request.ConnectionGenerate) (interface{}, error)
 		Import(context.Context, *request.ConnectionImport) (interface{}, error)
+		ListOAuthApps(context.Context, *request.ConnectionListOAuthApps) (interface{}, error)
 		Configure(context.Context, *request.ConnectionConfigure) (interface{}, error)
 		UpdateConfiguration(context.Context, *request.ConnectionUpdateConfiguration) (interface{}, error)
 	}
@@ -43,6 +44,7 @@ type (
 		Enable              func(http.ResponseWriter, *http.Request)
 		Generate            func(http.ResponseWriter, *http.Request)
 		Import              func(http.ResponseWriter, *http.Request)
+		ListOAuthApps       func(http.ResponseWriter, *http.Request)
 		Configure           func(http.ResponseWriter, *http.Request)
 		UpdateConfiguration func(http.ResponseWriter, *http.Request)
 	}
@@ -194,6 +196,22 @@ func NewConnection(h ConnectionAPI) *Connection {
 
 			api.Send(w, r, value)
 		},
+		ListOAuthApps: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewConnectionListOAuthApps()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ListOAuthApps(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		Configure: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewConnectionConfigure()
@@ -241,6 +259,7 @@ func (h Connection) MountRoutes(r chi.Router, middlewares ...func(http.Handler) 
 		r.Post("/connections/{connectionID}/enable", h.Enable)
 		r.Post("/connections/generate", h.Generate)
 		r.Post("/connections/import", h.Import)
+		r.Get("/connections/oauth-apps", h.ListOAuthApps)
 		r.Post("/connections/{connectionID}/configure", h.Configure)
 		r.Patch("/connections/{connectionID}/configure/{configuredConnectionID}", h.UpdateConfiguration)
 	})

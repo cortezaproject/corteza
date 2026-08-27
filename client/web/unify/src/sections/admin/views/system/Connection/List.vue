@@ -4,271 +4,233 @@
   </Teleport>
 
   <CViewContainer>
-    <CResourceList
-      ref="resourceListRef"
-      primary-key="connectionID"
-      :fields="connectionListFields"
-      :items="connectionList"
-      :filter="filter"
-      :filter-defaults="filterDefaults"
-      :states="['deleted']"
-      @update:filter="Object.assign(filter, $event)"
-      :sorting="sorting"
-      :pagination="pagination"
-      :loading="loading"
-      :action-items="getActionsMenuItems"
-      :translations="{
-        searchPlaceholder: $t('system.connections.list.searchPlaceholder'),
-        showingPagination: 'general.resourceList.pagination.showing',
-        singlePluralPagination: 'general.resourceList.pagination.single',
-        prevPagination: $t('general.resourceList.pagination.prev'),
-        nextPagination: $t('general.resourceList.pagination.next'),
-        recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-        resourceSingle: $t('general.label.connection.single'),
-        resourcePlural: $t('general.label.connection.plural'),
-      }"
-      clickable
-      class="h-full"
-      @sort="handleSort"
-      @row-click="handleRowClick"
-      @page-change="handlePageChange"
-    >
-      <template #header>
-        <div class="flex gap-2">
-          <CRouterLinkButton
-            v-if="canCreate"
-            :to="{ name: 'system.connections.create' }"
-            :label="$t('system.connections.list.createCustom')"
-            severity="secondary"
-            icon="pi pi-plus"
-            size="small"
-          />
-          <CPermissionsButton
-            v-if="canGrant"
-            resource="corteza::system:connection/*"
-            v-tooltip.bottom="$t('general.label.permissions')"
-          />
+    <div class="h-full overflow-y-auto">
+      <div class="flex flex-col gap-6 pb-2">
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <IconField class="w-full max-w-sm">
+            <InputIcon class="pi pi-search" />
+            <InputText
+              v-model="search"
+              :placeholder="$t('system.connections.list.searchConnectors')"
+              class="w-full"
+            />
+          </IconField>
+
+          <div class="flex gap-2">
+            <CRouterLinkButton
+              :to="{ name: 'system.connections.oauthApps' }"
+              :label="$t('system.oauthApps.title')"
+              severity="secondary"
+              icon="pi pi-key"
+              size="small"
+            />
+            <CRouterLinkButton
+              v-if="canCreate"
+              :to="{ name: 'system.connections.create' }"
+              :label="$t('system.connections.list.createCustom')"
+              severity="secondary"
+              icon="pi pi-plus"
+              size="small"
+            />
+            <CPermissionsButton
+              v-if="canGrant"
+              resource="corteza::system:connection/*"
+              v-tooltip.bottom="$t('general.label.permissions')"
+            />
+          </div>
         </div>
-      </template>
 
-      <template #body-name="{ data }">
-        <div class="flex flex-col">
-          <span>{{ data.meta?.short || '-' }}</span>
-          <span v-if="data.meta?.description" class="text-xs text-muted-color truncate max-w-md">
-            {{ data.meta.description }}
-          </span>
+        <div v-if="loading" class="flex justify-center p-10">
+          <ProgressSpinner style="width: 2rem; height: 2rem" />
         </div>
-      </template>
 
-      <template #body-status="{ data }">
-        <Tag
-          v-if="!(data.source === 'catalog' && (!data.status || data.status === 'draft'))"
-          :value="$t(`system.connections.editor.statusValues.${data.status || 'draft'}`)"
-          :severity="data.status === 'active' ? 'success' : 'secondary'"
-        />
-        <span v-else />
-      </template>
+        <div
+          v-else-if="!filteredCatalog.length && !customConnections.length"
+          class="text-sm text-muted-color italic p-6 text-center"
+        >
+          {{ $t('system.connections.list.noConnectors') }}
+        </div>
 
-      <template #body-source="{ data }">
-        <Tag
-          :value="
-            $t(`system.connections.list.sourceValues.${data.source || 'local'}`, data.source || '-')
-          "
-          :severity="data.source === 'catalog' ? 'info' : 'secondary'"
-        />
-      </template>
+        <template v-else>
+          <div
+            v-if="filteredCatalog.length"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+          >
+            <div
+              v-for="c in filteredCatalog"
+              :key="c.connectionID"
+              class="flex flex-col gap-3 rounded-lg border border-surface-200 dark:border-surface-700 p-4 hover:border-primary transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <ConnectorLogo :icon="c.meta?.icon" :name="c.meta?.short || c.handle" size="lg" />
+                <div class="min-w-0 flex-1">
+                  <div class="font-medium truncate">{{ c.meta?.short || c.handle }}</div>
+                  <div v-if="c.meta?.tags?.length" class="flex gap-1 flex-wrap mt-1">
+                    <span
+                      v-for="tag in c.meta.tags.slice(0, 3)"
+                      :key="tag"
+                      class="text-[10px] uppercase tracking-wide text-muted-color bg-surface-100 dark:bg-surface-800 rounded px-1.5 py-0.5"
+                    >
+                      {{ tag }}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-      <template #body-changedAt="{ data }">
-        {{ changedAtText(data) }}
-      </template>
+              <p class="text-sm text-muted-color line-clamp-2 flex-1 min-h-[2.5rem]">
+                {{ c.meta?.description || '' }}
+              </p>
 
-      <template #filter>
-        <Button
-          :label="$t('general.filter.label')"
-          icon="pi pi-filter"
-          severity="secondary"
-          size="small"
-          outlined
-          @click="toggleFilterMenu"
-        />
-      </template>
-    </CResourceList>
+              <div class="flex items-center justify-between">
+                <span
+                  v-if="isInstalled(c)"
+                  class="inline-flex items-center gap-1 text-xs text-green-600"
+                >
+                  <i class="pi pi-check-circle" />
+                  {{ $t('system.connections.list.installed') }}
+                </span>
+                <span v-else />
+                <Button
+                  :label="
+                    isInstalled(c)
+                      ? $t('system.connections.list.setUp')
+                      : $t('system.connections.list.install')
+                  "
+                  :icon="isInstalled(c) ? 'pi pi-cog' : 'pi pi-download'"
+                  :outlined="isInstalled(c)"
+                  size="small"
+                  :loading="installing === c.catalogID"
+                  @click="handleInstall(c)"
+                />
+              </div>
+            </div>
+          </div>
 
-    <Popover ref="filterMenu">
-      <div class="flex flex-col gap-4 p-2 w-64">
-        <CResourceStatusFilter
-          :filter="filter"
-          :states="['deleted']"
-          @update:filter="Object.assign(filter, $event)"
-        />
+          <div v-if="customConnections.length" class="flex flex-col gap-2">
+            <span class="font-medium">{{ $t('system.connections.list.customTitle') }}</span>
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="c in customConnections"
+                :key="c.connectionID"
+                class="flex items-center gap-3 rounded-md border border-surface-200 dark:border-surface-700 p-3 cursor-pointer hover:border-primary transition-colors"
+                @click="handleCustomClick(c)"
+              >
+                <div class="flex flex-col min-w-0 flex-1">
+                  <span class="font-medium truncate">{{ c.meta?.short || c.handle }}</span>
+                  <span v-if="c.meta?.description" class="text-xs text-muted-color truncate">
+                    {{ c.meta.description }}
+                  </span>
+                </div>
+                <Tag
+                  :value="$t(`system.connections.editor.statusValues.${c.status || 'draft'}`)"
+                  :severity="c.status === 'active' ? 'success' : 'secondary'"
+                />
+                <CInputDelete
+                  v-if="c.canDeleteConnection"
+                  :message="$t('system.connections.list.deleteConfirm')"
+                  :header="c.meta?.short || c.handle"
+                  size="small"
+                  @click.stop
+                  @confirm="handleDelete(c)"
+                />
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
-    </Popover>
+    </div>
   </CViewContainer>
 </template>
 
 <script setup>
-import {
-  changedAtField,
-  changedAtText,
-  components,
-  useConfirmDelete,
-  usePermissions,
-  useRBACStore,
-  useResourceList,
-} from '@planetcrust/human-vue'
+import { components, useResourceList, useRBACStore } from '@planetcrust/human-vue'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import ConnectorLogo from './ConnectorLogo.vue'
 
-const { CResourceList, CResourceStatusFilter, CRouterLinkButton, CViewContainer } = components
+const { CInputDelete, CRouterLinkButton, CViewContainer } = components
 
 const router = useRouter()
 const { t } = useI18n()
-const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
 const canCreate = computed(() => rbac.can('system/', 'connection.create'))
-const { open: openPermissions } = usePermissions()
 
-const resourceListRef = ref()
+const search = ref('')
+const installing = ref(null)
 
-// Filter menu
-const filterMenu = ref()
-function toggleFilterMenu(event) {
-  filterMenu.value.toggle(event)
-}
-
-// Column definitions
-const connectionListFields = [
-  {
-    key: 'name',
-    sortable: true,
-    header: t('system.connections.list.columns.name'),
-  },
-  {
-    key: 'status',
-    sortable: true,
-    header: t('system.connections.list.columns.status'),
-  },
-  {
-    key: 'source',
-    sortable: true,
-    header: t('system.connections.list.columns.source'),
-  },
-  changedAtField(t('general.columns.changedAt')),
-]
-
-// Resource list composable
 const {
   items: connectionList,
   loading,
-  filter,
-  filterDefaults,
-  sorting,
-  pagination,
-  handleSort,
-  handlePageChange,
   filterList,
 } = useResourceList(params => $SystemAPI.connectionListCancellable(params), {
   filter: { query: '', deleted: '0' },
-  pagination: { limit: 50 },
+  sorting: { sortBy: 'status', sortDesc: false },
+  pagination: { limit: 200 },
 })
 
-// Methods
-function handleRowClick({ data }) {
-  if (data.source === 'catalog') {
-    router.push({
-      name: 'system.connections.configure',
-      params: { connectionID: data.connectionID },
-    })
+const catalogConnectors = computed(() =>
+  (connectionList.value || []).filter(c => c.source === 'catalog'),
+)
+const customConnections = computed(() =>
+  (connectionList.value || []).filter(c => c.source !== 'catalog'),
+)
+
+const filteredCatalog = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  const list = catalogConnectors.value
+  if (!q) return list
+  return list.filter(c => {
+    const m = c.meta || {}
+    return (
+      (m.short || '').toLowerCase().includes(q) ||
+      (m.description || '').toLowerCase().includes(q) ||
+      (m.tags || []).some(tag => String(tag).toLowerCase().includes(q))
+    )
+  })
+})
+
+// A catalog connector is installed once it is imported and active in the store.
+function isInstalled(c) {
+  return c.status === 'active'
+}
+
+function goConfigure(connectionID) {
+  router.push({ name: 'system.connections.configure', params: { connectionID } })
+}
+
+async function handleInstall(c) {
+  if (isInstalled(c)) {
+    goConfigure(c.connectionID)
     return
   }
-  if (!data.canUpdateConnection && !data.canDeleteConnection) {
-    return
-  }
-  router.push({
-    name: 'system.connections.edit',
-    params: { connectionID: data.connectionID },
-  })
-}
-
-// Actions menu methods
-function getActionsMenuItems(connection) {
-  if (!connection.connectionID || connection.connectionID === '0') {
-    return []
-  }
-
-  const items = []
-
-  if (connection.canGrant || canGrant.value) {
-    items.push({
-      label: t('general.label.permissions'),
-      icon: 'pi pi-lock',
-      command: () => {
-        resourceListRef.value?.hideActionsMenu?.()
-        openPermissions({
-          resource: `corteza::system:connection/${connection.connectionID}`,
-          title: connection.meta?.short || connection.handle || connection.connectionID,
-        })
-      },
-    })
-  }
-
-  if (connection.canDeleteConnection) {
-    if (connection.deletedAt) {
-      items.push({
-        label: t('general.label.restore'),
-        icon: 'pi pi-replay',
-        command: () => handleRestore(connection),
-      })
-    } else {
-      items.push({
-        label: t('general.label.delete'),
-        icon: 'pi pi-trash',
-        class: 'text-red-500',
-        command: () => onConfirmDelete(connection),
-      })
-    }
-  }
-
-  return items
-}
-
-function onConfirmDelete(connection) {
-  confirmDelete({
-    message: t('system.connections.list.deleteConfirm'),
-    header:
-      connection.meta?.short || connection.handle || t('system.connections.list.resourceSingle'),
-    onConfirm: () => handleDelete(connection),
-  })
-}
-
-async function handleDelete(connection) {
-  resourceListRef.value.hideActionsMenu()
+  installing.value = c.catalogID
   try {
-    await $SystemAPI.connectionDelete({
-      connectionID: connection.connectionID,
-    })
-    $toast.toastSuccess(t('notification.connection.delete.success'))
-    filterList() // Refresh the list
+    const imported = await $SystemAPI.connectionImport({ catalogID: c.catalogID })
+    goConfigure(imported?.connectionID || c.connectionID)
   } catch (e) {
-    console.error('Failed to delete connection:', e)
-    $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
+    $toast.toastErrorHandler(t('notification.connection.fetch.error'))(e)
+  } finally {
+    installing.value = null
   }
 }
 
-async function handleRestore(connection) {
-  resourceListRef.value.hideActionsMenu()
+function handleCustomClick(c) {
+  if (!c.canUpdateConnection && !c.canDeleteConnection) return
+  router.push({ name: 'system.connections.edit', params: { connectionID: c.connectionID } })
+}
+
+async function handleDelete(c) {
   try {
-    await $SystemAPI.connectionUndelete({ connectionID: connection.connectionID })
-    $toast.toastSuccess(t('notification.connection.restore.success'))
+    await $SystemAPI.connectionDelete({ connectionID: c.connectionID })
+    $toast.toastSuccess(t('notification.connection.delete.success'))
     filterList()
   } catch (e) {
-    console.error('Failed to restore connection:', e)
-    $toast.toastErrorHandler(t('notification.connection.restore.error'))(e)
+    $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
   }
 }
 </script>

@@ -675,7 +675,26 @@ func (set *ConnectionOAuthAppSet) DecodeKV(kv SettingsKV, prefix string) (err er
 		}
 	}
 
+	// Drop apps left with no configuration. Deleting a provider nulls its
+	// keys; without this the handle would linger in the in-memory settings.
+	kept := (*set)[:0]
+	for _, app := range *set {
+		if app != nil && !app.isEmpty() {
+			kept = append(kept, app)
+		}
+	}
+	*set = kept
+
 	return nil
+}
+
+// isEmpty reports an app with no meaningful configuration — the state left
+// after all its keys are deleted.
+func (app ConnectionOAuthApp) isEmpty() bool {
+	return app.ClientID == "" && app.ClientSecret == "" &&
+		app.AuthURL == "" && app.TokenURL == "" &&
+		app.AuthParams == "" && app.IdentityURL == "" &&
+		app.IdentityEmailField == "" && !app.PKCE
 }
 
 func (app ConnectionOAuthApp) EncodeKV() (vv SettingValueSet, err error) {

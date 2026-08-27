@@ -15,6 +15,12 @@ type Client interface {
 
 	// GetConnection calls GET /v1/connections/{id}/config — returns the full connection with all config blobs.
 	GetConnection(ctx context.Context, id string) (*Connection, error)
+
+	// GetOAuthApp calls GET /v1/oauth-apps/{handle} — the provider blueprint (public endpoints, no secrets).
+	GetOAuthApp(ctx context.Context, handle string) (*OAuthApp, error)
+
+	// ListOAuthApps calls GET /v1/oauth-apps — all provider blueprints (public endpoints, no secrets).
+	ListOAuthApps(ctx context.Context) ([]OAuthApp, error)
 }
 
 type HTTPClient struct {
@@ -85,4 +91,55 @@ func (c *HTTPClient) GetConnection(ctx context.Context, id string) (*Connection,
 		return nil, err
 	}
 	return &out, nil
+}
+
+func (c *HTTPClient) GetOAuthApp(ctx context.Context, handle string) (*OAuthApp, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/v1/oauth-apps/"+handle, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("oauth app %q not found in appstore", handle)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("appstore returned %d", resp.StatusCode)
+	}
+
+	var out OAuthApp
+	if err = json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *HTTPClient) ListOAuthApps(ctx context.Context) ([]OAuthApp, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/v1/oauth-apps", nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("appstore returned %d", resp.StatusCode)
+	}
+
+	var out []OAuthApp
+	if err = json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }

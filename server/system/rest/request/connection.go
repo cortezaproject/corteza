@@ -225,6 +225,9 @@ type (
 		CatalogID string
 	}
 
+	ConnectionListOAuthApps struct {
+	}
+
 	ConnectionConfigure struct {
 		// ConnectionID PATH parameter
 		//
@@ -1214,6 +1217,22 @@ func (r *ConnectionImport) Fill(req *http.Request) (err error) {
 			}
 		}
 	}
+
+	return err
+}
+
+// NewConnectionListOAuthApps request
+func NewConnectionListOAuthApps() *ConnectionListOAuthApps {
+	return &ConnectionListOAuthApps{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionListOAuthApps) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
+// Fill processes request and fills internal variables
+func (r *ConnectionListOAuthApps) Fill(req *http.Request) (err error) {
 
 	return err
 }

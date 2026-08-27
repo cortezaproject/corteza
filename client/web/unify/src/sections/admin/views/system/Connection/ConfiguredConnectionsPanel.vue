@@ -132,52 +132,99 @@
         </CFormGroup>
 
         <CFormGroup
-          v-for="param in uniqueDerivedParams"
-          :key="param.name"
-          :label="param.label || param.name"
-          :description="param.description || ''"
-          :required="param.required"
-          :input-id="`param-${param.name}`"
+          v-if="hasMethodChoice"
+          :label="$t('system.configuredConnections.editor.authMethod.label')"
         >
-          <Select
-            v-if="fieldKind(param) === 'select'"
-            :input-id="`param-${param.name}`"
-            v-model="paramValues[param.name]"
-            :options="param.options"
-            :placeholder="param.default || ''"
-            show-clear
-            class="w-full"
-          />
-          <Password
-            v-else-if="fieldKind(param) === 'password'"
-            :input-id="`param-${param.name}`"
-            v-model="paramValues[param.name]"
-            toggle-mask
-            :feedback="false"
-            input-class="w-full"
-            class="w-full"
-          />
-          <Textarea
-            v-else-if="fieldKind(param) === 'textarea'"
-            :id="`param-${param.name}`"
-            v-model="paramValues[param.name]"
-            rows="4"
-            auto-resize
-            class="w-full"
-          />
-          <InputNumber
-            v-else-if="fieldKind(param) === 'number'"
-            :input-id="`param-${param.name}`"
-            v-model="paramValues[param.name]"
-            class="w-full"
-          />
-          <InputText
-            v-else
-            :id="`param-${param.name}`"
-            v-model="paramValues[param.name]"
-            class="w-full"
-          />
+          <div class="flex flex-col gap-2">
+            <div
+              v-for="opt in authOptions"
+              :key="opt.method"
+              class="flex items-start gap-3 rounded-md border p-3 cursor-pointer"
+              :class="
+                selectedAuthMethod === opt.method
+                  ? 'border-primary bg-primary-50'
+                  : 'border-surface-200 dark:border-surface-700'
+              "
+              @click="selectedAuthMethod = opt.method"
+            >
+              <RadioButton
+                v-model="selectedAuthMethod"
+                :value="opt.method"
+                :input-id="`am-${opt.method}`"
+              />
+              <div class="flex flex-col">
+                <label :for="`am-${opt.method}`" class="font-medium cursor-pointer">
+                  {{ authMethodLabel(opt) }}
+                </label>
+                <span class="text-xs text-muted-color">{{ authMethodDescription(opt) }}</span>
+              </div>
+            </div>
+          </div>
         </CFormGroup>
+
+        <template v-if="!isOAuthMethod(selectedAuthMethod)">
+          <CFormGroup
+            v-for="param in uniqueDerivedParams"
+            :key="param.name"
+            :label="param.label || param.name"
+            :description="param.description || ''"
+            :required="param.required"
+            :input-id="`param-${param.name}`"
+          >
+            <Select
+              v-if="fieldKind(param) === 'select'"
+              :input-id="`param-${param.name}`"
+              v-model="paramValues[param.name]"
+              :options="param.options"
+              :placeholder="param.default || ''"
+              show-clear
+              class="w-full"
+            />
+            <Password
+              v-else-if="fieldKind(param) === 'password'"
+              :input-id="`param-${param.name}`"
+              v-model="paramValues[param.name]"
+              toggle-mask
+              :feedback="false"
+              input-class="w-full"
+              class="w-full"
+            />
+            <Textarea
+              v-else-if="fieldKind(param) === 'textarea'"
+              :id="`param-${param.name}`"
+              v-model="paramValues[param.name]"
+              rows="4"
+              auto-resize
+              class="w-full"
+            />
+            <InputNumber
+              v-else-if="fieldKind(param) === 'number'"
+              :input-id="`param-${param.name}`"
+              v-model="paramValues[param.name]"
+              class="w-full"
+            />
+            <InputText
+              v-else
+              :id="`param-${param.name}`"
+              v-model="paramValues[param.name]"
+              class="w-full"
+            />
+          </CFormGroup>
+        </template>
+
+        <div v-else class="flex flex-col gap-3">
+          <div v-if="isOAuthConnected" class="flex items-center gap-2 text-green-600">
+            <span class="pi pi-check-circle" />
+            <span>{{ $t('system.configuredConnections.editor.oauth.connected') }}</span>
+          </div>
+          <p class="text-sm text-muted-color">
+            {{ $t('system.configuredConnections.editor.oauth.help') }}
+          </p>
+          <div v-if="selectedOption?.scopes?.length" class="text-xs text-muted-color">
+            {{ $t('system.configuredConnections.editor.oauth.scopes') }}:
+            {{ selectedOption.scopes.join(', ') }}
+          </div>
+        </div>
       </div>
     </Form>
 
@@ -239,6 +286,19 @@
             @click="configuredConnectionModal = false"
           />
           <Button
+            v-if="isOAuthMethod(selectedAuthMethod)"
+            :label="
+              isOAuthConnected
+                ? $t('system.configuredConnections.editor.oauth.reconnect')
+                : $t('system.configuredConnections.editor.oauth.connect')
+            "
+            icon="pi pi-link"
+            size="small"
+            :loading="oauthConnecting"
+            @click="handleOAuthConnect"
+          />
+          <Button
+            v-else
             :label="$t('general.label.save')"
             size="small"
             :loading="savingConfiguredConnection"
@@ -274,6 +334,7 @@ const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $Auth = inject('$Auth')
 
 const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
@@ -284,6 +345,8 @@ const savingConfiguredConnection = ref(false)
 const enablingConfiguredConnection = ref(false)
 const checkingConfiguredConnection = ref(false)
 const refreshingDiscovery = ref(false)
+const oauthConnecting = ref(false)
+const selectedAuthMethod = ref('')
 const activeConfiguredConnection = ref(null)
 const configuredConnectionRawLabels = ref('{}')
 const paramValues = reactive({})
@@ -335,8 +398,7 @@ function fieldKind(param) {
 function extractError(e) {
   if (!e) return ''
   if (typeof e === 'string') return e
-  const cand =
-    e.message ?? e.error ?? e.response?.data?.error?.message ?? e.response?.data?.error
+  const cand = e.message ?? e.error ?? e.response?.data?.error?.message ?? e.response?.data?.error
   if (typeof cand === 'string') return cand
   if (cand && typeof cand === 'object') return cand.message || JSON.stringify(cand)
   const s = e.toString?.()
@@ -359,6 +421,54 @@ const uniqueDerivedParams = computed(() => {
     return true
   })
 })
+
+const OAUTH_METHOD = 'oauth2_authorization_code'
+
+// Auth options the connector offers. A picker shows only when there is a choice.
+const authOptions = computed(() => props.connection?.service?.authOptions || [])
+const hasMethodChoice = computed(() => authOptions.value.length > 1)
+
+const selectedOption = computed(() =>
+  authOptions.value.find(o => o.method === selectedAuthMethod.value),
+)
+
+function isOAuthMethod(method) {
+  return method === OAUTH_METHOD
+}
+
+// Provider name for OAuth labels: the app slug or the connector's short name.
+const oauthProvider = computed(() => {
+  const opt = authOptions.value.find(o => isOAuthMethod(o.method))
+  return opt?.oauthApp || props.connection?.meta?.short || 'provider'
+})
+
+function authMethodLabel(opt) {
+  return isOAuthMethod(opt.method)
+    ? t('system.configuredConnections.editor.authMethod.oauthLabel', {
+        provider: oauthProvider.value,
+      })
+    : t('system.configuredConnections.editor.authMethod.serviceAccountLabel')
+}
+
+function authMethodDescription(opt) {
+  return isOAuthMethod(opt.method)
+    ? t('system.configuredConnections.editor.authMethod.oauthDescription')
+    : t('system.configuredConnections.editor.authMethod.serviceAccountDescription')
+}
+
+// A configured connection is connected when it holds an OAuth credential.
+const isOAuthConnected = computed(() => {
+  const cfg = activeConfiguredConnection.value?.config
+  return cfg?.authMethod === OAUTH_METHOD && cfg?.credentialID && cfg.credentialID !== '0'
+})
+
+// Choose the method to preselect: the saved one, else the first option,
+// else the connector default.
+function defaultAuthMethod(cc) {
+  if (cc?.config?.authMethod) return cc.config.authMethod
+  if (authOptions.value.length) return authOptions.value[0].method
+  return props.connection?.service?.auth?.method || ''
+}
 
 const configuredConnectionInitialValues = computed(() => ({
   name: activeConfiguredConnection.value?.name || '',
@@ -439,6 +549,7 @@ function parseConfiguredConnectionLabels() {
 function handleConfiguredConnectionClick({ data }) {
   activeConfiguredConnection.value = { ...data }
   configuredConnectionRawLabels.value = JSON.stringify(data.labels || {}, null, 2)
+  selectedAuthMethod.value = defaultAuthMethod(data)
   initParamValues(data.config?.params || [])
   configuredConnectionModal.value = true
 }
@@ -450,6 +561,7 @@ function createConfiguredConnection() {
     labels: {},
   }
   configuredConnectionRawLabels.value = '{\n  \n}'
+  selectedAuthMethod.value = defaultAuthMethod(null)
   initParamValues([])
   configuredConnectionModal.value = true
 }
@@ -561,9 +673,11 @@ async function handleRefreshDiscovery() {
   if (!activeConfiguredConnection.value?.configurationID) return
   refreshingDiscovery.value = true
   try {
-    await $SystemAPI.api().post(
-      `/configured-connections/${activeConfiguredConnection.value.configurationID}/refresh-discovery`,
-    )
+    await $SystemAPI
+      .api()
+      .post(
+        `/configured-connections/${activeConfiguredConnection.value.configurationID}/refresh-discovery`,
+      )
     $toast.toastSuccess(
       t('system.configuredConnections.editor.discoveryRefreshed', 'Refreshed available resources'),
     )
@@ -596,6 +710,129 @@ async function handleConfiguredConnectionEnable() {
   }
 }
 
+// Persist the connection as a draft so the authorize endpoint has a
+// configuredConnectionID to bind the credential to. Returns that ID.
+async function ensureSavedForConnect() {
+  const cc = activeConfiguredConnection.value
+  const config = { ...(cc.config || {}), authMethod: selectedAuthMethod.value, params: [] }
+  parseConfiguredConnectionLabels()
+
+  if (cc.configurationID) {
+    await $SystemAPI.connectionUpdateConfiguration({
+      connectionID: props.connection.connectionID,
+      configuredConnectionID: cc.configurationID,
+      name: cc.name,
+      config,
+      labels: cc.labels,
+    })
+    cc.config = config
+    return cc.configurationID
+  }
+
+  const saved = await $SystemAPI.connectionConfigure({
+    connectionID: props.connection.connectionID,
+    name: cc.name,
+    config,
+    labels: cc.labels,
+  })
+  cc.configurationID = saved?.configurationID
+  cc.connectionID = saved?.connectionID
+  cc.config = { ...config, credentialID: saved?.config?.credentialID }
+  return saved?.configurationID
+}
+
+// True once the callback has linked a credential to the configured connection.
+async function isConfiguredConnectionConnected(configurationID) {
+  try {
+    const cc = await $SystemAPI.configuredConnectionRead({ connectionID: configurationID })
+    const id = cc?.config?.credentialID
+    return !!id && id !== '0'
+  } catch {
+    return false
+  }
+}
+
+// Open the provider consent popup and resolve true on success. The auth host is
+// a different origin than the SPA, so the popup's URL cannot be read. Instead we
+// poll the configured connection for its credential — set by the callback — and
+// close the popup once it lands. Origin-independent by design.
+function runOAuthPopup(configurationID) {
+  const authBase = ($Auth?.authURL || `${window.location.origin}/auth`).replace(/\/$/, '')
+  const url = `${authBase}/oauth2/connection/authorize?configuredConnectionID=${configurationID}`
+  const popup = window.open(url, 'oauth2-connect', 'width=520,height=680')
+  if (!popup) {
+    $toast.toastWarning(t('system.configuredConnections.editor.oauth.popupBlocked'))
+    return Promise.resolve(false)
+  }
+  return new Promise(resolve => {
+    let settled = false
+    const finish = ok => {
+      if (settled) return
+      settled = true
+      clearInterval(timer)
+      clearTimeout(timeout)
+      try {
+        popup.close()
+      } catch {
+        // Popup may already be closed.
+      }
+      resolve(ok)
+    }
+    const timer = setInterval(async () => {
+      if (await isConfiguredConnectionConnected(configurationID)) {
+        finish(true)
+        return
+      }
+      // User closed the popup — check once more, then give up.
+      if (popup.closed) {
+        finish(await isConfiguredConnectionConnected(configurationID))
+      }
+    }, 1500)
+    // Safety net so a stalled consent never spins forever.
+    const timeout = setTimeout(() => finish(false), 5 * 60 * 1000)
+  })
+}
+
+async function handleOAuthConnect() {
+  if (!activeConfiguredConnection.value?.name?.trim()) {
+    $toast.toastWarning(t('general.notification.formErrors'))
+    return
+  }
+  oauthConnecting.value = true
+  try {
+    const configurationID = await ensureSavedForConnect()
+    if (!configurationID) return
+
+    const ok = await runOAuthPopup(configurationID)
+    if (!ok) {
+      $toast.toastWarning(t('system.configuredConnections.editor.oauth.denied'))
+      return
+    }
+
+    const enabled = await checkAndEnableConfiguredConnection(configurationID)
+    if (enabled) {
+      $toast.toastSuccess(t('system.configuredConnections.editor.oauth.success'))
+    }
+    configuredConnectionModal.value = false
+
+    // A fresh catalog configure imports the connector under a new connectionID;
+    // route there so the list shows the new configured connection.
+    const newConnectionID = activeConfiguredConnection.value?.connectionID
+    if (newConnectionID && newConnectionID !== props.connection.connectionID) {
+      router.push({
+        name: 'system.connections.configure',
+        params: { connectionID: newConnectionID },
+      })
+    } else {
+      filterConfiguredConnectionsList()
+    }
+  } catch (e) {
+    toastError('notification.connection.update.error', e)
+  } finally {
+    oauthConnecting.value = false
+  }
+}
+
 async function handleConfiguredConnectionSubmit({ valid }) {
   if (!valid) {
     $toast.toastWarning(t('general.notification.formErrors'))
@@ -611,6 +848,7 @@ async function handleConfiguredConnectionSubmit({ valid }) {
   try {
     activeConfiguredConnection.value.config = {
       ...activeConfiguredConnection.value.config,
+      authMethod: selectedAuthMethod.value,
       params: collectParamValues(),
     }
     parseConfiguredConnectionLabels()

@@ -7,6 +7,7 @@ import (
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
+	"github.com/crusttech/human/server/system/service/appstore"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -45,6 +46,7 @@ type (
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConnectionFilter) (types.ConnectionSet, types.ConnectionFilter, error)
 		Import(ctx context.Context, catalogID string) (*types.Connection, error)
+		ListOAuthApps(ctx context.Context) ([]appstore.OAuthApp, error)
 		Enable(ctx context.Context, ID uint64) (*types.Connection, error)
 		Configure(ctx context.Context, new *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
 		UpdateConfiguration(ctx context.Context, upd *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
@@ -146,6 +148,10 @@ func (ctrl Connection) Import(ctx context.Context, r *request.ConnectionImport) 
 		return nil, err
 	}
 	return ctrl.makePayload(ctx, res, nil)
+}
+
+func (ctrl Connection) ListOAuthApps(ctx context.Context, _ *request.ConnectionListOAuthApps) (interface{}, error) {
+	return ctrl.svc.ListOAuthApps(ctx)
 }
 
 func (ctrl Connection) Configure(ctx context.Context, r *request.ConnectionConfigure) (interface{}, error) {

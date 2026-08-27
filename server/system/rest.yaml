@@ -3531,6 +3531,10 @@ endpoints:
         parameters:
           post:
             - { type: 'string', name: 'catalogID', required: true, title: 'Catalog ID' }
+      - name: listOAuthApps
+        method: GET
+        title: List OAuth provider blueprints from the catalog
+        path: '/oauth-apps'
       - name: configure
         method: POST
         title: Configure a connection (create configured connection)

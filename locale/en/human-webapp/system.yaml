@@ -453,6 +453,12 @@ code-snippets:
     title: Code Snippets
 configuredConnections:
   editor:
+    authMethod:
+      label: Authentication method
+      oauthLabel: 'Connect with {provider}'
+      oauthDescription: Sign in and run as your own account.
+      serviceAccountLabel: Service account key
+      serviceAccountDescription: Use one shared credential for all users.
     check: Check Connection
     checkResult:
       auth: Authentication
@@ -466,6 +472,16 @@ configuredConnections:
       labels: Labels
       name: Name
       status: Status
+    oauth:
+      connect: Connect
+      connected: Connected
+      connecting: Connecting…
+      denied: The provider cancelled or denied the request.
+      help: Sign in with the provider to authorize this connection.
+      popupBlocked: Allow pop-ups for this site, then select Connect again.
+      reconnect: Reconnect
+      scopes: Scopes
+      success: Connected successfully.
     title:
       create: Connection
       edit: Connection
@@ -535,9 +551,25 @@ connections:
       status: Status
     createCustom: Create custom connection
     createLabel: New Connection
+    customTitle: Custom connections
     deleteConfirm: Are you sure you want to delete this connection?
+    filterForm:
+      deleted:
+        label: Deleted connections
+      excluded:
+        label: Without
+      exclusive:
+        label: Only
+      inclusive:
+        label: Including
+    install: Install
+    installed: Installed
+    noConnectors: No connectors match your search.
+    resourcePlural: connections
     resourceSingle: connection
+    searchConnectors: Search connectors
     searchPlaceholder: Search for connections
+    setUp: Set up
     sourceValues:
       catalog: Library
       local: Custom
@@ -793,6 +825,36 @@ llmProviders:
         placeholder: Filter LLM providers
     new: New LLM Provider
     title: LLM Providers
+oauthApps:
+  title: OAuth Providers
+  intro: Add the client ID and secret for a provider so users can connect catalog connections with their own account. The endpoints come from the provider catalog.
+  redirectUrl: Redirect URL
+  redirectUrlHint: Register this URL in the provider console as the authorized redirect URI.
+  providers: Providers
+  add: Add Provider
+  empty: No OAuth providers yet.
+  credentialsSet: Credentials configured
+  deleteConfirm: Are you sure you want to remove this OAuth provider?
+  loadError: Failed to load OAuth providers
+  saveSuccess: OAuth provider saved
+  saveError: Failed to save OAuth provider
+  deleteSuccess: OAuth provider removed
+  deleteError: Failed to remove OAuth provider
+  editor:
+    createTitle: Add OAuth Provider
+    editTitle: Edit OAuth Provider
+    handle: Provider name
+    selectProvider: Select a provider
+    clientId: Client ID
+    clientSecret: Client secret
+    keepPlaceholder: Leave blank to keep current
+    setupTitle: How to get the Client ID and secret
+    openConsole: Open the {provider} console
+    docsLink: Setup guide
+    genericStep: In the provider's developer console, create an OAuth 2.0 client of type Web application, then copy its client ID and secret into the fields below.
+    redirectLabel: Redirect URI to register with the provider
+    handleRequired: Provider name is required.
+    credentialsRequired: Client ID and client secret are required.
 queues:
   editor:
     delete: Delete

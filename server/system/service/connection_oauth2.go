@@ -78,6 +78,32 @@ func (svc *configuredConnection) resolveOAuth2(ctx context.Context, ccID uint64)
 	app, redirect, ok = CurrentSettings.ConnectionOAuthApp(auth.OAuthApp)
 	if !ok || redirect == "" {
 		err = errors.InvalidData("no OAuth app configured for provider: %s", auth.OAuthApp)
+		return
+	}
+
+	// Public provider config (endpoints, identity, consent params, PKCE) is
+	// docs-driven: overlay the catalog blueprint onto a copy, keeping the
+	// admin-supplied client id/secret from settings. Fall back to the stored
+	// values when the catalog has no blueprint for this provider.
+	appCopy := *app
+	app = &appCopy
+	if cat := svc.services.connectionSvc.services.catalog; cat != nil {
+		if bp, e := cat.GetOAuthApp(ctx, auth.OAuthApp); e == nil && bp != nil {
+			if bp.AuthURL != "" {
+				app.AuthURL = bp.AuthURL
+			}
+			if bp.TokenURL != "" {
+				app.TokenURL = bp.TokenURL
+			}
+			app.IdentityURL = bp.IdentityURL
+			app.IdentityEmailField = bp.IdentityEmailField
+			app.PKCE = bp.PKCE
+			if len(bp.AuthParams) > 0 {
+				if raw, e2 := json.Marshal(bp.AuthParams); e2 == nil {
+					app.AuthParams = string(raw)
+				}
+			}
+		}
 	}
 	return
 }
