@@ -130,7 +130,7 @@ func addContractEndpoints(document *ContractDocument) {
 
 func addConsumedEndpoints(document *ContractDocument) {
 	document.Endpoints["mapping_geocode"] = EndpointContract{
-		Method: "POST", Path: "/api/v1/geocode", Direction: EndpointConsumedByCRM,
+		Method: "POST", Path: "/internal/integrations/mapping/geocode", Direction: EndpointConsumedByCRM,
 		Authentication: authenticationContract("MAP_API_TOKEN supplied only to server runtime"), RequiredHeaders: []string{"Authorization", "Content-Type"},
 		RequestSchema: "geocode_request", ResponseSchema: "geocode_response", SuccessStatuses: map[string]int{"success": 200},
 		ErrorStatuses: map[string]int{string(ErrorAddressNotFound): 404, string(ErrorMapUnauthenticated): 401, string(ErrorMapTemporarilyUnavailable): 503},
@@ -146,7 +146,7 @@ func addConsumedEndpoints(document *ContractDocument) {
 		Method: "POST", Path: "/integrations/civicworks/events", Direction: EndpointProvidedByCRM,
 		Authentication:  authenticationContract("HMAC-SHA256 signature over exact request body"),
 		RequiredHeaders: []string{"Content-Type", "X-CivicWorks-Event-Id", "X-CivicWorks-Signature"},
-		RequestSchema:   "civicworks_event", ResponseSchema: "event_acknowledgement", SuccessStatuses: map[string]int{"acknowledged": 204, "duplicate_acknowledged": 204},
+		RequestSchema:   "civicworks_event", ResponseSchema: "empty_response", SuccessStatuses: map[string]int{"acknowledged": 204, "duplicate_acknowledged": 204},
 		ErrorStatuses: map[string]int{string(ErrorInvalidSignature): 401, string(ErrorValidation): 422},
 	}
 }

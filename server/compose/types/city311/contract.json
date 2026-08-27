@@ -335,6 +335,17 @@
       "stale_status": 409,
       "syntax": "quoted decimal resource version, for example \"7\""
     },
+    "server_error_policy": {
+      "declared_statuses": [
+        503
+      ],
+      "rule": "only declared 5xx statuses have a stable City 311 error mapping; undeclared 5xx responses are terminal transport failures outside this contract",
+      "undeclared_statuses": [
+        500,
+        502,
+        504
+      ]
+    },
     "session_and_authorization": {
       "actor_class_enum_ref": "authenticated_actor_class",
       "anonymous_role": "public_visitor",
@@ -1336,7 +1347,7 @@
         "X-CivicWorks-Signature"
       ],
       "request_schema": "civicworks_event",
-      "response_schema": "event_acknowledgement",
+      "response_schema": "empty_response",
       "success_statuses": {
         "acknowledged": 204,
         "duplicate_acknowledged": 204
@@ -1929,7 +1940,7 @@
     },
     "mapping_geocode": {
       "method": "POST",
-      "path": "/api/v1/geocode",
+      "path": "/internal/integrations/mapping/geocode",
       "direction": "consumed_by_crm",
       "authentication": {
         "mode": "server_api_token",
@@ -7461,13 +7472,13 @@
       "endpoint": "civicworks_event_callback",
       "role": "response",
       "http_status": 204,
-      "body": {}
+      "body": null
     },
     "civicworks_event_acknowledged": {
       "endpoint": "civicworks_event_callback",
       "role": "response",
       "http_status": 204,
-      "body": {}
+      "body": null
     },
     "civicworks_invalid_signature": {
       "endpoint": "civicworks_event_callback",

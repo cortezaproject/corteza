@@ -67,7 +67,6 @@ export default [
                   r('admin.charts.create', 'charts/new/:category?', 'Admin/Charts/Edit'),
                   r('admin.charts.edit', 'charts/:chartID/edit', 'Admin/Charts/Edit'),
 
-                  r('admin.configuration', 'configuration', 'Admin/Configuration/Index'),
                 ],
               },
 
