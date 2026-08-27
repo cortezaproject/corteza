@@ -24,7 +24,7 @@ export default (options = {}) => {
   options = {
     el: '#app',
     name: 'admin',
-    template: '<router-view v-if="loaded && i18nLoaded && isRbacLoaded" />',
+    template: '<router-view v-if="loaded && i18nLoaded && (isRbacLoaded || isC311MockRoute)" />',
 
     mixins: [
       mixins.corredor,
@@ -39,13 +39,24 @@ export default (options = {}) => {
       ...mapGetters({
         isRbacLoaded: 'rbac/isLoaded',
       }),
+      isC311MockRoute () {
+        return window.C311Mode === 'mock'
+      },
     },
 
     async created () {
-      this.$i18n.i18next.on('initialized', () => {
+      const installC311I18n = () => {
         this.i18nLoaded = true
         c311I18n?.installC311Translations?.(this.$i18n.i18next)
-      })
+      }
+      this.$i18n.i18next.on('initialized', installC311I18n)
+      if (this.$i18n.i18next.isInitialized) installC311I18n()
+      if (window.C311Mode === 'mock') installC311I18n()
+
+      if (this.isC311MockRoute || this.$route?.meta?.c311?.public || ['c311.unauthorized', 'c311.forbidden', 'c311.not-found', 'c311.not-found-wildcard'].includes(this.$route?.name)) {
+        this.loaded = true
+        return
+      }
 
       this.websocket()
 

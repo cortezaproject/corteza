@@ -29,6 +29,7 @@ export interface C311Provider {
 export interface C311RouteMeta {
   c311?: {
     requiresAuth?: boolean
+    route?: string
     capabilities?: string[]
     scopes?: string[]
     public?: boolean
@@ -55,8 +56,13 @@ export function hasC311Scope (session: C311Session | null | undefined, scope: st
   return !!session?.actor?.scopes?.includes(scope)
 }
 
+export function hasC311Route (session: C311Session | null | undefined, route: string): boolean {
+  return !!session?.actor?.available_routes?.includes(route)
+}
+
 export function canAccessC311Route (session: C311Session | null | undefined, meta: C311RouteMeta['c311'] = {}): boolean {
   if (meta.requiresAuth && !session?.authenticated) return false
+  if (meta.route && !meta.public && !hasC311Route(session, meta.route)) return false
   if (meta.capabilities?.some(capability => !hasC311Capability(session, capability))) return false
   if (meta.scopes?.some(scope => !hasC311Scope(session, scope))) return false
   return true

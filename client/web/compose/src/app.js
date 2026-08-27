@@ -36,14 +36,18 @@ export default (options = {}) => {
     }),
 
     async created () {
-      this.$i18n.i18next.on('initialized', () => {
+      const installC311I18n = () => {
         this.i18nLoaded = true
         c311I18n?.installC311Translations?.(this.$i18n.i18next)
-      })
+      }
+      this.$i18n.i18next.on('initialized', installC311I18n)
+      if (this.$i18n.i18next.isInitialized) installC311I18n()
+      if (window.C311Mode === 'mock') installC311I18n()
 
       // City 311 public routes use optional session cookies and must remain
       // reachable without starting Corteza's global OAuth flow.
-      const isPublicC311Route = this.$route?.meta?.c311?.public || window.location.pathname.startsWith('/c311/')
+      const isC311MockRoute = window.C311Mode === 'mock'
+      const isPublicC311Route = isC311MockRoute || this.$route?.meta?.c311?.public || ['c311.unauthorized', 'c311.forbidden', 'c311.not-found', 'c311.not-found-wildcard'].includes(this.$route?.name)
       if (isPublicC311Route) {
         this.loaded = true
         return

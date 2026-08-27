@@ -6,6 +6,7 @@
     role="dialog"
     aria-modal="true"
     :aria-label="title"
+    data-c311-focus-modal
     @keydown.esc="close"
     @keydown.tab="cycleFocus"
   >
@@ -42,6 +43,11 @@ export default {
         this.$nextTick(() => this.opener?.focus?.())
       }
     },
+  },
+  mounted () {
+    if (!this.open) return
+    this.opener = document.activeElement
+    this.$nextTick(() => this.$refs.closeButton?.focus())
   },
   methods: {
     close () { this.open = false },

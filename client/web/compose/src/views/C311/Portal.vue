@@ -1,9 +1,9 @@
 <template>
-  <c311-app-shell mode="public" brand="City 311" title="City 311" :status-message="statusMessage">
+  <c311-app-shell mode="public" :brand="t('portal.brand', 'City 311')" :title="t('portal.title', 'City 311')" :status-message="statusMessage">
     <template #nav>
       <div class="d-flex flex-wrap align-items-center gap-2">
-        <c311-main-nav :items="navItems" label="Public navigation" />
-        <c311-help-drawer help-key="public.request.submit" />
+        <c311-main-nav :items="navItems" :label="t('navigation.public', 'Public navigation')" />
+        <c311-help-drawer help-key="public.request.submit" :label="t('help.label', 'Help')" :title="t('help.title', 'Help')" :close-label="t('action.close', 'Close')" :content="t('help.public.request.submit', 'Submit a service request.')" />
         <c311-language-selector :actor-id="actorID" />
       </div>
     </template>
@@ -12,19 +12,19 @@
       <template #populated>
         <c311-responsive-data
           :items="items"
-          :columns="columns"
+          :columns="translatedColumns"
           row-key="request_id"
-          label="My service requests"
+          :label="t('portal.myRequests', 'My service requests')"
         />
       </template>
     </c311-data-state>
 
     <section v-if="isSubmitRoute" aria-labelledby="submit-heading" class="mt-4">
-      <h2 id="submit-heading" class="h4">Submit a service request</h2>
-      <c311-error-summary :errors="formErrors" title="Review your request" />
+      <h2 id="submit-heading" class="h4">{{ t('portal.submit.title', 'Submit a service request') }}</h2>
+      <c311-error-summary :errors="formErrors" :title="t('error.review', 'Review your request')" />
       <form @submit.prevent="submit">
         <div class="form-group">
-          <label for="c311-summary">Summary</label>
+          <label for="c311-summary">{{ t('field.summary', 'Summary') }}</label>
           <input
             id="c311-summary"
             v-model.trim="form.summary"
@@ -33,10 +33,10 @@
             aria-describedby="c311-summary-help"
             @input="markDirty"
           >
-          <small id="c311-summary-help" class="form-text text-muted">Briefly describe the issue.</small>
+          <small id="c311-summary-help" class="form-text text-muted">{{ t('field.summaryHelp', 'Briefly describe the issue.') }}</small>
         </div>
         <div class="form-group">
-          <label for="c311-description">Description</label>
+          <label for="c311-description">{{ t('field.description', 'Description') }}</label>
           <textarea
             id="c311-description"
             v-model.trim="form.description"
@@ -52,7 +52,7 @@
           :explain-when-denied="true"
           type="submit"
         >
-          Submit request
+          {{ t('action.submit', 'Submit request') }}
         </c311-capability-action>
       </form>
     </section>
@@ -60,7 +60,7 @@
 </template>
 
 <script>
-import { formatC311DateTime } from '@cortezaproject/corteza-js'
+import * as C311JS from '@cortezaproject/corteza-js'
 import { components, mixins, c311 } from '@cortezaproject/corteza-vue'
 
 const {
@@ -75,6 +75,13 @@ const {
 } = components
 
 const c311StateForError = c311?.c311StateForError
+function formatDate (value) {
+  try {
+    return typeof C311JS.formatC311DateTime === 'function' ? C311JS.formatC311DateTime(value) : value || ''
+  } catch (_error) {
+    return value || ''
+  }
+}
 const c311DirtyGuard = mixins && mixins.c311DirtyGuard
   ? mixins.c311DirtyGuard
   : {
@@ -107,14 +114,10 @@ export default {
     dataError: null,
     statusMessage: '',
     columns: [
-      { key: 'request_number', label: 'Request number' },
-      { key: 'summary', label: 'Summary' },
-      { key: 'status', label: 'Status' },
-      { key: 'updated_at', label: 'Updated', format: value => formatC311DateTime?.(value) || value || '' },
-    ],
-    navItems: [
-      { route: '/c311/submit', label: 'Submit a request' },
-      { route: '/c311/status', label: 'Check status' },
+      { key: 'request_number', labelKey: 'field.requestNumber' },
+      { key: 'summary', labelKey: 'field.summary' },
+      { key: 'status', labelKey: 'field.status' },
+      { key: 'updated_at', labelKey: 'field.updated', format: value => formatDate(value) },
     ],
     form: {
       summary: '',
@@ -130,6 +133,15 @@ export default {
     },
     isSubmitRoute () {
       return this.$route && this.$route.name === 'c311.submit'
+    },
+    navItems () {
+      return [
+        { route: '/c311/submit', label: this.t('navigation.submit', 'Submit a request') },
+        { route: '/c311/status', label: this.t('navigation.status', 'Check status') },
+      ]
+    },
+    translatedColumns () {
+      return this.columns.map(column => ({ ...column, label: this.t(column.labelKey, column.labelKey) }))
     },
   },
   watch: {
@@ -151,6 +163,10 @@ export default {
     }
   },
   methods: {
+    t (key, fallback) {
+      const translated = this.$t?.(`c311:${key}`)
+      return translated && translated !== `c311:${key}` && translated !== key ? translated : fallback
+    },
     markDirty () {
       if (this.c311MarkDirty) this.c311MarkDirty(true)
     },
@@ -160,7 +176,7 @@ export default {
     async submit () {
       this.formErrors = []
       if (!this.form.summary) {
-        this.formErrors = [{ field: 'summary', code: 'REQUIRED', message: 'Summary is required.' }]
+        this.formErrors = [{ field: 'summary', code: 'REQUIRED', message: this.t('error.summaryRequired', 'Summary is required.') }]
         return
       }
       this.submitting = true
@@ -171,30 +187,30 @@ export default {
           service_type: 'GENERAL_INQUIRY',
           requester: { display_name: 'Portal visitor', email: 'visitor@example.test' },
         })
-        if (!response) throw new Error('The request provider is unavailable.')
+        if (!response) throw new Error(this.t('error.providerUnavailable', 'The request provider is unavailable.'))
         this.form = { summary: '', description: '' }
         this.c311ClearDirtyDraft?.()
-        this.statusMessage = `Request ${response.request_number} submitted.`
+        this.statusMessage = this.t('status.submitted', `Request ${response.request_number} submitted.`).replace('{{number}}', response.request_number)
       } catch (error) {
-        this.formErrors = error?.fieldErrors || error?.errors || [{ field: 'summary', code: 'SUBMIT_FAILED', message: error?.message || 'The request could not be submitted.' }]
+        this.formErrors = error?.fieldErrors || error?.errors || [{ field: 'summary', code: 'SUBMIT_FAILED', message: error?.message || this.t('error.submitFailed', 'The request could not be submitted.') }]
       } finally {
         this.submitting = false
       }
     },
     async load () {
       this.state = 'loading'
-      this.statusMessage = 'Loading requests.'
+      this.statusMessage = this.t('status.loadingRequests', 'Loading requests.')
       try {
         const provider = this.$C311?.provider
         const page = await provider?.listPortalRequests?.()
         this.items = page?.items || []
         this.dataError = null
         this.state = this.items.length ? 'populated' : 'empty'
-        this.statusMessage = this.items.length ? 'Requests loaded.' : 'No requests found.'
+        this.statusMessage = this.items.length ? this.t('status.requestsLoaded', 'Requests loaded.') : this.t('status.noRequests', 'No requests found.')
       } catch (error) {
         this.dataError = error
         this.state = c311StateForError?.(error) || (error?.retryable ? 'retryable-error' : 'terminal-error')
-        this.statusMessage = 'Request list unavailable.'
+        this.statusMessage = this.t('status.requestListUnavailable', 'Request list unavailable.')
       }
     },
   },

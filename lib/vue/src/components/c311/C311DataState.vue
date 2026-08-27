@@ -21,7 +21,7 @@
         variant="primary"
         @click="$emit('retry')"
       >
-        {{ retryLabel }}
+        {{ displayRetryLabel }}
       </b-button>
       <slot name="action" />
     </div>
@@ -84,11 +84,14 @@ export default {
       }[this.state] || ''
       return this.messages[`${this.state}.message`] || this.translate(`status.${this.state}.message`, fallback)
     },
+    displayRetryLabel () {
+      return this.translate('action.retry', this.retryLabel)
+    },
   },
   methods: {
     translate (key, fallback, options = {}) {
       const translated = this.$t?.(`c311:${key}`, options)
-      return translated && translated !== `c311:${key}` ? translated : fallback
+      return translated && translated !== `c311:${key}` && translated !== key ? translated : fallback
     },
   },
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="c311-responsive-data" data-c311-responsive-data>
-    <div class="c311-responsive-data__table" tabindex="0" role="region" :aria-label="label">
+    <div class="c311-responsive-data__table" tabindex="0" role="region" :aria-label="label" data-c311-responsive-table>
       <table class="table table-hover mb-0">
         <thead>
           <tr>
@@ -18,7 +18,7 @@
         </tbody>
       </table>
     </div>
-    <div class="c311-responsive-data__cards">
+    <div class="c311-responsive-data__cards" data-c311-responsive-cards>
       <article v-for="item in items" :key="item[rowKey]" class="border rounded p-3 mb-2">
         <dl class="mb-0">
           <div v-for="column in visibleColumns" :key="column.key" class="d-flex justify-content-between py-1">

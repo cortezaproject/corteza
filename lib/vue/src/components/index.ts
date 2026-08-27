@@ -104,6 +104,7 @@ export {
   C311ErrorSummary,
   C311FocusModal,
   C311HelpDrawer,
+  C311InteractionHarness,
   C311LanguageSelector,
   C311MainNav,
   C311ResponsiveData,

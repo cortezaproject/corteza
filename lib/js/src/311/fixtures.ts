@@ -97,6 +97,7 @@ type RoleDefinition = {
   capabilities: string[]
   scopes: string[]
   routes: string[]
+  deniedScope: string
 }
 
 const roleDefinitions: Record<ApplicationRole, RoleDefinition> = {
@@ -108,6 +109,7 @@ const roleDefinitions: Record<ApplicationRole, RoleDefinition> = {
     capabilities: [],
     scopes: [],
     routes: ['public_branding_get', 'public_content_get', 'public_help_get', 'anonymous_status_lookup', 'portal_service_request_submit', 'portal_attachment_upload'],
+    deniedScope: 'service_requests.write',
   },
   constituent: {
     actor_id: 'actor-fixture-001',
@@ -117,6 +119,7 @@ const roleDefinitions: Record<ApplicationRole, RoleDefinition> = {
     capabilities: ['portal_my_requests', 'portal_reopen_request', 'portal_link_anonymous_request', 'attachment_download', 'profile_get', 'profile_update', 'password_change', 'login_identifier_change'],
     scopes: ['service_requests.write'],
     routes: ['session_current', 'portal_my_requests', 'portal_service_request_submit', 'portal_attachment_upload', 'portal_reopen_request', 'portal_link_anonymous_request', 'attachment_download', 'profile_get', 'profile_update', 'password_change', 'login_identifier_change'],
+    deniedScope: 'workflow.execute',
   },
   service_agent: {
     actor_id: 'actor-fixture-agent',
@@ -126,6 +129,7 @@ const roleDefinitions: Record<ApplicationRole, RoleDefinition> = {
     capabilities: ['staff_request_queue', 'staff_request_detail', 'staff_request_transition', 'staff_service_request_create', 'report_catalogue', 'report_export'],
     scopes: ['service_requests.write'],
     routes: ['session_current', 'staff_request_queue', 'staff_request_detail', 'staff_request_transition', 'staff_service_request_create', 'report_catalogue', 'report_export'],
+    deniedScope: 'workflow.execute',
   },
   supervisor: {
     actor_id: 'actor-fixture-supervisor',
@@ -135,6 +139,7 @@ const roleDefinitions: Record<ApplicationRole, RoleDefinition> = {
     capabilities: ['staff_request_queue', 'staff_request_detail', 'staff_request_transition', 'staff_request_reassign', 'staff_request_bulk', 'report_catalogue', 'report_export', 'audit_list', 'audit_export'],
     scopes: ['service_requests.write'],
     routes: ['session_current', 'staff_request_queue', 'staff_request_detail', 'staff_request_transition', 'staff_request_reassign', 'staff_request_bulk', 'report_catalogue', 'report_export', 'audit_list', 'audit_export'],
+    deniedScope: 'workflow.execute',
   },
   department_manager: {
     actor_id: 'actor-fixture-manager',
@@ -144,6 +149,7 @@ const roleDefinitions: Record<ApplicationRole, RoleDefinition> = {
     capabilities: ['staff_request_queue', 'staff_request_detail', 'staff_request_transition', 'staff_request_reassign', 'report_catalogue', 'report_export', 'audit_list', 'audit_export'],
     scopes: ['service_requests.write', 'crm.export'],
     routes: ['session_current', 'staff_request_queue', 'staff_request_detail', 'staff_request_transition', 'staff_request_reassign', 'report_catalogue', 'report_export', 'audit_list', 'audit_export'],
+    deniedScope: 'workflow.execute',
   },
   platform_administrator: {
     actor_id: 'actor-fixture-admin',
@@ -151,8 +157,9 @@ const roleDefinitions: Record<ApplicationRole, RoleDefinition> = {
     departments: ['PUBLIC_WORKS', 'STREETS', 'SANITATION', 'GENERAL_SERVICES'],
     districts: ['NORTH', 'CENTRAL', 'SOUTH'],
     capabilities: ['staff_request_queue', 'staff_request_detail', 'staff_request_transition', 'staff_request_reassign', 'staff_request_bulk', 'report_catalogue', 'report_export', 'audit_list', 'audit_export', 'admin_branding_get', 'admin_branding_preview', 'admin_branding_publish', 'admin_branding_rollback', 'admin_branding_update', 'admin_branding_versions', 'admin_content_get', 'admin_content_list', 'admin_content_preview', 'admin_content_publish', 'admin_content_rollback', 'admin_content_update', 'admin_content_versions', 'admin_help_update', 'admin_categories_list', 'admin_categories_create', 'admin_categories_update', 'admin_custom_fields_list', 'admin_custom_fields_create', 'admin_custom_fields_update'],
-    scopes: ['service_requests.write', 'crm.export', 'workflow.execute'],
+    scopes: ['service_requests.write', 'crm.export'],
     routes: ['session_current', 'staff_request_queue', 'staff_request_detail', 'staff_request_transition', 'staff_request_reassign', 'staff_request_bulk', 'report_catalogue', 'report_export', 'audit_list', 'audit_export', 'admin_branding_get', 'admin_branding_preview', 'admin_branding_publish', 'admin_branding_rollback', 'admin_branding_update', 'admin_branding_versions', 'admin_content_get', 'admin_content_list', 'admin_content_preview', 'admin_content_publish', 'admin_content_rollback', 'admin_content_update', 'admin_content_versions', 'admin_help_update', 'admin_categories_list', 'admin_categories_create', 'admin_categories_update', 'admin_custom_fields_list', 'admin_custom_fields_create', 'admin_custom_fields_update'],
+    deniedScope: 'workflow.execute',
   },
   workflow_designer: {
     actor_id: 'actor-fixture-workflow',
@@ -162,6 +169,7 @@ const roleDefinitions: Record<ApplicationRole, RoleDefinition> = {
     capabilities: ['workflow_list', 'workflow_get', 'workflow_create', 'workflow_update', 'workflow_test', 'workflow_activate', 'workflow_deactivate', 'workflow_execution_list', 'workflow_execution_get'],
     scopes: ['workflow.execute'],
     routes: ['session_current', 'workflow_list', 'workflow_get', 'workflow_create', 'workflow_update', 'workflow_test', 'workflow_activate', 'workflow_deactivate', 'workflow_execution_list', 'workflow_execution_get'],
+    deniedScope: 'service_requests.write',
   },
   integration_client: {
     actor_id: 'actor-fixture-integration',
@@ -171,6 +179,7 @@ const roleDefinitions: Record<ApplicationRole, RoleDefinition> = {
     capabilities: [],
     scopes: ['service_requests.write'],
     routes: ['service_request_create', 'data_export'],
+    deniedScope: 'crm.export',
   },
 }
 
@@ -207,7 +216,8 @@ function createRoleFixtures (): Record<ApplicationRole, C311RoleFixture> {
       denied_route: role === 'public_visitor' || role === 'constituent'
         ? 'staff_request_queue'
         : role === 'platform_administrator' ? 'workflow_list' : 'admin_branding_get',
-      denied_capability: role === 'public_visitor' || role === 'constituent' ? 'staff_request_queue' : role === 'platform_administrator' ? 'workflow_list' : 'admin_branding_get',
+        denied_capability: role === 'public_visitor' || role === 'constituent' ? 'staff_request_queue' : role === 'platform_administrator' ? 'workflow_list' : 'admin_branding_get',
+        denied_scope: definition.deniedScope,
     }
   })
   return fixtures

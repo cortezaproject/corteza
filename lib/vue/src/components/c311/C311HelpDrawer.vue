@@ -18,6 +18,7 @@
       role="dialog"
       aria-modal="true"
       :aria-label="title"
+      data-c311-help-drawer
       @keydown.esc="closeDrawer"
       @keydown.tab="cycleFocus"
     >

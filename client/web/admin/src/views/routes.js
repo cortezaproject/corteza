@@ -86,37 +86,54 @@ export default [
     name: 'c311.unauthorized',
     path: '/c311/401',
     component: C311AccessPage,
-    props: { status: 401, heading: 'Sign-in required', message: 'Your session has expired or you are not signed in.' },
+    props: { status: 401 },
   },
   {
     name: 'c311.forbidden',
     path: '/c311/403',
     component: C311AccessPage,
-    props: { status: 403, heading: 'Access denied', message: 'You do not have permission to view this page.' },
+    props: { status: 403 },
   },
   {
     name: 'c311.not-found',
     path: '/c311/404',
     component: C311AccessPage,
-    props: { status: 404, heading: 'Not found', message: 'The requested page could not be found.' },
+    props: { status: 404 },
   },
   {
     name: 'c311.staff.reports',
     path: '/c311/staff/reports',
     component: () => import('./C311/Staff.vue'),
-    meta: { c311: { requiresAuth: true, capabilities: ['report_catalogue'] } },
+    meta: { c311: { requiresAuth: true, route: 'report_catalogue', capabilities: ['report_catalogue'] } },
   },
   {
     name: 'c311.staff.workflows',
     path: '/c311/staff/workflows',
     component: () => import('./C311/Staff.vue'),
-    meta: { c311: { requiresAuth: true, capabilities: ['workflow_list'] } },
+    meta: { c311: { requiresAuth: true, route: 'workflow_list', capabilities: ['workflow_list'], scopes: ['workflow.execute'] } },
   },
   {
     name: 'c311.staff',
     path: '/c311/staff',
     component: () => import('./C311/Staff.vue'),
-    meta: { c311: { requiresAuth: true, capabilities: ['staff_request_queue'] } },
+    meta: { c311: { requiresAuth: true, route: 'staff_request_queue', capabilities: ['staff_request_queue'], scopes: ['service_requests.write'] } },
+  },
+  {
+    name: 'c311.test.interaction',
+    path: '/c311/test/modal',
+    component: components.C311InteractionHarness,
+    meta: { c311: { public: true } },
+    beforeEnter: (_to, _from, next) => {
+      if (typeof window !== 'undefined' && window.C311Mode === 'mock') return next()
+      return next({ name: 'c311.not-found' })
+    },
+  },
+  {
+    name: 'c311.not-found-wildcard',
+    path: '/c311/*',
+    component: C311AccessPage,
+    props: { status: 404 },
+    meta: { c311: { public: true } },
   },
   {
     name: 'root',

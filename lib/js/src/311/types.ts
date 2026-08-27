@@ -4,6 +4,7 @@ import type {
   ContactCategory,
   ContractCapability,
   ContractRoute,
+  ContractScope,
   DepartmentCode,
   DistrictCode,
   ErrorCode,
@@ -59,7 +60,7 @@ export interface CurrentActor {
   department_codes: DepartmentCode[]
   district_codes: DistrictCode[]
   capabilities: ContractCapability[]
-  scopes: string[]
+  scopes: ContractScope[]
   available_routes: ContractRoute[]
 }
 
@@ -75,6 +76,7 @@ export interface C311RoleFixture {
   expired_session: Session
   denied_route: ContractRoute
   denied_capability: ContractCapability
+  denied_scope: ContractScope
 }
 
 export interface LocalSignIn {

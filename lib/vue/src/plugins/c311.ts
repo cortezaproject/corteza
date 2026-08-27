@@ -90,6 +90,9 @@ declare global {
   interface Window {
     C311Provider?: C311Provider
     C311Mode?: 'mock' | 'http'
+    C311MockRole?: string
+    C311MockScenario?: string
+    C311MockSession?: 'current' | 'expired'
     CortezaAPI?: string
   }
 }

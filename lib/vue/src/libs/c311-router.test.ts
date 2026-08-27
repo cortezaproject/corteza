@@ -44,6 +44,18 @@ describe('C311 router guards', () => {
     expect(redirect.query.returnTo).to.equal(encodeURIComponent('/c311/staff/reports'))
   })
 
+  it('rejects a route that is outside the actor route or scope grants', async () => {
+    const guard = setup({ authenticated: true, actor: { available_routes: ['staff_request_queue'], capabilities: ['staff_request_queue'], scopes: [] } })
+    let redirect: any
+    await guard({
+      path: '/c311/staff/reports',
+      fullPath: '/c311/staff/reports',
+      matched: [{ meta: { c311: { requiresAuth: true, route: 'report_catalogue', capabilities: ['report_catalogue'], scopes: ['crm.export'] } } }],
+    }, {}, value => { redirect = value })
+
+    expect(redirect.name).to.equal('c311.forbidden')
+  })
+
   it('does not turn a session service outage into a false 401 redirect', async () => {
     const guard = setup(null, false, { status: 503, code: 'TEMPORARILY_UNAVAILABLE' })
     let nextCalled = false

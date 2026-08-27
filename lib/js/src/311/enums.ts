@@ -178,3 +178,4 @@ export type C311Scenario = typeof C311_SCENARIOS[number]
 // string-branded avoids silently inventing a second, incomplete allow-list.
 export type ContractCapability = string
 export type ContractRoute = string
+export type ContractScope = string

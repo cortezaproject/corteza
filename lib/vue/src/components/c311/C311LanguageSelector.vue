@@ -1,14 +1,15 @@
 <template>
   <label class="d-inline-flex align-items-center mb-0">
-    <span class="sr-only">{{ label }}</span>
+    <span class="sr-only">{{ translatedLabel }}</span>
     <select
       v-model="selected"
       class="custom-select custom-select-sm"
-      :aria-label="label"
+      data-c311-language
+      :aria-label="translatedLabel"
       @change="changeLanguage"
     >
       <option v-for="option in options" :key="option.value" :value="option.value">
-        {{ option.label }}
+        {{ translate(option.key, option.label) }}
       </option>
     </select>
   </label>
@@ -26,14 +27,19 @@ export default {
   },
   data () {
     const selected = readC311Locale(this.actorID) || this.value
-    return {
-      selected,
-      options: [
-        { value: 'en', label: 'English' },
-        { value: 'es', label: 'Español' },
-        { value: 'vi', label: 'Tiếng Việt' },
-      ],
-    }
+    return { selected }
+  },
+  computed: {
+    translatedLabel () {
+      return this.translate('language.label', this.label)
+    },
+    options () {
+      return [
+        { value: 'en', key: 'language.english', label: 'English' },
+        { value: 'es', key: 'language.spanish', label: 'Español' },
+        { value: 'vi', key: 'language.vietnamese', label: 'Tiếng Việt' },
+      ]
+    },
   },
   watch: {
     value (value) { this.selected = value },
@@ -42,6 +48,10 @@ export default {
     if (this.selected !== this.value) this.$i18n?.i18next?.changeLanguage(this.selected)
   },
   methods: {
+    translate (key, fallback) {
+      const translated = this.$t?.(`c311:${key}`)
+      return translated && translated !== `c311:${key}` && translated !== key ? translated : fallback
+    },
     changeLanguage () {
       const locale = this.selected
       if (typeof localStorage !== 'undefined') localStorage.setItem(`c311.locale.${this.actorID || 'anonymous'}`, locale)
