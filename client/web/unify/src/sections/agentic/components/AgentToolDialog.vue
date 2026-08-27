@@ -125,7 +125,7 @@
                     :key="tool.name"
                     class="border-b border-surface last:border-b-0"
                   >
-                    <div class="group flex items-start gap-3 py-2">
+                    <div class="tool-row group flex items-start gap-3 py-2 -mx-2 px-2">
                       <div
                         class="flex-1 min-w-0 flex items-start gap-2"
                         :class="{ 'tool-row-blocked': !toolOn(tool) }"
@@ -718,8 +718,9 @@ function apply() {
   min-height: 0;
 }
 
-/* A blocked row is legible, not erased: it is still a row you can read and
-   turn back on. */
+/* A blocked row is legible, not erased: it is still a row you can read and turn
+   back on. Only what the row says recedes — the control that turns it back on
+   is the one thing that must not. */
 .tool-row-blocked {
   opacity: 0.7;
 }
@@ -747,18 +748,15 @@ function apply() {
   background: var(--p-content-hover-background);
 }
 
-/* A blocked row recedes rather than disappears, so the way back is where it was.
-   Written here rather than as utilities so the rule survives whatever else
-   styles the row. */
-.tool-mode {
-  transition: opacity 0.15s ease;
+/* The row under the pointer. Ninety rows of the same shape, each with a control
+   hard against the right edge, and nothing said which one a click would land
+   on. It bleeds into the scroller's padding so the band reads as the row's full
+   width rather than as a box around the text. */
+.tool-row {
+  transition: background-color 0.1s ease;
 }
 
-.tool-mode[data-blocked='true']:not(:focus-within) {
-  opacity: 0.7;
-}
-
-.group:hover .tool-mode[data-blocked='true'] {
-  opacity: 1;
+.tool-row:hover {
+  background: var(--p-content-hover-background);
 }
 </style>

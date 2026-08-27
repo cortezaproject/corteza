@@ -545,10 +545,10 @@ describe('AgentToolDialog blocked rows', () => {
     expect(vm.rowMode(lookup)).toBe('always')
   })
 
-  // A blocked row's control recedes rather than vanishes: at full strength on
-  // every one of ninety tools the agent does not have it reads as ninety
-  // decisions waiting to be made, and gone it leaves no way back.
-  it('leaves the control in place on a blocked row, receded', async () => {
+  // Only what the row says recedes. The control is how a blocked tool is turned
+  // back on, so dimming it dimmed the one thing on the row that must stay
+  // reachable — and left a list where every control looked half-disabled.
+  it("recedes a blocked row's text and not its control", async () => {
     const w = await mountRendered()
     const rows = [...document.querySelectorAll('[data-blocked]')]
 
@@ -556,6 +556,20 @@ describe('AgentToolDialog blocked rows', () => {
     expect(rows.every(r => r.getAttribute('data-blocked') === 'true')).toBe(true)
     expect(rows.every(r => r.classList.contains('tool-mode'))).toBe(true)
     expect(rows.every(r => r.querySelector('[data-testid="mode-toggle"]'))).toBe(true)
+
+    for (const mode of rows) {
+      const row = mode.parentElement!
+      const receded = [...row.querySelectorAll('.tool-row-blocked')]
+
+      // The row itself must not carry it, or the control recedes with the text.
+      expect(row.classList.contains('tool-row-blocked')).toBe(false)
+      expect(receded.length).toBe(1)
+      expect(receded[0].querySelector('.text-color')).toBeTruthy()
+      expect(receded[0].contains(mode)).toBe(false)
+    }
+
+    // The band the pointer lights up is the whole row, controls included.
+    expect(rows.every(r => r.parentElement!.classList.contains('tool-row'))).toBe(true)
 
     w.unmount()
   })
