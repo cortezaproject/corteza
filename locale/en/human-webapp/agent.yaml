@@ -144,7 +144,7 @@ editor:
   taqs:
     descriptionPlaceholder: Optional description for this TAQ...
     help: Select TAQs this agent can invoke to automate routines
-    label: Allowed TAQs
+    label: TAQs
     selectPlaceholder: Select a TAQ to add...
   tcl:
     articles:
@@ -255,7 +255,7 @@ editor:
   workflows:
     descriptionPlaceholder: Optional description for this workflow...
     help: Select Workflows this agent can trigger
-    label: Allowed Workflows
+    label: Workflows
     selectPlaceholder: Select a workflow to add...
 list:
   actions:
