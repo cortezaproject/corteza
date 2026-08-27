@@ -10,8 +10,10 @@
 #
 # Precedence, highest first:
 #   1. the environment          — an explicit HUMAN_API/HUMAN_WEBAPP always wins
-#   2. this checkout's own files — server/.env, .env.e2e, the worktree registry
-#   3. the primary's ports       — 1043 / 5173
+#   2. this checkout's own files — server/.env for the API, VITE_PORT
+#                                  (.env.local over .env) then .env.e2e and the
+#                                  worktree registry for the webapp
+#   3. the shipped defaults      — 1043 / 5173
 #
 #   source dev/agent/stack.sh      sets the variables
 #   eval "$(dev/agent/stack.sh)"   the same, from a subshell
@@ -26,7 +28,14 @@ STACK_ROOT="${STACK_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 # gets: godotenv parses the whole file into a map before applying it, so a key
 # set twice takes its final value. Reading the first match instead reports a
 # port nothing is listening on the moment someone appends an override.
-_stack_last() { sed -nE "$2" "$1" 2>/dev/null | tail -1; }
+# A missing file is the ordinary case on a checkout that is not set up yet, so
+# it answers empty rather than failing: under `set -euo pipefail` — which every
+# caller uses — sed's exit status would otherwise travel through the pipe and
+# abort the script that only wanted to know the value was unset.
+_stack_last() {
+  [[ -f "$1" ]] || return 0
+  sed -nE "$2" "$1" | tail -1
+}
 
 # HTTP_ADDR is a bind address — ":1043", "127.0.0.1:1043", quoted or not.
 _stack_api_port() {
@@ -39,15 +48,47 @@ _stack_api_base() {
     's#^[[:space:]]*HTTP_API_BASE_URL=["'\'']?(/[^"'\'' ]*).*#\1#p'
 }
 
-# .env.e2e first: every worktree gets one naming its own vite port, and the
+# VITE_PORT is where vite actually binds — vite.config.js reads it, .env.local
+# overrides the tracked .env, and the process environment overrides both. It is
+# consulted BEFORE .env.e2e on purpose: a stale E2E_BASE_URL is exactly what
+# this is meant to catch, and reading it first would confirm the guess against
+# itself.
+_stack_vite_port() { # _stack_vite_port UNIFY_DIR
+  local f p
+  [[ -n "${VITE_PORT:-}" ]] && {
+    echo "$VITE_PORT"
+    return
+  }
+  for f in "$1/.env.local" "$1/.env"; do
+    p="$(_stack_last "$f" 's/^[[:space:]]*VITE_PORT=["'"'"']?([0-9]+).*/\1/p')"
+    [[ -n "$p" ]] && {
+      echo "$p"
+      return
+    }
+  done
+
+  # Finding nothing is the normal case, not a failure: every caller sources
+  # this under `set -e`, where a non-zero return from the last test would abort
+  # the script that only wanted to know the port was unset.
+  return 0
+}
+
+# Then .env.e2e: every worktree gets one naming its own vite port, and the
 # literal in playwright.config.ts is that file's fallback rather than its value.
 # The registry sits between them for the one moment .env.e2e does not exist yet
 # — dev/setup.sh generating it — where the config literal would hand a lane the
 # primary's webapp.
 _stack_webapp() { # _stack_webapp ROOT API_PORT
   local unify="$1/client/web/unify" url port
+
+  port="$(_stack_vite_port "$unify")"
+  [[ -n "$port" ]] && {
+    echo "http://localhost:$port"
+    return
+  }
+
   url="$(_stack_last "$unify/.env.e2e" \
-    's#^[[:space:]]*E2E_BASE_URL=["'\'']?(https?://[^"'\'' ]+).*#\1#p')"
+    's#^[[:space:]]*E2E_BASE_URL=["'"'"']?(https?://[^"'"'"' ]+).*#\1#p')"
   [[ -n "$url" ]] && {
     echo "$url"
     return
@@ -76,6 +117,7 @@ _stack_registry() { # _stack_registry ROOT API_PORT KEY
     sed -nE "s/.*\"$3\":[[:space:]]*([0-9]+).*/\\1/p" "$f" | head -1
     return
   done
+  return 0
 }
 
 _stack_port="$(_stack_api_port "$STACK_ROOT")"

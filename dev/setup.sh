@@ -171,6 +171,7 @@ EOF
   esac
 
   say api "$HUMAN_API"
+  say webapp "$HUMAN_WEBAPP"
 }
 
 # ------------------------------------------------------- public/config.js ----
@@ -237,8 +238,10 @@ EOF
   local url user
   url="$(env_get "$E2E_ENV" E2E_BASE_URL)"
   user="$(env_get "$E2E_ENV" E2E_USER)"
-  [[ "$url" == "$HUMAN_WEBAPP" ]] ||
+  if [[ "$url" != "$HUMAN_WEBAPP" ]]; then
     bad E2E_BASE_URL "'$url' — this checkout's webapp is $HUMAN_WEBAPP"
+    hint "vite binds VITE_PORT (client/web/unify/.env.local, else .env); this file has to name the same port"
+  fi
   case "$(env_get "$E2E_ENV" E2E_PASS)" in
     '' | change-me | '<run make setup-agent>')
       bad E2E_PASS "not filled in — make setup-agent writes it once $user exists"

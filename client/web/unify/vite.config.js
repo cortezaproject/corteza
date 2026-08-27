@@ -2,7 +2,7 @@ import vue from '@vitejs/plugin-vue'
 import { execSync } from 'child_process'
 import { readFileSync } from 'fs'
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 function getVersion() {
@@ -58,6 +58,23 @@ function watchLibSources() {
   }
 }
 
+// Where vite serves the app. strictPort is what makes it honest: without it a
+// busy port is answered by silently taking the next one, while .env.e2e,
+// playwright, dev_ui_verify and the agent toolkit all keep naming the port that
+// was asked for — so every browser check drives whatever else is on it.
+function devServer(mode) {
+  const env = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), '')
+
+  return {
+    port: Number(process.env.VITE_PORT || env.VITE_PORT || 5173),
+    strictPort: true,
+    proxy: {
+      '/custom.css': getServerUrl(),
+      '/code-snippets.js': getServerUrl(),
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const isDevelopment = mode === 'development'
 
@@ -92,14 +109,7 @@ export default defineConfig(({ mode }) => {
       },
     },
 
-    server: isDevelopment
-      ? {
-          proxy: {
-            '/custom.css': getServerUrl(),
-            '/code-snippets.js': getServerUrl(),
-          },
-        }
-      : {},
+    server: isDevelopment ? devServer(mode) : {},
 
     plugins: [vue(), vueDevTools(), ...(isDevelopment ? [watchLibSources()] : [])],
     resolve: {
