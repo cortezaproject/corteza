@@ -2,7 +2,7 @@
   "mcpServers": {
     "human-local": {
       "type": "http",
-      "url": "http://localhost:1043/api/mcp",
+      "url": "${HUMAN_MCP_URL:-http://localhost:1043/api/mcp}",
       "headers": {
         "Authorization": "Bearer ${HUMAN_MCP_TOKEN}"
       }
