@@ -70,15 +70,22 @@
               option-label="label"
               option-value="value"
               size="small"
-              class="w-56 shrink-0"
+              class="w-44 shrink-0"
               :disabled="disabled"
               :aria-label="$t('agent.editor.tools.mode.section')"
               :data-testid="`section-mode-${d.key}`"
               @update:model-value="v => setSectionMode(d, v)"
             >
+              <!-- Custom carries no glyph: the other three each have one, so
+                   the word standing alone is what says the section is not one
+                   thing. An icon there read as a menu. -->
               <template #value="{ value }">
                 <span class="flex items-center gap-2">
-                  <i :class="[modeIcon(value), modeColour(value)]" class="text-xs" />
+                  <i
+                    v-if="modeIcon(value)"
+                    :class="[modeIcon(value), modeColour(value)]"
+                    class="text-xs"
+                  />
                   {{ modeLabel(value) }}
                 </span>
               </template>
@@ -103,43 +110,133 @@
             <div v-if="isOpen(d.key)" class="tool-section-body">
               <div class="pb-3">
                 <div v-for="area in d.areas" :key="area.key">
-                  <!-- A section holding one subject has already named it. -->
+                  <!-- A section holding one subject has already named it. An
+                       area is the smaller grouping, and reads as one: at the
+                       section header's size it claimed to be a section. -->
                   <div
                     v-if="d.areas.length > 1"
-                    class="font-medium text-muted-color text-sm uppercase tracking-wide mt-3 mb-1"
+                    class="font-medium text-muted-color text-xs uppercase tracking-wide mt-3 mb-1"
                   >
                     {{ area.label }}
                   </div>
 
-                  <div v-for="tool in area.tools" :key="tool.name">
-                    <div
-                      class="group flex items-start gap-3 py-2 border-b border-surface last:border-0"
-                    >
+                  <div
+                    v-for="tool in area.tools"
+                    :key="tool.name"
+                    class="border-b border-surface last:border-b-0"
+                  >
+                    <div class="group flex items-start gap-3 py-2">
                       <div
-                        class="flex-1 min-w-0"
+                        class="flex-1 min-w-0 flex items-start gap-2"
                         :class="{ 'tool-row-blocked': !toolOn(tool) }"
                         :title="covered(tool) ? $t('agent.editor.tools.dialog.fromFamily') : ''"
                       >
-                        <span class="text-sm text-color block">
-                          <i
-                            :class="[riskIcon(tool.risk), riskColour(tool.risk), 'text-xs mr-1.5']"
-                            :title="riskLabel(tool.risk)"
-                          />
-                          {{ tool.title || tool.name }}
-                        </span>
-                        <span class="text-xs text-muted-color block line-clamp-2">
-                          {{ summarise(tool.description) }}
-                        </span>
+                        <!-- Risk is a column, not a prefix. Inline, it pushed
+                             every title off the left edge its own description
+                             sat on. -->
+                        <i
+                          :class="[riskIcon(tool.risk), riskColour(tool.risk)]"
+                          class="text-xs shrink-0 w-3 mt-1"
+                          :title="riskLabel(tool.risk)"
+                        />
 
-                        <!-- What the row's settings hold, so a configured tool
-                             reads as one without being opened. -->
-                        <span
-                          v-if="toolOn(tool) && settingsSummary(tool)"
-                          class="text-xs text-primary block mt-0.5"
-                          :data-testid="`settings-summary-${tool.name}`"
-                        >
-                          {{ settingsSummary(tool) }}
-                        </span>
+                        <div class="min-w-0 flex-1">
+                          <span class="text-sm text-color block">
+                            {{ tool.title || tool.name }}
+                          </span>
+                          <span class="text-xs text-muted-color block line-clamp-2">
+                            {{ summarise(tool.description) }}
+                          </span>
+
+                          <!-- What the row's settings hold, so a configured tool
+                               reads as one without being opened. -->
+                          <span
+                            v-if="toolOn(tool) && settingsSummary(tool)"
+                            class="text-xs text-primary block mt-0.5"
+                            :data-testid="`settings-summary-${tool.name}`"
+                          >
+                            {{ settingsSummary(tool) }}
+                          </span>
+
+                          <!-- A tool's own settings: the note the model reads
+                               before calling it, and how far it may reach.
+                               Narrowing shows only where the policy check can
+                               act on it. It opens inside the row's text column
+                               so it is the width of what it belongs to, and the
+                               row's own controls stay where they were. -->
+                          <transition name="p-collapsible">
+                            <div
+                              v-if="isConfiguring(tool)"
+                              class="tool-section-body"
+                              :data-testid="`tool-settings-${tool.name}`"
+                            >
+                              <div
+                                class="min-h-0 mt-2 mb-1 p-3 rounded-border border border-surface bg-emphasis flex flex-col gap-3"
+                              >
+                                <!-- A named exception to the stacked-label rule:
+                                     CFormGroup's label is uppercase at the size
+                                     of a tool's title, which in a list of ninety
+                                     rows makes a field label the loudest thing
+                                     on screen. -->
+                                <div class="flex flex-col gap-1.5">
+                                  <label class="text-xs font-medium text-muted-color">
+                                    {{ $t('agent.editor.tools.dialog.settings.note') }}
+                                  </label>
+                                  <InputText
+                                    :model-value="entryOf(tool).description"
+                                    :placeholder="
+                                      $t('agent.editor.tools.dialog.settings.notePlaceholder')
+                                    "
+                                    :disabled="disabled"
+                                    size="small"
+                                    class="w-full"
+                                    @update:model-value="v => patchEntry(tool, { description: v })"
+                                  />
+                                  <small class="text-muted-color">
+                                    {{ $t('agent.editor.tools.dialog.settings.noteHelp') }}
+                                  </small>
+                                </div>
+
+                                <div
+                                  v-if="scopesModules(tool.name) && namespaces.length"
+                                  class="flex flex-col gap-1.5"
+                                >
+                                  <label class="text-xs font-medium text-muted-color">
+                                    {{ $t('agent.editor.tools.dialog.settings.modules') }}
+                                  </label>
+                                  <div v-for="ns in namespaces" :key="ns.namespaceID" class="mb-2">
+                                    <CInputModule
+                                      :model-value="modulesFor(tool, ns.namespaceID)"
+                                      :namespace-i-d="ns.namespaceID"
+                                      :multiple="true"
+                                      :placeholder="
+                                        $t('agent.editor.tools.dialog.settings.allModules')
+                                      "
+                                      :disabled="disabled"
+                                      @update:model-value="
+                                        v => setModulesFor(tool, ns.namespaceID, v)
+                                      "
+                                    />
+                                  </div>
+                                  <small class="text-muted-color">
+                                    {{ $t('agent.editor.tools.dialog.settings.modulesHelp') }}
+                                  </small>
+                                </div>
+
+                                <small
+                                  v-else-if="canScope(tool.name) && !namespaces.length"
+                                  class="text-muted-color"
+                                >
+                                  {{ $t('agent.editor.tools.dialog.settings.needsWorksIn') }}
+                                </small>
+
+                                <small v-else-if="scopeBlocked(tool.name)" class="text-muted-color">
+                                  {{ $t('agent.editor.tools.dialog.settings.namedElsewhere') }}
+                                </small>
+                              </div>
+                            </div>
+                          </transition>
+                        </div>
                       </div>
 
                       <!-- Blocked keeps the button's place rather than its
@@ -152,7 +249,7 @@
                         rounded
                         size="small"
                         class="shrink-0"
-                        :class="{ invisible: !toolOn(tool) }"
+                        :class="{ invisible: !toolOn(tool), 'tool-gear-open': isConfiguring(tool) }"
                         :disabled="disabled || !toolOn(tool)"
                         :aria-label="$t('agent.editor.tools.dialog.settings.label')"
                         :data-testid="`configure-${tool.name}`"
@@ -187,69 +284,6 @@
                         </SelectButton>
                       </div>
                     </div>
-
-                    <!-- A tool's own settings: the note the model reads before
-                         calling it, and how far it may reach. Narrowing shows
-                         only where the policy check can act on it. -->
-                    <transition name="p-collapsible">
-                      <div
-                        v-if="configuring.has(tool.name) && toolOn(tool)"
-                        class="tool-section-body"
-                      >
-                        <div class="min-h-0 pb-3 pl-8 flex flex-col gap-3">
-                          <CFormGroup
-                            :label="$t('agent.editor.tools.dialog.settings.note')"
-                            :description="$t('agent.editor.tools.dialog.settings.noteHelp')"
-                          >
-                            <InputText
-                              :model-value="entryOf(tool).description"
-                              :placeholder="
-                                $t('agent.editor.tools.dialog.settings.notePlaceholder')
-                              "
-                              :disabled="disabled"
-                              size="small"
-                              class="w-full"
-                              @update:model-value="v => patchEntry(tool, { description: v })"
-                            />
-                          </CFormGroup>
-
-                          <CFormGroup
-                            v-if="scopesModules(tool.name) && namespaces.length"
-                            :label="$t('agent.editor.tools.dialog.settings.modules')"
-                            :description="$t('agent.editor.tools.dialog.settings.modulesHelp')"
-                          >
-                            <div v-for="ns in namespaces" :key="ns.namespaceID" class="mb-2">
-                              <CInputModule
-                                :model-value="modulesFor(tool, ns.namespaceID)"
-                                :namespace-i-d="ns.namespaceID"
-                                :multiple="true"
-                                :placeholder="$t('agent.editor.tools.dialog.settings.allModules')"
-                                :disabled="disabled"
-                                @update:model-value="v => setModulesFor(tool, ns.namespaceID, v)"
-                              />
-                            </div>
-                          </CFormGroup>
-
-                          <Message
-                            v-else-if="canScope(tool.name) && !namespaces.length"
-                            severity="secondary"
-                            :closable="false"
-                            class="!my-0"
-                          >
-                            {{ $t('agent.editor.tools.dialog.settings.needsWorksIn') }}
-                          </Message>
-
-                          <Message
-                            v-else-if="scopeBlocked(tool.name)"
-                            severity="secondary"
-                            :closable="false"
-                            class="!my-0"
-                          >
-                            {{ $t('agent.editor.tools.dialog.settings.namedElsewhere') }}
-                          </Message>
-                        </div>
-                      </div>
-                    </transition>
                   </div>
                 </div>
               </div>
@@ -346,6 +380,10 @@ const permissions = computed(
 
 // Which rows are open on their own settings.
 const configuring = ref(new Set())
+
+function isConfiguring(tool) {
+  return configuring.value.has(tool.name) && toolOn(tool)
+}
 
 function toggleConfiguring(name) {
   const next = new Set(configuring.value)
@@ -701,6 +739,12 @@ function apply() {
    so rows scrolling under it stay hidden in either theme. */
 .tool-section-head {
   background: var(--p-dialog-background, var(--p-content-background, #fff));
+}
+
+/* The gear stays lit while the settings it opened are on screen, so the row
+   says which button is holding them open. */
+.tool-gear-open {
+  background: var(--p-content-hover-background);
 }
 
 /* A blocked row recedes rather than disappears, so the way back is where it was.

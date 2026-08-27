@@ -9,11 +9,14 @@
 // one that cannot be taken back is last.
 export const RISK_ORDER = { read: 0, write: 1, destructive: 2 }
 
+// Custom has none. It is not a fourth state a tool can be in, it is three
+// sections' worth of disagreement, and a glyph beside the word claimed it was
+// a choice like the others.
 export const MODE_ICONS = {
   always: 'pi pi-check-circle',
   ask: 'pi pi-question-circle',
   deny: 'pi pi-ban',
-  custom: 'pi pi-ellipsis-h',
+  custom: '',
 }
 
 // Ask keeps the body colour: it is the mode most tools sit in until someone

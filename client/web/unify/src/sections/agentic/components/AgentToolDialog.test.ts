@@ -761,3 +761,55 @@ describe('AgentToolDialog section control', () => {
     w.unmount()
   })
 })
+
+describe('AgentToolDialog row structure', () => {
+  // The risk icon sat inside the title, so every title started one icon-width
+  // right of the description belonging to it.
+  it('keeps the risk icon out of the title', async () => {
+    const w = await mountRendered()
+
+    const titles = [...document.querySelectorAll('.tool-mode')].map(mode => {
+      const row = mode.parentElement!
+      return row.querySelector('.text-color')!
+    })
+
+    expect(titles.length).toBeGreaterThan(0)
+    for (const title of titles) {
+      expect(title.querySelector('i')).toBeNull()
+      // Title and description are siblings, so they share a left edge.
+      expect(title.nextElementSibling?.classList.contains('text-muted-color')).toBe(true)
+    }
+
+    w.unmount()
+  })
+
+  // `last:border-0` matched every row — each was the only element child of its
+  // own v-for wrapper — so the list had no rules at all, and the one row that
+  // grew one was the row whose settings were open, fencing them off from it.
+  it('rules between rows, not between a row and its own settings', async () => {
+    const w = await mountRendered([{ name: 'compose_record_lookup', permission: 'always' }])
+    const vm = w.vm as any
+
+    const wrappers = () =>
+      [...document.querySelectorAll('.tool-mode')].map(m => m.parentElement!.parentElement!)
+
+    const before = wrappers()
+    expect(before.length).toBeGreaterThan(1)
+    for (const el of before) expect([...el.classList]).toContain('border-b')
+
+    vm.toggleConfiguring('compose_record_lookup')
+    await flushPromises()
+
+    // The settings open inside the row's own text column, so the row keeps its
+    // rule and nothing is drawn between the two.
+    const drawer = document.querySelector('[data-testid="tool-settings-compose_record_lookup"]')!
+    expect(drawer).toBeTruthy()
+
+    const column = drawer.closest('.min-w-0')!
+    expect(column.querySelector('.text-color')?.textContent?.trim()).toBe('Lookup record')
+
+    for (const el of wrappers()) expect([...el.classList]).toContain('border-b')
+
+    w.unmount()
+  })
+})
