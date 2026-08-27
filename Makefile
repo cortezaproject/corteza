@@ -19,7 +19,7 @@ dev-all:
 	@trap 'kill 0' EXIT; \
 	(cd $(CURDIR)/server && $(MAKE) watch) & \
 	$(foreach app,$(WEB_APPS),(cd $(CURDIR)/client/web/$(app) && pnpm run dev) & ) \
-	(sleep 4 && ss -tlnp | awk '/127\.0\.0\.1:51/{split($$4,a,":");print a[2]}' | sort | while read port; do cmd.exe /c start "http://localhost:$$port" </dev/null; sleep 2; done) & \
+	(sleep 4 && $(CURDIR)/dev/agent/open-webapp.sh) & \
 	wait
 
 test: test-lib test-client test-compile test-server
