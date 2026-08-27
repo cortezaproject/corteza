@@ -428,12 +428,12 @@ func (svc *session) logPending() {
 	)
 
 	for _, s := range svc.pool {
-		switch {
-		case s.CreatedAt.Sub(*now()) > time.Hour*24:
+		switch age := now().Sub(s.CreatedAt); {
+		case age > time.Hour*24:
 			pending1d++
-		case s.CreatedAt.Sub(*now()) > time.Hour:
+		case age > time.Hour:
 			pending1h++
-		case s.CreatedAt.Sub(*now()) > time.Minute:
+		case age > time.Minute:
 			pending1m++
 		default:
 			pending++

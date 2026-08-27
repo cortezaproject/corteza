@@ -3,11 +3,14 @@ package service
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestSession_Start(t *testing.T) {
@@ -188,4 +191,44 @@ func BenchmarkSessionStackTraces_1000000(b *testing.B) {
 
 func BenchmarkSessionStackTraces_10000000(b *testing.B) {
 	benchmarkSessionStackTraces(b, 10000000)
+}
+
+func TestSession_logPending(t *testing.T) {
+	var (
+		req       = require.New(t)
+		core, o   = observer.New(zap.NewAtomicLevelAt(zap.InfoLevel))
+		ref       = time.Now()
+		nextSesID uint64
+		mkSes     = func(age time.Duration) *types.Session {
+			nextSesID++
+			return &types.Session{ID: nextSesID, CreatedAt: ref.Add(-age)}
+		}
+
+		svc = &session{
+			log: zap.New(core),
+			pool: map[uint64]*types.Session{
+				1: mkSes(time.Second * 5),
+				2: mkSes(time.Minute * 5),
+				3: mkSes(time.Hour * 5),
+				4: mkSes(time.Hour * 30),
+				5: mkSes(time.Hour * 72),
+			},
+		}
+	)
+
+	// pin the clock so bucketing does not depend on test runtime
+	now = func() *time.Time { return &ref }
+	defer func() { now = func() *time.Time { c := time.Now(); return &c } }()
+
+	svc.logPending()
+
+	entries := o.All()
+	req.Len(entries, 1)
+
+	fields := entries[0].ContextMap()
+	req.EqualValues(5, fields["total"])
+	req.EqualValues(1, fields["pending"])
+	req.EqualValues(1, fields["pending1m"])
+	req.EqualValues(1, fields["pending1h"])
+	req.EqualValues(2, fields["pending1d"])
 }
