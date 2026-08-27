@@ -248,7 +248,7 @@ editor:
         anything until you give it a tool.
     help: Choose the tools this agent may call. A tool only ever does what the person
       invoking the agent is already allowed to do, so granting one never widens access.
-    label: Allowed Tools
+    label: Tools
   userEnabled:
     help: Allow users to invoke this agent directly through chat
     label: Enable User Chat Invocation
