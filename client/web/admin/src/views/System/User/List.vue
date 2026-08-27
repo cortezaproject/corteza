@@ -48,7 +48,7 @@
         />
 
         <c-user-export-modal
-          v-if="canGrant"
+          v-if="canExport"
           @export="onExport"
         />
 
@@ -222,6 +222,10 @@ export default {
 
     canCreate () {
       return this.can('system/', 'user.create')
+    },
+
+    canExport () {
+      return this.can('system/', 'users.search')
     },
   },
 

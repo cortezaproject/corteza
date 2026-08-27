@@ -9,6 +9,7 @@ import type {
   DraftWrite,
   GeocodeRequest,
   GeocodeResponse,
+  ListQuery,
   LocalSignIn,
   Operation,
   PageResponse,
@@ -17,6 +18,7 @@ import type {
   ReportDefinition,
   RequestListQuery,
   RequestQueueItem,
+  RequestSummary,
   ReopenRequestResponse,
   ServiceRequest,
   ServiceRequestCreate,
@@ -37,7 +39,6 @@ const statusByScenario: Partial<Record<C311Scenario, number>> = {
   'not-found': 404,
   validation: 422,
   retryable: 503,
-  terminal: 500,
   'version-conflict': 409,
 }
 
@@ -58,8 +59,9 @@ export class MockC311Provider implements C311Provider {
     }
   }
 
-  private failIfNeeded (): void {
+  private failIfNeeded (supported: readonly C311Scenario[] = []): void {
     if (this.scenario === 'success' || this.scenario === 'empty') return
+    if (!supported.includes(this.scenario)) return
 
     const payload = this.fixtures.errors[this.scenario]
     if (payload) {
@@ -68,13 +70,19 @@ export class MockC311Provider implements C311Provider {
     }
   }
 
-  private page<T> (items: T[], query: RequestListQuery = {}): PageResponse<T> {
+  private page<T> (items: T[], query: ListQuery = {}): PageResponse<T> {
+    const { page_token: _pageToken, page_size: _pageSize, filters = {}, sort, ...filterFields } = query as RequestListQuery
+    const appliedFilters = Object.entries(filterFields).reduce<Record<string, unknown>>((out, [key, value]) => {
+      if (value !== undefined) out[key] = value
+      return out
+    }, { ...filters })
+
     return {
       items: copy(items),
       next_page_token: null,
       total_count: items.length,
-      applied_filters: { ...query },
-      sort: query.sort ? [query.sort] : [],
+      applied_filters: appliedFilters,
+      sort: sort ? [sort] : [],
     }
   }
 
@@ -84,22 +92,47 @@ export class MockC311Provider implements C311Provider {
     return request
   }
 
+  private requestSummary (request: ServiceRequest): RequestSummary {
+    return {
+      request_id: request.request_id,
+      request_number: request.request_number || '',
+      summary: request.summary,
+      service_type: request.service_type,
+      status: request.status,
+      owning_department: request.owning_department,
+      updated_at: request.updated_at,
+    }
+  }
+
   async getSession (): Promise<Session> {
     this.failIfNeeded()
     return copy(this.fixtures.session)
   }
 
   async signIn (_input: LocalSignIn): Promise<Session> {
-    this.failIfNeeded()
+    this.failIfNeeded(['validation'])
     return copy(this.fixtures.session)
   }
 
   async signOut (): Promise<void> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
   }
 
   async getOperation (operationID: string): Promise<Operation> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
+    if (this.scenario === 'terminal') {
+      return {
+        operation_id: operationID,
+        kind: 'fixture',
+        status: 'FAILED',
+        progress: 100,
+        result: null,
+        error: copy(this.fixtures.errors.terminal),
+        created_at: '2026-01-15T15:00:00.000Z',
+        updated_at: '2026-01-15T15:00:00.000Z',
+        completed_at: '2026-01-15T15:00:00.000Z',
+      }
+    }
     return {
       operation_id: operationID,
       kind: 'fixture',
@@ -114,7 +147,7 @@ export class MockC311Provider implements C311Provider {
   }
 
   async uploadPortalAttachment (_input: PortalAttachmentUpload): Promise<PortalAttachment> {
-    this.failIfNeeded()
+    this.failIfNeeded(['validation'])
     return {
       attachment_token: 'attachment-token-fixture-001',
       filename: 'fixture.txt',
@@ -125,14 +158,14 @@ export class MockC311Provider implements C311Provider {
   }
 
   async downloadAttachment (attachmentID: string): Promise<BinaryAttachment> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     const attachment = this.fixtures.attachments[attachmentID]
     if (!attachment) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
     return copy(attachment)
   }
 
   async createServiceRequest (_input: ServiceRequestCreate, _options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'validation', 'version-conflict'])
     return {
       request_id: 'request-fixture-created',
       request_number: 'SR-2026-00002',
@@ -144,7 +177,7 @@ export class MockC311Provider implements C311Provider {
   }
 
   async submitPortalRequest (_input: PortalServiceRequestCreate, _options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {
-    this.failIfNeeded()
+    this.failIfNeeded(['validation'])
     return {
       request_id: 'request-fixture-submitted',
       request_number: 'SR-2026-00002',
@@ -156,7 +189,7 @@ export class MockC311Provider implements C311Provider {
   }
 
   async createDraft (input: DraftWrite, _options: C311RequestOptions = {}): Promise<ServiceRequest> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     const base = this.fixtures.requests[0]
     return copy({
       ...base,
@@ -169,7 +202,7 @@ export class MockC311Provider implements C311Provider {
   }
 
   async getDraft (requestID: string): Promise<ServiceRequest> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     const draft = this.fixtures.drafts[requestID]
     if (!draft) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
     const base = this.fixtures.requests[0]
@@ -184,7 +217,7 @@ export class MockC311Provider implements C311Provider {
   }
 
   async updateDraft (requestID: string, input: DraftWrite, _options: C311RequestOptions = {}): Promise<ServiceRequest> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     const current = await this.getDraft(requestID)
     return copy({
       ...current,
@@ -196,13 +229,13 @@ export class MockC311Provider implements C311Provider {
     })
   }
 
-  async deleteDraft (requestID: string): Promise<void> {
-    this.failIfNeeded()
+  async deleteDraft (requestID: string, _options: C311RequestOptions = {}): Promise<void> {
+    this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     if (!this.fixtures.drafts[requestID]) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
   }
 
   async submitDraft (requestID: string, _options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     await this.getDraft(requestID)
     return {
       request_id: requestID,
@@ -214,21 +247,21 @@ export class MockC311Provider implements C311Provider {
     }
   }
 
-  async listPortalRequests (query: RequestListQuery = {}): Promise<PageResponse<ServiceRequest>> {
-    this.failIfNeeded()
+  async listPortalRequests (query: RequestListQuery = {}): Promise<PageResponse<RequestSummary>> {
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     const items = this.scenario === 'empty' ? [] : this.fixtures.requests
-    return this.page(items, query)
+    return this.page(items.map(request => this.requestSummary(request)), query)
   }
 
   async linkAnonymousRequest (input: AnonymousStatusLookupRequest): Promise<ServiceRequest> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     const item = this.fixtures.requests.find(request => request.request_number === input.request_number && request.primary_requester.emails.includes(input.email))
     if (!item) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
     return copy(item)
   }
 
   async reopenPortalRequest (requestID: string, _reason: string, _options: C311RequestOptions = {}): Promise<ReopenRequestResponse> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     this.request(requestID)
     return { request_id: requestID, status: 'PENDING_APPROVAL' }
   }
@@ -240,7 +273,13 @@ export class MockC311Provider implements C311Provider {
   }
 
   async geocode (input: GeocodeRequest): Promise<GeocodeResponse> {
-    this.failIfNeeded()
+    if (this.scenario === 'retryable') {
+      throw new C311ApiError({ error: 'MAP_TEMPORARILY_UNAVAILABLE', message: 'The mapping service is temporarily unavailable.', retryable: true }, 503, { 'Retry-After': '30' })
+    }
+    if (this.scenario === 'not-found') {
+      throw new C311ApiError({ error: 'ADDRESS_NOT_FOUND', message: 'The address could not be found.', retryable: false }, 404)
+    }
+    this.failIfNeeded(['validation'])
     const result = this.fixtures.geocodes[input.address]
     if (!result) {
       throw new C311ApiError({ error: 'ADDRESS_NOT_FOUND', message: 'The address could not be found.', retryable: false }, 404)
@@ -249,47 +288,47 @@ export class MockC311Provider implements C311Provider {
   }
 
   async listStaffRequests (query: RequestListQuery = {}): Promise<PageResponse<RequestQueueItem>> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     return this.page(this.scenario === 'empty' ? [] : this.fixtures.queue, query)
   }
 
   async getStaffRequest (requestID: string): Promise<StaffServiceRequestDetail> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     const detail = this.fixtures.details[requestID]
     if (!detail) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
     return copy(detail)
   }
 
   async transitionStaffRequest (requestID: string, _input: RequestTransition, _options: C311RequestOptions = {}): Promise<StaffServiceRequestDetail> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     return this.getStaffRequest(requestID)
   }
 
-  async listReports (): Promise<PageResponse<ReportDefinition>> {
-    this.failIfNeeded()
-    return this.page(this.scenario === 'empty' ? [] : this.fixtures.reports)
+  async listReports (query: ListQuery = {}): Promise<PageResponse<ReportDefinition>> {
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
+    return this.page(this.scenario === 'empty' ? [] : this.fixtures.reports, query)
   }
 
   async getReport (reportID: string): Promise<ReportDefinition> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     const report = this.fixtures.reports.find(item => item.report_id === reportID)
     if (!report) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
     return copy(report)
   }
 
   async createReport (input: ReportDefinition): Promise<ReportDefinition> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     return copy(input)
   }
 
   async updateReport (reportID: string, input: Partial<ReportDefinition>, _options: C311RequestOptions = {}): Promise<ReportDefinition> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     const report = await this.getReport(reportID)
     return copy({ ...report, ...input, report_id: reportID })
   }
 
   async runReport (_input: { definition: ReportDefinition }): Promise<Operation> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     return {
       operation_id: 'operation-fixture-report',
       kind: 'report_run',
@@ -300,7 +339,7 @@ export class MockC311Provider implements C311Provider {
   }
 
   async exportReport (_reportID: string, _options: ReportExportOptions = {}): Promise<Operation> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     return {
       operation_id: 'operation-fixture-export',
       kind: 'report_export',
@@ -310,25 +349,25 @@ export class MockC311Provider implements C311Provider {
     }
   }
 
-  async listWorkflows (): Promise<PageResponse<WorkflowDefinition>> {
-    this.failIfNeeded()
-    return this.page(this.scenario === 'empty' ? [] : this.fixtures.workflows)
+  async listWorkflows (query: ListQuery = {}): Promise<PageResponse<WorkflowDefinition>> {
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
+    return this.page(this.scenario === 'empty' ? [] : this.fixtures.workflows, query)
   }
 
   async getWorkflow (workflowID: string): Promise<WorkflowDefinition> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     const workflow = this.fixtures.workflows.find(item => item.workflow_id === workflowID)
     if (!workflow) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
     return copy(workflow)
   }
 
   async createWorkflow (input: WorkflowDefinition): Promise<WorkflowDefinition> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     return copy(input)
   }
 
   async updateWorkflow (workflowID: string, input: Partial<WorkflowDefinition>, _options: C311RequestOptions = {}): Promise<WorkflowDefinition> {
-    this.failIfNeeded()
+    this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     const workflow = await this.getWorkflow(workflowID)
     return copy({ ...workflow, ...input, workflow_id: workflowID })
   }

@@ -1,11 +1,10 @@
 import { expect } from 'chai'
-import type { C311Scenario } from './enums'
 import { C311ApiError } from './errors'
 import { cloneFixtureSet, createDefaultFixtureSet } from './fixtures'
 import { MockC311Provider } from './mock-provider'
-import { C311FetchTransport, C311HttpProvider, type C311TransportRequest } from './provider'
+import { C311FetchTransport, C311HttpProvider, type C311Provider, type C311TransportRequest } from './provider'
 import { C311_TIMEZONE, formatC311DateTime } from './time'
-import type { PortalServiceRequestCreate, ServiceRequestCreate } from './types'
+import type { PortalServiceRequestCreate, ReportDefinition, ServiceRequestCreate } from './types'
 
 async function expectError (action: () => Promise<unknown>, code: string): Promise<C311ApiError> {
   try {
@@ -27,8 +26,8 @@ describe('City 311 frontend contract', () => {
     expect(fixtures.contract_version).to.equal('1.0.0')
     expect(page.items).to.have.length(1)
     expect(page.items[0].request_id).to.equal('request-fixture-001')
-    expect(page.items[0].primary_requester.constituent_id).to.equal('constituent-fixture-001')
-    expect(page.items[0].location?.address.postal_code).to.equal('14201')
+    expect(page.items[0].owning_department).to.equal('STREETS')
+    expect(page.items[0]).to.not.have.property('primary_requester')
   })
 
   it('keeps the empty response shape stable', async () => {
@@ -49,21 +48,26 @@ describe('City 311 frontend contract', () => {
     })
   })
 
-  it('normalizes every failure scenario to the shared API error', async () => {
-    const scenarios: Array<[string, string, boolean]> = [
-      ['forbidden', 'FORBIDDEN', false],
-      ['not-found', 'NOT_FOUND', false],
-      ['validation', 'VALIDATION_ERROR', false],
-      ['retryable', 'TEMPORARILY_UNAVAILABLE', true],
-      ['terminal', 'OPERATION_FAILED', false],
-      ['version-conflict', 'VERSION_CONFLICT', false],
+  it('exposes only endpoint-declared failures and models terminal operations in-band', async () => {
+    const portalInput = {} as PortalServiceRequestCreate
+    const scenarios: Array<[string, () => Promise<unknown>, string, boolean]> = [
+      ['forbidden', () => new MockC311Provider({ scenario: 'forbidden' }).listStaffRequests(), 'FORBIDDEN', false],
+      ['not-found', () => new MockC311Provider({ scenario: 'not-found' }).getStaffRequest('missing'), 'NOT_FOUND', false],
+      ['validation', () => new MockC311Provider({ scenario: 'validation' }).submitPortalRequest(portalInput), 'VALIDATION_ERROR', false],
+      ['retryable', () => new MockC311Provider({ scenario: 'retryable' }).geocode({ address: 'fixture' }), 'MAP_TEMPORARILY_UNAVAILABLE', true],
+      ['version-conflict', () => new MockC311Provider({ scenario: 'version-conflict' }).updateDraft('draft-fixture-001', {}, { expectedVersion: 1 }), 'VERSION_CONFLICT', false],
     ]
 
-    for (const [scenario, code, retryable] of scenarios) {
-      const error = await expectError(() => new MockC311Provider({ scenario: scenario as C311Scenario }).getSession(), code)
+    for (const [scenario, action, code, retryable] of scenarios) {
+      const error = await expectError(action, code)
       expect(error.retryable).to.equal(retryable)
       if (scenario === 'retryable') expect(error.retryAfter).to.equal('30')
     }
+
+    expect((await new MockC311Provider({ scenario: 'version-conflict' }).getSession()).authenticated).to.equal(true)
+    const terminal = await new MockC311Provider({ scenario: 'terminal' }).getOperation('operation-fixture-terminal')
+    expect(terminal.status).to.equal('FAILED')
+    expect(terminal.error?.error).to.equal('OPERATION_FAILED')
   })
 
   it('does not mutate caller fixtures while exercising draft flows', async () => {
@@ -86,7 +90,7 @@ describe('City 311 frontend contract', () => {
         return {} as T
       },
     }
-    const provider = new C311HttpProvider(transport)
+    const provider: C311Provider = new C311HttpProvider(transport)
     const input: ServiceRequestCreate = {
       summary: 'Example request',
       description: 'A sufficiently long fixture description.',
@@ -142,6 +146,62 @@ describe('City 311 frontend contract', () => {
       path: '/api/v1/portal/service-request-drafts/draft-fixture-001',
       headers: { 'If-Match': '"2"' },
     })
+  })
+
+  it('nests request filters under the contract filters parameter', async () => {
+    const requests: C311TransportRequest[] = []
+    const provider = new C311HttpProvider({
+      request: async <T> (request: C311TransportRequest): Promise<T> => {
+        requests.push(request)
+        return { items: [], next_page_token: null, total_count: 0, applied_filters: {}, sort: [] } as T
+      },
+    })
+
+    await provider.listPortalRequests({
+      page_size: 20,
+      status: 'SUBMITTED',
+      service_type: 'POTHOLE',
+      filters: { category: 'RESIDENT' },
+      sort: '-updated_at',
+    })
+
+    expect(requests[0].query).to.deep.equal({
+      page_size: 20,
+      filters: { category: 'RESIDENT', status: 'SUBMITTED', service_type: 'POTHOLE' },
+      sort: '-updated_at',
+    })
+    expect(requests[0].query).to.not.have.property('status')
+  })
+
+  it('continues report lookup across opaque result pages', async () => {
+    const requests: C311TransportRequest[] = []
+    const report: ReportDefinition = {
+      report_id: 'report-page-2',
+      name: 'Second page report',
+      entity: 'service_requests',
+      columns: ['request_number'],
+      filters: {},
+      sort: [],
+      version: 1,
+      updated_at: '2026-01-15T15:00:00.000Z',
+    }
+    const provider = new C311HttpProvider({
+      request: async <T> (request: C311TransportRequest): Promise<T> => {
+        requests.push(request)
+        const secondPage = request.query?.page_token === 'page-2'
+        return {
+          items: secondPage ? [report] : [],
+          next_page_token: secondPage ? null : 'page-2',
+          total_count: 1,
+          applied_filters: {},
+          sort: [],
+        } as T
+      },
+    })
+
+    expect(await provider.getReport('report-page-2')).to.deep.equal(report)
+    expect(requests).to.have.length(2)
+    expect(requests[1].query).to.deep.equal({ page_token: 'page-2' })
   })
 
   it('maps fetch responses, query arrays and contract errors', async () => {

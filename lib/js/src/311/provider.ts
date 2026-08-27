@@ -8,6 +8,7 @@ import type {
   DraftWrite,
   GeocodeRequest,
   GeocodeResponse,
+  ListQuery,
   LocalSignIn,
   Operation,
   PageResponse,
@@ -17,6 +18,7 @@ import type {
   ReportDefinition,
   RequestListQuery,
   RequestQueueItem,
+  RequestSummary,
   ReopenRequestResponse,
   ServiceRequest,
   ServiceRequestCreate,
@@ -163,9 +165,9 @@ export interface C311Provider {
   createDraft (input: DraftWrite, options?: C311RequestOptions): Promise<ServiceRequest>
   getDraft (requestID: string): Promise<ServiceRequest>
   updateDraft (requestID: string, input: DraftWrite, options?: C311RequestOptions): Promise<ServiceRequest>
-  deleteDraft (requestID: string): Promise<void>
+  deleteDraft (requestID: string, options?: C311RequestOptions): Promise<void>
   submitDraft (requestID: string, options?: C311RequestOptions): Promise<ServiceRequestResponse>
-  listPortalRequests (query?: RequestListQuery): Promise<PageResponse<ServiceRequest>>
+  listPortalRequests (query?: RequestListQuery): Promise<PageResponse<RequestSummary>>
   linkAnonymousRequest (input: AnonymousStatusLookupRequest): Promise<ServiceRequest>
   reopenPortalRequest (requestID: string, reason: string, options?: C311RequestOptions): Promise<ReopenRequestResponse>
   getPublicStatus (input: AnonymousStatusLookupRequest): Promise<AnonymousStatusLookupResponse>
@@ -175,14 +177,14 @@ export interface C311Provider {
   getStaffRequest (requestID: string): Promise<StaffServiceRequestDetail>
   transitionStaffRequest (requestID: string, input: RequestTransition, options?: C311RequestOptions): Promise<StaffServiceRequestDetail>
 
-  listReports (): Promise<PageResponse<ReportDefinition>>
+  listReports (query?: ListQuery): Promise<PageResponse<ReportDefinition>>
   getReport (reportID: string): Promise<ReportDefinition>
   createReport (input: ReportDefinition): Promise<ReportDefinition>
   updateReport (reportID: string, input: Partial<ReportDefinition>, options?: C311RequestOptions): Promise<ReportDefinition>
   runReport (input: { definition: ReportDefinition }): Promise<Operation>
   exportReport (reportID: string, options?: ReportExportOptions): Promise<Operation>
 
-  listWorkflows (): Promise<PageResponse<WorkflowDefinition>>
+  listWorkflows (query?: ListQuery): Promise<PageResponse<WorkflowDefinition>>
   getWorkflow (workflowID: string): Promise<WorkflowDefinition>
   createWorkflow (input: WorkflowDefinition): Promise<WorkflowDefinition>
   updateWorkflow (workflowID: string, input: Partial<WorkflowDefinition>, options?: C311RequestOptions): Promise<WorkflowDefinition>
@@ -200,6 +202,32 @@ export class C311HttpProvider implements C311Provider {
 
   private request<T> (request: C311TransportRequest): Promise<T> {
     return this.transport.request<T>(request)
+  }
+
+  private listQuery (query: ListQuery = {}): C311TransportRequest['query'] {
+    const { page_token, page_size, filters, sort } = query
+    return {
+      ...(page_token === undefined ? {} : { page_token }),
+      ...(page_size === undefined ? {} : { page_size }),
+      ...(filters && Object.keys(filters).length ? { filters } : {}),
+      ...(sort === undefined ? {} : { sort }),
+    }
+  }
+
+  private requestListQuery (query: RequestListQuery = {}): C311TransportRequest['query'] {
+    const {
+      page_token,
+      page_size,
+      filters = {},
+      sort,
+      ...filterFields
+    } = query
+    const normalizedFilters = Object.entries(filterFields).reduce<Record<string, unknown>>((out, [key, value]) => {
+      if (value !== undefined) out[key] = value
+      return out
+    }, { ...filters })
+
+    return this.listQuery({ page_token, page_size, filters: normalizedFilters, sort })
   }
 
   getSession (): Promise<Session> {
@@ -258,8 +286,8 @@ export class C311HttpProvider implements C311Provider {
     return this.request({ method: 'POST', path: `/api/v1/portal/service-request-drafts/${encodeURIComponent(requestID)}/submit`, ...this.requestOptions(options) })
   }
 
-  listPortalRequests (query: RequestListQuery = {}): Promise<PageResponse<ServiceRequest>> {
-    return this.request({ method: 'GET', path: '/api/v1/portal/service-requests', query: { ...query } })
+  listPortalRequests (query: RequestListQuery = {}): Promise<PageResponse<RequestSummary>> {
+    return this.request({ method: 'GET', path: '/api/v1/portal/service-requests', query: this.requestListQuery(query) })
   }
 
   linkAnonymousRequest (input: AnonymousStatusLookupRequest): Promise<ServiceRequest> {
@@ -279,7 +307,7 @@ export class C311HttpProvider implements C311Provider {
   }
 
   listStaffRequests (query: RequestListQuery = {}): Promise<PageResponse<RequestQueueItem>> {
-    return this.request({ method: 'GET', path: '/api/v1/staff/service-requests', query: { ...query } })
+    return this.request({ method: 'GET', path: '/api/v1/staff/service-requests', query: this.requestListQuery(query) })
   }
 
   getStaffRequest (requestID: string): Promise<StaffServiceRequestDetail> {
@@ -290,15 +318,27 @@ export class C311HttpProvider implements C311Provider {
     return this.request({ method: 'POST', path: `/api/v1/staff/service-requests/${encodeURIComponent(requestID)}/transitions`, body: input, ...this.requestOptions(options) })
   }
 
-  listReports (): Promise<PageResponse<ReportDefinition>> {
-    return this.request({ method: 'GET', path: '/api/v1/staff/reports' })
+  listReports (query: ListQuery = {}): Promise<PageResponse<ReportDefinition>> {
+    return this.request({ method: 'GET', path: '/api/v1/staff/reports', query: this.listQuery(query) })
   }
 
   async getReport (reportID: string): Promise<ReportDefinition> {
-    const page = await this.listReports()
-    const report = page.items.find(item => item.report_id === reportID)
-    if (!report) throw new C311ApiError({ error: 'NOT_FOUND', message: 'The requested report was not found.', retryable: false }, 404)
-    return report
+    const seenPageTokens = new Set<string>()
+    let pageToken: string | undefined
+
+    do {
+      const page = await this.listReports(pageToken ? { page_token: pageToken } : {})
+      const report = page.items.find(item => item.report_id === reportID)
+      if (report) return report
+
+      pageToken = page.next_page_token || undefined
+      if (pageToken && seenPageTokens.has(pageToken)) {
+        throw new C311ApiError({ error: 'INVALID_PAGE_TOKEN', message: 'Report pagination returned a repeated page token.', retryable: false }, 422)
+      }
+      if (pageToken) seenPageTokens.add(pageToken)
+    } while (pageToken)
+
+    throw new C311ApiError({ error: 'NOT_FOUND', message: 'The requested report was not found.', retryable: false }, 404)
   }
 
   createReport (input: ReportDefinition): Promise<ReportDefinition> {
@@ -322,8 +362,8 @@ export class C311HttpProvider implements C311Provider {
     })
   }
 
-  listWorkflows (): Promise<PageResponse<WorkflowDefinition>> {
-    return this.request({ method: 'GET', path: '/api/v1/admin/workflows' })
+  listWorkflows (query: ListQuery = {}): Promise<PageResponse<WorkflowDefinition>> {
+    return this.request({ method: 'GET', path: '/api/v1/admin/workflows', query: this.listQuery(query) })
   }
 
   getWorkflow (workflowID: string): Promise<WorkflowDefinition> {
