@@ -264,10 +264,53 @@ func TestListUsesOpaqueCursorTotalAndPublishedSort(t *testing.T) {
 	require.Equal(t, 8, second.TotalCount)
 	require.NotEqual(t, first.Items[0].RequestID, second.Items[0].RequestID)
 
-	_, err = svc.List(ctx, actor, RequestFilter{Status: contract.ServiceRequestStatus("UNKNOWN")})
+	_, err = svc.List(ctx, actor, RequestFilter{Statuses: []contract.ServiceRequestStatus{"UNKNOWN"}})
 	var serviceErr *ServiceError
 	require.ErrorAs(t, err, &serviceErr)
 	require.Equal(t, 422, serviceErr.Status)
+}
+
+func TestRequestQueueMatcherCoversEveryPublishedFilter(t *testing.T) {
+	createdAt := time.Date(2026, 2, 3, 10, 0, 0, 0, time.UTC)
+	request := &composeTypes.City311ServiceRequest{
+		Status: contract.ServiceRequestStatusSubmitted, ServiceType: contract.ServiceTypePothole,
+		OwningDepartment: contract.DepartmentStreets, CouncilDistrict: contract.DistrictNorth,
+		OriginClass: contract.OriginClassInternal, SourceChannel: contract.SourceChannelStaffInPerson,
+		PrimaryAssigneeID: 101, CollaboratorIDs: composeTypes.City311Uint64Set{202},
+		PrimaryRequester: map[string]any{"primary_category": string(contract.ContactCategoryBusiness)},
+		DuplicateGroupID: "duplicate-1", CreatedAt: createdAt,
+	}
+	from, to := createdAt.Add(-time.Minute), createdAt.Add(time.Minute)
+	matching := RequestFilter{
+		Statuses:           []contract.ServiceRequestStatus{contract.ServiceRequestStatusSubmitted},
+		ServiceTypes:       []contract.ServiceType{contract.ServiceTypePothole},
+		OwningDepartments:  []contract.DepartmentCode{contract.DepartmentStreets},
+		CouncilDistricts:   []contract.DistrictCode{contract.DistrictNorth},
+		OriginClasses:      []contract.OriginClass{contract.OriginClassInternal},
+		SourceChannels:     []contract.SourceChannel{contract.SourceChannelStaffInPerson},
+		PrimaryAssigneeIDs: []uint64{101}, CollaboratorIDs: []uint64{202},
+		Categories:  []contract.ContactCategory{contract.ContactCategoryBusiness},
+		CreatedFrom: &from, CreatedTo: &to, DuplicateGroups: []string{"duplicate-1"},
+	}
+	require.True(t, matchesRequestFilter(request, matching))
+
+	nonMatching := []RequestFilter{
+		{Statuses: []contract.ServiceRequestStatus{contract.ServiceRequestStatusClosed}},
+		{ServiceTypes: []contract.ServiceType{contract.ServiceTypeGeneralInquiry}},
+		{OwningDepartments: []contract.DepartmentCode{contract.DepartmentSanitation}},
+		{CouncilDistricts: []contract.DistrictCode{contract.DistrictSouth}},
+		{OriginClasses: []contract.OriginClass{contract.OriginClassExternal}},
+		{SourceChannels: []contract.SourceChannel{contract.SourceChannelAPI}},
+		{PrimaryAssigneeIDs: []uint64{999}},
+		{CollaboratorIDs: []uint64{999}},
+		{Categories: []contract.ContactCategory{contract.ContactCategoryResident}},
+		{CreatedFrom: func() *time.Time { value := createdAt.Add(time.Minute); return &value }()},
+		{CreatedTo: func() *time.Time { value := createdAt.Add(-time.Minute); return &value }()},
+		{DuplicateGroups: []string{"duplicate-2"}},
+	}
+	for index, filter := range nonMatching {
+		require.False(t, matchesRequestFilter(request, filter), "published filter index %d was ignored", index)
+	}
 }
 
 func TestValidationPrecedesPersistence(t *testing.T) {

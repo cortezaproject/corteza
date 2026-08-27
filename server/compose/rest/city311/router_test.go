@@ -7,11 +7,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
 	city311Service "github.com/cortezaproject/corteza/server/compose/service/city311"
+	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
 	contract "github.com/cortezaproject/corteza/server/compose/types/city311"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/id"
@@ -76,6 +79,9 @@ func TestPortalSubmissionUsesSinglePublishedSuccessStatus(t *testing.T) {
 	headers := map[string]string{contract.IdempotencyHeader: "portal-replay-1"}
 	first := executeJSON(t, router, http.MethodPost, "/api/v1/portal/service-requests", validPortalBody(), headers, 0)
 	require.Equal(t, http.StatusCreated, first.Code, first.Body.String())
+	created := contract.ServiceRequestResponse{}
+	require.NoError(t, json.Unmarshal(first.Body.Bytes(), &created))
+	require.Equal(t, "/api/v1/service-requests/"+created.RequestID, created.Links.Self)
 	replay := executeJSON(t, router, http.MethodPost, "/api/v1/portal/service-requests", validPortalBody(), headers, 0)
 	require.Equal(t, http.StatusCreated, replay.Code, replay.Body.String())
 	require.JSONEq(t, first.Body.String(), replay.Body.String())
@@ -113,18 +119,40 @@ func TestIntegrationSubmissionRequiresScopeAndReturnsReplayStatus(t *testing.T) 
 	require.Equal(t, http.StatusForbidden, forbidden.Code)
 	created := executeWithScope(contract.ScopeRequestWrite)
 	require.Equal(t, http.StatusCreated, created.Code, created.Body.String())
+	createdBody := contract.ServiceRequestResponse{}
+	require.NoError(t, json.Unmarshal(created.Body.Bytes(), &createdBody))
+	require.Equal(t, "/api/v1/service-requests/"+createdBody.RequestID, createdBody.Links.Self)
 	replayed := executeWithScope(contract.ScopeRequestWrite)
 	require.Equal(t, http.StatusOK, replayed.Code, replayed.Body.String())
 	require.JSONEq(t, created.Body.String(), replayed.Body.String())
 }
 
-func TestPortalSubmissionValidatesAttachmentTokenLimit(t *testing.T) {
-	router, _, _ := testRouter(t)
+func TestSubmissionRejectsUnresolvedAttachmentTokensWithoutPersistence(t *testing.T) {
+	router, st, _ := testRouter(t)
+	before, _, err := store.SearchCity311ServiceRequests(context.Background(), st, composeTypes.City311ServiceRequestFilter{})
+	require.NoError(t, err)
 	body := validPortalBody()
 	body["attachment_tokens"] = []string{"1", "2", "3", "4", "5", "6"}
 	response := executeJSON(t, router, http.MethodPost, "/api/v1/portal/service-requests", body, map[string]string{contract.IdempotencyHeader: "too-many-attachments"}, 0)
 	require.Equal(t, http.StatusUnprocessableEntity, response.Code)
 	require.Contains(t, response.Body.String(), "/attachment_tokens")
+
+	body = validPortalBody()
+	body["attachment_tokens"] = []string{"upload-00031"}
+	response = executeJSON(t, router, http.MethodPost, "/api/v1/portal/service-requests", body, map[string]string{contract.IdempotencyHeader: "unresolved-portal-attachment"}, 0)
+	require.Equal(t, http.StatusUnprocessableEntity, response.Code)
+	require.Contains(t, response.Body.String(), string(contract.ValidationInvalidValue))
+
+	user, err := store.LookupUserByEmail(context.Background(), st, "service-agent@city311.example.invalid")
+	require.NoError(t, err)
+	staffBody := map[string]any{"request": body, "constituent": map[string]any{"constituent_id": "C-1"}}
+	response = executeJSON(t, router, http.MethodPost, "/api/v1/staff/service-requests", staffBody, nil, user.ID)
+	require.Equal(t, http.StatusUnprocessableEntity, response.Code)
+	require.Contains(t, response.Body.String(), "/request/attachment_tokens")
+
+	after, _, err := store.SearchCity311ServiceRequests(context.Background(), st, composeTypes.City311ServiceRequestFilter{})
+	require.NoError(t, err)
+	require.Len(t, after, len(before))
 }
 
 func TestStaffRoutesEnforceIdentityScopeAndVersion(t *testing.T) {
@@ -137,12 +165,18 @@ func TestStaffRoutesEnforceIdentityScopeAndVersion(t *testing.T) {
 	unauthenticated := executeJSON(t, router, http.MethodGet, "/api/v1/staff/service-requests", nil, nil, 0)
 	require.Equal(t, http.StatusUnauthorized, unauthenticated.Code)
 
-	queue := executeJSON(t, router, http.MethodGet, "/api/v1/staff/service-requests?status=SUBMITTED&page_size=10", nil, nil, user.ID)
+	queueFilters := url.QueryEscape(`{"status":["SUBMITTED"]}`)
+	queue := executeJSON(t, router, http.MethodGet, "/api/v1/staff/service-requests?filters="+queueFilters+"&page_size=10", nil, nil, user.ID)
 	require.Equal(t, http.StatusOK, queue.Code, queue.Body.String())
 	require.Contains(t, queue.Body.String(), "SR-2026-00034")
 	require.NotContains(t, queue.Body.String(), "SR-2026-00035")
 
 	path := fmt.Sprintf("/api/v1/staff/service-requests/%d/transitions", request.ID)
+	for _, invalid := range []string{`W/"1"`, "1", `"0"`, `"1","2"`} {
+		response := executeJSON(t, router, http.MethodPost, path, map[string]any{"to_status": "TRIAGED"}, map[string]string{contract.IfMatchHeader: invalid}, user.ID)
+		require.Equal(t, http.StatusPreconditionRequired, response.Code, invalid+": "+response.Body.String())
+		require.Contains(t, response.Body.String(), string(contract.ErrorExpectedVersionRequired))
+	}
 	transition := executeJSON(t, router, http.MethodPost, path, map[string]any{"to_status": "TRIAGED", "reason": "Validated and routed"}, map[string]string{contract.IfMatchHeader: `"1"`}, user.ID)
 	require.Equal(t, http.StatusOK, transition.Code, transition.Body.String())
 	require.Contains(t, transition.Body.String(), `"version":2`)
@@ -170,12 +204,77 @@ func TestStaffCreateSupportsConstituentReferenceAndRejectsMixedUnion(t *testing.
 	require.Equal(t, http.StatusUnprocessableEntity, mixed.Code)
 }
 
-func TestParseIfMatchAcceptsStrongAndWeakEntityTags(t *testing.T) {
-	for _, value := range []string{`"12"`, `W/"12"`, "12"} {
-		parsed, err := parseIfMatch(value)
-		require.NoError(t, err)
-		require.Equal(t, uint64(12), parsed)
+func TestStaffCreateAuthorizesDerivedScopeBeforePersistence(t *testing.T) {
+	router, st, _ := testRouter(t)
+	user, err := store.LookupUserByEmail(context.Background(), st, "service-agent@city311.example.invalid")
+	require.NoError(t, err)
+	before, _, err := store.SearchCity311ServiceRequests(context.Background(), st, composeTypes.City311ServiceRequestFilter{})
+	require.NoError(t, err)
+	request := validPortalBody()
+	request["service_type"] = string(contract.ServiceTypeMissedTrash)
+	body := map[string]any{"request": request, "constituent": map[string]any{"constituent_id": "C-1"}}
+	response := executeJSON(t, router, http.MethodPost, "/api/v1/staff/service-requests", body, nil, user.ID)
+	require.Equal(t, http.StatusForbidden, response.Code, response.Body.String())
+	after, _, err := store.SearchCity311ServiceRequests(context.Background(), st, composeTypes.City311ServiceRequestFilter{})
+	require.NoError(t, err)
+	require.Len(t, after, len(before))
+}
+
+func TestStaffQueueDecodesAndEchoesCompleteFrozenFilterObject(t *testing.T) {
+	router, st, _ := testRouter(t)
+	user, err := store.LookupUserByEmail(context.Background(), st, "service-agent@city311.example.invalid")
+	require.NoError(t, err)
+	firstRequest, err := store.LookupCity311ServiceRequestByRequestNumber(context.Background(), st, "SR-2026-00034")
+	require.NoError(t, err)
+	secondRequest, err := store.LookupCity311ServiceRequestByRequestNumber(context.Background(), st, "SR-2026-00035")
+	require.NoError(t, err)
+	for _, request := range []*composeTypes.City311ServiceRequest{firstRequest, secondRequest} {
+		request.PrimaryAssigneeID = user.ID
+		request.CollaboratorIDs = composeTypes.City311Uint64Set{user.ID}
+		request.PrimaryRequester["primary_category"] = string(contract.ContactCategoryResident)
+		request.DuplicateGroupID = "duplicate-queue-test"
+		require.NoError(t, store.UpdateCity311ServiceRequest(context.Background(), st, request))
 	}
-	_, err := parseIfMatch("")
-	require.Error(t, err)
+
+	filters := map[string]any{
+		"status": []string{string(firstRequest.Status), string(secondRequest.Status)}, "service_type": []string{string(firstRequest.ServiceType)},
+		"department": []string{string(firstRequest.OwningDepartment)}, "district": []string{string(firstRequest.CouncilDistrict)},
+		"origin_class": []string{string(firstRequest.OriginClass)}, "source_channel": []string{string(firstRequest.SourceChannel)},
+		"assignee": []string{strconv.FormatUint(user.ID, 10)}, "collaborator": []string{strconv.FormatUint(user.ID, 10)},
+		"category":        []string{string(contract.ContactCategoryResident)},
+		"created_from":    firstRequest.CreatedAt.Add(-time.Minute).Format(time.RFC3339),
+		"created_to":      secondRequest.CreatedAt.Add(time.Minute).Format(time.RFC3339),
+		"duplicate_group": []string{"duplicate-queue-test"},
+	}
+	encoded, err := json.Marshal(filters)
+	require.NoError(t, err)
+	path := "/api/v1/staff/service-requests?filters=" + url.QueryEscape(string(encoded)) + "&page_size=1&sort=-updated_at"
+	response := executeJSON(t, router, http.MethodGet, path, nil, nil, user.ID)
+	require.Equal(t, http.StatusOK, response.Code, response.Body.String())
+	firstPage := contract.ListResponse{}
+	require.NoError(t, json.Unmarshal(response.Body.Bytes(), &firstPage))
+	require.Len(t, firstPage.Items, 1)
+	require.Equal(t, 2, firstPage.TotalCount)
+	require.NotNil(t, firstPage.NextPageToken)
+	require.Len(t, firstPage.AppliedFilters, 12)
+	require.Equal(t, []string{"-updated_at"}, firstPage.Sort)
+
+	path += "&page_token=" + url.QueryEscape(*firstPage.NextPageToken)
+	response = executeJSON(t, router, http.MethodGet, path, nil, nil, user.ID)
+	require.Equal(t, http.StatusOK, response.Code, response.Body.String())
+	secondPage := contract.ListResponse{}
+	require.NoError(t, json.Unmarshal(response.Body.Bytes(), &secondPage))
+	require.Len(t, secondPage.Items, 1)
+	require.Equal(t, 2, secondPage.TotalCount)
+	require.NotEqual(t, firstPage.Items[0].RequestID, secondPage.Items[0].RequestID)
+}
+
+func TestParseIfMatchRequiresOneStrongQuotedPositiveVersion(t *testing.T) {
+	parsed, err := parseIfMatch(`"12"`)
+	require.NoError(t, err)
+	require.Equal(t, uint64(12), parsed)
+	for _, value := range []string{"", `W/"12"`, "12", `"0"`, `"-1"`, `"1","2"`, `"abc"`} {
+		_, err = parseIfMatch(value)
+		require.Error(t, err, value)
+	}
 }

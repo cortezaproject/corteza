@@ -5,8 +5,10 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	city311Service "github.com/cortezaproject/corteza/server/compose/service/city311"
 	contract "github.com/cortezaproject/corteza/server/compose/types/city311"
@@ -17,7 +19,40 @@ import (
 
 const maximumJSONBody = 72 << 20
 
+var strongVersionPattern = regexp.MustCompile(`^"[1-9][0-9]*"$`)
+
 type handler struct{ service *city311Service.Service }
+
+type stringList []string
+
+func (values *stringList) UnmarshalJSON(data []byte) error {
+	var list []string
+	if err := json.Unmarshal(data, &list); err == nil {
+		*values = list
+		return nil
+	}
+	var value string
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*values = []string{value}
+	return nil
+}
+
+type staffQueueFilters struct {
+	Status         stringList `json:"status"`
+	ServiceType    stringList `json:"service_type"`
+	Department     stringList `json:"department"`
+	District       stringList `json:"district"`
+	OriginClass    stringList `json:"origin_class"`
+	SourceChannel  stringList `json:"source_channel"`
+	Assignee       stringList `json:"assignee"`
+	Collaborator   stringList `json:"collaborator"`
+	Category       stringList `json:"category"`
+	CreatedFrom    string     `json:"created_from"`
+	CreatedTo      string     `json:"created_to"`
+	DuplicateGroup stringList `json:"duplicate_group"`
+}
 
 func MountRoutes() func(chi.Router) {
 	return MountRoutesWithService(city311Service.Default)
@@ -57,6 +92,10 @@ func (h *handler) portalSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(input.AttachmentTokens) > 5 {
 		writeValidation(w, "/attachment_tokens", contract.ValidationTooManyItems)
+		return
+	}
+	if len(input.AttachmentTokens) > 0 {
+		writeValidation(w, "/attachment_tokens", contract.ValidationInvalidValue)
 		return
 	}
 	identity := auth.GetIdentityFromContext(r.Context())
@@ -100,6 +139,10 @@ func (h *handler) staffSubmit(w http.ResponseWriter, r *http.Request) {
 		writeValidation(w, "/request/attachment_tokens", contract.ValidationTooManyItems)
 		return
 	}
+	if len(input.Request.AttachmentTokens) > 0 {
+		writeValidation(w, "/request/attachment_tokens", contract.ValidationInvalidValue)
+		return
+	}
 	requester, err := h.staffRequester(r, input.Constituent)
 	if err != nil {
 		writeResult(w, 0, nil, err)
@@ -110,7 +153,7 @@ func (h *handler) staffSubmit(w http.ResponseWriter, r *http.Request) {
 		Requester: requester, Location: input.Request.Location, CustomFields: input.Request.CustomFields,
 	}, "", city311Service.SubmissionOptions{
 		Operation: "staff_service_request_create", SourceChannel: contract.SourceChannelStaffInPerson,
-		ActorType: contract.AuditActorStaff, ActorID: actor.ID,
+		ActorType: contract.AuditActorStaff, ActorID: actor.ID, StaffActor: &actor,
 	})
 	if err != nil {
 		writeResult(w, 0, nil, err)
@@ -157,25 +200,141 @@ func (h *handler) staffList(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	assigneeID := uint64(0)
-	if raw := r.URL.Query().Get("assignee"); raw != "" {
-		assigneeID, err = strconv.ParseUint(raw, 10, 64)
-		if err != nil || assigneeID == 0 {
-			writeValidation(w, "/query/assignee", contract.ValidationInvalidFormat)
-			return
+	requestFilter, err := parseStaffQueueFilters(r)
+	if err != nil {
+		writeResult(w, 0, nil, err)
+		return
+	}
+	requestFilter.PageSize = uint(pageSize)
+	requestFilter.PageToken = r.URL.Query().Get("page_token")
+	requestFilter.Sort = r.URL.Query().Get("sort")
+	result, err := h.service.List(r.Context(), actor, requestFilter)
+	writeResult(w, http.StatusOK, result, err)
+}
+
+func parseStaffQueueFilters(r *http.Request) (city311Service.RequestFilter, error) {
+	input := staffQueueFilters{}
+	raw := r.URL.Query().Get("filters")
+	if raw != "" {
+		decoder := json.NewDecoder(strings.NewReader(raw))
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&input); err != nil {
+			return city311Service.RequestFilter{}, queueFilterError("filters", contract.ValidationInvalidFormat)
+		}
+		if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+			return city311Service.RequestFilter{}, queueFilterError("filters", contract.ValidationInvalidFormat)
+		}
+	} else {
+		// Accept OpenAPI form-style exploded objects in addition to the JSON object
+		// representation used by the frozen examples and frontend mocks.
+		query := r.URL.Query()
+		input.Status = queryValues(query, "status")
+		input.ServiceType = queryValues(query, "service_type")
+		input.Department = queryValues(query, "department")
+		input.District = queryValues(query, "district")
+		input.OriginClass = queryValues(query, "origin_class")
+		input.SourceChannel = queryValues(query, "source_channel")
+		input.Assignee = queryValues(query, "assignee")
+		input.Collaborator = queryValues(query, "collaborator")
+		input.Category = queryValues(query, "category")
+		input.CreatedFrom = firstQueryValue(queryValues(query, "created_from"))
+		input.CreatedTo = firstQueryValue(queryValues(query, "created_to"))
+		input.DuplicateGroup = queryValues(query, "duplicate_group")
+	}
+
+	assignees, err := parseFilterIDs(input.Assignee, "assignee")
+	if err != nil {
+		return city311Service.RequestFilter{}, err
+	}
+	collaborators, err := parseFilterIDs(input.Collaborator, "collaborator")
+	if err != nil {
+		return city311Service.RequestFilter{}, err
+	}
+	createdFrom, err := parseFilterTime(input.CreatedFrom, "created_from")
+	if err != nil {
+		return city311Service.RequestFilter{}, err
+	}
+	createdTo, err := parseFilterTime(input.CreatedTo, "created_to")
+	if err != nil {
+		return city311Service.RequestFilter{}, err
+	}
+
+	return city311Service.RequestFilter{
+		Statuses:           convertStrings(input.Status, contract.ServiceRequestStatus("")),
+		ServiceTypes:       convertStrings(input.ServiceType, contract.ServiceType("")),
+		OwningDepartments:  convertStrings(input.Department, contract.DepartmentCode("")),
+		CouncilDistricts:   convertStrings(input.District, contract.DistrictCode("")),
+		OriginClasses:      convertStrings(input.OriginClass, contract.OriginClass("")),
+		SourceChannels:     convertStrings(input.SourceChannel, contract.SourceChannel("")),
+		PrimaryAssigneeIDs: assignees,
+		CollaboratorIDs:    collaborators,
+		Categories:         convertStrings(input.Category, contract.ContactCategory("")),
+		CreatedFrom:        createdFrom,
+		CreatedTo:          createdTo,
+		DuplicateGroups:    []string(input.DuplicateGroup),
+	}, nil
+}
+
+func queryValues(query map[string][]string, field string) stringList {
+	values := query[field]
+	if len(values) == 0 {
+		values = query["filters["+field+"]"]
+	}
+	out := make(stringList, 0, len(values))
+	for _, value := range values {
+		for _, item := range strings.Split(value, ",") {
+			if item = strings.TrimSpace(item); item != "" {
+				out = append(out, item)
+			}
 		}
 	}
-	result, err := h.service.List(r.Context(), actor, city311Service.RequestFilter{
-		Status:            contract.ServiceRequestStatus(r.URL.Query().Get("status")),
-		ServiceType:       contract.ServiceType(r.URL.Query().Get("service_type")),
-		OwningDepartment:  contract.DepartmentCode(r.URL.Query().Get("department")),
-		CouncilDistrict:   contract.DistrictCode(r.URL.Query().Get("district")),
-		OriginClass:       contract.OriginClass(r.URL.Query().Get("origin_class")),
-		SourceChannel:     contract.SourceChannel(r.URL.Query().Get("source_channel")),
-		PrimaryAssigneeID: assigneeID,
-		PageSize:          uint(pageSize), PageToken: r.URL.Query().Get("page_token"), Sort: r.URL.Query().Get("sort"),
-	})
-	writeResult(w, http.StatusOK, result, err)
+	return out
+}
+
+func firstQueryValue(values stringList) string {
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0]
+}
+
+func parseFilterIDs(values stringList, field string) ([]uint64, error) {
+	out := make([]uint64, 0, len(values))
+	for _, value := range values {
+		parsed, err := strconv.ParseUint(value, 10, 64)
+		if err != nil || parsed == 0 {
+			return nil, queueFilterError(field, contract.ValidationInvalidFormat)
+		}
+		out = append(out, parsed)
+	}
+	return out, nil
+}
+
+func parseFilterTime(value, field string) (*time.Time, error) {
+	if value == "" {
+		return nil, nil
+	}
+	parsed, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		return nil, queueFilterError(field, contract.ValidationInvalidFormat)
+	}
+	parsed = parsed.UTC()
+	return &parsed, nil
+}
+
+func queueFilterError(field string, code contract.ValidationCode) *city311Service.ServiceError {
+	return &city311Service.ServiceError{Status: 422, Payload: contract.APIError{
+		Error: contract.ErrorValidation, Message: "The request contains invalid fields.", Retryable: false,
+		Errors: []contract.FieldError{{Field: "/query/filters/" + field, Code: code}},
+	}}
+}
+
+func convertStrings[T ~string](values stringList, _ T) []T {
+	out := make([]T, 0, len(values))
+	for _, value := range values {
+		out = append(out, T(value))
+	}
+	return out
 }
 
 func (h *handler) staffDetail(w http.ResponseWriter, r *http.Request) {
@@ -219,12 +378,10 @@ func (h *handler) staffTransition(w http.ResponseWriter, r *http.Request) {
 
 func parseIfMatch(value string) (uint64, error) {
 	value = strings.TrimSpace(value)
-	value = strings.TrimPrefix(value, "W/")
-	value = strings.Trim(value, "\"")
-	if value == "" {
-		return 0, errors.New("missing If-Match")
+	if !strongVersionPattern.MatchString(value) {
+		return 0, errors.New("If-Match must be one quoted positive decimal version")
 	}
-	return strconv.ParseUint(value, 10, 64)
+	return strconv.ParseUint(value[1:len(value)-1], 10, 64)
 }
 
 func requireIdentity(next http.Handler) http.Handler {

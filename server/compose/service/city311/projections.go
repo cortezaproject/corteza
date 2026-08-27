@@ -99,7 +99,7 @@ func responseFor(request *composeTypes.City311ServiceRequest) *contract.ServiceR
 	return &contract.ServiceRequestResponse{
 		RequestID: strconv.FormatUint(request.ID, 10), RequestNumber: request.RequestNumber,
 		Status: request.Status, Version: uint64(request.Version), CreatedAt: request.CreatedAt,
-		Links: contract.ResourceLinks{Self: "/api/v1/staff/service-requests/" + strconv.FormatUint(request.ID, 10)},
+		Links: contract.ResourceLinks{Self: "/api/v1/service-requests/" + strconv.FormatUint(request.ID, 10)},
 	}
 }
 

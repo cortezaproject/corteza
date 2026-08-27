@@ -50,20 +50,26 @@ type (
 		SourceChannel      contract.SourceChannel
 		ActorType          contract.AuditActorType
 		ActorID            uint64
+		StaffActor         *contract.Actor
 		RequireIdempotency bool
 	}
 
 	RequestFilter struct {
-		Status            contract.ServiceRequestStatus
-		ServiceType       contract.ServiceType
-		OwningDepartment  contract.DepartmentCode
-		CouncilDistrict   contract.DistrictCode
-		OriginClass       contract.OriginClass
-		SourceChannel     contract.SourceChannel
-		PrimaryAssigneeID uint64
-		PageSize          uint
-		PageToken         string
-		Sort              string
+		Statuses           []contract.ServiceRequestStatus
+		ServiceTypes       []contract.ServiceType
+		OwningDepartments  []contract.DepartmentCode
+		CouncilDistricts   []contract.DistrictCode
+		OriginClasses      []contract.OriginClass
+		SourceChannels     []contract.SourceChannel
+		PrimaryAssigneeIDs []uint64
+		CollaboratorIDs    []uint64
+		Categories         []contract.ContactCategory
+		CreatedFrom        *time.Time
+		CreatedTo          *time.Time
+		DuplicateGroups    []string
+		PageSize           uint
+		PageToken          string
+		Sort               string
 	}
 
 	ServiceError struct {
@@ -234,6 +240,13 @@ func hashKey(value string) string {
 func (svc *Service) Submit(ctx context.Context, in contract.ServiceRequestCreate, idempotencyKey string, options SubmissionOptions) (*contract.ServiceRequestResponse, int, error) {
 	if err := validateWrite(in); err != nil {
 		return nil, 0, err
+	}
+	if options.StaffActor != nil {
+		department, _ := departmentForServiceType(in.ServiceType)
+		candidate := &composeTypes.City311ServiceRequest{OwningDepartment: department}
+		if !canOperateRequest(*options.StaffActor) || !canRead(*options.StaffActor, candidate) {
+			return nil, 0, apiError(403, contract.ErrorForbidden, "The service request is outside the actor's record scope.")
+		}
 	}
 	attachments, attachmentErr := validateInlineAttachments(in.Attachments)
 	if attachmentErr != nil {
@@ -494,10 +507,9 @@ func (svc *Service) List(ctx context.Context, actor contract.Actor, requested Re
 		return nil, validationError(contract.FieldError{Field: "/query/page_token", Code: contract.ValidationInvalidFormat})
 	}
 	f := composeTypes.City311ServiceRequestFilter{
-		Status: string(requested.Status), ServiceType: string(requested.ServiceType), OwningDepartment: string(requested.OwningDepartment),
-		CouncilDistrict: string(requested.CouncilDistrict), SourceChannel: string(requested.SourceChannel), OriginClass: string(requested.OriginClass),
-		PrimaryAssigneeID: requested.PrimaryAssigneeID,
-		Check:             func(item *composeTypes.City311ServiceRequest) (bool, error) { return canRead(actor, item), nil },
+		Check: func(item *composeTypes.City311ServiceRequest) (bool, error) {
+			return canRead(actor, item) && matchesRequestFilter(item, requested), nil
+		},
 	}
 	matching, _, err := store.SearchCity311ServiceRequests(ctx, svc.store, f)
 	if err != nil {
@@ -531,33 +543,98 @@ func (svc *Service) List(ctx context.Context, actor contract.Actor, requested Re
 
 func validateRequestFilter(requested RequestFilter) []contract.FieldError {
 	var out []contract.FieldError
-	if !containsEnum(requested.Status, contract.ServiceRequestStatuses) {
-		out = append(out, contract.FieldError{Field: "/query/status", Code: contract.ValidationInvalidValue})
+	if !containsEnums(requested.Statuses, contract.ServiceRequestStatuses) {
+		out = append(out, contract.FieldError{Field: "/query/filters/status", Code: contract.ValidationInvalidValue})
 	}
-	if !containsEnum(requested.ServiceType, contract.ServiceTypes) {
-		out = append(out, contract.FieldError{Field: "/query/service_type", Code: contract.ValidationInvalidValue})
+	if !containsEnums(requested.ServiceTypes, contract.ServiceTypes) {
+		out = append(out, contract.FieldError{Field: "/query/filters/service_type", Code: contract.ValidationInvalidValue})
 	}
-	if !containsEnum(requested.OwningDepartment, contract.DepartmentCodes) {
-		out = append(out, contract.FieldError{Field: "/query/department", Code: contract.ValidationInvalidValue})
+	if !containsEnums(requested.OwningDepartments, contract.DepartmentCodes) {
+		out = append(out, contract.FieldError{Field: "/query/filters/department", Code: contract.ValidationInvalidValue})
 	}
-	if !containsEnum(requested.CouncilDistrict, contract.DistrictCodes) {
-		out = append(out, contract.FieldError{Field: "/query/district", Code: contract.ValidationInvalidValue})
+	if !containsEnums(requested.CouncilDistricts, contract.DistrictCodes) {
+		out = append(out, contract.FieldError{Field: "/query/filters/district", Code: contract.ValidationInvalidValue})
 	}
-	if !containsEnum(requested.OriginClass, contract.OriginClasses) {
-		out = append(out, contract.FieldError{Field: "/query/origin_class", Code: contract.ValidationInvalidValue})
+	if !containsEnums(requested.OriginClasses, contract.OriginClasses) {
+		out = append(out, contract.FieldError{Field: "/query/filters/origin_class", Code: contract.ValidationInvalidValue})
 	}
-	if !containsEnum(requested.SourceChannel, contract.SourceChannels) {
-		out = append(out, contract.FieldError{Field: "/query/source_channel", Code: contract.ValidationInvalidValue})
+	if !containsEnums(requested.SourceChannels, contract.SourceChannels) {
+		out = append(out, contract.FieldError{Field: "/query/filters/source_channel", Code: contract.ValidationInvalidValue})
+	}
+	if !containsEnums(requested.Categories, contract.ContactCategories) {
+		out = append(out, contract.FieldError{Field: "/query/filters/category", Code: contract.ValidationInvalidValue})
+	}
+	if requested.CreatedFrom != nil && requested.CreatedTo != nil && requested.CreatedFrom.After(*requested.CreatedTo) {
+		out = append(out, contract.FieldError{Field: "/query/filters/created_from", Code: contract.ValidationOutOfRange})
 	}
 	return out
 }
 
-func containsEnum[T ~string](value T, set []T) bool {
-	if value == "" {
+func containsEnums[T ~string](values []T, set []T) bool {
+	for _, value := range values {
+		found := false
+		for _, candidate := range set {
+			if value == candidate {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+func matchesRequestFilter(item *composeTypes.City311ServiceRequest, requested RequestFilter) bool {
+	if !matchesString(string(item.Status), requested.Statuses) ||
+		!matchesString(string(item.ServiceType), requested.ServiceTypes) ||
+		!matchesString(string(item.OwningDepartment), requested.OwningDepartments) ||
+		!matchesString(string(item.CouncilDistrict), requested.CouncilDistricts) ||
+		!matchesString(string(item.OriginClass), requested.OriginClasses) ||
+		!matchesString(string(item.SourceChannel), requested.SourceChannels) ||
+		!matchesUint64(item.PrimaryAssigneeID, requested.PrimaryAssigneeIDs) ||
+		!matchesAnyUint64(item.CollaboratorIDs, requested.CollaboratorIDs) ||
+		!matchesString(fmt.Sprint(item.PrimaryRequester["primary_category"]), requested.Categories) ||
+		!matchesString(item.DuplicateGroupID, requested.DuplicateGroups) {
+		return false
+	}
+	if requested.CreatedFrom != nil && item.CreatedAt.Before(*requested.CreatedFrom) {
+		return false
+	}
+	return requested.CreatedTo == nil || !item.CreatedAt.After(*requested.CreatedTo)
+}
+
+func matchesString[T ~string](value string, expected []T) bool {
+	if len(expected) == 0 {
 		return true
 	}
-	for _, candidate := range set {
+	for _, candidate := range expected {
+		if value == string(candidate) {
+			return true
+		}
+	}
+	return false
+}
+
+func matchesUint64(value uint64, expected []uint64) bool {
+	if len(expected) == 0 {
+		return true
+	}
+	for _, candidate := range expected {
 		if value == candidate {
+			return true
+		}
+	}
+	return false
+}
+
+func matchesAnyUint64(values, expected []uint64) bool {
+	if len(expected) == 0 {
+		return true
+	}
+	for _, value := range values {
+		if matchesUint64(value, expected) {
 			return true
 		}
 	}
@@ -680,26 +757,41 @@ func (svc *Service) ResolveConstituent(ctx context.Context, constituentID string
 
 func appliedFilters(requested RequestFilter) map[string]any {
 	out := map[string]any{}
-	if requested.Status != "" {
-		out["status"] = requested.Status
+	if len(requested.Statuses) > 0 {
+		out["status"] = requested.Statuses
 	}
-	if requested.ServiceType != "" {
-		out["service_type"] = requested.ServiceType
+	if len(requested.ServiceTypes) > 0 {
+		out["service_type"] = requested.ServiceTypes
 	}
-	if requested.OwningDepartment != "" {
-		out["department"] = requested.OwningDepartment
+	if len(requested.OwningDepartments) > 0 {
+		out["department"] = requested.OwningDepartments
 	}
-	if requested.CouncilDistrict != "" {
-		out["district"] = requested.CouncilDistrict
+	if len(requested.CouncilDistricts) > 0 {
+		out["district"] = requested.CouncilDistricts
 	}
-	if requested.OriginClass != "" {
-		out["origin_class"] = requested.OriginClass
+	if len(requested.OriginClasses) > 0 {
+		out["origin_class"] = requested.OriginClasses
 	}
-	if requested.SourceChannel != "" {
-		out["source_channel"] = requested.SourceChannel
+	if len(requested.SourceChannels) > 0 {
+		out["source_channel"] = requested.SourceChannels
 	}
-	if requested.PrimaryAssigneeID != 0 {
-		out["assignee"] = strconv.FormatUint(requested.PrimaryAssigneeID, 10)
+	if len(requested.PrimaryAssigneeIDs) > 0 {
+		out["assignee"] = stringifyIDs(requested.PrimaryAssigneeIDs)
+	}
+	if len(requested.CollaboratorIDs) > 0 {
+		out["collaborator"] = stringifyIDs(requested.CollaboratorIDs)
+	}
+	if len(requested.Categories) > 0 {
+		out["category"] = requested.Categories
+	}
+	if requested.CreatedFrom != nil {
+		out["created_from"] = requested.CreatedFrom.Format(time.RFC3339)
+	}
+	if requested.CreatedTo != nil {
+		out["created_to"] = requested.CreatedTo.Format(time.RFC3339)
+	}
+	if len(requested.DuplicateGroups) > 0 {
+		out["duplicate_group"] = requested.DuplicateGroups
 	}
 	return out
 }
