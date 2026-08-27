@@ -42,10 +42,32 @@ describe('City 311 frontend contract', () => {
   it('keeps anonymous lookup privacy and reopen response shapes', async () => {
     const provider = new MockC311Provider()
     expect(await provider.getPublicStatus({ request_number: 'SR-2026-99999', email: 'unknown@example.test' })).to.deep.equal({ request_detail: null })
+    expect(await provider.getPublicStatus({ request_number: 'SR-2026-00001', email: 'wrong@example.test' })).to.deep.equal({ request_detail: null })
+    expect((await provider.getPublicStatus({ request_number: 'SR-2026-00001', email: 'alex@example.test' })).request_detail?.request_number).to.equal('SR-2026-00001')
+    expect((await provider.getPublicStatus({ request_number: 'SR-2026-00001', email: ' ALEX@EXAMPLE.TEST ' })).request_detail?.request_number).to.equal('SR-2026-00001')
     expect(await provider.reopenPortalRequest('request-fixture-001', 'fixture reason')).to.deep.equal({
       request_id: 'request-fixture-001',
       status: 'PENDING_APPROVAL',
     })
+  })
+
+  it('provides complete role and session-expiry fixtures for route checks', () => {
+    const fixtures = createDefaultFixtureSet()
+    const roles = Object.keys(fixtures.role_fixtures)
+    expect(roles).to.include.members(['public_visitor', 'constituent', 'service_agent', 'supervisor', 'department_manager', 'platform_administrator', 'workflow_designer'])
+
+    for (const role of roles) {
+      const fixture = fixtures.role_fixtures[role as keyof typeof fixtures.role_fixtures]
+      expect(fixture.denied_route).to.be.a('string')
+      expect(fixture.denied_capability).to.be.a('string')
+      expect(fixture.expired_session.expires_at).to.equal('2026-01-15T14:00:00.000Z')
+      if (role === 'public_visitor') expect(fixture.session.authenticated).to.equal(false)
+      else {
+        expect(fixture.session.actor?.available_routes).to.not.include(fixture.denied_route)
+        expect(fixture.session.actor?.capabilities).to.not.include(fixture.denied_capability)
+        expect(fixture.session.actor?.application_roles).to.include(role)
+      }
+    }
   })
 
   it('exposes only endpoint-declared failures and models terminal operations in-band', async () => {
@@ -62,6 +84,7 @@ describe('City 311 frontend contract', () => {
       const error = await expectError(action, code)
       expect(error.retryable).to.equal(retryable)
       if (scenario === 'retryable') expect(error.retryAfter).to.equal('30')
+      if (scenario === 'version-conflict') expect(error.currentVersion).to.equal(2)
     }
 
     expect((await new MockC311Provider({ scenario: 'version-conflict' }).getSession()).authenticated).to.equal(true)
@@ -259,9 +282,19 @@ describe('City 311 frontend contract', () => {
     expect(networkError.retryable).to.equal(true)
   })
 
+  it('normalizes anonymous HTTP misses to the same non-disclosing response', async () => {
+    const provider = new C311HttpProvider({
+      request: async <T> (): Promise<T> => ({ error: 'NOT_FOUND', message: 'not found' } as T),
+    })
+
+    expect(await provider.getPublicStatus({ request_number: 'SR-2026-99999', email: 'unknown@example.test' })).to.deep.equal({ request_detail: null })
+  })
+
   it('formats the benchmark instant in the fixed timezone', () => {
     expect(C311_TIMEZONE).to.equal('America/New_York')
-    expect(formatC311DateTime('2026-01-15T15:00:00.000Z', 'en-US')).to.contain('10:00')
+    expect(formatC311DateTime('2026-01-15T15:00:00.000Z', 'en-US')).to.equal('01/15/2026 10:00 AM EST')
+    expect(formatC311DateTime('2026-07-15T15:00:00.000Z', 'en-US')).to.equal('07/15/2026 11:00 AM EDT')
+    expect(formatC311DateTime('2026-07-15T15:00:00.000Z', 'es')).to.equal('07/15/2026 11:00 AM EDT')
     expect(formatC311DateTime('not-a-date')).to.equal('')
   })
 

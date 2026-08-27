@@ -268,7 +268,9 @@ export class MockC311Provider implements C311Provider {
 
   async getPublicStatus (input: AnonymousStatusLookupRequest): Promise<AnonymousStatusLookupResponse> {
     this.failIfNeeded()
-    const detail = this.fixtures.public_details[input.request_number]
+    const normalizedEmail = typeof input.email === 'string' ? input.email.trim().toLowerCase() : ''
+    const request = this.fixtures.requests.find(item => item.request_number === input.request_number && item.primary_requester.emails.some(email => email.toLowerCase() === normalizedEmail))
+    const detail = request ? this.fixtures.public_details[input.request_number] : undefined
     return { request_detail: detail ? copy(detail) : null }
   }
 

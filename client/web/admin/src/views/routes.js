@@ -6,6 +6,16 @@
  * @param component {String}
  * @returns {Object}
  */
+import { components } from '@cortezaproject/corteza-vue'
+
+const C311AccessPage = components.C311AccessPage || {
+  functional: true,
+  render: (h, { props }) => h('main', { attrs: { tabindex: '-1', 'data-c311-main': '' }, class: 'p-4' }, [
+    h('h1', { class: 'h2' }, props.heading || `Access status ${props.status}`),
+    h('p', [props.message || 'This page is not available.']),
+  ]),
+}
+
 function r (name, path, component) {
   return {
     path,
@@ -72,6 +82,42 @@ function combo (ns, name, opt = {}) {
 }
 
 export default [
+  {
+    name: 'c311.unauthorized',
+    path: '/c311/401',
+    component: C311AccessPage,
+    props: { status: 401, heading: 'Sign-in required', message: 'Your session has expired or you are not signed in.' },
+  },
+  {
+    name: 'c311.forbidden',
+    path: '/c311/403',
+    component: C311AccessPage,
+    props: { status: 403, heading: 'Access denied', message: 'You do not have permission to view this page.' },
+  },
+  {
+    name: 'c311.not-found',
+    path: '/c311/404',
+    component: C311AccessPage,
+    props: { status: 404, heading: 'Not found', message: 'The requested page could not be found.' },
+  },
+  {
+    name: 'c311.staff.reports',
+    path: '/c311/staff/reports',
+    component: () => import('./C311/Staff.vue'),
+    meta: { c311: { requiresAuth: true, capabilities: ['report_catalogue'] } },
+  },
+  {
+    name: 'c311.staff.workflows',
+    path: '/c311/staff/workflows',
+    component: () => import('./C311/Staff.vue'),
+    meta: { c311: { requiresAuth: true, capabilities: ['workflow_list'] } },
+  },
+  {
+    name: 'c311.staff',
+    path: '/c311/staff',
+    component: () => import('./C311/Staff.vue'),
+    meta: { c311: { requiresAuth: true, capabilities: ['staff_request_queue'] } },
+  },
   {
     name: 'root',
     path: '/',

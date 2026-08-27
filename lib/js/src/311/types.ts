@@ -70,6 +70,13 @@ export interface Session {
   expires_at?: ISODateTime | null
 }
 
+export interface C311RoleFixture {
+  session: Session
+  expired_session: Session
+  denied_route: ContractRoute
+  denied_capability: ContractCapability
+}
+
 export interface LocalSignIn {
   login_identifier: string
   password: string
@@ -321,6 +328,7 @@ export interface C311FixtureSet {
   fixture_id: 'contract-v1'
   contract_version: '1.0.0'
   session: Session
+  role_fixtures: Record<ApplicationRole, C311RoleFixture>
   requests: ServiceRequest[]
   queue: RequestQueueItem[]
   details: Record<string, StaffServiceRequestDetail>

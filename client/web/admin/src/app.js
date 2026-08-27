@@ -12,8 +12,11 @@ import router from './router'
 import store from './store'
 
 import { system } from '@cortezaproject/corteza-js'
-import { corredor, i18n, mixins, websocket } from '@cortezaproject/corteza-vue'
+import * as CortezaVue from '@cortezaproject/corteza-vue'
 import { mapGetters } from 'vuex'
+
+const { corredor, i18n, mixins, websocket } = CortezaVue
+const c311I18n = CortezaVue.c311I18n
 
 const notProduction = (process.env.NODE_ENV !== 'production')
 
@@ -41,6 +44,7 @@ export default (options = {}) => {
     async created () {
       this.$i18n.i18next.on('initialized', () => {
         this.i18nLoaded = true
+        c311I18n?.installC311Translations?.(this.$i18n.i18next)
       })
 
       this.websocket()
@@ -65,6 +69,13 @@ export default (options = {}) => {
           // and instruct i18next to change it
           this.$i18n.i18next.changeLanguage(user.meta.preferredLanguage)
         }
+
+        const actorID = user.userID || user.id || user.handle || ''
+        const storedLocale = c311I18n?.readC311Locale?.(actorID)
+        if (storedLocale) this.$i18n.i18next.changeLanguage(storedLocale)
+        this.$i18n.i18next.on('languageChanged', locale => {
+          c311I18n?.persistC311Locale?.(locale.toLowerCase().slice(0, 2), actorID)
+        })
 
         // switch the webapp theme based on user preference
         if (user.meta.theme) {

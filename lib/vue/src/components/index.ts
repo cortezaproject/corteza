@@ -97,6 +97,20 @@ export {
 } from './toolbar'
 
 export {
+  C311AppShell,
+  C311AccessPage,
+  C311CapabilityAction,
+  C311DataState,
+  C311ErrorSummary,
+  C311FocusModal,
+  C311HelpDrawer,
+  C311LanguageSelector,
+  C311MainNav,
+  C311ResponsiveData,
+  C311StatusAnnouncer,
+} from './c311'
+
+export {
   CHint,
 } from './hint'
 

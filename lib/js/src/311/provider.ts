@@ -298,8 +298,16 @@ export class C311HttpProvider implements C311Provider {
     return this.request({ method: 'POST', path: `/api/v1/portal/service-requests/${encodeURIComponent(requestID)}/reopen`, body: { reason }, ...this.requestOptions(options, false) })
   }
 
-  getPublicStatus (input: AnonymousStatusLookupRequest): Promise<AnonymousStatusLookupResponse> {
-    return this.request({ method: 'POST', path: '/api/v1/public/service-request-status', body: input, acceptedStatuses: [404] })
+  async getPublicStatus (input: AnonymousStatusLookupRequest): Promise<AnonymousStatusLookupResponse> {
+    const response = await this.request<AnonymousStatusLookupResponse | Record<string, unknown>>({
+      method: 'POST',
+      path: '/api/v1/public/service-request-status',
+      body: input,
+      acceptedStatuses: [404],
+    })
+    return response && Object.prototype.hasOwnProperty.call(response, 'request_detail')
+      ? response as AnonymousStatusLookupResponse
+      : { request_detail: null }
   }
 
   geocode (input: GeocodeRequest): Promise<GeocodeResponse> {

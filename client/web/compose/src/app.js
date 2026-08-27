@@ -12,7 +12,10 @@ import store from './store'
 import router from './router'
 
 import { compose } from '@cortezaproject/corteza-js'
-import { mixins, corredor, websocket, i18n } from '@cortezaproject/corteza-vue'
+import * as CortezaVue from '@cortezaproject/corteza-vue'
+
+const { mixins, corredor, websocket, i18n } = CortezaVue
+const c311I18n = CortezaVue.c311I18n
 
 const notProduction = (process.env.NODE_ENV !== 'production')
 const verboseEventbus = window.location.search.includes('verboseEventbus')
@@ -35,7 +38,16 @@ export default (options = {}) => {
     async created () {
       this.$i18n.i18next.on('initialized', () => {
         this.i18nLoaded = true
+        c311I18n?.installC311Translations?.(this.$i18n.i18next)
       })
+
+      // City 311 public routes use optional session cookies and must remain
+      // reachable without starting Corteza's global OAuth flow.
+      const isPublicC311Route = this.$route?.meta?.c311?.public || window.location.pathname.startsWith('/c311/')
+      if (isPublicC311Route) {
+        this.loaded = true
+        return
+      }
 
       this.websocket()
 
@@ -66,6 +78,13 @@ export default (options = {}) => {
             .setHeader('Accept-Language', user.meta.preferredLanguage)
             .setHeader('Content-Language', user.meta.preferredLanguage)
         }
+
+        const actorID = user.userID || user.id || user.handle || ''
+        const storedLocale = c311I18n?.readC311Locale?.(actorID)
+        if (storedLocale) this.$i18n.i18next.changeLanguage(storedLocale)
+        this.$i18n.i18next.on('languageChanged', locale => {
+          c311I18n?.persistC311Locale?.(locale.toLowerCase().slice(0, 2), actorID)
+        })
 
         // switch the webapp theme based on user preference
         if (user.meta.theme) {
