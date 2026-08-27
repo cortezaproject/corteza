@@ -115,7 +115,6 @@ editor:
     invocation: Invocation
     knowledgeBase: Knowledge Base
     tcl: Treaty Compliance Layer
-    tools: Tools
   provider:
     help: The LLM provider to use for this agent
     label: LLM Provider
@@ -170,6 +169,8 @@ editor:
   titleEdit: Edit Agent
   tools:
     configureTools: Configure tools
+    loadFailed: The list of tools could not be loaded, so the tools this agent holds
+      cannot be shown or changed. Reload the page to try again.
     dialog:
       area:
         automation_event: Events
@@ -213,11 +214,14 @@ editor:
         note: Note for the model
         noteHelp: Shown to the agent alongside the tool, to say when to use it.
         notePlaceholder: e.g. only for open leads
+        summaryModules: 'Limited to {modules}'
+        summaryNote: Note set
       fromFamily: Granted by a family grant on this agent. Blocking it here writes an
         exception to that grant.
       inherits: No tools chosen — this agent answers from what it knows, and cannot look
         anything up or change anything. Whatever you give it here, it can only ever do
         what the person invoking it is already allowed to do.
+      empty: No tools are available.
       noMatches: No tool matches that.
       risk:
         destructive: deletes
@@ -234,6 +238,8 @@ editor:
     worksIn:
       help: Every tool this agent uses is confined to this namespace. Leave it empty and a
         tool reaches whatever the person invoking the agent can reach.
+      cleared: Cleared a limit on {count} tool that named the previous namespace. |
+        Cleared limits on {count} tools that named the previous namespace.
       label: Works in
       placeholder: Every namespace the invoker can reach
     summary:

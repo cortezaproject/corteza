@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import AgentToolDialog from './AgentToolDialog.vue'
 
 vi.mock('vue-i18n', () => ({
@@ -271,7 +272,7 @@ describe('AgentToolDialog family grants', () => {
     const vm = mountDialog([{ group: 'usage', maxRisk: 'write', allow: [] }]).vm as any
     const lookup = { name: 'compose_record_lookup', groups: ['usage'], risk: 'read' }
 
-    expect(vm.chosen.has(lookup.name)).toBe(false)
+    expect(vm.draft.has(lookup.name)).toBe(false)
     expect(vm.toolOn(lookup)).toBe(true)
   })
 
@@ -301,7 +302,7 @@ describe('AgentToolDialog section control', () => {
 
     vm.setSectionMode(recordsSection(vm), 'always')
     expect(vm.sectionMode(recordsSection(vm))).toBe('always')
-    expect([...vm.chosen].sort()).toEqual(['compose_record_delete', 'compose_record_lookup'])
+    expect([...vm.draft.keys()].sort()).toEqual(['compose_record_delete', 'compose_record_lookup'])
   })
 
   it('turns a whole section off', () => {
@@ -313,12 +314,13 @@ describe('AgentToolDialog section control', () => {
 
     vm.setSectionMode(recordsSection(vm), 'deny')
     expect(vm.sectionMode(recordsSection(vm))).toBe('deny')
-    expect([...vm.chosen]).toEqual([])
+    expect([...vm.draft.keys()]).toEqual([])
   })
 
   // Custom is what the control reads as once the tools disagree — the state it
-  // shows back, never a state it is asked to produce.
-  it('reads as custom once the tools disagree, and setting it changes nothing', () => {
+  // shows back, never a state it is asked to produce. Offering it as a fourth
+  // entry made it pickable, and picking it did nothing.
+  it('reads as custom once the tools disagree, and never offers it as a choice', () => {
     const w = mountDialog()
     const vm = w.vm as any
 
@@ -326,9 +328,7 @@ describe('AgentToolDialog section control', () => {
     vm.setMode({ name: 'compose_record_delete', risk: 'destructive' }, 'ask')
     expect(vm.sectionMode(recordsSection(vm))).toBe('custom')
 
-    const before = [...vm.chosen].sort()
-    vm.setSectionMode(recordsSection(vm), 'custom')
-    expect([...vm.chosen].sort()).toEqual(before)
+    expect(vm.modeOptions.map((o: any) => o.value)).toEqual(['always', 'ask', 'deny'])
   })
 
   // A total says how big the section is; the split says what it lets the agent
@@ -363,7 +363,7 @@ describe('AgentToolDialog modes', () => {
 
   it('opens showing what the agent already has', () => {
     const vm = mountDialog([{ name: 'compose_record_lookup', permission: 'ask' }]).vm as any
-    expect([...vm.chosen]).toEqual(['compose_record_lookup'])
+    expect([...vm.draft.keys()]).toEqual(['compose_record_lookup'])
     expect(vm.rowMode({ name: 'compose_record_lookup', risk: 'read' })).toBe('ask')
   })
 
@@ -388,10 +388,10 @@ describe('AgentToolDialog modes', () => {
     const vm = w.vm as any
 
     vm.setMode({ name: 'compose_record_create', groups: ['usage'], risk: 'write' }, 'ask')
-    expect(vm.chosen.has('compose_record_create')).toBe(false)
+    expect(vm.draft.has('compose_record_create')).toBe(false)
 
     vm.setMode({ name: 'compose_record_create', groups: ['usage'], risk: 'write' }, 'always')
-    expect(vm.chosen.has('compose_record_create')).toBe(true)
+    expect(vm.draft.has('compose_record_create')).toBe(true)
   })
 
   // A grant carries a namespace scope set elsewhere in the editor; the dialog
@@ -465,13 +465,13 @@ describe('AgentToolDialog modes', () => {
 })
 
 // The dialog teleports to body, so what it renders is not inside the wrapper.
-async function mountRendered(grants: any[] = []) {
+async function mountRendered(grants: any[] = [], extra: Record<string, unknown> = {}) {
   const PrimeVue = (await import('primevue/config')).default
   const Dialog = (await import('primevue/dialog')).default
   const Button = (await import('primevue/button')).default
 
   const w = mount(AgentToolDialog, {
-    props: { visible: true, tools, grants, disabled: false },
+    props: { visible: true, tools, grants, disabled: false, ...extra },
     global: {
       plugins: [PrimeVue],
       components: { Dialog, Button },
@@ -577,6 +577,186 @@ describe('AgentToolDialog blocked rows', () => {
 
     expect(shown.length).toBe(1)
     expect(shown[0].getAttribute('data-blocked')).toBe('false')
+
+    w.unmount()
+  })
+})
+
+describe('AgentToolDialog settings', () => {
+  const scoped = {
+    name: 'compose_record_lookup',
+    permission: 'always',
+    description: 'only open leads',
+    allow: [{ namespaceID: '100', moduleIDs: ['7', '404'] }],
+  }
+  const lookup = { name: 'compose_record_lookup', risk: 'read' }
+
+  // The gear looks the same whether or not anything is behind it, so a
+  // configured tool could only be found by opening all of them.
+  it('names the modules a row is narrowed to', () => {
+    const w = mount(AgentToolDialog, {
+      props: {
+        visible: true,
+        tools,
+        grants: [scoped],
+        disabled: false,
+        modules: [{ moduleID: '7', name: 'Orders' }],
+      },
+      global: { mocks: { $t: (k: string) => k } },
+    })
+    const vm = w.vm as any
+
+    // 404 is not in the agent's namespace any more; it stays visible as an ID
+    // rather than leaving the row looking narrower than it is.
+    expect(vm.settingsModules(lookup)).toEqual(['Orders', '404'])
+    expect(vm.settingsSummary(lookup)).toContain('summaryModules')
+    expect(vm.settingsSummary(lookup)).toContain('summaryNote')
+  })
+
+  it('says nothing for a row carrying only a mode', () => {
+    const vm = mountDialog([{ name: 'compose_record_lookup', permission: 'always' }]).vm as any
+    expect(vm.settingsModules(lookup)).toEqual([])
+    expect(vm.settingsSummary(lookup)).toBe('')
+  })
+
+  it('marks the gear of a configured row and leaves the others plain', async () => {
+    const w = await mountRendered([scoped, { name: 'compose_record_delete', permission: 'ask' }])
+
+    const configured = document.querySelector('[data-testid="configure-compose_record_lookup"]')!
+    const plain = document.querySelector('[data-testid="configure-compose_record_delete"]')!
+
+    expect(configured.classList.contains('p-button-secondary')).toBe(false)
+    expect(plain.classList.contains('p-button-secondary')).toBe(true)
+
+    w.unmount()
+  })
+
+  // Dropping the gear from a blocked row moved every permission control on it
+  // right by the button's width, so the column ran ragged down the list.
+  it("keeps the gear's place on a blocked row", async () => {
+    const w = await mountRendered()
+
+    const gears = [...document.querySelectorAll('[data-testid^="configure-"]')]
+    const rows = [...document.querySelectorAll('.tool-mode')]
+
+    expect(rows.length).toBeGreaterThan(0)
+    expect(gears.length).toBe(rows.length)
+    expect(gears.every(g => g.classList.contains('invisible'))).toBe(true)
+    expect(gears.every(g => (g as HTMLButtonElement).disabled)).toBe(true)
+
+    w.unmount()
+  })
+})
+
+describe('AgentToolDialog search', () => {
+  // A search opens every section so no match hides in a folded one — but the
+  // chevron then did nothing, since open was forced rather than defaulted.
+  it('still folds a section while a search is running', async () => {
+    const w = mountDialog()
+    const vm = w.vm as any
+
+    vm.search = 'record'
+    await nextTick()
+    expect(vm.isOpen('people')).toBe(true)
+
+    vm.toggleCollapsed('people')
+    expect(vm.isOpen('people')).toBe(false)
+  })
+
+  it('hands back an unfolded list when the search clears', async () => {
+    const w = mountDialog()
+    const vm = w.vm as any
+
+    vm.search = 'record'
+    await nextTick()
+    vm.toggleCollapsed('records')
+    expect(vm.isOpen('records')).toBe(false)
+
+    vm.search = ''
+    await nextTick()
+    expect(vm.isOpen('records')).toBe(true)
+  })
+
+  // A fold belongs to the search it was made in. Carried into the next one it
+  // hides a section holding a match, which is what forcing everything open was
+  // there to prevent.
+  it('does not carry a fold from one search into the next', async () => {
+    const w = mountDialog()
+    const vm = w.vm as any
+
+    vm.search = 'record'
+    await nextTick()
+    vm.toggleCollapsed('people')
+    expect(vm.isOpen('people')).toBe(false)
+
+    vm.search = ''
+    await nextTick()
+    vm.search = 'user'
+    await nextTick()
+    expect(vm.isOpen('people')).toBe(true)
+  })
+
+  // Folds made outside a search are the ones worth keeping.
+  it('keeps a fold made before the search through it', async () => {
+    const w = mountDialog()
+    const vm = w.vm as any
+
+    vm.toggleCollapsed('records')
+    expect(vm.isOpen('records')).toBe(false)
+
+    vm.search = 'record'
+    await nextTick()
+    vm.search = ''
+    await nextTick()
+    expect(vm.isOpen('records')).toBe(false)
+  })
+
+  // An empty list and a search that matched nothing are different states, and
+  // "No tool matches that" over an untouched search field reads as a bug.
+  it('tells an empty tool list apart from a search that found nothing', async () => {
+    const empty = await mountRendered([], { tools: [] })
+    expect(document.body.textContent).toContain('agent.editor.tools.dialog.empty')
+    expect(document.body.textContent).not.toContain('agent.editor.tools.dialog.noMatches')
+    empty.unmount()
+
+    const w = await mountRendered()
+    ;(w.vm as any).search = 'nothing matches this'
+    await flushPromises()
+    expect(document.body.textContent).toContain('agent.editor.tools.dialog.noMatches')
+    w.unmount()
+  })
+})
+
+describe('AgentToolDialog section control', () => {
+  // Custom is no longer one of the Select's options, so the control has to show
+  // it back through the value slot rather than by matching an option.
+  it('displays custom without it being an option', async () => {
+    const PrimeVue = (await import('primevue/config')).default
+    const Dialog = (await import('primevue/dialog')).default
+    const Button = (await import('primevue/button')).default
+    const Select = (await import('primevue/select')).default
+
+    const w = mount(AgentToolDialog, {
+      props: {
+        visible: true,
+        tools,
+        grants: [
+          { name: 'compose_record_lookup', permission: 'always' },
+          { name: 'compose_record_delete', permission: 'ask' },
+        ],
+        disabled: false,
+      },
+      global: {
+        plugins: [PrimeVue],
+        components: { Dialog, Button, Select },
+        mocks: { $t: (k: string) => k },
+        stubs: { Checkbox: true, Message: true, SelectButton: true },
+      },
+    })
+    await flushPromises()
+
+    const trigger = document.querySelector('[data-testid="section-mode-records"]')!
+    expect(trigger.textContent).toContain('agent.editor.tools.mode.custom')
 
     w.unmount()
   })

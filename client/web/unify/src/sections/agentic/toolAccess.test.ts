@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import {
   canScope,
+  confineTo,
   coveredByFamily,
   defaultModeFor,
+  hasSettings,
   modeOf,
   scopeBlocked,
   scopesModules,
@@ -156,5 +158,78 @@ describe('sectionsOf', () => {
   it('leaves out a section holding nothing the agent has', () => {
     const { named, families } = splitGrants([{ name: 'system_user_create' }])
     expect(sectionsOf(tools, named, families, label).map(s => s.key)).toEqual(['people'])
+  })
+})
+
+describe('hasSettings', () => {
+  it('is false for a grant that says nothing but its mode', () => {
+    expect(hasSettings({ name: 'compose_record_lookup', permission: 'always' })).toBe(false)
+    expect(hasSettings({ name: 'x', description: '', allow: [] })).toBe(false)
+    expect(hasSettings(undefined)).toBe(false)
+  })
+
+  it('is true for a note or a narrowing', () => {
+    expect(hasSettings({ name: 'x', description: 'only open leads' })).toBe(true)
+    expect(hasSettings({ name: 'x', allow: [{ namespaceID: '1', moduleIDs: ['7'] }] })).toBe(true)
+  })
+})
+
+// The policy check reads the agent's scope and the tool's and requires both, so
+// a narrowing left naming the previous namespace denies that tool everything it
+// can now reach — silently, since the dialog only renders narrowings for
+// namespaces the agent still holds.
+describe('confineTo', () => {
+  const grants = [
+    { name: 'compose_record_lookup', allow: [{ namespaceID: '100', moduleIDs: ['7'] }] },
+    { name: 'compose_record_create', allow: [{ namespaceID: '200', moduleIDs: ['9'] }] },
+    { name: 'system_user_lookup' },
+  ]
+
+  it('drops a narrowing against a namespace the agent no longer works in', () => {
+    const { tools, cleared } = confineTo(grants, '200')
+
+    expect(cleared).toBe(1)
+    expect(tools[0].allow).toEqual([])
+    expect(tools[1].allow).toEqual([{ namespaceID: '200', moduleIDs: ['9'] }])
+  })
+
+  it('drops every narrowing when the agent is confined to nothing', () => {
+    const { tools, cleared } = confineTo(grants, null)
+
+    expect(cleared).toBe(2)
+    expect(tools.every(t => t.allow.length === 0)).toBe(true)
+  })
+
+  // The count reads as "N tools lost a limit", so a tool that loses three
+  // entries is still one tool.
+  it('counts tools, not entries', () => {
+    const { tools, cleared } = confineTo(
+      [
+        {
+          name: 'compose_record_lookup',
+          allow: [
+            { namespaceID: '100', moduleIDs: ['7'] },
+            { namespaceID: '300', moduleIDs: ['8'] },
+            { namespaceID: '400', moduleIDs: ['9'] },
+          ],
+        },
+      ],
+      '100',
+    )
+
+    expect(cleared).toBe(1)
+    expect(tools[0].allow).toEqual([{ namespaceID: '100', moduleIDs: ['7'] }])
+  })
+
+  it('reports nothing cleared when every narrowing already names the namespace', () => {
+    expect(confineTo([grants[1], grants[2]], '200').cleared).toBe(0)
+  })
+
+  it('compares IDs by value, so a number and its string are one namespace', () => {
+    const { cleared } = confineTo(
+      [{ name: 'x', allow: [{ namespaceID: 200, moduleIDs: ['9'] }] }],
+      '200',
+    )
+    expect(cleared).toBe(0)
   })
 })

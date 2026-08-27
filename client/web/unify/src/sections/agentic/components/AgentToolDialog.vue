@@ -66,7 +66,7 @@
                  the normal state once anything has been set by hand. -->
             <Select
               :model-value="sectionMode(d)"
-              :options="sectionModes"
+              :options="modeOptions"
               option-label="label"
               option-value="value"
               size="small"
@@ -83,7 +83,9 @@
                 </span>
               </template>
               <!-- Every entry keeps its colour here. The list is the choices,
-                   not the state, and the tick already says which is current. -->
+                   not the state, and the tick already says which is current.
+                   Custom is not among them: it is what the control reads as
+                   once its tools disagree, and picking it says nothing. -->
               <template #option="{ option }">
                 <span class="flex items-center gap-2">
                   <i :class="[option.icon, option.colour]" class="text-xs" />
@@ -128,17 +130,30 @@
                         <span class="text-xs text-muted-color block line-clamp-2">
                           {{ summarise(tool.description) }}
                         </span>
+
+                        <!-- What the row's settings hold, so a configured tool
+                             reads as one without being opened. -->
+                        <span
+                          v-if="toolOn(tool) && settingsSummary(tool)"
+                          class="text-xs text-primary block mt-0.5"
+                          :data-testid="`settings-summary-${tool.name}`"
+                        >
+                          {{ settingsSummary(tool) }}
+                        </span>
                       </div>
 
+                      <!-- Blocked keeps the button's place rather than its
+                           function: the permission controls stay in one column
+                           however many rows above are off. -->
                       <Button
-                        v-if="toolOn(tool)"
                         icon="pi pi-cog"
-                        severity="secondary"
+                        :severity="hasSettings(entryOf(tool)) ? 'primary' : 'secondary'"
                         text
                         rounded
                         size="small"
                         class="shrink-0"
-                        :disabled="disabled"
+                        :class="{ invisible: !toolOn(tool) }"
+                        :disabled="disabled || !toolOn(tool)"
                         :aria-label="$t('agent.editor.tools.dialog.settings.label')"
                         :data-testid="`configure-${tool.name}`"
                         @click="toggleConfiguring(tool.name)"
@@ -150,7 +165,7 @@
                       <div class="tool-mode shrink-0" :data-blocked="!toolOn(tool)">
                         <SelectButton
                           :model-value="rowMode(tool)"
-                          :options="toolModes"
+                          :options="modeOptions"
                           option-value="value"
                           :allow-empty="false"
                           size="small"
@@ -243,7 +258,11 @@
         </section>
 
         <div v-if="!domains.length" class="text-sm text-muted-color py-6 text-center">
-          {{ $t('agent.editor.tools.dialog.noMatches') }}
+          {{
+            search.trim()
+              ? $t('agent.editor.tools.dialog.noMatches')
+              : $t('agent.editor.tools.dialog.empty')
+          }}
         </div>
       </div>
     </div>
@@ -279,12 +298,14 @@ import {
   HIDDEN_AREAS,
   MODE_COLOURS,
   MODE_ICONS,
+  MODES,
   PLACED_AREAS,
   RISK_ORDER,
   areaOf,
   canScope,
   coveredByFamily,
   defaultModeFor,
+  hasSettings,
   modeOf,
   scopeBlocked,
   scopesModules,
@@ -300,6 +321,9 @@ const props = defineProps({
   grants: { type: Array, default: () => [] },
   // The agent's own scope. A tool narrows within these and never past them.
   namespaces: { type: Array, default: () => [] },
+  // The modules those namespaces hold, so a narrowing reads back as the names
+  // it was chosen by rather than as IDs.
+  modules: { type: Array, default: () => [] },
   disabled: { type: Boolean, default: false },
 })
 
@@ -359,15 +383,16 @@ function setModulesFor(tool, namespaceID, moduleIDs) {
 // existing family already covers, and hand every family back untouched.
 const families = ref([])
 
-const chosen = computed(() => new Set(draft.value.keys()))
-
 // The tools the agent was opened with, so an override added in this session can
 // be told from an entry that was already there.
 const named = ref(new Set())
 const chosenCount = computed(() => draft.value.size + families.value.length)
 
-// Which domains are folded shut, or null while the default still stands.
+// Which domains are folded shut, or null while the default still stands. A
+// search folds separately: it opens everything so no match hides in a shut
+// section, and what was folded before it is still folded when it clears.
 const collapsed = ref(null)
+const searchCollapsed = ref(null)
 
 watch(
   () => props.visible,
@@ -375,6 +400,7 @@ watch(
     if (!open) return
     search.value = ''
     collapsed.value = null
+    searchCollapsed.value = null
     configuring.value = new Set()
     draft.value = new Map(
       (props.grants || [])
@@ -385,6 +411,15 @@ watch(
     named.value = new Set(draft.value.keys())
   },
   { immediate: true },
+)
+
+// Starting or clearing a search hands back an unfolded list; refining one
+// mid-search leaves whatever has been folded within it alone.
+watch(
+  () => Boolean(search.value.trim()),
+  () => {
+    searchCollapsed.value = null
+  },
 )
 
 function modeIcon(mode) {
@@ -403,11 +438,10 @@ function modeOption(value) {
   return { value, icon: modeIcon(value), colour: modeColour(value), label: modeLabel(value) }
 }
 
-const toolModes = computed(() => ['always', 'ask', 'deny'].map(modeOption))
-
-// Custom is not a choice, it is what the section reads as once its tools
-// disagree — offered so the control can show it back rather than lie.
-const sectionModes = computed(() => ['always', 'ask', 'deny', 'custom'].map(modeOption))
+// The three a row and a section are both set to. Custom is never among them:
+// it is what a section reads as once its tools disagree, and the value slot
+// shows it back without it having to be selectable.
+const modeOptions = computed(() => MODES.map(modeOption))
 
 // What the three segments read as. There is no fourth "default" segment — the
 // default IS one of the three, shown as the chosen one.
@@ -422,6 +456,35 @@ function toolOn(tool) {
 
 function covered(tool) {
   return coveredByFamily(tool, families.value)
+}
+
+const moduleNames = computed(
+  () => new Map((props.modules || []).map(m => [String(m.moduleID), m.name || m.handle])),
+)
+
+// The modules a row is narrowed to, by the names they were chosen by. One the
+// agent's scope no longer holds falls back to its ID rather than vanishing from
+// the summary.
+function settingsModules(tool) {
+  return (entryOf(tool).allow || [])
+    .flatMap(a => a.moduleIDs || [])
+    .map(id => moduleNames.value.get(String(id)) || String(id))
+}
+
+// What a row's settings amount to, in one line.
+function settingsSummary(tool) {
+  const parts = []
+  const modules = settingsModules(tool)
+
+  if (modules.length) {
+    parts.push(
+      t('agent.editor.tools.dialog.settings.summaryModules', { modules: modules.join(', ') }),
+    )
+  }
+
+  if (entryOf(tool).description) parts.push(t('agent.editor.tools.dialog.settings.summaryNote'))
+
+  return parts.join(' · ')
 }
 
 const domains = computed(() => {
@@ -482,8 +545,6 @@ function sectionCounts(d) {
 // One click for a whole subject, which is the unit an agent is actually given:
 // every record tool, or none of them.
 function setSectionMode(d, mode) {
-  if (mode === 'custom') return
-
   const next = new Map(draft.value)
   for (const tool of toolsIn(d)) applyMode(next, tool, mode)
   draft.value = next
@@ -536,20 +597,30 @@ function defaultOpen(key) {
 }
 
 // A search that only looked inside open sections would report nothing while
-// showing a shut section holding the match.
+// showing a shut section holding the match, so it starts with all of them open.
 function isOpen(key) {
-  if (search.value.trim()) return true
+  if (search.value.trim()) return !searchCollapsed.value?.has(key)
   if (collapsed.value) return !collapsed.value.has(key)
   return defaultOpen(key)
 }
 
 function toggleCollapsed(key) {
-  const next = new Set(
+  if (search.value.trim()) {
+    searchCollapsed.value = toggled(searchCollapsed.value ?? [], key)
+    return
+  }
+
+  collapsed.value = toggled(
     collapsed.value ?? domains.value.filter(d => !defaultOpen(d.key)).map(d => d.key),
+    key,
   )
+}
+
+function toggled(keys, key) {
+  const next = new Set(keys)
   if (next.has(key)) next.delete(key)
   else next.add(key)
-  collapsed.value = next
+  return next
 }
 
 function byRiskThenName(a, b) {

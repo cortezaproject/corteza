@@ -383,8 +383,43 @@
                       />
                     </div>
                   </Panel>
-                  <Panel :header="$t('agent.editor.panels.tools')" toggleable>
+                  <!-- Four statements about what this agent may reach, all of
+                       them stored under access: the namespace it is confined
+                       to, the tools it holds, and the two kinds of automation
+                       it may set off. The namespace leads because it bounds the
+                       three below it. -->
+                  <Panel :header="$t('agent.editor.panels.access')" toggleable>
                     <div class="flex flex-col gap-3">
+                      <CFormGroup
+                        :label="$t('agent.editor.tools.worksIn.label')"
+                        :description="$t('agent.editor.tools.worksIn.help')"
+                      />
+
+                      <div class="max-w-lg">
+                        <CInputNamespace
+                          :model-value="agentNamespaceID"
+                          :placeholder="$t('agent.editor.tools.worksIn.placeholder')"
+                          :disabled="!canEdit"
+                          @update:model-value="setAgentNamespace"
+                        />
+                      </div>
+
+                      <!-- A narrowing written against the old namespace names
+                           nothing the agent can still reach. It is dropped
+                           rather than left to deny the tool everything in
+                           silence. -->
+                      <Message
+                        v-if="clearedNarrowings"
+                        severity="warn"
+                        :closable="false"
+                        class="!my-0"
+                        data-testid="narrowings-cleared"
+                      >
+                        {{ $t('agent.editor.tools.worksIn.cleared', clearedNarrowings) }}
+                      </Message>
+
+                      <Divider class="my-4" />
+
                       <CFormGroup
                         :label="$t('agent.editor.tools.label')"
                         :description="$t('agent.editor.tools.help')"
@@ -401,7 +436,7 @@
                         size="small"
                         class="self-start"
                         :loading="loadingTools"
-                        :disabled="!canEdit"
+                        :disabled="!canEdit || toolsFailed"
                         data-testid="browse-tools"
                         @click="toolDialogOpen = true"
                       />
@@ -411,11 +446,31 @@
                         :tools="availableTools"
                         :grants="agent.access.tools"
                         :namespaces="agent.access.allow || []"
+                        :modules="scopeModules"
                         :disabled="!canEdit"
                         @apply="onToolsApplied"
                       />
 
-                      <div v-if="toolSummary.total" class="flex flex-col gap-1">
+                      <!-- The summary counts what the agent holds against the
+                           list of tools that exist, so it can only be read once
+                           that list is in. Without the guard a configured agent
+                           reads as holding nothing for as long as the fetch
+                           takes, and for good if it fails. -->
+                      <Message
+                        v-if="toolsFailed"
+                        severity="warn"
+                        :closable="false"
+                        class="!my-0"
+                        data-testid="tools-load-failed"
+                      >
+                        {{ $t('agent.editor.tools.loadFailed') }}
+                      </Message>
+
+                      <span v-else-if="!toolsLoaded" class="text-sm text-muted-color">
+                        {{ $t('general.label.loading') }}
+                      </span>
+
+                      <div v-else-if="toolSummary.total" class="flex flex-col gap-1">
                         <span class="text-sm text-color">
                           {{ $t('agent.editor.tools.summary.chosen', { n: toolSummary.total }) }}
                         </span>
@@ -442,25 +497,6 @@
                       <span v-else class="text-sm text-muted-color">
                         {{ $t('agent.editor.tools.summary.inheritsHelp') }}
                       </span>
-
-                      <Divider class="my-4" />
-
-                      <!-- Every tool is confined to these namespaces, which is
-                           the answer to "what is this agent for". A tool may
-                           narrow further; none may reach past this. -->
-                      <CFormGroup
-                        :label="$t('agent.editor.tools.worksIn.label')"
-                        :description="$t('agent.editor.tools.worksIn.help')"
-                      />
-
-                      <div class="max-w-lg">
-                        <CInputNamespace
-                          :model-value="agentNamespaceID"
-                          :placeholder="$t('agent.editor.tools.worksIn.placeholder')"
-                          :disabled="!canEdit"
-                          @update:model-value="setAgentNamespace"
-                        />
-                      </div>
 
                       <Divider class="my-4" />
 
@@ -741,12 +777,7 @@ import { useI18n } from 'vue-i18n'
 
 import { useAgentStore } from '@planetcrust/human-vue'
 import { useRoute, useRouter } from 'vue-router'
-import {
-  useNamespaceStore,
-  useModuleStore,
-  useHistoryBack,
-  useDraftGuard,
-} from '@planetcrust/human-vue'
+import { useModuleStore, useHistoryBack, useDraftGuard } from '@planetcrust/human-vue'
 import { system } from '@planetcrust/human-js'
 
 // Components (not globally registered)
@@ -755,7 +786,7 @@ import AiChat from '../components/AiChat.vue'
 import AiTrace from '../components/AiTrace.vue'
 import AgentToolDialog from '../components/AgentToolDialog.vue'
 import { useEditorSplit } from '../composables/useEditorSplit'
-import { MODE_COLOURS, MODE_ICONS, sectionsOf, splitGrants, tally } from '../toolAccess'
+import { MODE_COLOURS, MODE_ICONS, confineTo, sectionsOf, splitGrants, tally } from '../toolAccess'
 
 const {
   CInputLLM,
@@ -769,7 +800,6 @@ const {
   CInputWorkflow,
   CResourceList,
   CInputNamespace,
-  CInputModule,
   CInputLabel,
   CConversationTabs,
 } = components
@@ -783,7 +813,6 @@ const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 const $AutomationAPI = inject('$AutomationAPI')
 const agentStore = useAgentStore()
-const namespaceStore = useNamespaceStore()
 const moduleStore = useModuleStore()
 
 const loading = ref(false)
@@ -883,6 +912,8 @@ const statusOptions = computed(() => [
 
 const availableTools = ref([])
 const loadingTools = ref(false)
+const toolsLoaded = ref(false)
+const toolsFailed = ref(false)
 
 // What the agent can actually do, read the way the runtime will read it.
 // Access is deny-by-default, so a total of zero is an agent that refuses every
@@ -905,9 +936,29 @@ const toolSummary = computed(() => {
 // the modules to the tool that needs them.
 const agentNamespaceID = computed(() => agent.value?.access?.allow?.[0]?.namespaceID || null)
 
+// How many tools lost a narrowing to the last namespace change, so the panel
+// can say so once rather than leave it to be discovered at run time.
+const clearedNarrowings = ref(0)
+
 function setAgentNamespace(namespaceID) {
   agent.value.access.allow = namespaceID ? [{ namespaceID, moduleIDs: [] }] : []
+
+  const { tools, cleared } = confineTo(agent.value.access.tools, namespaceID)
+  agent.value.access.tools = tools
+  clearedNarrowings.value = cleared
 }
+
+// The modules of the namespace the agent works in, so the dialog can show a
+// narrowing back by name.
+const scopeModules = ref([])
+
+watch(
+  agentNamespaceID,
+  async namespaceID => {
+    scopeModules.value = namespaceID ? await moduleStore.loadFor(namespaceID).catch(() => []) : []
+  },
+  { immediate: true },
+)
 
 function modeIcon(mode) {
   return MODE_ICONS[mode] || MODE_ICONS.custom
@@ -1244,11 +1295,15 @@ onMounted(() => {
 
 async function fetchAvailableTools() {
   loadingTools.value = true
+  toolsFailed.value = false
   try {
     const response = await $SystemAPI.mcpListTools()
     availableTools.value = Array.isArray(response) ? response : response.set || []
-  } catch {
+    toolsLoaded.value = true
+  } catch (err) {
+    console.error(err)
     availableTools.value = []
+    toolsFailed.value = true
   } finally {
     loadingTools.value = false
   }
@@ -1342,62 +1397,6 @@ function onWorkflowPickerSelect(id) {
 function removeWorkflow(idx) {
   agent.value.access.workflows.splice(idx, 1)
 }
-
-// --- Tool configuration dialog helpers ---
-
-// Resolved namespace and module names for tool allow summaries
-const resolvedNsNames = ref({})
-const resolvedModNames = ref({})
-
-function resolveToolAllowResources() {
-  const tools = agent.value?.access?.tools || []
-  for (const tool of tools) {
-    if (!tool.allow) continue
-    for (const rule of tool.allow) {
-      if (rule.namespaceID && !resolvedNsNames.value[rule.namespaceID]) {
-        namespaceStore
-          .findByID({ namespaceID: String(rule.namespaceID) })
-          .then(ns => {
-            if (ns) {
-              resolvedNsNames.value = {
-                ...resolvedNsNames.value,
-                [rule.namespaceID]: ns.name || ns.slug || rule.namespaceID,
-              }
-            }
-          })
-          .catch(() => {})
-      }
-      if (rule.namespaceID && rule.moduleIDs?.length) {
-        for (const modID of rule.moduleIDs) {
-          if (!resolvedModNames.value[modID]) {
-            moduleStore
-              .findByID({
-                namespaceID: String(rule.namespaceID),
-                moduleID: String(modID),
-              })
-              .then(mod => {
-                if (mod) {
-                  resolvedModNames.value = {
-                    ...resolvedModNames.value,
-                    [modID]: mod.name || mod.handle || modID,
-                  }
-                }
-              })
-              .catch(() => {})
-          }
-        }
-      }
-    }
-  }
-}
-
-watch(
-  () => agent.value?.access?.tools,
-  () => {
-    resolveToolAllowResources()
-  },
-  { deep: true, immediate: true },
-)
 </script>
 
 <style scoped>

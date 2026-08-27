@@ -165,3 +165,30 @@ export function sectionsOf(tools, named, families, label) {
     })
     .filter(d => d.counts.some(c => c.mode !== 'deny'))
 }
+
+// Whether a grant carries anything beyond its mode — the note the model reads
+// before calling the tool, or a narrowing. A row shows this back so a
+// configured tool can be told from an untouched one without opening it.
+export function hasSettings(entry) {
+  return Boolean(entry?.description || entry?.allow?.length)
+}
+
+// The grants an agent keeps once it is confined to one namespace.
+//
+// A tool's own narrowing names a namespace, and the modules within it. Left
+// naming one the agent no longer works in, it names nothing the agent can
+// reach: the policy check reads the agent's scope and the tool's and requires
+// both, so such a tool is denied everything. Dropping the narrowing is the only
+// reading that leaves it usable.
+export function confineTo(grants, namespaceID) {
+  let cleared = 0
+
+  const tools = (grants || []).map(grant => {
+    const allow = grant.allow || []
+    const kept = allow.filter(a => String(a.namespaceID) === String(namespaceID))
+    if (kept.length !== allow.length) cleared++
+    return { ...grant, allow: kept }
+  })
+
+  return { tools, cleared }
+}
