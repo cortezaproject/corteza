@@ -36,28 +36,37 @@
           >
             <button
               type="button"
-              class="flex items-center gap-2 flex-1 min-w-0 text-left"
+              class="flex items-start gap-2 flex-1 min-w-0 text-left"
               :data-testid="`collapse-${d.key}`"
               @click="toggleCollapsed(d.key)"
             >
               <i
-                class="pi pi-chevron-right tool-section-chevron text-xs text-muted-color w-3"
+                class="pi pi-chevron-right tool-section-chevron text-xs text-muted-color w-3 mt-1"
                 :data-open="isOpen(d.key)"
               />
-              <span class="text-sm font-semibold text-color">{{ d.label }}</span>
+              <span class="min-w-0">
+                <span class="flex items-center gap-2.5">
+                  <span class="text-sm font-semibold text-color">{{ d.label }}</span>
 
-              <!-- The split, not the total: a section reads as what it lets the
-                   agent do, and the total is the sum of what is shown. -->
-              <span class="flex items-center gap-2.5 text-xs text-muted-color">
-                <span
-                  v-for="c in sectionCounts(d)"
-                  :key="c.mode"
-                  class="flex items-center gap-1"
-                  :title="modeLabel(c.mode)"
-                >
-                  <i :class="[modeIcon(c.mode), modeColour(c.mode)]" />
-                  <span class="tabular-nums">{{ c.n }}</span>
+                  <!-- The split, not the total: a section reads as what it lets
+                       the agent do, and the total is the sum of what is shown. -->
+                  <span class="flex items-center gap-2.5 text-xs text-muted-color">
+                    <span
+                      v-for="c in sectionCounts(d)"
+                      :key="c.mode"
+                      class="flex items-center gap-1"
+                      :title="modeLabel(c.mode)"
+                    >
+                      <i :class="[modeIcon(c.mode), modeColour(c.mode)]" />
+                      <span class="tabular-nums">{{ c.n }}</span>
+                    </span>
+                  </span>
                 </span>
+
+                <!-- What the subject is. The tools inside say what they do; a
+                     section name alone does not say what it covers, and
+                     "People and access" is the one nobody guesses. -->
+                <span class="text-xs text-muted-color block">{{ d.description }}</span>
               </span>
             </button>
 
@@ -557,6 +566,7 @@ const domains = computed(() => {
       return {
         key: d.key,
         label: t(`agent.editor.tools.dialog.domain.${d.key}`),
+        description: t(`agent.editor.tools.dialog.domainHelp.${d.key}`),
         areas,
       }
     })

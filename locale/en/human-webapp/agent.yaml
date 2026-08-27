@@ -203,6 +203,16 @@ editor:
         records: Records
         reminders: Reminders
         workspace: Workspace
+      domainHelp:
+        ai: Other agents, and the chatbots that put them in front of visitors.
+        automation: TAQs and workflows, the triggers that start them, and their runs.
+        datamodel: The namespaces and modules that decide what a record is.
+        interface: The pages, layouts and charts a namespace is read through.
+        other: Tools not sorted into a section yet.
+        people: Users, groups and roles, and the auth clients that connect as them.
+        records: The rows a module holds, and the aggregates over them.
+        reminders: Reminders, which are only ever the invoking person's own.
+        workspace: The applications in the sidebar, and the theme.
       settings:
         allModules: Every module
         label: Tool settings
