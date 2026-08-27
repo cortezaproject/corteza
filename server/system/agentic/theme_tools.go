@@ -28,7 +28,7 @@ func (h *themeHandler) register() {
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
-		"Read Theme Colours",
+		"Read theme colours",
 		h.lookup,
 	)
 
@@ -50,7 +50,7 @@ func (h *themeHandler) register() {
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
-		"Change Theme Colours",
+		"Change theme colours",
 		h.update,
 	)
 }

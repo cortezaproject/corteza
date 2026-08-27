@@ -41,7 +41,7 @@ func (h *discoveryHandler) register() {
 			hmcp.InGroup(hmcp.GroupUsage),
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
-		"Discover Records",
+		"Discover records",
 		h.search,
 		hmcp.Available(h.isAvailable),
 	)
