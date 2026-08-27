@@ -425,6 +425,7 @@ type (
 		Status           ServiceRequestStatus    `json:"status"`
 		PrimaryRequester Constituent             `json:"primary_requester"`
 		Location         *ServiceRequestLocation `json:"location,omitempty"`
+		CustomFields     map[string]interface{}  `json:"custom_fields"`
 		DuplicateGroupID string                  `json:"duplicate_group_id,omitempty"`
 		Version          uint64                  `json:"version"`
 		CreatedAt        time.Time               `json:"created_at"`

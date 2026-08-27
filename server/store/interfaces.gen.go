@@ -56,6 +56,13 @@ type (
 		AutomationSessions
 		AutomationTriggers
 		AutomationWorkflows
+		City311ActorProfiles
+		City311AuditEvents
+		City311IdempotencyRecords
+		City311PublicHistoryItems
+		City311RequestAttachments
+		City311RequestSequences
+		City311ServiceRequests
 		ComposeAttachments
 		ComposeCharts
 		ComposeModules
@@ -250,6 +257,92 @@ type (
 		TruncateAutomationWorkflows(ctx context.Context) error
 		LookupAutomationWorkflowByID(ctx context.Context, id uint64) (*automationType.Workflow, error)
 		LookupAutomationWorkflowByHandle(ctx context.Context, handle string) (*automationType.Workflow, error)
+	}
+
+	City311ActorProfiles interface {
+		SearchCity311ActorProfiles(ctx context.Context, f composeType.City311ActorProfileFilter) (composeType.City311ActorProfileSet, composeType.City311ActorProfileFilter, error)
+		CreateCity311ActorProfile(ctx context.Context, rr ...*composeType.City311ActorProfile) error
+		UpdateCity311ActorProfile(ctx context.Context, rr ...*composeType.City311ActorProfile) error
+		UpsertCity311ActorProfile(ctx context.Context, rr ...*composeType.City311ActorProfile) error
+		DeleteCity311ActorProfile(ctx context.Context, rr ...*composeType.City311ActorProfile) error
+
+		DeleteCity311ActorProfileByID(ctx context.Context, id uint64) error
+		TruncateCity311ActorProfiles(ctx context.Context) error
+		LookupCity311ActorProfileByID(ctx context.Context, id uint64) (*composeType.City311ActorProfile, error)
+	}
+
+	City311AuditEvents interface {
+		SearchCity311AuditEvents(ctx context.Context, f composeType.City311AuditEventFilter) (composeType.City311AuditEventSet, composeType.City311AuditEventFilter, error)
+		CreateCity311AuditEvent(ctx context.Context, rr ...*composeType.City311AuditEvent) error
+		UpdateCity311AuditEvent(ctx context.Context, rr ...*composeType.City311AuditEvent) error
+		UpsertCity311AuditEvent(ctx context.Context, rr ...*composeType.City311AuditEvent) error
+		DeleteCity311AuditEvent(ctx context.Context, rr ...*composeType.City311AuditEvent) error
+
+		DeleteCity311AuditEventByID(ctx context.Context, id uint64) error
+		TruncateCity311AuditEvents(ctx context.Context) error
+		LookupCity311AuditEventByID(ctx context.Context, id uint64) (*composeType.City311AuditEvent, error)
+	}
+
+	City311IdempotencyRecords interface {
+		SearchCity311IdempotencyRecords(ctx context.Context, f composeType.City311IdempotencyRecordFilter) (composeType.City311IdempotencyRecordSet, composeType.City311IdempotencyRecordFilter, error)
+		CreateCity311IdempotencyRecord(ctx context.Context, rr ...*composeType.City311IdempotencyRecord) error
+		UpdateCity311IdempotencyRecord(ctx context.Context, rr ...*composeType.City311IdempotencyRecord) error
+		UpsertCity311IdempotencyRecord(ctx context.Context, rr ...*composeType.City311IdempotencyRecord) error
+		DeleteCity311IdempotencyRecord(ctx context.Context, rr ...*composeType.City311IdempotencyRecord) error
+
+		DeleteCity311IdempotencyRecordByID(ctx context.Context, id uint64) error
+		TruncateCity311IdempotencyRecords(ctx context.Context) error
+		LookupCity311IdempotencyRecordByID(ctx context.Context, id uint64) (*composeType.City311IdempotencyRecord, error)
+		LookupCity311IdempotencyRecordByOperationKeyHash(ctx context.Context, operation string, keyHash string) (*composeType.City311IdempotencyRecord, error)
+	}
+
+	City311PublicHistoryItems interface {
+		SearchCity311PublicHistoryItems(ctx context.Context, f composeType.City311PublicHistoryItemFilter) (composeType.City311PublicHistoryItemSet, composeType.City311PublicHistoryItemFilter, error)
+		CreateCity311PublicHistoryItem(ctx context.Context, rr ...*composeType.City311PublicHistoryItem) error
+		UpdateCity311PublicHistoryItem(ctx context.Context, rr ...*composeType.City311PublicHistoryItem) error
+		UpsertCity311PublicHistoryItem(ctx context.Context, rr ...*composeType.City311PublicHistoryItem) error
+		DeleteCity311PublicHistoryItem(ctx context.Context, rr ...*composeType.City311PublicHistoryItem) error
+
+		DeleteCity311PublicHistoryItemByID(ctx context.Context, id uint64) error
+		TruncateCity311PublicHistoryItems(ctx context.Context) error
+		LookupCity311PublicHistoryItemByID(ctx context.Context, id uint64) (*composeType.City311PublicHistoryItem, error)
+	}
+
+	City311RequestAttachments interface {
+		SearchCity311RequestAttachments(ctx context.Context, f composeType.City311RequestAttachmentFilter) (composeType.City311RequestAttachmentSet, composeType.City311RequestAttachmentFilter, error)
+		CreateCity311RequestAttachment(ctx context.Context, rr ...*composeType.City311RequestAttachment) error
+		UpdateCity311RequestAttachment(ctx context.Context, rr ...*composeType.City311RequestAttachment) error
+		UpsertCity311RequestAttachment(ctx context.Context, rr ...*composeType.City311RequestAttachment) error
+		DeleteCity311RequestAttachment(ctx context.Context, rr ...*composeType.City311RequestAttachment) error
+
+		DeleteCity311RequestAttachmentByID(ctx context.Context, id uint64) error
+		TruncateCity311RequestAttachments(ctx context.Context) error
+		LookupCity311RequestAttachmentByID(ctx context.Context, id uint64) (*composeType.City311RequestAttachment, error)
+	}
+
+	City311RequestSequences interface {
+		SearchCity311RequestSequences(ctx context.Context, f composeType.City311RequestSequenceFilter) (composeType.City311RequestSequenceSet, composeType.City311RequestSequenceFilter, error)
+		CreateCity311RequestSequence(ctx context.Context, rr ...*composeType.City311RequestSequence) error
+		UpdateCity311RequestSequence(ctx context.Context, rr ...*composeType.City311RequestSequence) error
+		UpsertCity311RequestSequence(ctx context.Context, rr ...*composeType.City311RequestSequence) error
+		DeleteCity311RequestSequence(ctx context.Context, rr ...*composeType.City311RequestSequence) error
+
+		DeleteCity311RequestSequenceByID(ctx context.Context, id uint64) error
+		TruncateCity311RequestSequences(ctx context.Context) error
+		LookupCity311RequestSequenceByID(ctx context.Context, id uint64) (*composeType.City311RequestSequence, error)
+	}
+
+	City311ServiceRequests interface {
+		SearchCity311ServiceRequests(ctx context.Context, f composeType.City311ServiceRequestFilter) (composeType.City311ServiceRequestSet, composeType.City311ServiceRequestFilter, error)
+		CreateCity311ServiceRequest(ctx context.Context, rr ...*composeType.City311ServiceRequest) error
+		UpdateCity311ServiceRequest(ctx context.Context, rr ...*composeType.City311ServiceRequest) error
+		UpsertCity311ServiceRequest(ctx context.Context, rr ...*composeType.City311ServiceRequest) error
+		DeleteCity311ServiceRequest(ctx context.Context, rr ...*composeType.City311ServiceRequest) error
+
+		DeleteCity311ServiceRequestByID(ctx context.Context, id uint64) error
+		TruncateCity311ServiceRequests(ctx context.Context) error
+		LookupCity311ServiceRequestByID(ctx context.Context, id uint64) (*composeType.City311ServiceRequest, error)
+		LookupCity311ServiceRequestByRequestNumber(ctx context.Context, requestNumber string) (*composeType.City311ServiceRequest, error)
 	}
 
 	ComposeAttachments interface {
@@ -1486,6 +1579,412 @@ func LookupAutomationWorkflowByID(ctx context.Context, s AutomationWorkflows, id
 // This function is auto-generated
 func LookupAutomationWorkflowByHandle(ctx context.Context, s AutomationWorkflows, handle string) (*automationType.Workflow, error) {
 	return s.LookupAutomationWorkflowByHandle(ctx, handle)
+}
+
+// SearchCity311ActorProfiles returns all matching City311ActorProfiles from store
+//
+// This function is auto-generated
+func SearchCity311ActorProfiles(ctx context.Context, s City311ActorProfiles, f composeType.City311ActorProfileFilter) (composeType.City311ActorProfileSet, composeType.City311ActorProfileFilter, error) {
+	return s.SearchCity311ActorProfiles(ctx, f)
+}
+
+// CreateCity311ActorProfile creates one or more City311ActorProfiles in store
+//
+// This function is auto-generated
+func CreateCity311ActorProfile(ctx context.Context, s City311ActorProfiles, rr ...*composeType.City311ActorProfile) error {
+	return s.CreateCity311ActorProfile(ctx, rr...)
+}
+
+// UpdateCity311ActorProfile updates one or more (existing) City311ActorProfiles in store
+//
+// This function is auto-generated
+func UpdateCity311ActorProfile(ctx context.Context, s City311ActorProfiles, rr ...*composeType.City311ActorProfile) error {
+	return s.UpdateCity311ActorProfile(ctx, rr...)
+}
+
+// UpsertCity311ActorProfile creates new or updates existing one or more City311ActorProfiles in store
+//
+// This function is auto-generated
+func UpsertCity311ActorProfile(ctx context.Context, s City311ActorProfiles, rr ...*composeType.City311ActorProfile) error {
+	return s.UpsertCity311ActorProfile(ctx, rr...)
+}
+
+// DeleteCity311ActorProfile deletes one or more City311ActorProfiles from store
+//
+// This function is auto-generated
+func DeleteCity311ActorProfile(ctx context.Context, s City311ActorProfiles, rr ...*composeType.City311ActorProfile) error {
+	return s.DeleteCity311ActorProfile(ctx, rr...)
+}
+
+// DeleteCity311ActorProfileByID deletes one or more City311ActorProfiles from store
+//
+// This function is auto-generated
+func DeleteCity311ActorProfileByID(ctx context.Context, s City311ActorProfiles, id uint64) error {
+	return s.DeleteCity311ActorProfileByID(ctx, id)
+}
+
+// TruncateCity311ActorProfiles Deletes all City311ActorProfiles from store
+//
+// This function is auto-generated
+func TruncateCity311ActorProfiles(ctx context.Context, s City311ActorProfiles) error {
+	return s.TruncateCity311ActorProfiles(ctx)
+}
+
+// LookupCity311ActorProfileByID
+//
+// This function is auto-generated
+func LookupCity311ActorProfileByID(ctx context.Context, s City311ActorProfiles, id uint64) (*composeType.City311ActorProfile, error) {
+	return s.LookupCity311ActorProfileByID(ctx, id)
+}
+
+// SearchCity311AuditEvents returns all matching City311AuditEvents from store
+//
+// This function is auto-generated
+func SearchCity311AuditEvents(ctx context.Context, s City311AuditEvents, f composeType.City311AuditEventFilter) (composeType.City311AuditEventSet, composeType.City311AuditEventFilter, error) {
+	return s.SearchCity311AuditEvents(ctx, f)
+}
+
+// CreateCity311AuditEvent creates one or more City311AuditEvents in store
+//
+// This function is auto-generated
+func CreateCity311AuditEvent(ctx context.Context, s City311AuditEvents, rr ...*composeType.City311AuditEvent) error {
+	return s.CreateCity311AuditEvent(ctx, rr...)
+}
+
+// UpdateCity311AuditEvent updates one or more (existing) City311AuditEvents in store
+//
+// This function is auto-generated
+func UpdateCity311AuditEvent(ctx context.Context, s City311AuditEvents, rr ...*composeType.City311AuditEvent) error {
+	return s.UpdateCity311AuditEvent(ctx, rr...)
+}
+
+// UpsertCity311AuditEvent creates new or updates existing one or more City311AuditEvents in store
+//
+// This function is auto-generated
+func UpsertCity311AuditEvent(ctx context.Context, s City311AuditEvents, rr ...*composeType.City311AuditEvent) error {
+	return s.UpsertCity311AuditEvent(ctx, rr...)
+}
+
+// DeleteCity311AuditEvent deletes one or more City311AuditEvents from store
+//
+// This function is auto-generated
+func DeleteCity311AuditEvent(ctx context.Context, s City311AuditEvents, rr ...*composeType.City311AuditEvent) error {
+	return s.DeleteCity311AuditEvent(ctx, rr...)
+}
+
+// DeleteCity311AuditEventByID deletes one or more City311AuditEvents from store
+//
+// This function is auto-generated
+func DeleteCity311AuditEventByID(ctx context.Context, s City311AuditEvents, id uint64) error {
+	return s.DeleteCity311AuditEventByID(ctx, id)
+}
+
+// TruncateCity311AuditEvents Deletes all City311AuditEvents from store
+//
+// This function is auto-generated
+func TruncateCity311AuditEvents(ctx context.Context, s City311AuditEvents) error {
+	return s.TruncateCity311AuditEvents(ctx)
+}
+
+// LookupCity311AuditEventByID
+//
+// This function is auto-generated
+func LookupCity311AuditEventByID(ctx context.Context, s City311AuditEvents, id uint64) (*composeType.City311AuditEvent, error) {
+	return s.LookupCity311AuditEventByID(ctx, id)
+}
+
+// SearchCity311IdempotencyRecords returns all matching City311IdempotencyRecords from store
+//
+// This function is auto-generated
+func SearchCity311IdempotencyRecords(ctx context.Context, s City311IdempotencyRecords, f composeType.City311IdempotencyRecordFilter) (composeType.City311IdempotencyRecordSet, composeType.City311IdempotencyRecordFilter, error) {
+	return s.SearchCity311IdempotencyRecords(ctx, f)
+}
+
+// CreateCity311IdempotencyRecord creates one or more City311IdempotencyRecords in store
+//
+// This function is auto-generated
+func CreateCity311IdempotencyRecord(ctx context.Context, s City311IdempotencyRecords, rr ...*composeType.City311IdempotencyRecord) error {
+	return s.CreateCity311IdempotencyRecord(ctx, rr...)
+}
+
+// UpdateCity311IdempotencyRecord updates one or more (existing) City311IdempotencyRecords in store
+//
+// This function is auto-generated
+func UpdateCity311IdempotencyRecord(ctx context.Context, s City311IdempotencyRecords, rr ...*composeType.City311IdempotencyRecord) error {
+	return s.UpdateCity311IdempotencyRecord(ctx, rr...)
+}
+
+// UpsertCity311IdempotencyRecord creates new or updates existing one or more City311IdempotencyRecords in store
+//
+// This function is auto-generated
+func UpsertCity311IdempotencyRecord(ctx context.Context, s City311IdempotencyRecords, rr ...*composeType.City311IdempotencyRecord) error {
+	return s.UpsertCity311IdempotencyRecord(ctx, rr...)
+}
+
+// DeleteCity311IdempotencyRecord deletes one or more City311IdempotencyRecords from store
+//
+// This function is auto-generated
+func DeleteCity311IdempotencyRecord(ctx context.Context, s City311IdempotencyRecords, rr ...*composeType.City311IdempotencyRecord) error {
+	return s.DeleteCity311IdempotencyRecord(ctx, rr...)
+}
+
+// DeleteCity311IdempotencyRecordByID deletes one or more City311IdempotencyRecords from store
+//
+// This function is auto-generated
+func DeleteCity311IdempotencyRecordByID(ctx context.Context, s City311IdempotencyRecords, id uint64) error {
+	return s.DeleteCity311IdempotencyRecordByID(ctx, id)
+}
+
+// TruncateCity311IdempotencyRecords Deletes all City311IdempotencyRecords from store
+//
+// This function is auto-generated
+func TruncateCity311IdempotencyRecords(ctx context.Context, s City311IdempotencyRecords) error {
+	return s.TruncateCity311IdempotencyRecords(ctx)
+}
+
+// LookupCity311IdempotencyRecordByID
+//
+// This function is auto-generated
+func LookupCity311IdempotencyRecordByID(ctx context.Context, s City311IdempotencyRecords, id uint64) (*composeType.City311IdempotencyRecord, error) {
+	return s.LookupCity311IdempotencyRecordByID(ctx, id)
+}
+
+// LookupCity311IdempotencyRecordByOperationKeyHash
+//
+// This function is auto-generated
+func LookupCity311IdempotencyRecordByOperationKeyHash(ctx context.Context, s City311IdempotencyRecords, operation string, keyHash string) (*composeType.City311IdempotencyRecord, error) {
+	return s.LookupCity311IdempotencyRecordByOperationKeyHash(ctx, operation, keyHash)
+}
+
+// SearchCity311PublicHistoryItems returns all matching City311PublicHistoryItems from store
+//
+// This function is auto-generated
+func SearchCity311PublicHistoryItems(ctx context.Context, s City311PublicHistoryItems, f composeType.City311PublicHistoryItemFilter) (composeType.City311PublicHistoryItemSet, composeType.City311PublicHistoryItemFilter, error) {
+	return s.SearchCity311PublicHistoryItems(ctx, f)
+}
+
+// CreateCity311PublicHistoryItem creates one or more City311PublicHistoryItems in store
+//
+// This function is auto-generated
+func CreateCity311PublicHistoryItem(ctx context.Context, s City311PublicHistoryItems, rr ...*composeType.City311PublicHistoryItem) error {
+	return s.CreateCity311PublicHistoryItem(ctx, rr...)
+}
+
+// UpdateCity311PublicHistoryItem updates one or more (existing) City311PublicHistoryItems in store
+//
+// This function is auto-generated
+func UpdateCity311PublicHistoryItem(ctx context.Context, s City311PublicHistoryItems, rr ...*composeType.City311PublicHistoryItem) error {
+	return s.UpdateCity311PublicHistoryItem(ctx, rr...)
+}
+
+// UpsertCity311PublicHistoryItem creates new or updates existing one or more City311PublicHistoryItems in store
+//
+// This function is auto-generated
+func UpsertCity311PublicHistoryItem(ctx context.Context, s City311PublicHistoryItems, rr ...*composeType.City311PublicHistoryItem) error {
+	return s.UpsertCity311PublicHistoryItem(ctx, rr...)
+}
+
+// DeleteCity311PublicHistoryItem deletes one or more City311PublicHistoryItems from store
+//
+// This function is auto-generated
+func DeleteCity311PublicHistoryItem(ctx context.Context, s City311PublicHistoryItems, rr ...*composeType.City311PublicHistoryItem) error {
+	return s.DeleteCity311PublicHistoryItem(ctx, rr...)
+}
+
+// DeleteCity311PublicHistoryItemByID deletes one or more City311PublicHistoryItems from store
+//
+// This function is auto-generated
+func DeleteCity311PublicHistoryItemByID(ctx context.Context, s City311PublicHistoryItems, id uint64) error {
+	return s.DeleteCity311PublicHistoryItemByID(ctx, id)
+}
+
+// TruncateCity311PublicHistoryItems Deletes all City311PublicHistoryItems from store
+//
+// This function is auto-generated
+func TruncateCity311PublicHistoryItems(ctx context.Context, s City311PublicHistoryItems) error {
+	return s.TruncateCity311PublicHistoryItems(ctx)
+}
+
+// LookupCity311PublicHistoryItemByID
+//
+// This function is auto-generated
+func LookupCity311PublicHistoryItemByID(ctx context.Context, s City311PublicHistoryItems, id uint64) (*composeType.City311PublicHistoryItem, error) {
+	return s.LookupCity311PublicHistoryItemByID(ctx, id)
+}
+
+// SearchCity311RequestAttachments returns all matching City311RequestAttachments from store
+//
+// This function is auto-generated
+func SearchCity311RequestAttachments(ctx context.Context, s City311RequestAttachments, f composeType.City311RequestAttachmentFilter) (composeType.City311RequestAttachmentSet, composeType.City311RequestAttachmentFilter, error) {
+	return s.SearchCity311RequestAttachments(ctx, f)
+}
+
+// CreateCity311RequestAttachment creates one or more City311RequestAttachments in store
+//
+// This function is auto-generated
+func CreateCity311RequestAttachment(ctx context.Context, s City311RequestAttachments, rr ...*composeType.City311RequestAttachment) error {
+	return s.CreateCity311RequestAttachment(ctx, rr...)
+}
+
+// UpdateCity311RequestAttachment updates one or more (existing) City311RequestAttachments in store
+//
+// This function is auto-generated
+func UpdateCity311RequestAttachment(ctx context.Context, s City311RequestAttachments, rr ...*composeType.City311RequestAttachment) error {
+	return s.UpdateCity311RequestAttachment(ctx, rr...)
+}
+
+// UpsertCity311RequestAttachment creates new or updates existing one or more City311RequestAttachments in store
+//
+// This function is auto-generated
+func UpsertCity311RequestAttachment(ctx context.Context, s City311RequestAttachments, rr ...*composeType.City311RequestAttachment) error {
+	return s.UpsertCity311RequestAttachment(ctx, rr...)
+}
+
+// DeleteCity311RequestAttachment deletes one or more City311RequestAttachments from store
+//
+// This function is auto-generated
+func DeleteCity311RequestAttachment(ctx context.Context, s City311RequestAttachments, rr ...*composeType.City311RequestAttachment) error {
+	return s.DeleteCity311RequestAttachment(ctx, rr...)
+}
+
+// DeleteCity311RequestAttachmentByID deletes one or more City311RequestAttachments from store
+//
+// This function is auto-generated
+func DeleteCity311RequestAttachmentByID(ctx context.Context, s City311RequestAttachments, id uint64) error {
+	return s.DeleteCity311RequestAttachmentByID(ctx, id)
+}
+
+// TruncateCity311RequestAttachments Deletes all City311RequestAttachments from store
+//
+// This function is auto-generated
+func TruncateCity311RequestAttachments(ctx context.Context, s City311RequestAttachments) error {
+	return s.TruncateCity311RequestAttachments(ctx)
+}
+
+// LookupCity311RequestAttachmentByID
+//
+// This function is auto-generated
+func LookupCity311RequestAttachmentByID(ctx context.Context, s City311RequestAttachments, id uint64) (*composeType.City311RequestAttachment, error) {
+	return s.LookupCity311RequestAttachmentByID(ctx, id)
+}
+
+// SearchCity311RequestSequences returns all matching City311RequestSequences from store
+//
+// This function is auto-generated
+func SearchCity311RequestSequences(ctx context.Context, s City311RequestSequences, f composeType.City311RequestSequenceFilter) (composeType.City311RequestSequenceSet, composeType.City311RequestSequenceFilter, error) {
+	return s.SearchCity311RequestSequences(ctx, f)
+}
+
+// CreateCity311RequestSequence creates one or more City311RequestSequences in store
+//
+// This function is auto-generated
+func CreateCity311RequestSequence(ctx context.Context, s City311RequestSequences, rr ...*composeType.City311RequestSequence) error {
+	return s.CreateCity311RequestSequence(ctx, rr...)
+}
+
+// UpdateCity311RequestSequence updates one or more (existing) City311RequestSequences in store
+//
+// This function is auto-generated
+func UpdateCity311RequestSequence(ctx context.Context, s City311RequestSequences, rr ...*composeType.City311RequestSequence) error {
+	return s.UpdateCity311RequestSequence(ctx, rr...)
+}
+
+// UpsertCity311RequestSequence creates new or updates existing one or more City311RequestSequences in store
+//
+// This function is auto-generated
+func UpsertCity311RequestSequence(ctx context.Context, s City311RequestSequences, rr ...*composeType.City311RequestSequence) error {
+	return s.UpsertCity311RequestSequence(ctx, rr...)
+}
+
+// DeleteCity311RequestSequence deletes one or more City311RequestSequences from store
+//
+// This function is auto-generated
+func DeleteCity311RequestSequence(ctx context.Context, s City311RequestSequences, rr ...*composeType.City311RequestSequence) error {
+	return s.DeleteCity311RequestSequence(ctx, rr...)
+}
+
+// DeleteCity311RequestSequenceByID deletes one or more City311RequestSequences from store
+//
+// This function is auto-generated
+func DeleteCity311RequestSequenceByID(ctx context.Context, s City311RequestSequences, id uint64) error {
+	return s.DeleteCity311RequestSequenceByID(ctx, id)
+}
+
+// TruncateCity311RequestSequences Deletes all City311RequestSequences from store
+//
+// This function is auto-generated
+func TruncateCity311RequestSequences(ctx context.Context, s City311RequestSequences) error {
+	return s.TruncateCity311RequestSequences(ctx)
+}
+
+// LookupCity311RequestSequenceByID
+//
+// This function is auto-generated
+func LookupCity311RequestSequenceByID(ctx context.Context, s City311RequestSequences, id uint64) (*composeType.City311RequestSequence, error) {
+	return s.LookupCity311RequestSequenceByID(ctx, id)
+}
+
+// SearchCity311ServiceRequests returns all matching City311ServiceRequests from store
+//
+// This function is auto-generated
+func SearchCity311ServiceRequests(ctx context.Context, s City311ServiceRequests, f composeType.City311ServiceRequestFilter) (composeType.City311ServiceRequestSet, composeType.City311ServiceRequestFilter, error) {
+	return s.SearchCity311ServiceRequests(ctx, f)
+}
+
+// CreateCity311ServiceRequest creates one or more City311ServiceRequests in store
+//
+// This function is auto-generated
+func CreateCity311ServiceRequest(ctx context.Context, s City311ServiceRequests, rr ...*composeType.City311ServiceRequest) error {
+	return s.CreateCity311ServiceRequest(ctx, rr...)
+}
+
+// UpdateCity311ServiceRequest updates one or more (existing) City311ServiceRequests in store
+//
+// This function is auto-generated
+func UpdateCity311ServiceRequest(ctx context.Context, s City311ServiceRequests, rr ...*composeType.City311ServiceRequest) error {
+	return s.UpdateCity311ServiceRequest(ctx, rr...)
+}
+
+// UpsertCity311ServiceRequest creates new or updates existing one or more City311ServiceRequests in store
+//
+// This function is auto-generated
+func UpsertCity311ServiceRequest(ctx context.Context, s City311ServiceRequests, rr ...*composeType.City311ServiceRequest) error {
+	return s.UpsertCity311ServiceRequest(ctx, rr...)
+}
+
+// DeleteCity311ServiceRequest deletes one or more City311ServiceRequests from store
+//
+// This function is auto-generated
+func DeleteCity311ServiceRequest(ctx context.Context, s City311ServiceRequests, rr ...*composeType.City311ServiceRequest) error {
+	return s.DeleteCity311ServiceRequest(ctx, rr...)
+}
+
+// DeleteCity311ServiceRequestByID deletes one or more City311ServiceRequests from store
+//
+// This function is auto-generated
+func DeleteCity311ServiceRequestByID(ctx context.Context, s City311ServiceRequests, id uint64) error {
+	return s.DeleteCity311ServiceRequestByID(ctx, id)
+}
+
+// TruncateCity311ServiceRequests Deletes all City311ServiceRequests from store
+//
+// This function is auto-generated
+func TruncateCity311ServiceRequests(ctx context.Context, s City311ServiceRequests) error {
+	return s.TruncateCity311ServiceRequests(ctx)
+}
+
+// LookupCity311ServiceRequestByID
+//
+// This function is auto-generated
+func LookupCity311ServiceRequestByID(ctx context.Context, s City311ServiceRequests, id uint64) (*composeType.City311ServiceRequest, error) {
+	return s.LookupCity311ServiceRequestByID(ctx, id)
+}
+
+// LookupCity311ServiceRequestByRequestNumber
+//
+// This function is auto-generated
+func LookupCity311ServiceRequestByRequestNumber(ctx context.Context, s City311ServiceRequests, requestNumber string) (*composeType.City311ServiceRequest, error) {
+	return s.LookupCity311ServiceRequestByRequestNumber(ctx, requestNumber)
 }
 
 // SearchComposeAttachments returns all matching ComposeAttachments from store

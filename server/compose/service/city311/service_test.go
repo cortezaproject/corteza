@@ -1,0 +1,288 @@
+package city311
+
+import (
+	"context"
+	"encoding/base64"
+	"fmt"
+	"sort"
+	"strconv"
+	"sync"
+	"testing"
+	"time"
+
+	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
+	contract "github.com/cortezaproject/corteza/server/compose/types/city311"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+)
+
+func testService(t *testing.T) (*Service, store.Storer) {
+	t.Helper()
+	ctx := context.Background()
+	dsn := fmt.Sprintf("sqlite3://file:%s?mode=memory&cache=shared", t.Name())
+	st, err := sqlite.Connect(ctx, dsn)
+	require.NoError(t, err)
+	require.NoError(t, store.Upgrade(ctx, zap.NewNop(), st))
+
+	svc := New(st)
+	fixedNow := time.Date(2026, 2, 3, 15, 4, 5, 0, time.UTC)
+	svc.now = func() time.Time { return fixedNow }
+	var next uint64 = 900_000_000_000_000_000
+	svc.nextID = func() uint64 { next++; return next }
+	return svc, st
+}
+
+func validSubmission() contract.ServiceRequestCreate {
+	latitude, longitude := 42.88645, -78.87837
+	return contract.ServiceRequestCreate{
+		Summary: "Pothole on Example Street", Description: "A deep pothole is blocking the eastbound traffic lane.",
+		ServiceType:  contract.ServiceTypePothole,
+		Requester:    contract.RequesterInput{DisplayName: "Alex Resident", Email: "alex@example.invalid", Phone: "+17165550101"},
+		Location:     &contract.LocationInput{Address: "100 Example Street, Buffalo, NY 14201", Latitude: &latitude, Longitude: &longitude},
+		CustomFields: map[string]any{"reported_damage": false},
+	}
+}
+
+func TestSeedIsRepeatableAndPreservesSeededRows(t *testing.T) {
+	svc, st := testService(t)
+	ctx := context.Background()
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+
+	seeded, err := store.LookupCity311ServiceRequestByRequestNumber(ctx, st, "SR-2026-00034")
+	require.NoError(t, err)
+	seeded.Summary = "Preserved operator edit"
+	require.NoError(t, store.UpdateCity311ServiceRequest(ctx, st, seeded))
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+
+	set, _, err := store.SearchCity311ServiceRequests(ctx, st, composeTypes.City311ServiceRequestFilter{Paging: filter.Paging{Limit: 100}})
+	require.NoError(t, err)
+	require.Len(t, set, 8)
+	seeded, err = store.LookupCity311ServiceRequestByRequestNumber(ctx, st, "SR-2026-00034")
+	require.NoError(t, err)
+	require.Equal(t, "Preserved operator edit", seeded.Summary)
+	history, _, err := store.SearchCity311PublicHistoryItems(ctx, st, composeTypes.City311PublicHistoryItemFilter{RequestID: seeded.ID})
+	require.NoError(t, err)
+	require.Len(t, history, 1)
+	sequence, err := store.LookupCity311RequestSequenceByID(ctx, st, 2026)
+	require.NoError(t, err)
+	require.Equal(t, uint64(41), sequence.NextNumber)
+}
+
+func TestUpgradeAndSeedPreserveBaselineUser(t *testing.T) {
+	svc, st := testService(t)
+	ctx := context.Background()
+	createdAt := svc.now().Add(-24 * time.Hour)
+	baseline := &systemTypes.User{ID: 800_000_000_000_000_001, Handle: "baseline-operator", Username: "baseline-operator", Email: "baseline-operator@example.invalid", Name: "Baseline Operator", EmailConfirmed: true, CreatedAt: createdAt}
+	require.NoError(t, store.CreateUser(ctx, st, baseline))
+	require.NoError(t, store.Upgrade(ctx, zap.NewNop(), st))
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+
+	fetched, err := store.LookupUserByID(ctx, st, baseline.ID)
+	require.NoError(t, err)
+	require.Equal(t, baseline.Handle, fetched.Handle)
+	require.Equal(t, baseline.Email, fetched.Email)
+}
+
+func TestSubmitIsTransactionalAndIdempotent(t *testing.T) {
+	svc, st := testService(t)
+	ctx := context.Background()
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+	options := SubmissionOptions{
+		Operation: "service_request_create", SourceChannel: contract.SourceChannelAPI,
+		ActorType: contract.AuditActorIntegrationClient, ActorID: 77, RequireIdempotency: true,
+	}
+
+	first, status, err := svc.Submit(ctx, validSubmission(), "request-key-1", options)
+	require.NoError(t, err)
+	require.Equal(t, 201, status)
+	require.Equal(t, "SR-2026-00041", first.RequestNumber)
+
+	replay, status, err := svc.Submit(ctx, validSubmission(), "request-key-1", options)
+	require.NoError(t, err)
+	require.Equal(t, 200, status)
+	require.Equal(t, first, replay)
+
+	conflicting := validSubmission()
+	conflicting.Summary = "A different report"
+	_, _, err = svc.Submit(ctx, conflicting, "request-key-1", options)
+	var serviceErr *ServiceError
+	require.ErrorAs(t, err, &serviceErr)
+	require.Equal(t, 409, serviceErr.Status)
+	require.Equal(t, contract.ErrorIdempotencyConflict, serviceErr.Payload.Error)
+
+	set, _, err := store.SearchCity311ServiceRequests(ctx, st, composeTypes.City311ServiceRequestFilter{Paging: filter.Paging{Limit: 100}})
+	require.NoError(t, err)
+	require.Len(t, set, 9)
+	sequence, err := store.LookupCity311RequestSequenceByID(ctx, st, 2026)
+	require.NoError(t, err)
+	require.Equal(t, uint64(42), sequence.NextNumber)
+}
+
+func TestExpiredIdempotencyKeyCanBeReused(t *testing.T) {
+	svc, st := testService(t)
+	ctx := context.Background()
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+	options := SubmissionOptions{Operation: "service_request_create", SourceChannel: contract.SourceChannelAPI, ActorType: contract.AuditActorIntegrationClient, RequireIdempotency: true}
+	first, _, err := svc.Submit(ctx, validSubmission(), "expiring-key", options)
+	require.NoError(t, err)
+	record, err := store.LookupCity311IdempotencyRecordByOperationKeyHash(ctx, st, options.Operation, hashKey("expiring-key"))
+	require.NoError(t, err)
+	record.ExpiresAt = svc.now()
+	require.NoError(t, store.UpdateCity311IdempotencyRecord(ctx, st, record))
+	nextDay := svc.now().Add(25 * time.Hour)
+	svc.now = func() time.Time { return nextDay }
+
+	reused := validSubmission()
+	reused.Summary = "Pothole reported after the replay window"
+	second, status, err := svc.Submit(ctx, reused, "expiring-key", options)
+	require.NoError(t, err)
+	require.Equal(t, 201, status)
+	require.NotEqual(t, first.RequestID, second.RequestID)
+}
+
+func TestInlineAttachmentValidationAndPersistence(t *testing.T) {
+	svc, st := testService(t)
+	ctx := context.Background()
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+	input := validSubmission()
+	input.Attachments = []contract.AttachmentInput{{
+		Filename: "../evidence.txt", MediaType: "text/plain", ContentBase64: base64.StdEncoding.EncodeToString([]byte("attachment evidence")),
+	}}
+	created, _, err := svc.Submit(ctx, input, "attachment-key", SubmissionOptions{Operation: "service_request_create", SourceChannel: contract.SourceChannelAPI, RequireIdempotency: true})
+	require.NoError(t, err)
+	requestID, err := strconv.ParseUint(created.RequestID, 10, 64)
+	require.NoError(t, err)
+	attachments, _, err := store.SearchCity311RequestAttachments(ctx, st, composeTypes.City311RequestAttachmentFilter{RequestID: requestID})
+	require.NoError(t, err)
+	require.Len(t, attachments, 1)
+	require.Equal(t, "evidence.txt", attachments[0].Filename)
+	require.Equal(t, []byte("attachment evidence"), attachments[0].Content)
+
+	invalid := validSubmission()
+	invalid.Attachments = []contract.AttachmentInput{{Filename: "payload.exe", MediaType: "application/octet-stream", ContentBase64: "not-base64"}}
+	_, _, err = svc.Submit(ctx, invalid, "invalid-attachment", SubmissionOptions{Operation: "service_request_create", SourceChannel: contract.SourceChannelAPI, RequireIdempotency: true})
+	var serviceErr *ServiceError
+	require.ErrorAs(t, err, &serviceErr)
+	require.Equal(t, 422, serviceErr.Status)
+	require.Len(t, serviceErr.Payload.Errors, 2)
+}
+
+func TestConcurrentSubmissionsAllocateUniqueSequentialNumbers(t *testing.T) {
+	svc, _ := testService(t)
+	ctx := context.Background()
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+	const count = 16
+	numbers := make([]string, count)
+	errors := make([]error, count)
+	var wait sync.WaitGroup
+	for index := 0; index < count; index++ {
+		wait.Add(1)
+		go func(index int) {
+			defer wait.Done()
+			response, _, err := svc.Submit(ctx, validSubmission(), fmt.Sprintf("parallel-%02d", index), SubmissionOptions{
+				Operation: "portal_service_request_submit", SourceChannel: contract.SourceChannelPortalAnonymous,
+				ActorType: contract.AuditActorConstituent, RequireIdempotency: true,
+			})
+			errors[index] = err
+			if response != nil {
+				numbers[index] = response.RequestNumber
+			}
+		}(index)
+	}
+	wait.Wait()
+	for _, err := range errors {
+		require.NoError(t, err)
+	}
+	sort.Strings(numbers)
+	for index, number := range numbers {
+		require.Equal(t, fmt.Sprintf("SR-2026-%05d", 41+index), number)
+	}
+}
+
+func TestRecordScopeAndOptimisticTransition(t *testing.T) {
+	svc, st := testService(t)
+	ctx := context.Background()
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+	request, err := store.LookupCity311ServiceRequestByRequestNumber(ctx, st, "SR-2026-00034")
+	require.NoError(t, err)
+	actor := contract.Actor{ID: 100, Roles: []contract.ApplicationRole{contract.ApplicationRoleServiceAgent}, Department: contract.DepartmentStreets, Districts: []contract.DistrictCode{contract.DistrictNorth}}
+	_, err = svc.Transition(ctx, actor, request.ID, 1, contract.RequestTransition{ToStatus: contract.ServiceRequestStatusClosed})
+	var serviceErr *ServiceError
+	require.ErrorAs(t, err, &serviceErr)
+	require.Equal(t, 422, serviceErr.Status)
+	unchanged, err := store.LookupCity311ServiceRequestByID(ctx, st, request.ID)
+	require.NoError(t, err)
+	require.Equal(t, contract.ServiceRequestStatusSubmitted, unchanged.Status)
+	require.Equal(t, 1, unchanged.Version)
+
+	detail, err := svc.Transition(ctx, actor, request.ID, 1, contract.RequestTransition{ToStatus: contract.ServiceRequestStatusTriaged, Reason: "Validated and routed"})
+	require.NoError(t, err)
+	require.Equal(t, uint64(2), detail.Request.Version)
+	require.Equal(t, contract.ServiceRequestStatusTriaged, detail.Request.Status)
+	require.Len(t, detail.Audit, 2)
+	require.Len(t, detail.History, 2)
+	require.Equal(t, "TRIAGED", detail.History[1].Action)
+
+	_, err = svc.Transition(ctx, actor, request.ID, 1, contract.RequestTransition{ToStatus: contract.ServiceRequestStatusAssigned})
+	require.ErrorAs(t, err, &serviceErr)
+	require.Equal(t, 409, serviceErr.Status)
+	require.NotNil(t, serviceErr.Payload.CurrentVersion)
+	require.Equal(t, uint64(2), *serviceErr.Payload.CurrentVersion)
+
+	wrongDepartment := actor
+	wrongDepartment.Department = contract.DepartmentSanitation
+	_, err = svc.Find(ctx, wrongDepartment, request.ID)
+	require.ErrorAs(t, err, &serviceErr)
+	require.Equal(t, 403, serviceErr.Status)
+
+	workflowOnly := contract.Actor{ID: 200, Roles: []contract.ApplicationRole{contract.ApplicationRoleWorkflowDesigner}, Department: contract.DepartmentStreets, Districts: []contract.DistrictCode{contract.DistrictNorth}}
+	_, err = svc.Transition(ctx, workflowOnly, request.ID, 2, contract.RequestTransition{ToStatus: contract.ServiceRequestStatusAssigned})
+	require.ErrorAs(t, err, &serviceErr)
+	require.Equal(t, 403, serviceErr.Status)
+}
+
+func TestListUsesOpaqueCursorTotalAndPublishedSort(t *testing.T) {
+	svc, _ := testService(t)
+	ctx := context.Background()
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+	actor := contract.Actor{ID: 100, Roles: []contract.ApplicationRole{contract.ApplicationRoleServiceAgent}, Department: contract.DepartmentStreets, Districts: []contract.DistrictCode{contract.DistrictNorth}}
+
+	first, err := svc.List(ctx, actor, RequestFilter{PageSize: 2, Sort: "-updated_at"})
+	require.NoError(t, err)
+	require.Len(t, first.Items, 2)
+	require.Equal(t, 8, first.TotalCount)
+	require.Equal(t, []string{"-updated_at"}, first.Sort)
+	require.NotNil(t, first.NextPageToken)
+
+	second, err := svc.List(ctx, actor, RequestFilter{PageSize: 2, PageToken: *first.NextPageToken, Sort: "-updated_at"})
+	require.NoError(t, err)
+	require.Len(t, second.Items, 2)
+	require.Equal(t, 8, second.TotalCount)
+	require.NotEqual(t, first.Items[0].RequestID, second.Items[0].RequestID)
+
+	_, err = svc.List(ctx, actor, RequestFilter{Status: contract.ServiceRequestStatus("UNKNOWN")})
+	var serviceErr *ServiceError
+	require.ErrorAs(t, err, &serviceErr)
+	require.Equal(t, 422, serviceErr.Status)
+}
+
+func TestValidationPrecedesPersistence(t *testing.T) {
+	svc, st := testService(t)
+	ctx := context.Background()
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+	invalid := validSubmission()
+	invalid.Description = "short"
+	invalid.Location = nil
+	_, _, err := svc.Submit(ctx, invalid, "invalid", SubmissionOptions{RequireIdempotency: true})
+	var serviceErr *ServiceError
+	require.ErrorAs(t, err, &serviceErr)
+	require.Equal(t, 422, serviceErr.Status)
+	require.Len(t, serviceErr.Payload.Errors, 2)
+	set, _, searchErr := store.SearchCity311ServiceRequests(ctx, st, composeTypes.City311ServiceRequestFilter{Paging: filter.Paging{Limit: 100}})
+	require.NoError(t, searchErr)
+	require.Len(t, set, 8)
+}

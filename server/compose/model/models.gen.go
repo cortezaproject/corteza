@@ -225,6 +225,635 @@ var Chart = &dal.Model{
 	},
 }
 
+var City311ActorProfile = &dal.Model{
+	Ident:        "compose_city311_actor_profile",
+	ResourceType: types.City311ActorProfileResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "ApplicationRoles",
+			Type:  &dal.TypeJSON{},
+			Store: &dal.CodecAlias{Ident: "application_roles"},
+		},
+
+		&dal.Attribute{
+			Ident: "Department", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "department"},
+		},
+
+		&dal.Attribute{
+			Ident: "Districts",
+			Type:  &dal.TypeJSON{},
+			Store: &dal.CodecAlias{Ident: "districts"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "compose_city311_actor_profile_department",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Department",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+	},
+}
+
+var City311AuditEvent = &dal.Model{
+	Ident:        "compose_city311_audit_event",
+	ResourceType: types.City311AuditEventResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "RequestID", Sortable: true,
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "request_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "EventType", Sortable: true,
+			Type:  &dal.TypeText{Length: 96},
+			Store: &dal.CodecAlias{Ident: "event_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "ActorType",
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "actor_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "ActorID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "actor_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "SourceChannel",
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "source_channel"},
+		},
+
+		&dal.Attribute{
+			Ident: "Before",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "before"},
+		},
+
+		&dal.Attribute{
+			Ident: "After",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "after"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "compose_city311_audit_event_request",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "RequestID",
+				},
+
+				{
+					AttributeIdent: "CreatedAt",
+				},
+			},
+		},
+	},
+}
+
+var City311IdempotencyRecord = &dal.Model{
+	Ident:        "compose_city311_idempotency",
+	ResourceType: types.City311IdempotencyRecordResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Operation",
+			Type:  &dal.TypeText{Length: 96},
+			Store: &dal.CodecAlias{Ident: "operation"},
+		},
+
+		&dal.Attribute{
+			Ident: "KeyHash",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "key_hash"},
+		},
+
+		&dal.Attribute{
+			Ident: "RequestHash",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "request_hash"},
+		},
+
+		&dal.Attribute{
+			Ident: "ResponseStatus",
+			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"}},
+			Store: &dal.CodecAlias{Ident: "response_status"},
+		},
+
+		&dal.Attribute{
+			Ident: "ResponseBody",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "response_body"},
+		},
+
+		&dal.Attribute{
+			Ident: "RequestID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "request_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "ExpiresAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "expires_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "compose_city311_idempotency_expires",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ExpiresAt",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:  "compose_city311_idempotency_uniqueOperationKey",
+			Type:   "BTREE",
+			Unique: true,
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Operation",
+				},
+
+				{
+					AttributeIdent: "KeyHash",
+				},
+			},
+		},
+	},
+}
+
+var City311PublicHistoryItem = &dal.Model{
+	Ident:        "compose_city311_public_history",
+	ResourceType: types.City311PublicHistoryItemResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "RequestID", Sortable: true,
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "request_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Action",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "action"},
+		},
+
+		&dal.Attribute{
+			Ident: "ResponsibleDepartment",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "responsible_department"},
+		},
+
+		&dal.Attribute{
+			Ident: "OccurredAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "occurred_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "compose_city311_public_history_request",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "RequestID",
+				},
+
+				{
+					AttributeIdent: "OccurredAt",
+				},
+			},
+		},
+	},
+}
+
+var City311RequestAttachment = &dal.Model{
+	Ident:        "compose_city311_request_attachment",
+	ResourceType: types.City311RequestAttachmentResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "RequestID", Sortable: true,
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "request_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Filename",
+			Type:  &dal.TypeText{Length: 120},
+			Store: &dal.CodecAlias{Ident: "filename"},
+		},
+
+		&dal.Attribute{
+			Ident: "MediaType",
+			Type:  &dal.TypeText{Length: 128},
+			Store: &dal.CodecAlias{Ident: "media_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "Size",
+			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "bigint"}},
+			Store: &dal.CodecAlias{Ident: "size"},
+		},
+
+		&dal.Attribute{
+			Ident: "Content",
+			Type:  &dal.TypeBlob{},
+			Store: &dal.CodecAlias{Ident: "content"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "compose_city311_request_attachment_request",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "RequestID",
+				},
+
+				{
+					AttributeIdent: "CreatedAt",
+				},
+			},
+		},
+	},
+}
+
+var City311RequestSequence = &dal.Model{
+	Ident:        "compose_city311_request_sequence",
+	ResourceType: types.City311RequestSequenceResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "NextNumber",
+			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "bigint"}},
+			Store: &dal.CodecAlias{Ident: "next_number"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+	},
+}
+
+var City311ServiceRequest = &dal.Model{
+	Ident:        "compose_city311_service_request",
+	ResourceType: types.City311ServiceRequestResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "RequestNumber", Sortable: true,
+			Type:  &dal.TypeText{Length: 16},
+			Store: &dal.CodecAlias{Ident: "request_number"},
+		},
+
+		&dal.Attribute{
+			Ident: "Summary", Sortable: true,
+			Type:  &dal.TypeText{Length: 160},
+			Store: &dal.CodecAlias{Ident: "summary"},
+		},
+
+		&dal.Attribute{
+			Ident: "Description",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "description"},
+		},
+
+		&dal.Attribute{
+			Ident: "ServiceType", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "service_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "OwningDepartment", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "owning_department"},
+		},
+
+		&dal.Attribute{
+			Ident: "CouncilDistrict", Sortable: true,
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "council_district"},
+		},
+
+		&dal.Attribute{
+			Ident: "SourceChannel", Sortable: true,
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "source_channel"},
+		},
+
+		&dal.Attribute{
+			Ident: "OriginClass", Sortable: true,
+			Type:  &dal.TypeText{Length: 16},
+			Store: &dal.CodecAlias{Ident: "origin_class"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status", Sortable: true,
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "status"},
+		},
+
+		&dal.Attribute{
+			Ident: "PrimaryRequester",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "primary_requester"},
+		},
+
+		&dal.Attribute{
+			Ident: "Location",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "location"},
+		},
+
+		&dal.Attribute{
+			Ident: "CustomFields",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "custom_fields"},
+		},
+
+		&dal.Attribute{
+			Ident: "PrimaryAssigneeID", Sortable: true,
+			Type: &dal.TypeID{HasDefault: true,
+				DefaultValue: 0,
+			},
+			Store: &dal.CodecAlias{Ident: "primary_assignee_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "CollaboratorIDs",
+			Type:  &dal.TypeJSON{},
+			Store: &dal.CodecAlias{Ident: "collaborator_ids"},
+		},
+
+		&dal.Attribute{
+			Ident: "DuplicateGroupID", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "duplicate_group_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Version", Sortable: true,
+			Type: &dal.TypeNumber{HasDefault: true,
+				DefaultValue: 1,
+				Precision:    -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"},
+			},
+			Store: &dal.CodecAlias{Ident: "version"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "compose_city311_service_request_requestScope",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "OwningDepartment",
+				},
+
+				{
+					AttributeIdent: "CouncilDistrict",
+				},
+
+				{
+					AttributeIdent: "Status",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:  "compose_city311_service_request_uniqueRequestNumber",
+			Type:   "BTREE",
+			Unique: true,
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "RequestNumber",
+				},
+			},
+		},
+	},
+}
+
 var Module = &dal.Model{
 	Ident:        "compose_module",
 	ResourceType: types.ModuleResourceType,
@@ -1192,6 +1821,13 @@ func init() {
 		models,
 		Attachment,
 		Chart,
+		City311ActorProfile,
+		City311AuditEvent,
+		City311IdempotencyRecord,
+		City311PublicHistoryItem,
+		City311RequestAttachment,
+		City311RequestSequence,
+		City311ServiceRequest,
 		Module,
 		ModuleField,
 		Namespace,

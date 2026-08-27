@@ -66,6 +66,27 @@ type (
 		// optional automationWorkflow filter function called after the generated function
 		AutomationWorkflow func(*Store, automationType.WorkflowFilter) ([]goqu.Expression, automationType.WorkflowFilter, error)
 
+		// optional city311ActorProfile filter function called after the generated function
+		City311ActorProfile func(*Store, composeType.City311ActorProfileFilter) ([]goqu.Expression, composeType.City311ActorProfileFilter, error)
+
+		// optional city311AuditEvent filter function called after the generated function
+		City311AuditEvent func(*Store, composeType.City311AuditEventFilter) ([]goqu.Expression, composeType.City311AuditEventFilter, error)
+
+		// optional city311IdempotencyRecord filter function called after the generated function
+		City311IdempotencyRecord func(*Store, composeType.City311IdempotencyRecordFilter) ([]goqu.Expression, composeType.City311IdempotencyRecordFilter, error)
+
+		// optional city311PublicHistoryItem filter function called after the generated function
+		City311PublicHistoryItem func(*Store, composeType.City311PublicHistoryItemFilter) ([]goqu.Expression, composeType.City311PublicHistoryItemFilter, error)
+
+		// optional city311RequestAttachment filter function called after the generated function
+		City311RequestAttachment func(*Store, composeType.City311RequestAttachmentFilter) ([]goqu.Expression, composeType.City311RequestAttachmentFilter, error)
+
+		// optional city311RequestSequence filter function called after the generated function
+		City311RequestSequence func(*Store, composeType.City311RequestSequenceFilter) ([]goqu.Expression, composeType.City311RequestSequenceFilter, error)
+
+		// optional city311ServiceRequest filter function called after the generated function
+		City311ServiceRequest func(*Store, composeType.City311ServiceRequestFilter) ([]goqu.Expression, composeType.City311ServiceRequestFilter, error)
+
 		// optional composeAttachment filter function called after the generated function
 		ComposeAttachment func(*Store, composeType.AttachmentFilter) ([]goqu.Expression, composeType.AttachmentFilter, error)
 
@@ -492,6 +513,150 @@ func AutomationWorkflowFilter(d drivers.Dialect, f automationType.WorkflowFilter
 		ee = append(ee, goqu.Or(
 			goqu.C("handle").ILike("%"+f.Query+"%"),
 		))
+	}
+
+	return ee, f, err
+}
+
+// City311ActorProfileFilter returns logical expressions
+//
+// This function is called from Store.QueryCity311ActorProfiles() and can be extended
+// by setting Store.Filters.City311ActorProfile. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func City311ActorProfileFilter(d drivers.Dialect, f composeType.City311ActorProfileFilter) (ee []goqu.Expression, _ composeType.City311ActorProfileFilter, err error) {
+
+	if val := strings.TrimSpace(f.Department); len(val) > 0 {
+		ee = append(ee, goqu.C("department").Eq(f.Department))
+	}
+
+	return ee, f, err
+}
+
+// City311AuditEventFilter returns logical expressions
+//
+// This function is called from Store.QueryCity311AuditEvents() and can be extended
+// by setting Store.Filters.City311AuditEvent. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func City311AuditEventFilter(d drivers.Dialect, f composeType.City311AuditEventFilter) (ee []goqu.Expression, _ composeType.City311AuditEventFilter, err error) {
+
+	if f.RequestID > 0 {
+		ee = append(ee, goqu.C("request_id").Eq(f.RequestID))
+	}
+
+	if val := strings.TrimSpace(f.EventType); len(val) > 0 {
+		ee = append(ee, goqu.C("event_type").Eq(f.EventType))
+	}
+
+	return ee, f, err
+}
+
+// City311IdempotencyRecordFilter returns logical expressions
+//
+// This function is called from Store.QueryCity311IdempotencyRecords() and can be extended
+// by setting Store.Filters.City311IdempotencyRecord. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func City311IdempotencyRecordFilter(d drivers.Dialect, f composeType.City311IdempotencyRecordFilter) (ee []goqu.Expression, _ composeType.City311IdempotencyRecordFilter, err error) {
+
+	if val := strings.TrimSpace(f.Operation); len(val) > 0 {
+		ee = append(ee, goqu.C("operation").Eq(f.Operation))
+	}
+
+	if val := strings.TrimSpace(f.KeyHash); len(val) > 0 {
+		ee = append(ee, goqu.C("key_hash").Eq(f.KeyHash))
+	}
+
+	return ee, f, err
+}
+
+// City311PublicHistoryItemFilter returns logical expressions
+//
+// This function is called from Store.QueryCity311PublicHistoryItems() and can be extended
+// by setting Store.Filters.City311PublicHistoryItem. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func City311PublicHistoryItemFilter(d drivers.Dialect, f composeType.City311PublicHistoryItemFilter) (ee []goqu.Expression, _ composeType.City311PublicHistoryItemFilter, err error) {
+
+	if f.RequestID > 0 {
+		ee = append(ee, goqu.C("request_id").Eq(f.RequestID))
+	}
+
+	return ee, f, err
+}
+
+// City311RequestAttachmentFilter returns logical expressions
+//
+// This function is called from Store.QueryCity311RequestAttachments() and can be extended
+// by setting Store.Filters.City311RequestAttachment. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func City311RequestAttachmentFilter(d drivers.Dialect, f composeType.City311RequestAttachmentFilter) (ee []goqu.Expression, _ composeType.City311RequestAttachmentFilter, err error) {
+
+	if f.RequestID > 0 {
+		ee = append(ee, goqu.C("request_id").Eq(f.RequestID))
+	}
+
+	return ee, f, err
+}
+
+// City311RequestSequenceFilter returns logical expressions
+//
+// This function is called from Store.QueryCity311RequestSequences() and can be extended
+// by setting Store.Filters.City311RequestSequence. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func City311RequestSequenceFilter(d drivers.Dialect, f composeType.City311RequestSequenceFilter) (ee []goqu.Expression, _ composeType.City311RequestSequenceFilter, err error) {
+
+	return ee, f, err
+}
+
+// City311ServiceRequestFilter returns logical expressions
+//
+// This function is called from Store.QueryCity311ServiceRequests() and can be extended
+// by setting Store.Filters.City311ServiceRequest. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func City311ServiceRequestFilter(d drivers.Dialect, f composeType.City311ServiceRequestFilter) (ee []goqu.Expression, _ composeType.City311ServiceRequestFilter, err error) {
+
+	if val := strings.TrimSpace(f.RequestNumber); len(val) > 0 {
+		ee = append(ee, goqu.C("request_number").Eq(f.RequestNumber))
+	}
+
+	if val := strings.TrimSpace(f.ServiceType); len(val) > 0 {
+		ee = append(ee, goqu.C("service_type").Eq(f.ServiceType))
+	}
+
+	if val := strings.TrimSpace(f.OwningDepartment); len(val) > 0 {
+		ee = append(ee, goqu.C("owning_department").Eq(f.OwningDepartment))
+	}
+
+	if val := strings.TrimSpace(f.CouncilDistrict); len(val) > 0 {
+		ee = append(ee, goqu.C("council_district").Eq(f.CouncilDistrict))
+	}
+
+	if val := strings.TrimSpace(f.SourceChannel); len(val) > 0 {
+		ee = append(ee, goqu.C("source_channel").Eq(f.SourceChannel))
+	}
+
+	if val := strings.TrimSpace(f.OriginClass); len(val) > 0 {
+		ee = append(ee, goqu.C("origin_class").Eq(f.OriginClass))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.PrimaryAssigneeID > 0 {
+		ee = append(ee, goqu.C("primary_assignee_id").Eq(f.PrimaryAssigneeID))
 	}
 
 	return ee, f, err

@@ -42,6 +42,13 @@ var (
 	_ store.AutomationSessions         = &Store{}
 	_ store.AutomationTriggers         = &Store{}
 	_ store.AutomationWorkflows        = &Store{}
+	_ store.City311ActorProfiles       = &Store{}
+	_ store.City311AuditEvents         = &Store{}
+	_ store.City311IdempotencyRecords  = &Store{}
+	_ store.City311PublicHistoryItems  = &Store{}
+	_ store.City311RequestAttachments  = &Store{}
+	_ store.City311RequestSequences    = &Store{}
+	_ store.City311ServiceRequests     = &Store{}
 	_ store.ComposeAttachments         = &Store{}
 	_ store.ComposeCharts              = &Store{}
 	_ store.ComposeModules             = &Store{}
@@ -6197,6 +6204,3971 @@ func (s *Store) checkAutomationWorkflowConstraints(ctx context.Context, res *aut
 		}
 
 		ex, err := s.LookupAutomationWorkflowByHandle(ctx, res.Handle)
+		if err == nil && ex != nil && ex.ID != res.ID {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	}()
+
+	if err != nil {
+		return
+	}
+
+	return nil
+}
+
+// CreateCity311ActorProfile creates one or more rows in city311ActorProfile collection
+//
+// This function is auto-generated
+func (s *Store) CreateCity311ActorProfile(ctx context.Context, rr ...*composeType.City311ActorProfile) (err error) {
+	for i := range rr {
+		if err = s.checkCity311ActorProfileConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311ActorProfileInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateCity311ActorProfile updates one or more existing entries in city311ActorProfile collection
+//
+// This function is auto-generated
+func (s *Store) UpdateCity311ActorProfile(ctx context.Context, rr ...*composeType.City311ActorProfile) (err error) {
+	for i := range rr {
+		if err = s.checkCity311ActorProfileConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311ActorProfileUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertCity311ActorProfile updates one or more existing entries in city311ActorProfile collection
+//
+// This function is auto-generated
+func (s *Store) UpsertCity311ActorProfile(ctx context.Context, rr ...*composeType.City311ActorProfile) (err error) {
+	for i := range rr {
+		if err = s.checkCity311ActorProfileConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, city311ActorProfileUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, city311ActorProfileInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, city311ActorProfileUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteCity311ActorProfile Deletes one or more entries from city311ActorProfile collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311ActorProfile(ctx context.Context, rr ...*composeType.City311ActorProfile) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, city311ActorProfileDeleteQuery(s.Dialect.GOQU(), city311ActorProfilePrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteCity311ActorProfileByID deletes single entry from city311ActorProfile collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311ActorProfileByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, city311ActorProfileDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateCity311ActorProfiles Deletes all rows from the city311ActorProfile collection
+func (s *Store) TruncateCity311ActorProfiles(ctx context.Context) error {
+	return s.Exec(ctx, city311ActorProfileTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchCity311ActorProfiles returns (filtered) set of City311ActorProfiles
+//
+// This function is auto-generated
+func (s *Store) SearchCity311ActorProfiles(ctx context.Context, f composeType.City311ActorProfileFilter) (set composeType.City311ActorProfileSet, _ composeType.City311ActorProfileFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfCity311ActorProfiles fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfCity311ActorProfiles(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.City311ActorProfileSet
+			if navSet, _, _, err = s.fetchFullPageOfCity311ActorProfiles(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfCity311ActorProfiles collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfCity311ActorProfiles(
+	ctx context.Context,
+	filter composeType.City311ActorProfileFilter,
+	sort filter.SortExprSet,
+) (set []*composeType.City311ActorProfile, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*composeType.City311ActorProfile
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter composeType.City311ActorProfileFilter
+	)
+
+	set = make([]*composeType.City311ActorProfile, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryCity311ActorProfiles(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectCity311ActorProfileCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectCity311ActorProfileCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectCity311ActorProfileCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryCity311ActorProfiles queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryCity311ActorProfiles(
+	ctx context.Context,
+	f composeType.City311ActorProfileFilter,
+) (_ []*composeType.City311ActorProfile, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*composeType.City311ActorProfile, 0, DefaultSliceCapacity)
+		res         *composeType.City311ActorProfile
+		aux         *auxCity311ActorProfile
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.City311ActorProfile != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.City311ActorProfile(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = City311ActorProfileFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for City311ActorProfile: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableCity311ActorProfileFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := city311ActorProfileSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(f.Sort, s.sortableCity311ActorProfileFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for City311ActorProfile: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query City311ActorProfile: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query City311ActorProfile: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query City311ActorProfile: %w", err)
+			return
+		}
+
+		aux = new(auxCity311ActorProfile)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for City311ActorProfile: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode City311ActorProfile: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupCity311ActorProfileByID
+//
+// This function is auto-generated
+func (s *Store) LookupCity311ActorProfileByID(ctx context.Context, id uint64) (_ *composeType.City311ActorProfile, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxCity311ActorProfile)
+		lookup = city311ActorProfileSelectQuery(s.Dialect.GOQU()).Where(
+			goqu.I("id").Eq(id),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableCity311ActorProfileFields returns all <no value> columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableCity311ActorProfileFields() map[string]string {
+	return map[string]string{
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"department": "department",
+		"id":         "id",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+	}
+}
+
+// collectCity311ActorProfileCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectCity311ActorProfileCursorValues(res *composeType.City311ActorProfile, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "department":
+					return res.Department
+				case "createdAt":
+					return res.CreatedAt
+				case "updatedAt":
+					return res.UpdatedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkCity311ActorProfileConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkCity311ActorProfileConstraints(ctx context.Context, res *composeType.City311ActorProfile) (err error) {
+	return nil
+}
+
+// CreateCity311AuditEvent creates one or more rows in city311AuditEvent collection
+//
+// This function is auto-generated
+func (s *Store) CreateCity311AuditEvent(ctx context.Context, rr ...*composeType.City311AuditEvent) (err error) {
+	for i := range rr {
+		if err = s.checkCity311AuditEventConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311AuditEventInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateCity311AuditEvent updates one or more existing entries in city311AuditEvent collection
+//
+// This function is auto-generated
+func (s *Store) UpdateCity311AuditEvent(ctx context.Context, rr ...*composeType.City311AuditEvent) (err error) {
+	for i := range rr {
+		if err = s.checkCity311AuditEventConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311AuditEventUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertCity311AuditEvent updates one or more existing entries in city311AuditEvent collection
+//
+// This function is auto-generated
+func (s *Store) UpsertCity311AuditEvent(ctx context.Context, rr ...*composeType.City311AuditEvent) (err error) {
+	for i := range rr {
+		if err = s.checkCity311AuditEventConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, city311AuditEventUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, city311AuditEventInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, city311AuditEventUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteCity311AuditEvent Deletes one or more entries from city311AuditEvent collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311AuditEvent(ctx context.Context, rr ...*composeType.City311AuditEvent) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, city311AuditEventDeleteQuery(s.Dialect.GOQU(), city311AuditEventPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteCity311AuditEventByID deletes single entry from city311AuditEvent collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311AuditEventByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, city311AuditEventDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateCity311AuditEvents Deletes all rows from the city311AuditEvent collection
+func (s *Store) TruncateCity311AuditEvents(ctx context.Context) error {
+	return s.Exec(ctx, city311AuditEventTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchCity311AuditEvents returns (filtered) set of City311AuditEvents
+//
+// This function is auto-generated
+func (s *Store) SearchCity311AuditEvents(ctx context.Context, f composeType.City311AuditEventFilter) (set composeType.City311AuditEventSet, _ composeType.City311AuditEventFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfCity311AuditEvents fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfCity311AuditEvents(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.City311AuditEventSet
+			if navSet, _, _, err = s.fetchFullPageOfCity311AuditEvents(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfCity311AuditEvents collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfCity311AuditEvents(
+	ctx context.Context,
+	filter composeType.City311AuditEventFilter,
+	sort filter.SortExprSet,
+) (set []*composeType.City311AuditEvent, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*composeType.City311AuditEvent
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter composeType.City311AuditEventFilter
+	)
+
+	set = make([]*composeType.City311AuditEvent, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryCity311AuditEvents(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectCity311AuditEventCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectCity311AuditEventCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectCity311AuditEventCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryCity311AuditEvents queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryCity311AuditEvents(
+	ctx context.Context,
+	f composeType.City311AuditEventFilter,
+) (_ []*composeType.City311AuditEvent, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*composeType.City311AuditEvent, 0, DefaultSliceCapacity)
+		res         *composeType.City311AuditEvent
+		aux         *auxCity311AuditEvent
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.City311AuditEvent != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.City311AuditEvent(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = City311AuditEventFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for City311AuditEvent: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableCity311AuditEventFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := city311AuditEventSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(f.Sort, s.sortableCity311AuditEventFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for City311AuditEvent: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query City311AuditEvent: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query City311AuditEvent: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query City311AuditEvent: %w", err)
+			return
+		}
+
+		aux = new(auxCity311AuditEvent)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for City311AuditEvent: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode City311AuditEvent: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupCity311AuditEventByID
+//
+// This function is auto-generated
+func (s *Store) LookupCity311AuditEventByID(ctx context.Context, id uint64) (_ *composeType.City311AuditEvent, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxCity311AuditEvent)
+		lookup = city311AuditEventSelectQuery(s.Dialect.GOQU()).Where(
+			goqu.I("id").Eq(id),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableCity311AuditEventFields returns all <no value> columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableCity311AuditEventFields() map[string]string {
+	return map[string]string{
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"event_type": "event_type",
+		"eventtype":  "event_type",
+		"id":         "id",
+		"request_id": "request_id",
+		"requestid":  "request_id",
+	}
+}
+
+// collectCity311AuditEventCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectCity311AuditEventCursorValues(res *composeType.City311AuditEvent, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "requestID":
+					return res.RequestID
+				case "eventType":
+					return res.EventType
+				case "createdAt":
+					return res.CreatedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkCity311AuditEventConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkCity311AuditEventConstraints(ctx context.Context, res *composeType.City311AuditEvent) (err error) {
+	return nil
+}
+
+// CreateCity311IdempotencyRecord creates one or more rows in city311IdempotencyRecord collection
+//
+// This function is auto-generated
+func (s *Store) CreateCity311IdempotencyRecord(ctx context.Context, rr ...*composeType.City311IdempotencyRecord) (err error) {
+	for i := range rr {
+		if err = s.checkCity311IdempotencyRecordConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311IdempotencyRecordInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateCity311IdempotencyRecord updates one or more existing entries in city311IdempotencyRecord collection
+//
+// This function is auto-generated
+func (s *Store) UpdateCity311IdempotencyRecord(ctx context.Context, rr ...*composeType.City311IdempotencyRecord) (err error) {
+	for i := range rr {
+		if err = s.checkCity311IdempotencyRecordConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311IdempotencyRecordUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertCity311IdempotencyRecord updates one or more existing entries in city311IdempotencyRecord collection
+//
+// This function is auto-generated
+func (s *Store) UpsertCity311IdempotencyRecord(ctx context.Context, rr ...*composeType.City311IdempotencyRecord) (err error) {
+	for i := range rr {
+		if err = s.checkCity311IdempotencyRecordConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, city311IdempotencyRecordUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, city311IdempotencyRecordInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, city311IdempotencyRecordUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteCity311IdempotencyRecord Deletes one or more entries from city311IdempotencyRecord collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311IdempotencyRecord(ctx context.Context, rr ...*composeType.City311IdempotencyRecord) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, city311IdempotencyRecordDeleteQuery(s.Dialect.GOQU(), city311IdempotencyRecordPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteCity311IdempotencyRecordByID deletes single entry from city311IdempotencyRecord collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311IdempotencyRecordByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, city311IdempotencyRecordDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateCity311IdempotencyRecords Deletes all rows from the city311IdempotencyRecord collection
+func (s *Store) TruncateCity311IdempotencyRecords(ctx context.Context) error {
+	return s.Exec(ctx, city311IdempotencyRecordTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchCity311IdempotencyRecords returns (filtered) set of City311IdempotencyRecords
+//
+// This function is auto-generated
+func (s *Store) SearchCity311IdempotencyRecords(ctx context.Context, f composeType.City311IdempotencyRecordFilter) (set composeType.City311IdempotencyRecordSet, _ composeType.City311IdempotencyRecordFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfCity311IdempotencyRecords fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfCity311IdempotencyRecords(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.City311IdempotencyRecordSet
+			if navSet, _, _, err = s.fetchFullPageOfCity311IdempotencyRecords(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfCity311IdempotencyRecords collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfCity311IdempotencyRecords(
+	ctx context.Context,
+	filter composeType.City311IdempotencyRecordFilter,
+	sort filter.SortExprSet,
+) (set []*composeType.City311IdempotencyRecord, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*composeType.City311IdempotencyRecord
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter composeType.City311IdempotencyRecordFilter
+	)
+
+	set = make([]*composeType.City311IdempotencyRecord, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryCity311IdempotencyRecords(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectCity311IdempotencyRecordCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectCity311IdempotencyRecordCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectCity311IdempotencyRecordCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryCity311IdempotencyRecords queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryCity311IdempotencyRecords(
+	ctx context.Context,
+	f composeType.City311IdempotencyRecordFilter,
+) (_ []*composeType.City311IdempotencyRecord, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*composeType.City311IdempotencyRecord, 0, DefaultSliceCapacity)
+		res         *composeType.City311IdempotencyRecord
+		aux         *auxCity311IdempotencyRecord
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.City311IdempotencyRecord != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.City311IdempotencyRecord(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = City311IdempotencyRecordFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for City311IdempotencyRecord: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableCity311IdempotencyRecordFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := city311IdempotencyRecordSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(f.Sort, s.sortableCity311IdempotencyRecordFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for City311IdempotencyRecord: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query City311IdempotencyRecord: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query City311IdempotencyRecord: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query City311IdempotencyRecord: %w", err)
+			return
+		}
+
+		aux = new(auxCity311IdempotencyRecord)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for City311IdempotencyRecord: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode City311IdempotencyRecord: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupCity311IdempotencyRecordByID
+//
+// This function is auto-generated
+func (s *Store) LookupCity311IdempotencyRecordByID(ctx context.Context, id uint64) (_ *composeType.City311IdempotencyRecord, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxCity311IdempotencyRecord)
+		lookup = city311IdempotencyRecordSelectQuery(s.Dialect.GOQU()).Where(
+			goqu.I("id").Eq(id),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// LookupCity311IdempotencyRecordByOperationKeyHash
+//
+// This function is auto-generated
+func (s *Store) LookupCity311IdempotencyRecordByOperationKeyHash(ctx context.Context, operation string, keyHash string) (_ *composeType.City311IdempotencyRecord, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxCity311IdempotencyRecord)
+		lookup = city311IdempotencyRecordSelectQuery(s.Dialect.GOQU()).Where(
+			goqu.I("operation").Eq(operation),
+			goqu.I("key_hash").Eq(keyHash),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableCity311IdempotencyRecordFields returns all <no value> columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableCity311IdempotencyRecordFields() map[string]string {
+	return map[string]string{
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"expires_at": "expires_at",
+		"expiresat":  "expires_at",
+		"id":         "id",
+	}
+}
+
+// collectCity311IdempotencyRecordCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectCity311IdempotencyRecordCursorValues(res *composeType.City311IdempotencyRecord, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "createdAt":
+					return res.CreatedAt
+				case "expiresAt":
+					return res.ExpiresAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkCity311IdempotencyRecordConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkCity311IdempotencyRecordConstraints(ctx context.Context, res *composeType.City311IdempotencyRecord) (err error) {
+	err = func() (err error) {
+
+		// handling string type as default
+		if len(res.Operation) == 0 {
+			// skip check on empty values
+			return nil
+		}
+
+		// handling string type as default
+		if len(res.KeyHash) == 0 {
+			// skip check on empty values
+			return nil
+		}
+
+		ex, err := s.LookupCity311IdempotencyRecordByOperationKeyHash(ctx, res.Operation, res.KeyHash)
+		if err == nil && ex != nil && ex.ID != res.ID {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	}()
+
+	if err != nil {
+		return
+	}
+
+	return nil
+}
+
+// CreateCity311PublicHistoryItem creates one or more rows in city311PublicHistoryItem collection
+//
+// This function is auto-generated
+func (s *Store) CreateCity311PublicHistoryItem(ctx context.Context, rr ...*composeType.City311PublicHistoryItem) (err error) {
+	for i := range rr {
+		if err = s.checkCity311PublicHistoryItemConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311PublicHistoryItemInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateCity311PublicHistoryItem updates one or more existing entries in city311PublicHistoryItem collection
+//
+// This function is auto-generated
+func (s *Store) UpdateCity311PublicHistoryItem(ctx context.Context, rr ...*composeType.City311PublicHistoryItem) (err error) {
+	for i := range rr {
+		if err = s.checkCity311PublicHistoryItemConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311PublicHistoryItemUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertCity311PublicHistoryItem updates one or more existing entries in city311PublicHistoryItem collection
+//
+// This function is auto-generated
+func (s *Store) UpsertCity311PublicHistoryItem(ctx context.Context, rr ...*composeType.City311PublicHistoryItem) (err error) {
+	for i := range rr {
+		if err = s.checkCity311PublicHistoryItemConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, city311PublicHistoryItemUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, city311PublicHistoryItemInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, city311PublicHistoryItemUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteCity311PublicHistoryItem Deletes one or more entries from city311PublicHistoryItem collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311PublicHistoryItem(ctx context.Context, rr ...*composeType.City311PublicHistoryItem) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, city311PublicHistoryItemDeleteQuery(s.Dialect.GOQU(), city311PublicHistoryItemPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteCity311PublicHistoryItemByID deletes single entry from city311PublicHistoryItem collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311PublicHistoryItemByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, city311PublicHistoryItemDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateCity311PublicHistoryItems Deletes all rows from the city311PublicHistoryItem collection
+func (s *Store) TruncateCity311PublicHistoryItems(ctx context.Context) error {
+	return s.Exec(ctx, city311PublicHistoryItemTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchCity311PublicHistoryItems returns (filtered) set of City311PublicHistoryItems
+//
+// This function is auto-generated
+func (s *Store) SearchCity311PublicHistoryItems(ctx context.Context, f composeType.City311PublicHistoryItemFilter) (set composeType.City311PublicHistoryItemSet, _ composeType.City311PublicHistoryItemFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfCity311PublicHistoryItems fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfCity311PublicHistoryItems(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.City311PublicHistoryItemSet
+			if navSet, _, _, err = s.fetchFullPageOfCity311PublicHistoryItems(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfCity311PublicHistoryItems collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfCity311PublicHistoryItems(
+	ctx context.Context,
+	filter composeType.City311PublicHistoryItemFilter,
+	sort filter.SortExprSet,
+) (set []*composeType.City311PublicHistoryItem, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*composeType.City311PublicHistoryItem
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter composeType.City311PublicHistoryItemFilter
+	)
+
+	set = make([]*composeType.City311PublicHistoryItem, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryCity311PublicHistoryItems(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectCity311PublicHistoryItemCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectCity311PublicHistoryItemCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectCity311PublicHistoryItemCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryCity311PublicHistoryItems queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryCity311PublicHistoryItems(
+	ctx context.Context,
+	f composeType.City311PublicHistoryItemFilter,
+) (_ []*composeType.City311PublicHistoryItem, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*composeType.City311PublicHistoryItem, 0, DefaultSliceCapacity)
+		res         *composeType.City311PublicHistoryItem
+		aux         *auxCity311PublicHistoryItem
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.City311PublicHistoryItem != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.City311PublicHistoryItem(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = City311PublicHistoryItemFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for City311PublicHistoryItem: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableCity311PublicHistoryItemFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := city311PublicHistoryItemSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(f.Sort, s.sortableCity311PublicHistoryItemFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for City311PublicHistoryItem: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query City311PublicHistoryItem: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query City311PublicHistoryItem: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query City311PublicHistoryItem: %w", err)
+			return
+		}
+
+		aux = new(auxCity311PublicHistoryItem)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for City311PublicHistoryItem: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode City311PublicHistoryItem: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupCity311PublicHistoryItemByID
+//
+// This function is auto-generated
+func (s *Store) LookupCity311PublicHistoryItemByID(ctx context.Context, id uint64) (_ *composeType.City311PublicHistoryItem, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxCity311PublicHistoryItem)
+		lookup = city311PublicHistoryItemSelectQuery(s.Dialect.GOQU()).Where(
+			goqu.I("id").Eq(id),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableCity311PublicHistoryItemFields returns all <no value> columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableCity311PublicHistoryItemFields() map[string]string {
+	return map[string]string{
+		"id":          "id",
+		"occurred_at": "occurred_at",
+		"occurredat":  "occurred_at",
+		"request_id":  "request_id",
+		"requestid":   "request_id",
+	}
+}
+
+// collectCity311PublicHistoryItemCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectCity311PublicHistoryItemCursorValues(res *composeType.City311PublicHistoryItem, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "requestID":
+					return res.RequestID
+				case "occurredAt":
+					return res.OccurredAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkCity311PublicHistoryItemConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkCity311PublicHistoryItemConstraints(ctx context.Context, res *composeType.City311PublicHistoryItem) (err error) {
+	return nil
+}
+
+// CreateCity311RequestAttachment creates one or more rows in city311RequestAttachment collection
+//
+// This function is auto-generated
+func (s *Store) CreateCity311RequestAttachment(ctx context.Context, rr ...*composeType.City311RequestAttachment) (err error) {
+	for i := range rr {
+		if err = s.checkCity311RequestAttachmentConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311RequestAttachmentInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateCity311RequestAttachment updates one or more existing entries in city311RequestAttachment collection
+//
+// This function is auto-generated
+func (s *Store) UpdateCity311RequestAttachment(ctx context.Context, rr ...*composeType.City311RequestAttachment) (err error) {
+	for i := range rr {
+		if err = s.checkCity311RequestAttachmentConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311RequestAttachmentUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertCity311RequestAttachment updates one or more existing entries in city311RequestAttachment collection
+//
+// This function is auto-generated
+func (s *Store) UpsertCity311RequestAttachment(ctx context.Context, rr ...*composeType.City311RequestAttachment) (err error) {
+	for i := range rr {
+		if err = s.checkCity311RequestAttachmentConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, city311RequestAttachmentUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, city311RequestAttachmentInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, city311RequestAttachmentUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteCity311RequestAttachment Deletes one or more entries from city311RequestAttachment collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311RequestAttachment(ctx context.Context, rr ...*composeType.City311RequestAttachment) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, city311RequestAttachmentDeleteQuery(s.Dialect.GOQU(), city311RequestAttachmentPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteCity311RequestAttachmentByID deletes single entry from city311RequestAttachment collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311RequestAttachmentByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, city311RequestAttachmentDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateCity311RequestAttachments Deletes all rows from the city311RequestAttachment collection
+func (s *Store) TruncateCity311RequestAttachments(ctx context.Context) error {
+	return s.Exec(ctx, city311RequestAttachmentTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchCity311RequestAttachments returns (filtered) set of City311RequestAttachments
+//
+// This function is auto-generated
+func (s *Store) SearchCity311RequestAttachments(ctx context.Context, f composeType.City311RequestAttachmentFilter) (set composeType.City311RequestAttachmentSet, _ composeType.City311RequestAttachmentFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfCity311RequestAttachments fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfCity311RequestAttachments(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.City311RequestAttachmentSet
+			if navSet, _, _, err = s.fetchFullPageOfCity311RequestAttachments(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfCity311RequestAttachments collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfCity311RequestAttachments(
+	ctx context.Context,
+	filter composeType.City311RequestAttachmentFilter,
+	sort filter.SortExprSet,
+) (set []*composeType.City311RequestAttachment, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*composeType.City311RequestAttachment
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter composeType.City311RequestAttachmentFilter
+	)
+
+	set = make([]*composeType.City311RequestAttachment, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryCity311RequestAttachments(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectCity311RequestAttachmentCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectCity311RequestAttachmentCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectCity311RequestAttachmentCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryCity311RequestAttachments queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryCity311RequestAttachments(
+	ctx context.Context,
+	f composeType.City311RequestAttachmentFilter,
+) (_ []*composeType.City311RequestAttachment, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*composeType.City311RequestAttachment, 0, DefaultSliceCapacity)
+		res         *composeType.City311RequestAttachment
+		aux         *auxCity311RequestAttachment
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.City311RequestAttachment != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.City311RequestAttachment(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = City311RequestAttachmentFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for City311RequestAttachment: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableCity311RequestAttachmentFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := city311RequestAttachmentSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(f.Sort, s.sortableCity311RequestAttachmentFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for City311RequestAttachment: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query City311RequestAttachment: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query City311RequestAttachment: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query City311RequestAttachment: %w", err)
+			return
+		}
+
+		aux = new(auxCity311RequestAttachment)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for City311RequestAttachment: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode City311RequestAttachment: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupCity311RequestAttachmentByID
+//
+// This function is auto-generated
+func (s *Store) LookupCity311RequestAttachmentByID(ctx context.Context, id uint64) (_ *composeType.City311RequestAttachment, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxCity311RequestAttachment)
+		lookup = city311RequestAttachmentSelectQuery(s.Dialect.GOQU()).Where(
+			goqu.I("id").Eq(id),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableCity311RequestAttachmentFields returns all <no value> columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableCity311RequestAttachmentFields() map[string]string {
+	return map[string]string{
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"id":         "id",
+		"request_id": "request_id",
+		"requestid":  "request_id",
+	}
+}
+
+// collectCity311RequestAttachmentCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectCity311RequestAttachmentCursorValues(res *composeType.City311RequestAttachment, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "requestID":
+					return res.RequestID
+				case "createdAt":
+					return res.CreatedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkCity311RequestAttachmentConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkCity311RequestAttachmentConstraints(ctx context.Context, res *composeType.City311RequestAttachment) (err error) {
+	return nil
+}
+
+// CreateCity311RequestSequence creates one or more rows in city311RequestSequence collection
+//
+// This function is auto-generated
+func (s *Store) CreateCity311RequestSequence(ctx context.Context, rr ...*composeType.City311RequestSequence) (err error) {
+	for i := range rr {
+		if err = s.checkCity311RequestSequenceConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311RequestSequenceInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateCity311RequestSequence updates one or more existing entries in city311RequestSequence collection
+//
+// This function is auto-generated
+func (s *Store) UpdateCity311RequestSequence(ctx context.Context, rr ...*composeType.City311RequestSequence) (err error) {
+	for i := range rr {
+		if err = s.checkCity311RequestSequenceConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311RequestSequenceUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertCity311RequestSequence updates one or more existing entries in city311RequestSequence collection
+//
+// This function is auto-generated
+func (s *Store) UpsertCity311RequestSequence(ctx context.Context, rr ...*composeType.City311RequestSequence) (err error) {
+	for i := range rr {
+		if err = s.checkCity311RequestSequenceConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, city311RequestSequenceUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, city311RequestSequenceInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, city311RequestSequenceUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteCity311RequestSequence Deletes one or more entries from city311RequestSequence collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311RequestSequence(ctx context.Context, rr ...*composeType.City311RequestSequence) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, city311RequestSequenceDeleteQuery(s.Dialect.GOQU(), city311RequestSequencePrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteCity311RequestSequenceByID deletes single entry from city311RequestSequence collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311RequestSequenceByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, city311RequestSequenceDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateCity311RequestSequences Deletes all rows from the city311RequestSequence collection
+func (s *Store) TruncateCity311RequestSequences(ctx context.Context) error {
+	return s.Exec(ctx, city311RequestSequenceTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchCity311RequestSequences returns (filtered) set of City311RequestSequences
+//
+// This function is auto-generated
+func (s *Store) SearchCity311RequestSequences(ctx context.Context, f composeType.City311RequestSequenceFilter) (set composeType.City311RequestSequenceSet, _ composeType.City311RequestSequenceFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfCity311RequestSequences fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfCity311RequestSequences(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.City311RequestSequenceSet
+			if navSet, _, _, err = s.fetchFullPageOfCity311RequestSequences(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfCity311RequestSequences collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfCity311RequestSequences(
+	ctx context.Context,
+	filter composeType.City311RequestSequenceFilter,
+	sort filter.SortExprSet,
+) (set []*composeType.City311RequestSequence, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*composeType.City311RequestSequence
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter composeType.City311RequestSequenceFilter
+	)
+
+	set = make([]*composeType.City311RequestSequence, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryCity311RequestSequences(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectCity311RequestSequenceCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectCity311RequestSequenceCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectCity311RequestSequenceCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryCity311RequestSequences queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryCity311RequestSequences(
+	ctx context.Context,
+	f composeType.City311RequestSequenceFilter,
+) (_ []*composeType.City311RequestSequence, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*composeType.City311RequestSequence, 0, DefaultSliceCapacity)
+		res         *composeType.City311RequestSequence
+		aux         *auxCity311RequestSequence
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.City311RequestSequence != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.City311RequestSequence(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = City311RequestSequenceFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for City311RequestSequence: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableCity311RequestSequenceFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := city311RequestSequenceSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(f.Sort, s.sortableCity311RequestSequenceFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for City311RequestSequence: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query City311RequestSequence: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query City311RequestSequence: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query City311RequestSequence: %w", err)
+			return
+		}
+
+		aux = new(auxCity311RequestSequence)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for City311RequestSequence: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode City311RequestSequence: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupCity311RequestSequenceByID
+//
+// This function is auto-generated
+func (s *Store) LookupCity311RequestSequenceByID(ctx context.Context, id uint64) (_ *composeType.City311RequestSequence, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxCity311RequestSequence)
+		lookup = city311RequestSequenceSelectQuery(s.Dialect.GOQU()).Where(
+			goqu.I("id").Eq(id),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableCity311RequestSequenceFields returns all <no value> columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableCity311RequestSequenceFields() map[string]string {
+	return map[string]string{
+		"id": "id",
+	}
+}
+
+// collectCity311RequestSequenceCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectCity311RequestSequenceCursorValues(res *composeType.City311RequestSequence, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkCity311RequestSequenceConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkCity311RequestSequenceConstraints(ctx context.Context, res *composeType.City311RequestSequence) (err error) {
+	return nil
+}
+
+// CreateCity311ServiceRequest creates one or more rows in city311ServiceRequest collection
+//
+// This function is auto-generated
+func (s *Store) CreateCity311ServiceRequest(ctx context.Context, rr ...*composeType.City311ServiceRequest) (err error) {
+	for i := range rr {
+		if err = s.checkCity311ServiceRequestConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311ServiceRequestInsertQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpdateCity311ServiceRequest updates one or more existing entries in city311ServiceRequest collection
+//
+// This function is auto-generated
+func (s *Store) UpdateCity311ServiceRequest(ctx context.Context, rr ...*composeType.City311ServiceRequest) (err error) {
+	for i := range rr {
+		if err = s.checkCity311ServiceRequestConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		if err = s.Exec(ctx, city311ServiceRequestUpdateQuery(s.Dialect.GOQU(), rr[i])); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// UpsertCity311ServiceRequest updates one or more existing entries in city311ServiceRequest collection
+//
+// This function is auto-generated
+func (s *Store) UpsertCity311ServiceRequest(ctx context.Context, rr ...*composeType.City311ServiceRequest) (err error) {
+	for i := range rr {
+		if err = s.checkCity311ServiceRequestConstraints(ctx, rr[i]); err != nil {
+			return
+		}
+
+		// @todo this solution is ok for now but could be problematic when we start
+		// batching together DB operations.
+		if s.Dialect.Nuances().TwoStepUpsert {
+			var rsp sql.Result
+			rsp, err = s.ExecR(ctx, city311ServiceRequestUpdateQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+			if c, err := rsp.RowsAffected(); err != nil {
+				return err
+			} else if c > 0 {
+				continue
+			}
+
+			err = s.Exec(ctx, city311ServiceRequestInsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		} else {
+			err = s.Exec(ctx, city311ServiceRequestUpsertQuery(s.Dialect.GOQU(), rr[i]))
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
+// DeleteCity311ServiceRequest Deletes one or more entries from city311ServiceRequest collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311ServiceRequest(ctx context.Context, rr ...*composeType.City311ServiceRequest) (err error) {
+	for i := range rr {
+		if err = s.Exec(ctx, city311ServiceRequestDeleteQuery(s.Dialect.GOQU(), city311ServiceRequestPrimaryKeys(rr[i]))); err != nil {
+			return
+		}
+	}
+
+	return nil
+}
+
+// DeleteCity311ServiceRequestByID deletes single entry from city311ServiceRequest collection
+//
+// This function is auto-generated
+func (s *Store) DeleteCity311ServiceRequestByID(ctx context.Context, id uint64) error {
+	return s.Exec(ctx, city311ServiceRequestDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
+		"id": id,
+	}))
+}
+
+// TruncateCity311ServiceRequests Deletes all rows from the city311ServiceRequest collection
+func (s *Store) TruncateCity311ServiceRequests(ctx context.Context) error {
+	return s.Exec(ctx, city311ServiceRequestTruncateQuery(s.Dialect.GOQU()))
+}
+
+// SearchCity311ServiceRequests returns (filtered) set of City311ServiceRequests
+//
+// This function is auto-generated
+func (s *Store) SearchCity311ServiceRequests(ctx context.Context, f composeType.City311ServiceRequestFilter) (set composeType.City311ServiceRequestSet, _ composeType.City311ServiceRequestFilter, err error) {
+
+	// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+	f.PrevPage, f.NextPage = nil, nil
+
+	if f.PageCursor != nil {
+		if f.IncPageNavigation || f.IncTotal {
+			return nil, f, fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+		}
+
+		// Page cursor exists; we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+			return
+		}
+	}
+
+	// Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("id") == nil {
+		f.Sort = append(f.Sort, &filter.SortExpr{
+			Column:     "id",
+			Descending: f.Sort.LastDescending(),
+		})
+	}
+
+	// Cloned sorting instructions for the actual sorting
+	// Original are passed to the etchFullPageOfCity311ServiceRequests fn used for cursor creation;
+	// direction information it MUST keep the initial
+	sort := f.Sort.Clone()
+
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if f.PageCursor != nil && f.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfCity311ServiceRequests(ctx, f, sort)
+
+	f.PageCursor = nil
+	if err != nil {
+		return nil, f, err
+	}
+
+	if f.IncTotal {
+		// Calc total from the number of items fetched
+		// even if we do build the page navigation
+		f.Total = uint(len(set))
+
+		if f.Limit > 0 && uint(len(set)) == f.Limit {
+			// there are fewer items fetched then requested limit
+			limit := f.Limit
+			f.Limit = 0
+			var navSet composeType.City311ServiceRequestSet
+			if navSet, _, _, err = s.fetchFullPageOfCity311ServiceRequests(ctx, f, sort); err != nil {
+				return
+			} else {
+				f.Total = uint(len(navSet))
+				f.Limit = limit
+			}
+		}
+	}
+
+	return set, f, nil
+}
+
+// fetchFullPageOfCity311ServiceRequests collects all requested results.
+//
+// Function applies:
+//   - cursor conditions (where ...)
+//   - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// # Function then moves cursor to the last item fetched
+//
+// This function is auto-generated
+func (s *Store) fetchFullPageOfCity311ServiceRequests(
+	ctx context.Context,
+	filter composeType.City311ServiceRequestFilter,
+	sort filter.SortExprSet,
+) (set []*composeType.City311ServiceRequest, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*composeType.City311ServiceRequest
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = filter.PageCursor != nil && filter.PageCursor.ROrder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = filter.Limit
+
+		reqItems = filter.Limit
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = filter.PageCursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+
+		tryFilter composeType.City311ServiceRequestFilter
+	)
+
+	set = make([]*composeType.City311ServiceRequest, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		// Copy filter & apply custom sorting that might be affected by cursor
+		tryFilter = filter
+		tryFilter.Sort = sort
+
+		if limit > 0 {
+			// fetching + 1 to peak ahead if there are more items
+			// we can fetch (next-page cursor)
+			tryFilter.Limit = limit + 1
+		}
+
+		if aux, hasNext, err = s.QueryCity311ServiceRequests(ctx, tryFilter); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 || !hasNext {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			tryFilter.PageCursor = s.collectCity311ServiceRequestCursorValues(set[collected-1], filter.Sort...)
+
+			// Copy reverse flag from sorting
+			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectCity311ServiceRequestCursorValues(set[0], filter.Sort...)
+		prev.ROrder = true
+		prev.LThen = !filter.Sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectCity311ServiceRequestCursorValues(set[collected-1], filter.Sort...)
+		next.LThen = filter.Sort.Reversed()
+	}
+
+	return set, prev, next, nil
+}
+
+// QueryCity311ServiceRequests queries the database, converts and checks each row and returns collected set
+//
+// With generics, we can remove this per-resource-generated function
+// and replace it with a single utility fetcher
+//
+// This function is auto-generated
+func (s *Store) QueryCity311ServiceRequests(
+	ctx context.Context,
+	f composeType.City311ServiceRequestFilter,
+) (_ []*composeType.City311ServiceRequest, more bool, err error) {
+	var (
+		ok bool
+
+		set         = make([]*composeType.City311ServiceRequest, 0, DefaultSliceCapacity)
+		res         *composeType.City311ServiceRequest
+		aux         *auxCity311ServiceRequest
+		rows        *sql.Rows
+		count       uint
+		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
+	)
+
+	if s.Filters.City311ServiceRequest != nil {
+		// extended filter set
+		tExpr, f, err = s.Filters.City311ServiceRequest(s, f)
+	} else {
+		// using generated filter
+		tExpr, f, err = City311ServiceRequestFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		err = fmt.Errorf("could not generate filter expression for City311ServiceRequest: %w", err)
+		return
+	}
+
+	expr = append(expr, tExpr...)
+
+	// paging feature is enabled
+	if f.PageCursor != nil {
+		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableCity311ServiceRequestFields()); err != nil {
+			return
+		} else {
+			expr = append(expr, tExpr...)
+		}
+	}
+
+	query := city311ServiceRequestSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(f.Sort, s.sortableCity311ServiceRequestFields()); err != nil {
+		err = fmt.Errorf("could not generate order expression for City311ServiceRequest: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
+
+	if f.Limit > 0 {
+		query = query.Limit(f.Limit)
+	}
+
+	rows, err = s.Query(ctx, query)
+	if err != nil {
+		err = fmt.Errorf("could not query City311ServiceRequest: %w", err)
+		return
+	}
+
+	if err = rows.Err(); err != nil {
+		err = fmt.Errorf("could not query City311ServiceRequest: %w", err)
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			err = fmt.Errorf("could not query City311ServiceRequest: %w", err)
+			return
+		}
+
+		aux = new(auxCity311ServiceRequest)
+		if err = aux.scan(rows); err != nil {
+			err = fmt.Errorf("could not scan rows for City311ServiceRequest: %w", err)
+			return
+		}
+
+		count++
+		if res, err = aux.decode(); err != nil {
+			err = fmt.Errorf("could not decode City311ServiceRequest: %w", err)
+			return
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if f.Check != nil {
+			if ok, err = f.Check(res); err != nil {
+				return
+			} else if !ok {
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, f.Limit > 0 && count >= f.Limit, err
+
+}
+
+// LookupCity311ServiceRequestByID
+//
+// This function is auto-generated
+func (s *Store) LookupCity311ServiceRequestByID(ctx context.Context, id uint64) (_ *composeType.City311ServiceRequest, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxCity311ServiceRequest)
+		lookup = city311ServiceRequestSelectQuery(s.Dialect.GOQU()).Where(
+			goqu.I("id").Eq(id),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// LookupCity311ServiceRequestByRequestNumber
+//
+// This function is auto-generated
+func (s *Store) LookupCity311ServiceRequestByRequestNumber(ctx context.Context, requestNumber string) (_ *composeType.City311ServiceRequest, err error) {
+	var (
+		rows   *sql.Rows
+		aux    = new(auxCity311ServiceRequest)
+		lookup = city311ServiceRequestSelectQuery(s.Dialect.GOQU()).Where(
+			goqu.I("request_number").Eq(requestNumber),
+		).Limit(1)
+	)
+
+	rows, err = s.Query(ctx, lookup)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		closeError := rows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	if !rows.Next() {
+		return nil, store.ErrNotFound.Stack(1)
+	}
+
+	if err = aux.scan(rows); err != nil {
+		return
+	}
+
+	return aux.decode()
+}
+
+// sortableCity311ServiceRequestFields returns all <no value> columns flagged as sortable
+//
+// # Notes
+// With optional string arg, all columns are returned aliased
+//
+// This function is auto-generated
+func (Store) sortableCity311ServiceRequestFields() map[string]string {
+	return map[string]string{
+		"council_district":    "council_district",
+		"councildistrict":     "council_district",
+		"created_at":          "created_at",
+		"createdat":           "created_at",
+		"duplicate_group_id":  "duplicate_group_id",
+		"duplicategroupid":    "duplicate_group_id",
+		"id":                  "id",
+		"origin_class":        "origin_class",
+		"originclass":         "origin_class",
+		"owning_department":   "owning_department",
+		"owningdepartment":    "owning_department",
+		"primary_assignee_id": "primary_assignee_id",
+		"primaryassigneeid":   "primary_assignee_id",
+		"request_number":      "request_number",
+		"requestnumber":       "request_number",
+		"service_type":        "service_type",
+		"servicetype":         "service_type",
+		"source_channel":      "source_channel",
+		"sourcechannel":       "source_channel",
+		"status":              "status",
+		"summary":             "summary",
+		"updated_at":          "updated_at",
+		"updatedat":           "updated_at",
+		"version":             "version",
+	}
+}
+
+// collectCity311ServiceRequestCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// # Known issues:
+//
+// When collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+// undeleted items)
+//
+// This function is auto-generated
+func (s *Store) collectCity311ServiceRequestCursorValues(res *composeType.City311ServiceRequest, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cur = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+		hasUnique bool
+
+		pkID bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			getVal := func(col string) interface{} {
+				switch col {
+				case "id":
+					pkID = true
+					return res.ID
+				case "requestNumber":
+					return res.RequestNumber
+				case "summary":
+					return res.Summary
+				case "serviceType":
+					return res.ServiceType
+				case "owningDepartment":
+					return res.OwningDepartment
+				case "councilDistrict":
+					return res.CouncilDistrict
+				case "sourceChannel":
+					return res.SourceChannel
+				case "originClass":
+					return res.OriginClass
+				case "status":
+					return res.Status
+				case "primaryAssigneeID":
+					return res.PrimaryAssigneeID
+				case "duplicateGroupID":
+					return res.DuplicateGroupID
+				case "version":
+					return res.Version
+				case "createdAt":
+					return res.CreatedAt
+				case "updatedAt":
+					return res.UpdatedAt
+				}
+				return nil
+			}
+
+			for _, c := range cc {
+				switch c.Modifier() {
+				case filter.COALESCE:
+					var val interface{}
+					for _, col := range c.Columns() {
+						if reflect2.IsNil(val) {
+							val = getVal(col)
+						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				default:
+					cur.Set(c.Column, getVal(c.Column), c.Descending)
+				}
+			}
+		}
+	)
+
+	_ = hasUnique
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cur
+
+}
+
+// checkCity311ServiceRequestConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant, but unfortunately we cannot rely
+// on the full support (MySQL does not support conditional indexes)
+//
+// This function is auto-generated
+func (s *Store) checkCity311ServiceRequestConstraints(ctx context.Context, res *composeType.City311ServiceRequest) (err error) {
+	err = func() (err error) {
+
+		// handling string type as default
+		if len(res.RequestNumber) == 0 {
+			// skip check on empty values
+			return nil
+		}
+
+		ex, err := s.LookupCity311ServiceRequestByRequestNumber(ctx, res.RequestNumber)
 		if err == nil && ex != nil && ex.ID != res.ID {
 			return store.ErrNotUnique.Stack(1)
 		} else if !errors.IsNotFound(err) {
