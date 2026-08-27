@@ -4,10 +4,10 @@
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
+# ok/bad/note come from tty.sh; only the exit code is this script's own.
 fail=0
-ok() { echo "  $(paint "$C_GREEN" "$G_OK") $*"; }
-bad() {
-  echo "  $(paint "$C_RED" "$G_BAD") $(paint "$C_RED" "$*")" >&2
+failed() {
+  bad "$@"
   fail=1
 }
 
@@ -22,10 +22,10 @@ else
   # the right one. Matched by this checkout's own binary path, because another
   # checkout on this machine runs a watcher of the same name.
   if pgrep -f "devwatch .*-bin $SERVER_DIR/build/dev-bin" >/dev/null 2>&1; then
-    bad "server is building at $HUMAN_BASE — the watcher is up but the binary is not serving yet."
-    echo "    $(paint "$C_DIM" "$G_HINT Retry in ~15s; dev/agent/logs.sh -n 20 shows the build.")" >&2
+    failed "server is building at $HUMAN_BASE — the watcher is up but the binary is not serving yet."
+    note "Retry in ~15s; dev/agent/logs.sh -n 20 shows the build."
   else
-    bad "server not reachable at $HUMAN_BASE — start it: cd server && make watch"
+    failed "server not reachable at $HUMAN_BASE — start it: cd server && make watch"
   fi
   exit 1
 fi
@@ -34,7 +34,7 @@ tok=$("$AGENT_DIR/token.sh" 2>/dev/null)
 if [[ -n "${tok:-}" ]]; then
   ok "token minted"
 else
-  bad "cannot mint token — run dev/agent/bootstrap.sh"
+  failed "cannot mint token — run dev/agent/bootstrap.sh"
   exit 1
 fi
 
@@ -44,13 +44,13 @@ if [[ -n "${who:-}" ]]; then
   usr=$(curl -sf -m 5 -H "Authorization: Bearer $tok" "$HUMAN_API/system/users/$sub" 2>/dev/null)
   ok "identity: $(json_get response.name <<<"$usr" 2>/dev/null || echo '?') <$(json_get response.email <<<"$usr" 2>/dev/null || echo '?')> (userID $sub)"
 else
-  bad "token rejected by $HUMAN_AUTH/oauth2/info"
+  failed "token rejected by $HUMAN_AUTH/oauth2/info"
 fi
 
 if "$AGENT_DIR/api.sh" GET '/system/users/?limit=1' >/dev/null 2>&1; then
   ok "authenticated API access works"
 else
-  bad "authenticated API call failed (GET /system/users/)"
+  failed "authenticated API call failed (GET /system/users/)"
 fi
 
 exit $fail

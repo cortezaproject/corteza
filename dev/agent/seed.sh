@@ -36,7 +36,7 @@ ns_id() { # ns_id SLUG — print namespaceID or fail
 for slug in "${picks[@]}"; do
   def="$FIXTURES_DIR/$slug/def.yaml"
   [[ -f "$def" ]] || {
-    echo "no such fixture: $slug ($def missing)" >&2
+    bad "no such fixture: $slug $(paint "$C_DIM" "($def missing)")"
     exit 1
   }
 
@@ -44,9 +44,9 @@ for slug in "${picks[@]}"; do
     if ((force)); then
       curl -sf -m 15 -X DELETE -H "Authorization: Bearer $token" \
         "$HUMAN_API/compose/namespace/$id" >/dev/null
-      echo "deleted existing namespace $slug (ID $id)"
+      ok "deleted existing namespace $slug $(paint "$C_DIM" "(ID $id)")"
     else
-      echo "fixture $slug already seeded (namespace ID $id) — use --force to re-import"
+      warn "fixture $slug already seeded $(paint "$C_DIM" "(namespace ID $id)") — use --force to re-import"
       continue
     fi
   fi
@@ -61,7 +61,7 @@ for slug in "${picks[@]}"; do
   rm -f "$stage/ui.json"
   server_cli import --skip-existing "$stage"
   id=$(ns_id "$slug") || {
-    echo "import ran but namespace $slug not found" >&2
+    bad "import ran but namespace $slug not found"
     exit 1
   }
 
@@ -83,7 +83,7 @@ for m in json.load(sys.stdin)["response"]["set"]:
       curl -sf -m 15 -X POST -H "Authorization: Bearer $token" \
         -H 'Content-Type: application/json' -d @- \
         "$HUMAN_API/compose/namespace/$id/module/$mid" >/dev/null || {
-      echo "DAL re-registration failed for module $mid" >&2
+      bad "DAL re-registration failed for module $mid"
       exit 1
     }
   done
@@ -98,5 +98,5 @@ for m in json.load(sys.stdin)["response"]["set"]:
   # spending a request per kind rediscovering what seeding just created.
   "$AGENT_DIR/ids.sh" "$slug" >/dev/null || true
 
-  echo "seeded fixture $slug (namespace ID $id)"
+  ok "seeded fixture $slug $(paint "$C_DIM" "(namespace ID $id)")"
 done

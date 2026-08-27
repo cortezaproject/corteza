@@ -34,7 +34,7 @@ while (($#)); do
       scope="${1:?--session needs an ID}"
       ;;
     *)
-      echo "unknown argument: $1" >&2
+      bad "unknown argument: $1"
       exit 1
       ;;
   esac
@@ -42,7 +42,7 @@ while (($#)); do
 done
 
 if [[ ! -f "$LEDGER" ]]; then
-  echo "nothing recorded as created (no $LEDGER)"
+  ok "nothing recorded as created $(paint "$C_DIM" "(no $LEDGER)")"
   exit 0
 fi
 
@@ -107,4 +107,4 @@ if ((purge)); then
   ENVIRONMENT=dev server_cli compose namespaces purge 2>/dev/null | grep -v '"level":"warn"' || true
 fi
 
-echo "cleanup done (${deleted} recorded namespace(s) in scope${scope:+, session $scope})"
+ok "cleanup done — $(paint "$C_BOLD" "${deleted}") recorded namespace(s) in scope${scope:+$(paint "$C_DIM" ", session $scope")}"

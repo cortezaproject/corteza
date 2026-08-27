@@ -189,9 +189,9 @@ stop_port_group() { # stop_port_group PORT SIGNAL
 
 orphan_warning() { # orphan_warning PORT PIDFILE WHAT
   if [[ -f "$2" ]]; then
-    echo "$3 already up on $1"
+    echo "  $(paint "$C_DIM" "$G_OK $3 already up on $1")"
   else
-    echo "$3 already up on $1 but unmanaged (pid $(port_holder "$1")) — 'down --force' reclaims it" >&2
+    warn "$3 already up on $1 but unmanaged (pid $(port_holder "$1")) — 'down --force' reclaims it"
   fi
 }
 
@@ -208,9 +208,6 @@ pg() {
 }
 
 # ---------------------------------------------------------------- new --------
-
-# step LABEL DETAIL — one thing this command did.
-step() { printf '  %s %-12s %s\n' "$(paint "$C_GREEN" "$G_OK")" "$1" "$2"; }
 
 cmd_new() {
   local name="${1:-}" base="HEAD"
@@ -351,7 +348,7 @@ cmd_up() {
   }
 
   if [[ ! -d "$path/node_modules" ]]; then
-    echo "installing deps (first run in this worktree) …"
+    note "installing deps (first run in this worktree) …"
     (cd "$path" && pnpm install --silent)
   fi
 
@@ -359,7 +356,7 @@ cmd_up() {
   # the watcher would have `up` announce a server and return while the port is
   # still dead.
   if [[ ! -x "$path/server/build/dev-bin" ]]; then
-    echo "building the server (first run in this worktree) …"
+    note "building the server (first run in this worktree) …"
     (cd "$path/server" && go build -o build/dev-bin ./cmd/human)
   fi
 
@@ -382,7 +379,7 @@ cmd_up() {
   fi
 
   echo
-  echo "The server rebuilds and restarts itself on any .go write — give it ~15s."
+  note "The server rebuilds and restarts itself on any .go write — give it ~15s."
 }
 
 cmd_down() {
@@ -436,7 +433,7 @@ cmd_down() {
     if [[ -n "$force" && -n "$holder" ]]; then
       kill -TERM -"$(ps -o pgid= -p "$holder" | tr -d ' ')" 2>/dev/null ||
         kill -TERM "$holder" 2>/dev/null || true
-      echo "forced port $p (pid $holder)"
+      ok "forced port $p $(paint "$C_DIM" "(pid $holder)")"
     else
       echo "port $p still bound by pid ${holder:-?} — 'down $name --force' reclaims it" >&2
       stuck=1
@@ -536,7 +533,7 @@ cmd_land() {
     die "landing would collide with work already in the primary — resolve that first"
   }
 
-  echo "landing '$name' ($ahead commit(s))"
+  section "landing '$name'" && echo "  $(paint "$C_DIM" "$ahead commit(s)")"
   git -C "$path" rebase main >/dev/null 2>&1 || {
     git -C "$path" rebase --abort 2>/dev/null || true
     die "'$name' does not rebase cleanly onto main — resolve it in $path"
@@ -548,7 +545,7 @@ cmd_land() {
   step merged "$(paint "$C_DIM" "fast-forward, no merge commit")"
 
   if [[ -n "$keep" ]]; then
-    echo "  worktree kept — it is now level with main"
+    note "worktree kept — it is now level with main"
   else
     cmd_rm "$name"
   fi
@@ -591,9 +588,9 @@ cmd_gc() {
         git -C "$primary" worktree prune 2>/dev/null || true
         rm -f "$f"
         release_slot "$slot"
-        echo "reaped  $name — checkout was already gone (database $db, slot $slot)"
+        ok "reaped  $name $(paint "$C_DIM" "— checkout was already gone (database $db, slot $slot)")"
       else
-        echo "stale   $name — checkout gone, database $db and slot $slot still held"
+        warn "stale   $name — checkout gone, database $db and slot $slot still held"
       fi
       continue
     fi
@@ -624,7 +621,7 @@ cmd_gc() {
     if [[ -n "$reap" ]]; then
       cmd_rm "$name" >/dev/null && echo "reaped  $name — clean and fully merged"
     else
-      echo "reapable $name — clean, fully merged, not serving"
+      ok "reapable $name $(paint "$C_DIM" "— clean, fully merged, not serving")"
     fi
   done
 
@@ -642,14 +639,14 @@ cmd_gc() {
     if [[ -n "$reap" ]]; then
       pg dropdb --if-exists "$d" && echo "reaped  database $d — no worktree claims it"
     else
-      echo "orphan  database $d — no worktree claims it"
+      warn "orphan  database $d — no worktree claims it"
     fi
   done < <(pg psql -tAc "select datname from pg_database where datname like '${base}_wt%'" 2>/dev/null || true)
 
   report_orphans
 
   if [[ "$found" -eq 0 && "$held" -eq 0 ]]; then
-    echo "nothing to collect"
+    ok "nothing to collect"
   elif [[ -z "$reap" && "$found" -gt 0 ]]; then
     echo
     echo "$found item(s) safe to remove — 'worktree.sh gc --reap'"
@@ -708,9 +705,9 @@ cmd_rm() {
   fi
 
   if [[ -n "$keep_branch" ]]; then
-    echo "removed '$name' (checkout, database $db, slot freed); branch kept"
+    ok "removed '$name' $(paint "$C_DIM" "(checkout, database $db, slot freed); branch kept")"
   elif [[ "$ahead" -gt 0 ]]; then
-    echo "removed '$name' (checkout, database $db, slot freed)"
+    ok "removed '$name' $(paint "$C_DIM" "(checkout, database $db, slot freed)")"
     echo
     echo "branch '$name' KEPT — it holds $ahead commit(s) that are not on main:" >&2
     git -C "$primary" log --oneline "main..$name" >&2
@@ -719,7 +716,7 @@ cmd_rm() {
     echo "  or discard: git branch -D $name" >&2
   else
     git -C "$primary" branch -d "$name" >/dev/null 2>&1 || true
-    echo "removed '$name' (checkout, database $db, branch, slot freed)"
+    ok "removed '$name' $(paint "$C_DIM" "(checkout, database $db, branch, slot freed)")"
   fi
 }
 

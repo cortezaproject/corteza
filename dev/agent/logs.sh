@@ -31,16 +31,17 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ ! -f "$LOG" ]]; then
-  echo "no dev log at $LOG — (re)start the dev server with 'cd server && make watch'" >&2
-  echo "(the watch target tees its output there; an older session may predate this)" >&2
+  bad "no dev log at $LOG"
+  note "(re)start the dev server with 'cd server && make watch'"
+  note "the watch target tees its output there; an older session may predate this"
   exit 1
 fi
 
 if ((follow)); then
   exec tail -f "$LOG"
 elif [[ -n "$pattern" ]]; then
-  tail -n "$lines" "$LOG" | grep -i --color=never -- "$pattern" || {
-    echo "(no match for '$pattern' in last $lines lines)" >&2
+  tail -n "$lines" "$LOG" | grep -i --color="$GREP_COLOUR_WHEN" -- "$pattern" || {
+    warn "no match for '$pattern' in last $lines lines"
     exit 1
   }
 else

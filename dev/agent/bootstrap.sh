@@ -10,10 +10,12 @@
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
-echo "== agent toolkit bootstrap ($HUMAN_API)"
+section "agent toolkit bootstrap"
+echo "  $(paint "$C_DIM" "$HUMAN_API")"
 
 if ! curl -sf -m 5 "$HUMAN_BASE/version" >/dev/null; then
-  echo "dev server not reachable at $HUMAN_BASE — start it: cd server && make watch" >&2
+  bad "dev server not reachable at $HUMAN_BASE"
+  note "start it: cd server && make watch"
   exit 1
 fi
 
@@ -25,14 +27,14 @@ if ! server_cli auth jwt "$AGENT_EMAIL" >/dev/null 2>&1; then
   server_cli import --skip-existing "$AGENT_DIR/seed/dev-agent.yaml"
 fi
 server_cli roles useradd super-admin "$AGENT_EMAIL" >/dev/null 2>&1 ||
-  echo "note: 'roles useradd super-admin' reported existing membership (ok)"
-echo "user $AGENT_EMAIL ensured (super-admin)"
+  note "'roles useradd super-admin' reported existing membership (ok)"
+ok "user $AGENT_EMAIL ensured (super-admin)"
 
 # Bootstrap admin token straight from the CLI (the JWT lands on stderr).
 admin_tok=$(server_cli auth jwt "$AGENT_EMAIL" --scope profile --scope api 2>&1 |
   grep -Eom1 'ey[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+')
 [[ -n "$admin_tok" ]] || {
-  echo "could not mint bootstrap JWT via server CLI" >&2
+  bad "could not mint bootstrap JWT via server CLI"
   exit 1
 }
 
@@ -44,7 +46,7 @@ capi() { # capi METHOD PATH [curl args...]
 }
 
 agent_uid=$(capi GET "/system/users/?email=$AGENT_EMAIL" | json_get response.set.0.userID) || {
-  echo "cannot resolve userID of $AGENT_EMAIL" >&2
+  bad "cannot resolve userID of $AGENT_EMAIL"
   exit 1
 }
 
@@ -53,7 +55,7 @@ agent_handle=$(capi GET "/system/users/$agent_uid" | json_get response.handle) |
 if [[ "$agent_handle" != "agent_dev" ]]; then
   capi PUT "/system/users/$agent_uid" \
     -d "{\"email\":\"$AGENT_EMAIL\",\"name\":\"Dev Agent (local tooling)\",\"handle\":\"agent_dev\"}" >/dev/null
-  echo "user handle $agent_handle -> agent_dev"
+  ok "user handle $agent_handle → agent_dev"
 fi
 
 client_payload() {
@@ -87,19 +89,19 @@ fi
 if [[ -z "$client_id" ]]; then
   client_id=$(client_payload | capi POST /system/auth/clients/ -d @- |
     json_get response.authClientID)
-  echo "auth client $AGENT_CLIENT created (ID $client_id)"
+  ok "auth client $AGENT_CLIENT created $(paint "$C_DIM" "(ID $client_id)")"
 else
   client_payload | capi PUT "/system/auth/clients/$client_id" -d @- >/dev/null
-  echo "auth client $AGENT_CLIENT updated (ID $client_id)"
+  ok "auth client $AGENT_CLIENT updated $(paint "$C_DIM" "(ID $client_id)")"
 fi
 
 umask 077
 capi GET "/system/auth/clients/$client_id/secret" | json_get response >"$STATE_DIR/secret"
 [[ -s "$STATE_DIR/secret" ]] || {
-  echo "could not read client secret" >&2
+  bad "could not read client secret"
   exit 1
 }
-echo "client secret cached in .state/secret"
+ok "client secret cached in .state/secret"
 
 # One identity for both paths: the auth client impersonates this user for API
 # calls, and the same user logs into the webapp for browser checks. Nothing in
@@ -111,13 +113,13 @@ if [[ ! -f "$STATE_DIR/ui-password" ]] || [[ -n "${RESET_UI_PASSWORD:-}" ]]; the
 fi
 capi POST "/system/users/$agent_uid/password" \
   -d "{\"password\":\"$(cat "$STATE_DIR/ui-password")\"}" >/dev/null
-echo "browser login ready: $AGENT_EMAIL / password in dev/agent/.state/ui-password"
+ok "browser login ready: $(paint "$C_CYAN" "$AGENT_EMAIL") $(paint "$C_DIM" "· password in dev/agent/.state/ui-password")"
 
 # Converge a box provisioned while UI login was a separate user.
 old_ui=$(capi GET "/system/users/?email=agent-ui@local.dev" | json_get response.set.0.userID) || old_ui=""
 if [[ -n "$old_ui" ]]; then
   capi DELETE "/system/users/$old_ui" >/dev/null 2>&1 || true
-  echo "removed superseded user agent-ui@local.dev (ID $old_ui)"
+  ok "removed superseded user agent-ui@local.dev $(paint "$C_DIM" "(ID $old_ui)")"
 fi
 
 # Read-only browser-login user, for checking what a user WITHOUT permission
@@ -136,13 +138,13 @@ if [[ -z "$ro_role" ]]; then
   ro_role=$(capi POST /system/roles/ \
     -d '{"name":"Dev Agent read-only (RBAC fixture)","handle":"agent_readonly"}' |
     json_get response.roleID)
-  echo "role agent_readonly created (ID $ro_role)"
+  ok "role agent_readonly created $(paint "$C_DIM" "(ID $ro_role)")"
 fi
 
 # Guard: never write the fixture's rules or members onto another role.
 ro_role_handle=$(capi GET "/system/roles/$ro_role" | json_get response.handle) || ro_role_handle=""
 [[ "$ro_role_handle" == "agent_readonly" ]] || {
-  echo "refusing to configure role $ro_role — its handle is '$ro_role_handle', not agent_readonly" >&2
+  bad "refusing to configure role $ro_role — its handle is '$ro_role_handle', not agent_readonly"
   exit 1
 }
 
@@ -157,14 +159,14 @@ capi PATCH "/system/permissions/$ro_role/rules" -d '{"rules":[
   {"resource":"corteza::system:application/*","operation":"read","access":"allow"},
   {"resource":"corteza::system:application/*","operation":"access","access":"allow"}
 ]}' >/dev/null
-echo "role agent_readonly rules applied"
+ok "role agent_readonly rules applied"
 
 ro_uid=$(capi GET "/system/users/?email=$ro_email" | json_get response.set.0.userID) || ro_uid=""
 if [[ -z "$ro_uid" ]]; then
   ro_uid=$(capi POST /system/users/ \
     -d "{\"email\":\"$ro_email\",\"name\":\"Dev Agent RO (read-only browser login)\",\"handle\":\"agent_ro\"}" |
     json_get response.userID)
-  echo "user $ro_email created"
+  ok "user $ro_email created"
 fi
 capi POST "/system/roles/$ro_role/member/$ro_uid" >/dev/null 2>&1 || true
 if [[ ! -f "$STATE_DIR/ro-password" ]] || [[ -n "${RESET_UI_PASSWORD:-}" ]]; then
@@ -172,13 +174,13 @@ if [[ ! -f "$STATE_DIR/ro-password" ]] || [[ -n "${RESET_UI_PASSWORD:-}" ]]; the
 fi
 capi POST "/system/users/$ro_uid/password" \
   -d "{\"password\":\"$(cat "$STATE_DIR/ro-password")\"}" >/dev/null
-echo "read-only login ready: $ro_email / password in dev/agent/.state/ro-password"
+ok "read-only login ready: $(paint "$C_CYAN" "$ro_email") $(paint "$C_DIM" "· password in dev/agent/.state/ro-password")"
 
 rm -f "$STATE_DIR/token" "$STATE_DIR/token-exp"
 if ! "$AGENT_DIR/token.sh" >/dev/null; then
-  echo "oauth client_credentials flow failed for client '$AGENT_CLIENT'" >&2
+  bad "oauth client_credentials flow failed for client '$AGENT_CLIENT'"
   exit 1
 fi
-echo "oauth client_credentials flow verified"
+ok "oauth client_credentials flow verified"
 
 exec "$AGENT_DIR/smoke.sh"

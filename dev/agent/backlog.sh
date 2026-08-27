@@ -39,7 +39,7 @@ BACKLOG="$STATE_DIR/backlog.jsonl"
 touch "$BACKLOG"
 
 die() {
-  echo "backlog: $*" >&2
+  bad "backlog: $*"
   exit 1
 }
 
@@ -142,7 +142,7 @@ cmd_list() {
   live="${live}${AGENT_SESSION}"
 
   py '
-import json, sys
+import json, os, sys
 path, show_all, want, view, me, live = sys.argv[1:7]
 live = set(x for x in live.split(",") if x)
 items = {}
@@ -189,14 +189,24 @@ if not items:
     }.get(view, "nothing queued")
     print(hint if not want else "%s against %s" % (hint, want))
     raise SystemExit
+# Colour arrives from tty.sh, already empty when it is switched off, so there
+# is no second place deciding whether this output is decorated.
+DIM, BOLD, RESET = (os.environ.get(k, "") for k in ("C_DIM", "C_BOLD", "C_RESET"))
+CYAN, GREEN = os.environ.get("C_CYAN", ""), os.environ.get("C_GREEN", "")
+
 for i in sorted(items, key=lambda x: x["ts"]):
-    mark = {"open": "[ ]", "done": "[x]", "dropped": "[-]"}.get(i["status"], "[?]")
+    mark, colour = {
+        "open": ("[ ]", ""),
+        "done": ("[x]", GREEN),
+        "dropped": ("[-]", DIM),
+    }.get(i["status"], ("[?]", DIM))
     tag = "  " if scope(i) == "shared" else ("me" if mine(i) else "··")
-    print("%s %s %s  %s" % (mark, tag, i["id"], i["text"]))
+    print("%s%s %s %s%s%s  %s%s" % (
+        colour, mark, tag, CYAN, i["id"], RESET + colour, i["text"], RESET))
     if i.get("files"):
-        print("        files: %s" % ", ".join(i["files"]))
+        print("%s        files: %s%s" % (DIM, ", ".join(i["files"]), RESET))
     if i.get("task"):
-        print("        from:  %s (%s)" % (i["task"], i["ts"][:10]))
+        print("%s        from:  %s (%s)%s" % (DIM, i["task"], i["ts"][:10], RESET))
 ' "$BACKLOG" "$all" "$files" "$view" "$AGENT_SESSION" "$live"
 }
 

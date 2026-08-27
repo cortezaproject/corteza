@@ -35,8 +35,15 @@ die_diag() {
     python3 -c 'import json,sys; print(json.dumps({"error":{"kind":sys.argv[1],"message":" ".join(sys.argv[2:])}}))' \
       "$kind" "$@"
   else
-    local line
-    for line in "$@"; do echo "$line" >&2; done
+    local line first=1
+    for line in "$@"; do
+      if [[ -n "$first" ]]; then
+        bad "$line"
+        first=""
+      else
+        note "$line"
+      fi
+    done
   fi
   exit "$code"
 }
@@ -85,7 +92,7 @@ if errmsg=$(json_get error.message <"$body" 2>/dev/null); then
     echo
     exit 1
   fi
-  echo "API error (HTTP $status): $errmsg" >&2
+  bad "API error (HTTP $status): $errmsg"
   exit 1
 fi
 
@@ -122,10 +129,10 @@ PY
   else
     stored_id="${issue##*$'\t'}"
     issue="${issue%%$'\t'*}"
-    echo "API refused this automation (HTTP $status): $issue" >&2
-    echo "The body is valid and the status is 200 — the refusal is in response.issues." >&2
+    bad "API refused this automation (HTTP $status): $issue"
+    note "The body is valid and the status is 200 — the refusal is in response.issues."
     if [[ -n "$stored_id" ]]; then
-      echo "It was stored anyway as ID $stored_id and holds its handle: fix the spec and PUT/POST to that ID. Repeating the create answers \"handle not unique\"." >&2
+      note "It was stored anyway as ID $stored_id and holds its handle: fix the spec and PUT/POST to that ID. Repeating the create answers \"handle not unique\"."
     fi
   fi
   exit 1
@@ -183,6 +190,6 @@ if ((status >= 400)); then
   if [[ -n "$json_mode" ]]; then
     exit 1
   fi
-  echo "HTTP $status" >&2
+  bad "HTTP $status"
   exit 1
 fi

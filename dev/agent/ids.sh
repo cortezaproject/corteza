@@ -43,7 +43,7 @@ for slug in "${picks[@]}"; do
   ns=$(fetch "/compose/namespace/?slug=$slug&limit=1")
   ns_id=$(printf '%s' "$ns" | json_get response.set.0.namespaceID 2>/dev/null || true)
   if [[ -z "$ns_id" ]]; then
-    echo "no namespace with slug $slug" >&2
+    bad "no namespace with slug $slug"
     continue
   fi
 
