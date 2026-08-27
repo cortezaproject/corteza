@@ -237,48 +237,12 @@ editor:
       label: Works in
       placeholder: Every namespace the invoker can reach
     summary:
-      always: '{n} run without asking'
-      ask: '{n} need approval'
       chosen: '{n} tools chosen'
-      inherits: No tools chosen
       inheritsHelp: Answers from what it knows. It cannot look anything up or change
         anything until you give it a tool.
-    seed:
-      help: Choose the namespace this agent is for and every tool you give it will be
-        confined to that namespace. It does not grant anything on its own — until the
-        agent has a tool it reaches nothing.
-      label: What is this agent for?
-    groups:
-      configuring_read: All builder tools — read only
-      configuring_read_help: Read namespaces, modules, pages, charts and automations. Cannot change them.
-      configuring_write: All builder tools — read and write
-      configuring_write_help:
-        Build and change the data model and its pages. Cannot delete. Give this only to
-        an agent whose job is building.
-      usage_read: All data tools — read only
-      usage_read_help:
-        Look up and aggregate records, and read the definitions needed to interpret them.
-        Cannot change anything. Picks up new tools as they are added.
-      usage_write: All data tools — read and write
-      usage_write_help:
-        Everything above, plus creating and updating records. Cannot delete, and cannot
-        change the data model.
-    addNamespace: Add namespace
-    allModules: all modules accessible
-    configure: Configure tool
-    configureAccess: Configure Access
-    configureAccessHelp: Define which namespaces and modules this tool can access. Access is restricted by default when not configured.
-    descriptionPlaceholder: Optional description for this tool...
     help: Choose the tools this agent may call. A tool only ever does what the person
       invoking the agent is already allowed to do, so granting one never widens access.
     label: Allowed Tools
-    modulesPlaceholder: All modules accessible
-    namespacePlaceholder: Select namespace...
-    noTools: No tools configured
-    restricted: No Access
-    selectPlaceholder: Select a tool to add...
-    toolDescription: Description
-    toolName: Tool Name
   userEnabled:
     help: Allow users to invoke this agent directly through chat
     label: Enable User Chat Invocation
