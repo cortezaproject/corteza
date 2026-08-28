@@ -481,33 +481,34 @@
                            the foot. -->
                       <div
                         v-else-if="toolSummary.total"
-                        class="max-w-lg rounded-border border border-surface bg-emphasis p-3 text-sm flex flex-col gap-2"
+                        class="max-w-lg rounded-border border border-surface bg-emphasis p-3 text-sm"
                         data-testid="tool-summary"
                       >
-                        <span class="text-color">
-                          {{ $t('agent.editor.tools.summary.chosen', { n: toolSummary.total }) }}
-                        </span>
-
-                        <!-- Sized by its content rather than by the box, so
-                             a count sits beside the subject it belongs to
-                             however few rows there are. -->
-                        <table class="self-start">
+                        <!-- Sized by its content rather than by the box, so a
+                             count sits beside the subject it belongs to however
+                             few rows there are. -->
+                        <table>
                           <thead>
                             <tr class="text-muted-color">
                               <!-- The subject column heads itself: every cell
                                    under it names one. -->
                               <th />
+                              <!-- The glyph alone heads the column; what it
+                                   counts is the sentence the dialog's own
+                                   sections carry, so the two read as one
+                                   notation. -->
                               <th
                                 v-for="mode in SUMMARY_MODES"
                                 :key="mode"
                                 scope="col"
-                                class="pb-1 pl-8 text-right font-normal whitespace-nowrap"
+                                class="pb-1 pl-8 text-right font-normal"
+                                :aria-label="modeLabel(mode)"
                               >
                                 <i
+                                  v-tooltip.top="modeLabel(mode)"
                                   :class="[modeIcon(mode), modeColour(mode)]"
-                                  class="text-xs mr-1"
+                                  class="text-base"
                                 />
-                                {{ $t(`agent.editor.tools.summary.column.${mode}`) }}
                               </th>
                             </tr>
                           </thead>
@@ -1032,6 +1033,10 @@ function modeIcon(mode) {
 
 function modeColour(mode) {
   return MODE_COLOURS[mode] || ''
+}
+
+function modeLabel(mode) {
+  return t(`agent.editor.tools.mode.${mode}`)
 }
 
 // Tool configuration dialog

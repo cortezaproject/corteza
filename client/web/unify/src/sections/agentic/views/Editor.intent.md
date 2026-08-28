@@ -34,7 +34,7 @@ screen without saving round-trips elsewhere.
 
 - **Works in** — one namespace (`access.allow[0]`), every tool confined to it; empty means whatever the invoker can reach. Changing it runs `confineTo`, which drops tool narrowings naming the old namespace, and a warning says how many lost one.
 - **Tools** — the catalog comes from `mcpListTools`; grants are edited in `AgentToolDialog` (a staged `draft`, applied on Apply, never written through) and read back as a readout beside it. Per-tool notes and namespace/module narrowings live in the dialog.
-- The readout is a subject × permission cross-tab from `summaryOf`: a headline count, one row per subject with its `Runs`/`Asks` counts, and a ruled `All tools` row. A column a subject has nothing in shows a dash. It is guarded on the catalog having loaded — a configured agent must not read as holding nothing while the fetch is in flight, or for good if it fails.
+- The readout is a subject × permission cross-tab from `summaryOf`: one row per subject, one column per permission headed by that permission's glyph, and a ruled `All tools` row carrying the whole agent's. The glyphs are the dialog's, and their tooltips are its `mode.*` sentences, so the two surfaces share one notation. A column a subject has nothing in shows a dash. It is guarded on the catalog having loaded — a configured agent must not read as holding nothing while the fetch is in flight, or for good if it fails.
 - Access is deny-by-default, so a total of zero is an agent that refuses every question; that state shows the `inheritsHelp` message instead of the table.
 
 ## Routes
