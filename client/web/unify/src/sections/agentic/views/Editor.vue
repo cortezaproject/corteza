@@ -480,7 +480,7 @@
                            the ruled row at the foot. -->
                       <div
                         v-else-if="toolSummary.total"
-                        class="w-fit max-w-lg rounded-border border border-surface p-4 text-sm"
+                        class="w-fit max-w-xl rounded-border border border-surface p-4 text-sm"
                         data-testid="tool-summary"
                       >
                         <!-- Sized by its content rather than by the box, so a
@@ -499,7 +499,7 @@
                                 v-for="col in SUMMARY_COLUMNS"
                                 :key="col"
                                 scope="col"
-                                class="border-b border-surface pb-2 text-right font-normal"
+                                class="border-b border-surface pb-2 text-center font-normal"
                                 :class="[columnClass(col), columnLit(col)]"
                                 :aria-label="columnLabel(col)"
                                 @mouseenter="litColumn = col"
@@ -533,7 +533,7 @@
                               <td
                                 v-for="col in SUMMARY_COLUMNS"
                                 :key="col"
-                                class="py-1 pt-2 text-right tabular-nums"
+                                class="py-1 pt-2 text-center tabular-nums"
                                 :class="[
                                   columnClass(col),
                                   columnLit(col),
@@ -558,7 +558,7 @@
                               <td
                                 v-for="col in SUMMARY_COLUMNS"
                                 :key="col"
-                                class="border-t border-surface pt-3 text-right tabular-nums"
+                                class="border-t border-surface pt-3 text-center tabular-nums"
                                 :class="[
                                   columnClass(col),
                                   columnLit(col),
@@ -874,7 +874,6 @@ import {
   RISK_ICONS,
   RISK_MODES,
   SUMMARY_COLUMNS,
-  SUMMARY_MODES,
   confineTo,
   splitGrants,
   summaryOf,
@@ -1066,11 +1065,6 @@ function isRisk(col) {
   return RISK_MODES.includes(col)
 }
 
-// Padding sits on both sides of a number rather than only its left, so the
-// column highlight is a band the digit is centred in. The gap between columns
-// is the two halves together; the rule keeps a wider one either side.
-const LAST_PERMISSION = SUMMARY_MODES[SUMMARY_MODES.length - 1]
-
 // The column under the pointer. A row lights from its own hover; a column has
 // no element spanning it, so its cells are told which one is lit.
 const litColumn = ref(null)
@@ -1079,11 +1073,10 @@ function columnLit(col) {
   return litColumn.value === col ? 'bg-emphasis' : ''
 }
 
+// Every column the same width, so a highlight band is the same size whatever
+// number sits in it and the rule keeps half a column of air either side.
 function columnClass(col) {
-  if (col === RISK_MODES[0]) return 'border-l border-surface pl-6 pr-3'
-  if (col === LAST_PERMISSION) return 'pl-3 pr-6'
-  if (col === RISK_MODES[RISK_MODES.length - 1]) return 'pl-3 pr-2'
-  return 'px-3'
+  return col === RISK_MODES[0] ? 'w-16 border-l border-surface' : 'w-16'
 }
 
 function columnIcon(col) {
