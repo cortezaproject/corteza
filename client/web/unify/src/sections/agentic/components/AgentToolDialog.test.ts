@@ -333,14 +333,19 @@ describe('AgentToolDialog section control', () => {
 
   // A total says how big the section is; the split says what it lets the agent
   // do, which is the question the header is there to answer.
-  it('shows a section as a split by mode rather than a total', () => {
+  // Blocked is not a third thing a section holds: a tool the agent may not use
+  // and one it was never given come to the same thing, so the counts say what
+  // the section lets the agent do and nothing else.
+  it('shows a section as a split by mode, leaving out what it blocks', () => {
     const w = mountDialog([{ name: 'compose_record_lookup' }])
     const vm = w.vm as any
 
-    expect(vm.sectionCounts(domain(vm, 'records'))).toEqual([
-      { mode: 'always', n: 1 },
-      { mode: 'deny', n: 1 },
-    ])
+    expect(vm.sectionCounts(domain(vm, 'records'))).toEqual([{ mode: 'always', n: 1 }])
+  })
+
+  it('shows nothing at all for a section the agent has none of', () => {
+    const vm = mountDialog().vm as any
+    expect(vm.sectionCounts(domain(vm, 'records'))).toEqual([])
   })
 
   it('reads a section nothing has been chosen in as blocked', () => {

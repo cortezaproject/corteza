@@ -130,7 +130,7 @@
                        section header's size it claimed to be a section. -->
                   <div
                     v-if="d.areas.length > 1"
-                    class="font-medium text-muted-color text-xs uppercase tracking-wide mt-3 mb-1"
+                    class="mb-1 mt-3 px-4 text-xs font-medium uppercase tracking-wide text-muted-color"
                   >
                     {{ area.label }}
                   </div>
@@ -378,6 +378,7 @@ import {
   hasSettings,
   modeOf,
   scopeBlocked,
+  SUMMARY_MODES,
   scopesModules,
   summaryOf,
   tally,
@@ -621,8 +622,14 @@ function sectionMode(d) {
   return tools.every(tool => rowMode(tool) === first) ? first : 'custom'
 }
 
+// What the agent has, split the way the readout outside splits it. Blocked is
+// not a third thing a section holds: a tool the agent may not use and one it was
+// never given come to the same thing, and counting them says nothing about what
+// the section lets the agent do.
 function sectionCounts(d) {
-  return tally(toolsIn(d), permissions.value, families.value)
+  return tally(toolsIn(d), permissions.value, families.value).filter(c =>
+    SUMMARY_MODES.includes(c.mode),
+  )
 }
 
 // One click for a whole subject, which is the unit an agent is actually given:

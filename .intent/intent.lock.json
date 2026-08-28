@@ -517,12 +517,12 @@
       "t": "2026-08-19"
     },
     "client/web/unify/src/sections/agentic/components/AgentToolDialog.test.ts": {
-      "h": "fc0355e21b67",
+      "h": "0ee75895019f",
       "doc": "client/web/unify/src/sections/agentic/components/components.intent.md",
       "t": "2026-08-28"
     },
     "client/web/unify/src/sections/agentic/components/AgentToolDialog.vue": {
-      "h": "23397f53a3aa",
+      "h": "2c6d622a2495",
       "doc": "client/web/unify/src/sections/agentic/components/components.intent.md",
       "t": "2026-08-28"
     },
