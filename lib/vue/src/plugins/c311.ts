@@ -9,6 +9,37 @@ export interface C311PluginOptions {
   providerFactory?: (options: C311PluginOptions) => C311Provider
 }
 
+export interface C311ProviderConstructors {
+  C311HttpProvider?: new (transport: unknown) => C311Provider
+  C311FetchTransport?: new (options: { baseURL?: string }) => unknown
+  MockC311Provider?: new (options: {
+    role?: string
+    scenario?: string
+    sessionVariant?: 'current' | 'expired'
+  }) => C311Provider
+}
+
+export function createC311Provider (api: C311ProviderConstructors): C311Provider | undefined {
+  if (typeof window === 'undefined') return undefined
+
+  const configured = window.C311Provider
+  if (configured) return typeof configured === 'function' ? new configured() : configured
+
+  if (window.C311Mode === 'mock' && api.MockC311Provider) {
+    return new api.MockC311Provider({
+      role: window.C311MockRole,
+      scenario: window.C311MockScenario,
+      sessionVariant: window.C311MockSession || 'current',
+    })
+  }
+
+  if (api.C311HttpProvider && api.C311FetchTransport) {
+    return new api.C311HttpProvider(new api.C311FetchTransport({ baseURL: window.CortezaAPI || '' }))
+  }
+
+  return undefined
+}
+
 export class C311Runtime {
   provider: C311Provider
   session: C311Session | null = null
@@ -68,7 +99,10 @@ function configuredProvider (options: C311PluginOptions): C311Provider {
   if (options.provider) return options.provider
   if (options.providerFactory) return options.providerFactory(options)
   if (options.mockProvider) return options.mockProvider
-  if (typeof window !== 'undefined' && window.C311Provider) return window.C311Provider
+  if (typeof window !== 'undefined' && window.C311Provider) {
+    const configured = window.C311Provider
+    return typeof configured === 'function' ? new configured() : configured
+  }
   return fallbackProvider()
 }
 
@@ -88,7 +122,7 @@ declare module 'vue/types/vue' {
 
 declare global {
   interface Window {
-    C311Provider?: C311Provider
+    C311Provider?: C311Provider | (new () => C311Provider)
     C311Mode?: 'mock' | 'http'
     C311MockRole?: string
     C311MockScenario?: string

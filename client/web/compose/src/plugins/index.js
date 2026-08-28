@@ -26,19 +26,7 @@ Vue.use(Router)
 
 Vue.use(plugins.Auth(), { app: 'compose' })
 if (plugins.C311) {
-  const { C311HttpProvider, C311FetchTransport } = C311JS
-  const configured = window.C311Provider
-  const provider = configured
-    ? (typeof configured === 'function' ? new configured() : configured)
-    : window.C311Mode === 'mock' && C311JS.MockC311Provider
-      ? new C311JS.MockC311Provider({
-        role: window.C311MockRole,
-        scenario: window.C311MockScenario,
-        sessionVariant: window.C311MockSession || 'current',
-      })
-      : C311HttpProvider && C311FetchTransport
-        ? new C311HttpProvider(new C311FetchTransport({ baseURL: window.CortezaAPI || '' }))
-        : undefined
+  const provider = plugins.createC311Provider(C311JS)
   Vue.use(plugins.C311(provider ? { provider } : {}))
 }
 
