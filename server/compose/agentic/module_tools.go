@@ -61,6 +61,17 @@ const expressionsDoc = `EXPRESSIONS. Each slot gets a different scope. ` +
 	`The write result reports what cannot work under "issues"; no "issues" key is the clean ` +
 	`result.`
 
+// The words a caller brings for what a module tool configures. Field
+// expressions in particular had no route in: their whole documentation lives on
+// the "fields" parameter, and search reads names, keywords and the tool
+// description only — so "what is in scope for a value expression" matched every
+// tool that mentions expressions in passing and none that answers it.
+var moduleKeywords = hmcp.WithKeywords(
+	"table", "schema", "field", "column",
+	"expression", "formula", "calculated", "validator", "validation", "sanitizer", "formatter",
+	"default value",
+)
+
 // Declarations only. Implementations are in module_handler.go, in this order.
 
 func (h *moduleHandler) register() {
@@ -89,6 +100,7 @@ func (h *moduleHandler) register() {
 					"select options and any value expression — what you need to read or filter data. \"full\" adds "+
 					"field IDs, timestamps and storage config, which you only need when editing the module itself. "+
 					"Summary is a fraction of the size; a namespace of modules at full detail is tens of kilobytes.")),
+			moduleKeywords,
 			hmcp.InGroup(hmcp.GroupConfiguring, hmcp.GroupUsage),
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
@@ -104,6 +116,7 @@ func (h *moduleHandler) register() {
 			mcp.WithString("handle", mcp.Required(), mcp.Description("URL-friendly identifier (lowercase letters, digits, and underscores only)")),
 			mcp.WithString("fields", mcp.Description(fieldsParamDoc)),
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. Supports: recordDeDup (duplicate detection), recordRevisions (audit trail), privacy (data sensitivity). Rules live under a "rules" array — a bare rule object is accepted and silently stored as {}. Example: {"recordDeDup":{"rules":[{"name":"unique-email","strict":true,"constraints":[{"attribute":"email","modifier":"ignore-case|case-sensitive|fuzzy-match|sounds-like","multiValue":"one-of|equal"}]}]},"recordRevisions":{"enabled":true},"privacy":{"usageDisclosure":"text","sensitivityLevelID":"123"}}`)),
+			moduleKeywords,
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
 			hmcp.NeedsFullDocs(),
@@ -129,6 +142,7 @@ func (h *moduleHandler) register() {
 			mcp.WithString("fields", mcp.Description("JSON array of fields to add or update. Same format as compose_module_create. Existing fields not listed are preserved. "+expressionsDoc)),
 			mcp.WithString("removeFields", mcp.Description("JSON array of field names to remove, e.g. [\"fieldA\",\"fieldB\"]")),
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. Replaces the existing config. Supports: recordDeDup (duplicate detection), recordRevisions (audit trail), privacy (data sensitivity). Example: {"recordDeDup":{"rules":[{"name":"unique-email","strict":true,"constraints":[{"attribute":"email","modifier":"ignore-case"}]}]},"recordRevisions":{"enabled":true},"privacy":{"usageDisclosure":"Used for customer contact only"}}`)),
+			moduleKeywords,
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
 		),
