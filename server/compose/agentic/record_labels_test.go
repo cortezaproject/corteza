@@ -39,3 +39,34 @@ func TestRefLabelsSkipsEmptyWork(t *testing.T) {
 	assert.Nil(t, refLabels(nil, &cmpTypes.Module{}, nil))
 	assert.Nil(t, refLabels(nil, &cmpTypes.Module{}, cmpTypes.RecordSet{}))
 }
+
+// nestedLabels reaches the module and record services, so what is unit-testable
+// is that it decides not to before it gets there: a label field that is not
+// itself a reference, or one pointing nowhere, must cost no query at all. The
+// resolving half is exercised against a live module.
+func TestNestedLabelsSkipsEmptyWork(t *testing.T) {
+	recs := cmpTypes.RecordSet{
+		{ID: 1, Values: cmpTypes.RecordValueSet{{Name: "candidate", Value: "7"}}},
+	}
+
+	t.Run("a plain label field has no second level", func(t *testing.T) {
+		lf := &cmpTypes.ModuleField{Name: "full_name", Kind: "String"}
+		assert.Nil(t, nestedLabels(nil, 1, lf, "full_name", recs))
+	})
+
+	t.Run("a reference naming no module resolves nothing", func(t *testing.T) {
+		lf := &cmpTypes.ModuleField{Name: "candidate", Kind: "Record"}
+		assert.Nil(t, nestedLabels(nil, 1, lf, "full_name", recs))
+	})
+
+	t.Run("no records means nothing to look up", func(t *testing.T) {
+		lf := &cmpTypes.ModuleField{Name: "candidate", Kind: "Record", Options: cmpTypes.ModuleFieldOptions{"moduleID": "2"}}
+		assert.Nil(t, nestedLabels(nil, 1, lf, "full_name", nil))
+	})
+
+	t.Run("records carrying no reference mean nothing to look up", func(t *testing.T) {
+		lf := &cmpTypes.ModuleField{Name: "candidate", Kind: "Record", Options: cmpTypes.ModuleFieldOptions{"moduleID": "2"}}
+		empty := cmpTypes.RecordSet{{ID: 1, Values: cmpTypes.RecordValueSet{{Name: "candidate", Value: "0"}}}}
+		assert.Nil(t, nestedLabels(nil, 1, lf, "full_name", empty))
+	})
+}

@@ -22,8 +22,13 @@ const refLabelCeiling = 500
 
 // refTarget is one referenced module and everything this result points at in it.
 type refTarget struct {
-	ids        map[uint64]struct{}
-	labelField string
+	ids map[uint64]struct{}
+
+	// labelField names the value that stands in for a referenced record, and
+	// recordLabelField the one that stands in for it when labelField is itself
+	// a reference.
+	labelField       string
+	recordLabelField string
 }
 
 // refLabels maps every record and user ID a result mentions to the label a
@@ -71,6 +76,7 @@ func refLabels(ctx context.Context, mod *cmpTypes.Module, rr cmpTypes.RecordSet)
 			// choice wins and the rest read the same as the viewer fallback.
 			if t.labelField == "" {
 				t.labelField = f.Options.String("labelField")
+				t.recordLabelField = f.Options.String("recordLabelField")
 			}
 			for _, r := range rr {
 				for _, v := range r.Values.FilterByName(f.Name) {
@@ -138,11 +144,75 @@ func addRecordLabels(ctx context.Context, out map[string]string, nsID, modID uin
 		return
 	}
 
-	for _, rec := range findRecordsByID(ctx, nsID, modID, t.ids) {
-		if v := rec.Values.Get(lf.Name, 0); v != nil && v.Value != "" {
+	recs := findRecordsByID(ctx, nsID, modID, t.ids)
+	nested := nestedLabels(ctx, nsID, lf, t.recordLabelField, recs)
+
+	for _, rec := range recs {
+		v := rec.Values.Get(lf.Name, 0)
+		if v == nil || v.Value == "" {
+			continue
+		}
+
+		label := v.Value
+		if l, ok := nested[v.Value]; ok {
+			label = l
+		}
+		out[strconv.FormatUint(rec.ID, 10)] = label
+	}
+}
+
+// nestedLabels resolves the second level, for when the label field is itself a
+// reference and its value is another ID.
+//
+// Naming a record through what it points at is ordinary — an offer is known by
+// its application, an application by its candidate — and both the webapp
+// (CFieldRecordEditor's recordLabelField) and envoy follow the chain. Stopping
+// at one level put a record ID into the dictionary whose whole purpose is to
+// keep IDs out of the answer.
+//
+// Two levels and no further: that is as deep as the field options describe, and
+// each level costs a query.
+func nestedLabels(ctx context.Context, nsID uint64, lf *cmpTypes.ModuleField, named string, recs cmpTypes.RecordSet) map[string]string {
+	if lf.Kind != "Record" || len(recs) == 0 {
+		return nil
+	}
+
+	nestedModID, err := strconv.ParseUint(lf.Options.String("moduleID"), 10, 64)
+	if err != nil || nestedModID == 0 {
+		return nil
+	}
+
+	ids := map[uint64]struct{}{}
+	for _, rec := range recs {
+		v := rec.Values.Get(lf.Name, 0)
+		if v == nil {
+			continue
+		}
+		if id, err := strconv.ParseUint(v.Value, 10, 64); err == nil && id > 0 {
+			ids[id] = struct{}{}
+		}
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+
+	nestedMod, err := cmpService.DefaultModule.FindByID(ctx, nsID, nestedModID)
+	if err != nil || nestedMod == nil {
+		return nil
+	}
+
+	nlf := labelFieldOf(nestedMod, named)
+	if nlf == nil || nlf.Kind == "Record" {
+		return nil
+	}
+
+	out := map[string]string{}
+	for _, rec := range findRecordsByID(ctx, nsID, nestedModID, ids) {
+		if v := rec.Values.Get(nlf.Name, 0); v != nil && v.Value != "" {
 			out[strconv.FormatUint(rec.ID, 10)] = v.Value
 		}
 	}
+	return out
 }
 
 // findRecordsByID loads a specific set of records in one search.
@@ -244,8 +314,9 @@ func dimensionRefs(ctx context.Context, mod *cmpTypes.Module, dimension string, 
 			return nil
 		}
 		addRecordLabels(ctx, out, mod.NamespaceID, refMod, &refTarget{
-			ids:        ids,
-			labelField: f.Options.String("labelField"),
+			ids:              ids,
+			labelField:       f.Options.String("labelField"),
+			recordLabelField: f.Options.String("recordLabelField"),
 		})
 	case "User":
 		addUserLabels(ctx, out, ids)
