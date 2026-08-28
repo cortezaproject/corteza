@@ -227,8 +227,7 @@ editor:
         notePlaceholder: e.g. only for open leads
         summaryModules: 'Limited to {modules}'
         summaryNote: Note set
-      fromFamily: Granted by a family grant on this agent. Blocking it here writes an
-        exception to that grant.
+      fromFamily: Covered by a family grant
       inherits: No tools chosen — this agent answers from what it knows, and cannot look
         anything up or change anything. Whatever you give it here, it can only ever do
         what the person invoking it is already allowed to do.

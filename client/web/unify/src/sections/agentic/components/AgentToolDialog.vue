@@ -4,12 +4,19 @@
     modal
     :header="$t('agent.editor.tools.dialog.title')"
     :style="{ width: '72rem', height: '86vh' }"
-    :contentStyle="{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: '1 1 auto' }"
+    :contentStyle="{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: 0,
+      flex: '1 1 auto',
+      paddingLeft: 0,
+      paddingRight: 0,
+    }"
     :breakpoints="{ '1200px': '94vw' }"
     @update:visible="$emit('update:visible', $event)"
   >
     <div class="flex flex-col gap-4 min-h-0 flex-1">
-      <IconField>
+      <IconField class="mx-4">
         <InputIcon class="pi pi-search" />
         <InputText
           v-model="search"
@@ -23,16 +30,14 @@
            The other half is the part that is never otherwise on screen: a tool
            runs as the person invoking the agent, so it is a ceiling, not a
            widening. -->
-      <Message v-if="!chosenCount" severity="secondary" :closable="false" class="!my-0">
+      <Message v-if="!chosenCount" severity="secondary" :closable="false" class="!my-0 mx-4">
         {{ $t('agent.editor.tools.dialog.inherits') }}
       </Message>
 
-      <!-- The scroller is pulled into the dialog's own padding so rows line up
-           with the search field while the scrollbar sits in the gutter. -->
-      <div class="overflow-y-auto flex-1 min-h-0 -mr-2 pr-2">
+      <div class="overflow-y-auto flex-1 min-h-0">
         <section v-for="d in domains" :key="d.key">
           <div
-            class="tool-section-head sticky top-0 z-10 flex items-center gap-2 py-2 border-b border-surface"
+            class="tool-section-head sticky top-0 z-10 flex items-center gap-4 border-b border-surface px-4 py-2"
           >
             <button
               type="button"
@@ -45,23 +50,7 @@
                 :data-open="isOpen(d.key)"
               />
               <span class="min-w-0">
-                <span class="flex items-center gap-2.5">
-                  <span class="text-sm font-semibold text-color">{{ d.label }}</span>
-
-                  <!-- The split, not the total: a section reads as what it lets
-                       the agent do, and the total is the sum of what is shown. -->
-                  <span class="flex items-center gap-2.5 text-sm text-muted-color">
-                    <span
-                      v-for="c in sectionCounts(d)"
-                      :key="c.mode"
-                      v-tooltip.top="modeLabel(c.mode)"
-                      class="flex items-center gap-1"
-                    >
-                      <i :class="[modeIcon(c.mode), modeColour(c.mode)]" />
-                      <span class="tabular-nums">{{ c.n }}</span>
-                    </span>
-                  </span>
-                </span>
+                <span class="block text-sm font-semibold text-color">{{ d.label }}</span>
 
                 <!-- What the subject is. The tools inside say what they do; a
                      section name alone does not say what it covers, and
@@ -69,6 +58,23 @@
                 <span class="text-xs text-muted-color block">{{ d.description }}</span>
               </span>
             </button>
+
+            <!-- The split, not the total: a section reads as what it lets the
+                 agent do, and the total is the sum of what is shown. It sits
+                 with the control that sets it rather than against the title,
+                 where a name and a run of glyphs ran together. -->
+            <span class="flex shrink-0 items-center gap-2.5 text-sm text-muted-color">
+              <span
+                v-for="c in sectionCounts(d)"
+                :key="c.mode"
+                v-tooltip.top="modeLabel(c.mode)"
+                class="flex items-center gap-1"
+                :data-testid="`section-count-${d.key}-${c.mode}`"
+              >
+                <i :class="[modeIcon(c.mode), modeColour(c.mode)]" />
+                <span class="tabular-nums">{{ c.n }}</span>
+              </span>
+            </span>
 
             <!-- One statement about the whole section: what every tool in it
                  should do. It reads back as Custom when they disagree, which is
@@ -134,7 +140,7 @@
                     :key="tool.name"
                     class="border-b border-surface last:border-b-0"
                   >
-                    <div class="tool-row group flex items-start gap-3 py-2 -mx-2 px-2">
+                    <div class="tool-row group flex items-start gap-3 px-4 py-2">
                       <div
                         class="flex-1 min-w-0 flex items-start gap-2"
                         :class="{ 'tool-row-blocked': !toolOn(tool) }"
@@ -313,7 +319,7 @@
           </transition>
         </section>
 
-        <div v-if="!domains.length" class="text-sm text-muted-color py-6 text-center">
+        <div v-if="!domains.length" class="text-sm text-muted-color px-4 py-6 text-center">
           {{
             search.trim()
               ? $t('agent.editor.tools.dialog.noMatches')
@@ -801,8 +807,8 @@ function apply() {
 
 /* The row under the pointer. Ninety rows of the same shape, each with a control
    hard against the right edge, and nothing said which one a click would land
-   on. It bleeds into the scroller's padding so the band reads as the row's full
-   width rather than as a box around the text. */
+   on. The dialog does not pad its content sideways — each part pads itself — so
+   the band is the width of the dialog rather than a box floating inside it. */
 .tool-row {
   transition: background-color 0.1s ease;
 }
