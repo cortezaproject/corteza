@@ -100,11 +100,17 @@ any number of roles.
 permissions stop applying to its members. `system_role_delete` is soft and
 `system_role_undelete` restores the role _and_ everything it granted.
 
-## Auth clients are deliberately absent
+## Auth client secrets are shown once
 
-There is no `system_auth_client_create`, and there is deliberately no tool that
-reveals or regenerates a client secret. The service can do all three; the
-omission is not an oversight. Creating a client mints a working credential and
-returns it, and a credential that reaches a model's context is in the
-transcript and the logs for good. Direct the user to the admin UI rather than
-looking for another route.
+`system_auth_client_create` returns the client secret the server generates, and
+that is the only time anything shows it. There is no tool that reads a secret
+back or regenerates one, on purpose: a credential already in use is not
+something to pull into a transcript. A client whose secret has been lost is
+replaced, not recovered — or a person reads it in the admin UI.
+
+So record the secret where it is going before moving on, and do not repeat it
+anywhere it does not need to be.
+
+A `client_credentials` client acts as one nominated user and carries that
+user's permissions, so `impersonateUser` decides what the credential can do.
+Pick the narrowest account that can do the job.

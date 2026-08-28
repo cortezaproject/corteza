@@ -166,14 +166,12 @@ DOM as it is; use a visibility assertion when visibility is the question.
   `triggers` array, so POST `/automation/triggers/` separately — and `stepID`
   there is accepted, ignored, and echoed back as `0`, which reads exactly like
   the server refusing the value.
-- Auth clients must leave `validFrom`/`expiresAt` unset —
-  `AuthClient.Verify()` has inverted comparisons and treats set values as
-  expired/not-yet-valid.
 - Tokens need `scope=profile api` — the API middleware requires the `api`
   scope.
 - Envoy YAML import cannot configure auth clients fully (`validGrant` is
   silently dropped, `security.impersonateUser` refs don't resolve) — manage
-  auth clients via REST instead, as bootstrap does.
+  auth clients via REST, as bootstrap does, or via
+  `system_auth_client_create`, which sets both.
 - The server CLI (`auth jwt`, cobra `cmd.Println`) prints to **stderr**;
   capture with `2>&1`.
 - **Compose updates are POST, not PUT** (`POST …/module/{id}` updates it);

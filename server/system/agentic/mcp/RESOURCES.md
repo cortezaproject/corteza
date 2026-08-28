@@ -66,38 +66,38 @@ purpose.
 
 ### system
 
-| REST resource          | Tool segment                   | Notes                                                                                                                      |
-| ---------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| `user`                 | `system_user`                  | has `FindByAny`                                                                                                            |
-| `userGroup`            | `system_user_group`            | has `FindByAny`; there is no member removal to map — see below                                                             |
-| `role`                 | `system_role`                  | has `FindByAny`; `role.Membership` is on the §8.6 deny-list                                                                |
-| `authClient`           | `system_auth_client`           | `ExposeSecret`, `RegenerateSecret` and `Create` excluded under §8.6b — they disclose a credential, not for want of a check |
-| `application`          | `system_application`           |                                                                                                                            |
-| `template`             | `system_template`              | has `FindByAny`                                                                                                            |
-| `tenant`               | `system_tenant`                | out of scope while tenancy is single-instance                                                                              |
-| `reminder`             | `system_reminder`              | **exemplar** — soft delete, domain ops, no handle, caller scoping                                                          |
-| `notification`         | `system_notification`          |                                                                                                                            |
-| `report`               | `system_report`                | runs saved definitions only; ad-hoc analytics is `compose record report`, a separate undocumented endpoint                 |
-| `queues`               | `system_queue`                 | singularised                                                                                                               |
-| `agent`                | `system_agent`                 |                                                                                                                            |
-| `chatbot`              | `system_chatbot`               | `chatbotSession` and `chatbotPreview` are on the §8.6 deny-list                                                            |
-| `knowledgeBase`        | `system_knowledge_base`        |                                                                                                                            |
-| `aiConversation`       | `system_ai_conversation`       |                                                                                                                            |
-| `connection`           | `system_connection`            | L4 builds on this                                                                                                          |
-| `configuredConnection` | `system_configured_connection` | L4 builds on this                                                                                                          |
-| `dalConnection`        | `system_dal_connection`        | distinct from `connection`                                                                                                 |
-| `dalSensitivityLevel`  | `system_dal_sensitivity_level` |                                                                                                                            |
-| `apigwRoute`           | `system_apigw_route`           |                                                                                                                            |
-| `apigwFilter`          | `system_apigw_filter`          |                                                                                                                            |
-| `project`              | `system_project`               | ⚠ prefix-shadows the 8 below                                                                                               |
-| `projectTask`          | `system_project_task`          |                                                                                                                            |
-| `projectFeature`       | `system_project_feature`       |                                                                                                                            |
-| `projectBacklogItem`   | `system_project_backlog_item`  |                                                                                                                            |
-| `projectIncident`      | `system_project_incident`      |                                                                                                                            |
-| `projectReview`        | `system_project_review`        |                                                                                                                            |
-| `projectPrivacy`       | `system_project_privacy`       |                                                                                                                            |
-| `projectAiSystem`      | `system_project_ai_system`     |                                                                                                                            |
-| `projectFriaScenario`  | `system_project_fria_scenario` |                                                                                                                            |
+| REST resource          | Tool segment                   | Notes                                                                                                                                                                    |
+| ---------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `user`                 | `system_user`                  | has `FindByAny`                                                                                                                                                          |
+| `userGroup`            | `system_user_group`            | has `FindByAny`; there is no member removal to map — see below                                                                                                           |
+| `role`                 | `system_role`                  | has `FindByAny`; `role.Membership` is on the §8.6 deny-list                                                                                                              |
+| `authClient`           | `system_auth_client`           | `ExposeSecret` and `RegenerateSecret` excluded under §8.6b — they hand back a credential already in use. `create` mints one and returns it, which is ruled in: see §8.6b |
+| `application`          | `system_application`           |                                                                                                                                                                          |
+| `template`             | `system_template`              | has `FindByAny`                                                                                                                                                          |
+| `tenant`               | `system_tenant`                | out of scope while tenancy is single-instance                                                                                                                            |
+| `reminder`             | `system_reminder`              | **exemplar** — soft delete, domain ops, no handle, caller scoping                                                                                                        |
+| `notification`         | `system_notification`          |                                                                                                                                                                          |
+| `report`               | `system_report`                | runs saved definitions only; ad-hoc analytics is `compose record report`, a separate undocumented endpoint                                                               |
+| `queues`               | `system_queue`                 | singularised                                                                                                                                                             |
+| `agent`                | `system_agent`                 |                                                                                                                                                                          |
+| `chatbot`              | `system_chatbot`               | `chatbotSession` and `chatbotPreview` are on the §8.6 deny-list                                                                                                          |
+| `knowledgeBase`        | `system_knowledge_base`        |                                                                                                                                                                          |
+| `aiConversation`       | `system_ai_conversation`       |                                                                                                                                                                          |
+| `connection`           | `system_connection`            | L4 builds on this                                                                                                                                                        |
+| `configuredConnection` | `system_configured_connection` | L4 builds on this                                                                                                                                                        |
+| `dalConnection`        | `system_dal_connection`        | distinct from `connection`                                                                                                                                               |
+| `dalSensitivityLevel`  | `system_dal_sensitivity_level` |                                                                                                                                                                          |
+| `apigwRoute`           | `system_apigw_route`           |                                                                                                                                                                          |
+| `apigwFilter`          | `system_apigw_filter`          |                                                                                                                                                                          |
+| `project`              | `system_project`               | ⚠ prefix-shadows the 8 below                                                                                                                                             |
+| `projectTask`          | `system_project_task`          |                                                                                                                                                                          |
+| `projectFeature`       | `system_project_feature`       |                                                                                                                                                                          |
+| `projectBacklogItem`   | `system_project_backlog_item`  |                                                                                                                                                                          |
+| `projectIncident`      | `system_project_incident`      |                                                                                                                                                                          |
+| `projectReview`        | `system_project_review`        |                                                                                                                                                                          |
+| `projectPrivacy`       | `system_project_privacy`       |                                                                                                                                                                          |
+| `projectAiSystem`      | `system_project_ai_system`     |                                                                                                                                                                          |
+| `projectFriaScenario`  | `system_project_fria_scenario` |                                                                                                                                                                          |
 
 `discovery_search` is not in this table: it is a legacy two-segment name in
 package `system/agentic`, hardcoded in eight places in `executor.go`, and

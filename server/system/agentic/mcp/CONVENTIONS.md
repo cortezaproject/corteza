@@ -248,7 +248,7 @@ usage.
 A tool may carry more than one group. Prefer one: a tool that feels like both
 is usually two tools.
 
-The exception is a tool that is *about* the surface rather than part of it.
+The exception is a tool that is _about_ the surface rather than part of it.
 `system_skill_lookup` returns the guidance written for other tools, and those
 span both groups — one tag would hide `record_handling` from exactly the
 `usage` sessions it was written for. `dev/agent/mcp-verify.py` names the
@@ -541,9 +541,22 @@ in a model's context it is in the transcript and the logs. Same reasoning
 excludes `user.SetPassword`, which is authorized correctly and which no agent
 workflow should be performing without a human in the loop.
 
-**Rule:** a tool that returns a credential, or sets one, is not written. File
-it in the coverage matrix with the reason, so the gap reads as deliberate
-rather than missed.
+**Rule:** a tool that reads back or replaces an _existing_ credential is not
+written. File it in the coverage matrix with the reason, so the gap reads as
+deliberate rather than missed.
+
+**Minting one is a different question, and the ruling is that it is allowed.**
+`system_auth_client_create` returns the secret the server generates during
+create, and it is the only tool that returns a credential at all. The
+distinction is not the disclosure, it is who is disclosed to: the secret did
+not exist until this caller asked for it, this caller is the only party it is
+shown to, and `CanCreateAuthClient` is the same ceiling every other write tool
+answers to. Refusing it did not make an instance safer — it made an agent
+unable to finish setting one up, and pushed the same operation into a REST call
+with exactly the same authorization. Reading a secret somebody else's client is
+already using is the case this rule exists for, and both routes to that
+(`ExposeSecret`, `RegenerateSecret`) stay unwritten. `user.SetPassword` stays
+out for the separate reason that it takes over an existing person's account.
 
 ### 8.7 Errors
 

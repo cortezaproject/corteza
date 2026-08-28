@@ -98,6 +98,70 @@ func (h *authClientHandler) lookup(ctx context.Context, req mcp.CallToolRequest)
 	})
 }
 
+// create is the one handler in this package that returns a credential.
+//
+// Every other auth client handler blanks Secret on the way out; this one must
+// not, because the secret the server generates during create is never readable
+// again through any tool. The disclosure is the point, it is bounded by
+// CanCreateAuthClient like any other write, and the tool description says so in
+// as many words.
+func (h *authClientHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	name, err := toolkit.ReqStr(args, "name")
+	if err != nil {
+		return nil, err
+	}
+
+	client := &sysTypes.AuthClient{
+		Handle:      toolkit.Str(args, "handle"),
+		ValidGrant:  toolkit.Str(args, "validGrant"),
+		RedirectURI: toolkit.Str(args, "redirectURI"),
+		Scope:       toolkit.Str(args, "scope"),
+		Enabled:     true,
+		Trusted:     toolkit.Bool(args, "trusted"),
+		Meta: &sysTypes.AuthClientMeta{
+			Name:        name,
+			Description: toolkit.Str(args, "description"),
+		},
+	}
+
+	if _, ok := args["enabled"]; ok {
+		client.Enabled = toolkit.Bool(args, "enabled")
+	}
+
+	if client.ValidFrom, err = optTime(args, "validFrom"); err != nil {
+		return nil, err
+	}
+	if client.ExpiresAt, err = optTime(args, "expiresAt"); err != nil {
+		return nil, err
+	}
+
+	// Impersonation is the whole configuration of a client_credentials client
+	// and is the field envoy cannot express, which is why auth clients have had
+	// to be created over REST. Resolved through the user service so a handle or
+	// an email works and so the caller has to be allowed to read the user they
+	// are about to hand a credential's worth of authority to.
+	if ref := strings.TrimSpace(toolkit.Str(args, "impersonateUser")); ref != "" {
+		u, err := sysService.DefaultUser.FindByAny(ctx, ref)
+		if err != nil {
+			return nil, toolkit.Errf("impersonated user lookup", err)
+		}
+		client.Security = &sysTypes.AuthClientSecurity{ImpersonateUser: u.ID}
+	}
+
+	res, err := sysService.DefaultAuthClient.Create(ctx, client)
+	if err != nil {
+		return nil, toolkit.Errf("auth client creation", err)
+	}
+
+	return toolkit.JSONResultWith(res, withNote(authClientLinks(res),
+		"the 'secret' above is shown here and nowhere else — no tool reads it back or regenerates one. Record it now; a lost secret means creating a new client."))
+}
+
 func (h *authClientHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args, err := toolkit.Args(req)
 	if err != nil {
