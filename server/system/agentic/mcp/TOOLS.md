@@ -9,7 +9,7 @@ cd server && go test ./tests/mcp/ -run TestToolsMatrix -update
 Resource-to-tool naming is fixed by `RESOURCES.md`; the rules these
 tools are held to are in `CONVENTIONS.md`.
 
-## Registered tools (111)
+## Registered tools (112)
 
 | Tool | Group | Risk | Surface |
 |---|---|---|---|
@@ -35,17 +35,17 @@ tools are held to are in `CONVENTIONS.md`.
 | `automation_workflow_update` | configuring | write | both |
 | `compose_chart_create` | configuring | write | both |
 | `compose_chart_delete` | configuring | destructive | both |
-| `compose_chart_lookup` | configuring | read | both |
+| `compose_chart_lookup` | configuring, usage | read | both |
 | `compose_chart_undelete` | configuring | write | both |
 | `compose_chart_update` | configuring | write | both |
 | `compose_module_create` | configuring | write | both |
 | `compose_module_delete` | configuring | destructive | both |
-| `compose_module_lookup` | configuring | read | both |
+| `compose_module_lookup` | configuring, usage | read | both |
 | `compose_module_undelete` | configuring | write | both |
 | `compose_module_update` | configuring | write | both |
 | `compose_namespace_create` | configuring | write | both |
 | `compose_namespace_delete` | configuring | destructive | both |
-| `compose_namespace_lookup` | configuring | read | both |
+| `compose_namespace_lookup` | configuring, usage | read | both |
 | `compose_namespace_update` | configuring | write | both |
 | `compose_page_block_schema` | configuring | read | both |
 | `compose_page_create` | configuring | write | both |
@@ -62,6 +62,7 @@ tools are held to are in `CONVENTIONS.md`.
 | `compose_record_create` | usage | write | both |
 | `compose_record_delete` | usage | destructive | both |
 | `compose_record_lookup` | usage | read | both |
+| `compose_record_report` | usage | read | both |
 | `compose_record_undelete` | usage | write | both |
 | `compose_record_update` | usage | write | both |
 | `discovery_search` | usage | read | both |
@@ -129,9 +130,9 @@ tools are held to are in `CONVENTIONS.md`.
 
 | Dimension | Value | Tools |
 |---|---|---|
-| group | configuring | 93 |
-| group | configuring, usage | 1 |
-| group | usage | 17 |
+| group | configuring | 90 |
+| group | configuring, usage | 4 |
+| group | usage | 18 |
 | risk | destructive | 18 |
-| risk | read | 26 |
+| risk | read | 27 |
 | risk | write | 67 |
