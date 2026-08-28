@@ -17,7 +17,11 @@ import (
 	"github.com/go-chi/jwtauth"
 )
 
-const maximumJSONBody = 72 << 20
+const (
+	maximumJSONBody      = 72 << 20
+	serviceRequestsRoute = "/service-requests"
+	invalidFieldsMessage = "The request contains invalid fields."
+)
 
 var strongVersionPattern = regexp.MustCompile(`^"[1-9][0-9]*"$`)
 
@@ -61,12 +65,12 @@ func MountRoutes() func(chi.Router) {
 func MountRoutesWithService(service *city311Service.Service) func(chi.Router) {
 	return func(r chi.Router) {
 		h := &handler{service: service}
-		r.With(requireScope(contract.ScopeRequestWrite)).Post("/service-requests", h.integrationSubmit)
+		r.With(requireScope(contract.ScopeRequestWrite)).Post(serviceRequestsRoute, h.integrationSubmit)
 		r.Post("/portal/service-requests", h.portalSubmit)
 		r.Route("/staff", func(r chi.Router) {
 			r.Use(requireIdentity)
-			r.Post("/service-requests", h.staffSubmit)
-			r.Get("/service-requests", h.staffList)
+			r.Post(serviceRequestsRoute, h.staffSubmit)
+			r.Get(serviceRequestsRoute, h.staffList)
 			r.Get("/service-requests/{request_id}", h.staffDetail)
 			r.Post("/service-requests/{request_id}/transitions", h.staffTransition)
 		})
@@ -170,7 +174,7 @@ func staffRequester(value contract.StaffConstituentInput) (contract.RequesterInp
 	hasEmail := value.Email != nil
 	if hasReference && (hasDisplayName || hasEmail) {
 		return contract.RequesterInput{}, "", &city311Service.ServiceError{Status: 422, Payload: contract.APIError{
-			Error: contract.ErrorValidation, Message: "The request contains invalid fields.", Retryable: false,
+			Error: contract.ErrorValidation, Message: invalidFieldsMessage, Retryable: false,
 			Errors: []contract.FieldError{{Field: "/constituent", Code: contract.ValidationInvalidValue}},
 		}}
 	}
@@ -178,7 +182,7 @@ func staffRequester(value contract.StaffConstituentInput) (contract.RequesterInp
 		constituentID := strings.TrimSpace(*value.ConstituentID)
 		if constituentID == "" {
 			return contract.RequesterInput{}, "", &city311Service.ServiceError{Status: 422, Payload: contract.APIError{
-				Error: contract.ErrorValidation, Message: "The request contains invalid fields.", Retryable: false,
+				Error: contract.ErrorValidation, Message: invalidFieldsMessage, Retryable: false,
 				Errors: []contract.FieldError{{Field: "/constituent/constituent_id", Code: contract.ValidationRequired}},
 			}}
 		}
@@ -186,7 +190,7 @@ func staffRequester(value contract.StaffConstituentInput) (contract.RequesterInp
 	}
 	if !hasDisplayName || !hasEmail {
 		return contract.RequesterInput{}, "", &city311Service.ServiceError{Status: 422, Payload: contract.APIError{
-			Error: contract.ErrorValidation, Message: "The request contains invalid fields.", Retryable: false,
+			Error: contract.ErrorValidation, Message: invalidFieldsMessage, Retryable: false,
 			Errors: []contract.FieldError{{Field: "/constituent", Code: contract.ValidationRequired}},
 		}}
 	}
@@ -331,7 +335,7 @@ func parseFilterTime(value, field string) (*time.Time, error) {
 
 func queueFilterError(field string, code contract.ValidationCode) *city311Service.ServiceError {
 	return &city311Service.ServiceError{Status: 422, Payload: contract.APIError{
-		Error: contract.ErrorValidation, Message: "The request contains invalid fields.", Retryable: false,
+		Error: contract.ErrorValidation, Message: invalidFieldsMessage, Retryable: false,
 		Errors: []contract.FieldError{{Field: "/query/filters/" + field, Code: code}},
 	}}
 }
@@ -433,7 +437,7 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, target any) bool {
 }
 
 func writeValidation(w http.ResponseWriter, field string, code contract.ValidationCode) {
-	writeJSON(w, 422, contract.APIError{Error: contract.ErrorValidation, Message: "The request contains invalid fields.", Retryable: false, Errors: []contract.FieldError{{Field: field, Code: code}}})
+	writeJSON(w, 422, contract.APIError{Error: contract.ErrorValidation, Message: invalidFieldsMessage, Retryable: false, Errors: []contract.FieldError{{Field: field, Code: code}}})
 }
 
 func writeResult(w http.ResponseWriter, status int, value any, err error) {

@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/mail"
 	"os"
 	"path"
@@ -25,9 +26,11 @@ import (
 	"github.com/cortezaproject/corteza/server/store"
 )
 
-const idempotencyLifetime = 24 * time.Hour
-
-const maximumAttachmentSize = 10 << 20
+const (
+	idempotencyLifetime       = 24 * time.Hour
+	maximumAttachmentSize     = 10 << 20
+	requestScopeDeniedMessage = "The service request is outside the actor's record scope."
+)
 
 var e164Pattern = regexp.MustCompile(`^\+[1-9][0-9]{7,14}$`)
 
@@ -82,6 +85,20 @@ type (
 		MediaType string
 		Content   []byte
 	}
+
+	preparedSubmission struct {
+		input                 contract.ServiceRequestCreate
+		options               SubmissionOptions
+		idempotencyKey        string
+		requestHash           string
+		attachments           []validatedAttachment
+		referencedConstituent *composeTypes.City311Constituent
+	}
+
+	submissionResult struct {
+		response *contract.ServiceRequestResponse
+		status   int
+	}
 )
 
 var Default *Service
@@ -120,51 +137,13 @@ func apiError(status int, code contract.ErrorCode, message string) *ServiceError
 }
 
 func validateWrite(in contract.ServiceRequestCreate) *ServiceError {
-	var fields []contract.FieldError
-	trimmedSummary := strings.TrimSpace(in.Summary)
-	summaryLength := utf8.RuneCountInString(trimmedSummary)
-	if summaryLength < 5 {
-		fields = append(fields, contract.FieldError{Field: "/summary", Code: contract.ValidationTooShort})
-	} else if summaryLength > 160 {
-		fields = append(fields, contract.FieldError{Field: "/summary", Code: contract.ValidationTooLong})
-	}
-	trimmedDescription := strings.TrimSpace(in.Description)
-	descriptionLength := utf8.RuneCountInString(trimmedDescription)
-	if descriptionLength < 10 {
-		fields = append(fields, contract.FieldError{Field: "/description", Code: contract.ValidationTooShort})
-	} else if descriptionLength > 5000 {
-		fields = append(fields, contract.FieldError{Field: "/description", Code: contract.ValidationTooLong})
-	}
+	fields := validateBoundedText(in.Summary, "/summary", 5, 160)
+	fields = append(fields, validateBoundedText(in.Description, "/description", 10, 5000)...)
 	if _, ok := departmentForServiceType(in.ServiceType); !ok {
 		fields = append(fields, contract.FieldError{Field: "/service_type", Code: contract.ValidationInvalidValue})
 	}
-	displayName := strings.TrimSpace(in.Requester.DisplayName)
-	if displayName == "" {
-		fields = append(fields, contract.FieldError{Field: "/requester/display_name", Code: contract.ValidationRequired})
-	} else if utf8.RuneCountInString(displayName) > 120 {
-		fields = append(fields, contract.FieldError{Field: "/requester/display_name", Code: contract.ValidationTooLong})
-	}
-	email := strings.TrimSpace(in.Requester.Email)
-	parsedEmail, emailErr := mail.ParseAddress(email)
-	if emailErr != nil || parsedEmail.Address != email || parsedEmail.Name != "" {
-		fields = append(fields, contract.FieldError{Field: "/requester/email", Code: contract.ValidationInvalidFormat})
-	}
-	if phone := strings.TrimSpace(in.Requester.Phone); phone != "" && !e164Pattern.MatchString(phone) {
-		fields = append(fields, contract.FieldError{Field: "/requester/phone", Code: contract.ValidationInvalidFormat})
-	}
-	if serviceTypeRequiresLocation(in.ServiceType) && (in.Location == nil || strings.TrimSpace(in.Location.Address) == "") {
-		fields = append(fields, contract.FieldError{Field: "/location/address", Code: contract.ValidationLocationRequired})
-	} else if serviceTypeRequiresLocation(in.ServiceType) && (in.Location.Latitude == nil || in.Location.Longitude == nil) {
-		fields = append(fields, contract.FieldError{Field: "/location", Code: contract.ValidationCoordinatesRequired})
-	}
-	if in.Location != nil {
-		if in.Location.Latitude != nil && (*in.Location.Latitude < -90 || *in.Location.Latitude > 90) {
-			fields = append(fields, contract.FieldError{Field: "/location/latitude", Code: contract.ValidationOutOfRange})
-		}
-		if in.Location.Longitude != nil && (*in.Location.Longitude < -180 || *in.Location.Longitude > 180) {
-			fields = append(fields, contract.FieldError{Field: "/location/longitude", Code: contract.ValidationOutOfRange})
-		}
-	}
+	fields = append(fields, validateRequester(in.Requester)...)
+	fields = append(fields, validateLocation(in.ServiceType, in.Location)...)
 	if len(in.Attachments) > 5 {
 		fields = append(fields, contract.FieldError{Field: "/attachments", Code: contract.ValidationTooManyItems})
 	}
@@ -172,6 +151,54 @@ func validateWrite(in contract.ServiceRequestCreate) *ServiceError {
 		return validationError(fields...)
 	}
 	return nil
+}
+
+func validateBoundedText(value, field string, minimum, maximum int) []contract.FieldError {
+	length := utf8.RuneCountInString(strings.TrimSpace(value))
+	if length < minimum {
+		return []contract.FieldError{{Field: field, Code: contract.ValidationTooShort}}
+	}
+	if length > maximum {
+		return []contract.FieldError{{Field: field, Code: contract.ValidationTooLong}}
+	}
+	return nil
+}
+
+func validateRequester(requester contract.RequesterInput) []contract.FieldError {
+	var fields []contract.FieldError
+	displayName := strings.TrimSpace(requester.DisplayName)
+	if displayName == "" {
+		fields = append(fields, contract.FieldError{Field: "/requester/display_name", Code: contract.ValidationRequired})
+	} else if utf8.RuneCountInString(displayName) > 120 {
+		fields = append(fields, contract.FieldError{Field: "/requester/display_name", Code: contract.ValidationTooLong})
+	}
+	email := strings.TrimSpace(requester.Email)
+	parsedEmail, emailErr := mail.ParseAddress(email)
+	if emailErr != nil || parsedEmail.Address != email || parsedEmail.Name != "" {
+		fields = append(fields, contract.FieldError{Field: "/requester/email", Code: contract.ValidationInvalidFormat})
+	}
+	if phone := strings.TrimSpace(requester.Phone); phone != "" && !e164Pattern.MatchString(phone) {
+		fields = append(fields, contract.FieldError{Field: "/requester/phone", Code: contract.ValidationInvalidFormat})
+	}
+	return fields
+}
+
+func validateLocation(serviceType contract.ServiceType, location *contract.LocationInput) []contract.FieldError {
+	var fields []contract.FieldError
+	if serviceTypeRequiresLocation(serviceType) && (location == nil || strings.TrimSpace(location.Address) == "") {
+		fields = append(fields, contract.FieldError{Field: "/location/address", Code: contract.ValidationLocationRequired})
+	} else if serviceTypeRequiresLocation(serviceType) && (location.Latitude == nil || location.Longitude == nil) {
+		fields = append(fields, contract.FieldError{Field: "/location", Code: contract.ValidationCoordinatesRequired})
+	}
+	if location != nil {
+		if location.Latitude != nil && (*location.Latitude < -90 || *location.Latitude > 90) {
+			fields = append(fields, contract.FieldError{Field: "/location/latitude", Code: contract.ValidationOutOfRange})
+		}
+		if location.Longitude != nil && (*location.Longitude < -180 || *location.Longitude > 180) {
+			fields = append(fields, contract.FieldError{Field: "/location/longitude", Code: contract.ValidationOutOfRange})
+		}
+	}
+	return fields
 }
 
 func validateInlineAttachments(input []contract.AttachmentInput) ([]validatedAttachment, *ServiceError) {
@@ -238,49 +265,7 @@ func hashKey(value string) string {
 }
 
 func (svc *Service) Submit(ctx context.Context, in contract.ServiceRequestCreate, idempotencyKey string, options SubmissionOptions) (*contract.ServiceRequestResponse, int, error) {
-	var referencedConstituent *composeTypes.City311Constituent
-	if options.ExistingConstituentID != "" {
-		options.ExistingConstituentID = strings.TrimSpace(options.ExistingConstituentID)
-		if options.ExistingConstituentID == "" {
-			return nil, 0, validationError(contract.FieldError{Field: "/constituent/constituent_id", Code: contract.ValidationRequired})
-		}
-		if options.StaffActor == nil {
-			return nil, 0, apiError(403, contract.ErrorForbidden, "A staff actor is required to reference an existing constituent.")
-		}
-		var err error
-		referencedConstituent, err = svc.ResolveConstituent(ctx, *options.StaffActor, options.ExistingConstituentID)
-		if err != nil {
-			return nil, 0, err
-		}
-		in.Requester = requesterInput(referencedConstituent.Profile)
-	}
-	if err := validateWrite(in); err != nil {
-		return nil, 0, err
-	}
-	if options.StaffActor != nil {
-		department, _ := departmentForServiceType(in.ServiceType)
-		candidate := &composeTypes.City311ServiceRequest{OwningDepartment: department}
-		if !canOperateRequest(*options.StaffActor) || !canRead(*options.StaffActor, candidate) {
-			return nil, 0, apiError(403, contract.ErrorForbidden, "The service request is outside the actor's record scope.")
-		}
-	}
-	attachments, attachmentErr := validateInlineAttachments(in.Attachments)
-	if attachmentErr != nil {
-		return nil, 0, attachmentErr
-	}
-	if options.RequireIdempotency && idempotencyKey == "" {
-		return nil, 0, validationError(contract.FieldError{Field: "/headers/Idempotency-Key", Code: contract.ValidationRequired})
-	}
-	if len(idempotencyKey) > 255 {
-		return nil, 0, validationError(contract.FieldError{Field: "/headers/Idempotency-Key", Code: contract.ValidationTooLong})
-	}
-	if options.Operation == "" {
-		options.Operation = "service_request_create"
-	}
-	requestHash, err := hashJSON(struct {
-		Request               contract.ServiceRequestCreate `json:"request"`
-		ExistingConstituentID string                        `json:"existing_constituent_id,omitempty"`
-	}{Request: in, ExistingConstituentID: options.ExistingConstituentID})
+	prepared, err := svc.prepareSubmission(ctx, in, idempotencyKey, options)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -290,153 +275,264 @@ func (svc *Service) Submit(ctx context.Context, in contract.ServiceRequestCreate
 	svc.mu.Lock()
 	defer svc.mu.Unlock()
 
-	var response *contract.ServiceRequestResponse
-	status := 201
+	result := &submissionResult{status: http.StatusCreated}
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, tx store.Storer) error {
-		now := svc.now()
-		keyHash := ""
-		if idempotencyKey != "" {
-			keyHash = hashKey(idempotencyKey)
-			existing, lookupErr := store.LookupCity311IdempotencyRecordByOperationKeyHash(ctx, tx, options.Operation, keyHash)
-			if lookupErr == nil {
-				if !existing.ExpiresAt.After(now) {
-					if deleteErr := store.DeleteCity311IdempotencyRecord(ctx, tx, existing); deleteErr != nil {
-						return deleteErr
-					}
-				} else {
-					if existing.RequestHash != requestHash {
-						return apiError(409, contract.ErrorIdempotencyConflict, "The idempotency key was already used with a different request.")
-					}
-					encoded, marshalErr := json.Marshal(existing.ResponseBody)
-					if marshalErr != nil {
-						return marshalErr
-					}
-					response = &contract.ServiceRequestResponse{}
-					if unmarshalErr := json.Unmarshal(encoded, response); unmarshalErr != nil {
-						return unmarshalErr
-					}
-					status = 200
-					return nil
-				}
-			}
-			if lookupErr != nil && !errors.IsNotFound(lookupErr) {
-				return lookupErr
-			}
-		}
+		return svc.submitPrepared(ctx, tx, prepared, result)
+	})
+	return result.response, result.status, err
+}
 
-		if options.ExistingConstituentID != "" {
-			current, lookupErr := store.LookupCity311ConstituentByConstituentID(ctx, tx, options.ExistingConstituentID)
-			if errors.IsNotFound(lookupErr) {
-				return apiError(404, contract.ErrorNotFound, "The constituent was not found.")
-			}
-			if lookupErr != nil {
-				return lookupErr
-			}
-			if !canReadConstituent(*options.StaffActor, current) {
-				return apiError(403, contract.ErrorForbidden, "The constituent is outside the actor's record scope.")
-			}
-			referencedConstituent = current
-		}
+func (svc *Service) prepareSubmission(ctx context.Context, in contract.ServiceRequestCreate, idempotencyKey string, options SubmissionOptions) (*preparedSubmission, error) {
+	referenced, err := svc.prepareReferencedConstituent(ctx, &in, &options)
+	if err != nil {
+		return nil, err
+	}
+	if validationErr := validateWrite(in); validationErr != nil {
+		return nil, validationErr
+	}
+	if err = authorizeStaffSubmission(in.ServiceType, options.StaffActor); err != nil {
+		return nil, err
+	}
+	attachments, attachmentErr := validateInlineAttachments(in.Attachments)
+	if attachmentErr != nil {
+		return nil, attachmentErr
+	}
+	if err = validateIdempotencyKey(idempotencyKey, options.RequireIdempotency); err != nil {
+		return nil, err
+	}
+	if options.Operation == "" {
+		options.Operation = "service_request_create"
+	}
+	requestHash, err := hashJSON(struct {
+		Request               contract.ServiceRequestCreate `json:"request"`
+		ExistingConstituentID string                        `json:"existing_constituent_id,omitempty"`
+	}{Request: in, ExistingConstituentID: options.ExistingConstituentID})
+	if err != nil {
+		return nil, err
+	}
+	return &preparedSubmission{
+		input: in, options: options, idempotencyKey: idempotencyKey, requestHash: requestHash,
+		attachments: attachments, referencedConstituent: referenced,
+	}, nil
+}
 
-		year := uint64(now.Year())
-		sequence, sequenceErr := store.LookupCity311RequestSequenceByID(ctx, tx, year)
-		if errors.IsNotFound(sequenceErr) {
-			start := uint64(1)
-			if year == 2026 {
-				start = 41
-			}
-			sequence = &composeTypes.City311RequestSequence{ID: year, NextNumber: start}
-			if sequenceErr = store.CreateCity311RequestSequence(ctx, tx, sequence); sequenceErr != nil {
-				return sequenceErr
-			}
-		} else if sequenceErr != nil {
-			return sequenceErr
-		}
-		number := sequence.NextNumber
-		sequence.NextNumber++
-		if sequenceErr = store.UpdateCity311RequestSequence(ctx, tx, sequence); sequenceErr != nil {
-			return sequenceErr
-		}
+func (svc *Service) prepareReferencedConstituent(ctx context.Context, in *contract.ServiceRequestCreate, options *SubmissionOptions) (*composeTypes.City311Constituent, error) {
+	if options.ExistingConstituentID == "" {
+		return nil, nil
+	}
+	options.ExistingConstituentID = strings.TrimSpace(options.ExistingConstituentID)
+	if options.ExistingConstituentID == "" {
+		return nil, validationError(contract.FieldError{Field: "/constituent/constituent_id", Code: contract.ValidationRequired})
+	}
+	if options.StaffActor == nil {
+		return nil, apiError(403, contract.ErrorForbidden, "A staff actor is required to reference an existing constituent.")
+	}
+	constituent, err := svc.ResolveConstituent(ctx, *options.StaffActor, options.ExistingConstituentID)
+	if err == nil {
+		in.Requester = requesterInput(constituent.Profile)
+	}
+	return constituent, err
+}
 
-		requestID := svc.nextID()
-		department, _ := departmentForServiceType(in.ServiceType)
-		originClass := contract.OriginClassExternal
-		if options.SourceChannel == contract.SourceChannelStaffInPerson {
-			originClass = contract.OriginClassInternal
+func authorizeStaffSubmission(serviceType contract.ServiceType, actor *contract.Actor) error {
+	if actor == nil {
+		return nil
+	}
+	department, _ := departmentForServiceType(serviceType)
+	candidate := &composeTypes.City311ServiceRequest{OwningDepartment: department}
+	if !canOperateRequest(*actor) || !canRead(*actor, candidate) {
+		return apiError(403, contract.ErrorForbidden, requestScopeDeniedMessage)
+	}
+	return nil
+}
+
+func validateIdempotencyKey(key string, required bool) error {
+	if required && key == "" {
+		return validationError(contract.FieldError{Field: "/headers/Idempotency-Key", Code: contract.ValidationRequired})
+	}
+	if len(key) > 255 {
+		return validationError(contract.FieldError{Field: "/headers/Idempotency-Key", Code: contract.ValidationTooLong})
+	}
+	return nil
+}
+
+func (svc *Service) submitPrepared(ctx context.Context, tx store.Storer, prepared *preparedSubmission, result *submissionResult) error {
+	now := svc.now()
+	replayed, keyHash, err := svc.replaySubmission(ctx, tx, prepared, result, now)
+	if err != nil || replayed {
+		return err
+	}
+	referenced, err := refreshReferencedConstituent(ctx, tx, prepared)
+	if err != nil {
+		return err
+	}
+	year, number, err := allocateRequestNumber(ctx, tx, now)
+	if err != nil {
+		return err
+	}
+	stored, err := svc.persistSubmission(ctx, tx, prepared, referenced, year, number, now)
+	if err != nil {
+		return err
+	}
+	result.response = responseFor(stored)
+	return svc.persistIdempotencyRecord(ctx, tx, prepared, result.response, keyHash, stored.ID, now)
+}
+
+func (svc *Service) replaySubmission(ctx context.Context, tx store.Storer, prepared *preparedSubmission, result *submissionResult, now time.Time) (bool, string, error) {
+	if prepared.idempotencyKey == "" {
+		return false, "", nil
+	}
+	keyHash := hashKey(prepared.idempotencyKey)
+	existing, err := store.LookupCity311IdempotencyRecordByOperationKeyHash(ctx, tx, prepared.options.Operation, keyHash)
+	if errors.IsNotFound(err) {
+		return false, keyHash, nil
+	}
+	if err != nil {
+		return false, keyHash, err
+	}
+	if !existing.ExpiresAt.After(now) {
+		return false, keyHash, store.DeleteCity311IdempotencyRecord(ctx, tx, existing)
+	}
+	if existing.RequestHash != prepared.requestHash {
+		return false, keyHash, apiError(409, contract.ErrorIdempotencyConflict, "The idempotency key was already used with a different request.")
+	}
+	encoded, err := json.Marshal(existing.ResponseBody)
+	if err != nil {
+		return false, keyHash, err
+	}
+	result.response = &contract.ServiceRequestResponse{}
+	if err = json.Unmarshal(encoded, result.response); err != nil {
+		return false, keyHash, err
+	}
+	result.status = http.StatusOK
+	return true, keyHash, nil
+}
+
+func refreshReferencedConstituent(ctx context.Context, tx store.Storer, prepared *preparedSubmission) (*composeTypes.City311Constituent, error) {
+	if prepared.options.ExistingConstituentID == "" {
+		return prepared.referencedConstituent, nil
+	}
+	current, err := store.LookupCity311ConstituentByConstituentID(ctx, tx, prepared.options.ExistingConstituentID)
+	if errors.IsNotFound(err) {
+		return nil, apiError(404, contract.ErrorNotFound, "The constituent was not found.")
+	}
+	if err != nil {
+		return nil, err
+	}
+	if prepared.options.StaffActor == nil || !canReadConstituent(*prepared.options.StaffActor, current) {
+		return nil, apiError(403, contract.ErrorForbidden, "The constituent is outside the actor's record scope.")
+	}
+	return current, nil
+}
+
+func allocateRequestNumber(ctx context.Context, tx store.Storer, now time.Time) (uint64, uint64, error) {
+	year := uint64(now.Year())
+	sequence, err := store.LookupCity311RequestSequenceByID(ctx, tx, year)
+	if errors.IsNotFound(err) {
+		start := uint64(1)
+		if year == 2026 {
+			start = 41
 		}
-		constituentProfile := map[string]any(nil)
-		if referencedConstituent != nil {
-			constituentProfile = cloneMap(referencedConstituent.Profile)
-			constituentProfile["constituent_id"] = referencedConstituent.ConstituentID
-		} else {
-			constituentProfile = requesterMap(requestID, in.Requester)
-			constituent := &composeTypes.City311Constituent{
-				ID: svc.nextID(), ConstituentID: fmt.Sprint(constituentProfile["constituent_id"]), Profile: cloneMap(constituentProfile),
-				OwningDepartment: department, CreatedAt: now, UpdatedAt: now,
-			}
-			if err := store.CreateCity311Constituent(ctx, tx, constituent); err != nil {
-				return err
-			}
-		}
-		stored := &composeTypes.City311ServiceRequest{
-			ID:               requestID,
-			RequestNumber:    fmt.Sprintf("SR-%04d-%05d", year, number),
-			Summary:          strings.TrimSpace(in.Summary),
-			Description:      strings.TrimSpace(in.Description),
-			ServiceType:      in.ServiceType,
-			OwningDepartment: department,
-			SourceChannel:    options.SourceChannel,
-			OriginClass:      originClass,
-			Status:           contract.ServiceRequestStatusSubmitted,
-			PrimaryRequester: constituentProfile,
-			Location:         locationMap(in.Location),
-			CustomFields:     cloneMap(in.CustomFields),
-			CollaboratorIDs:  composeTypes.City311Uint64Set{},
-			Version:          1,
-			CreatedAt:        now,
-			UpdatedAt:        now,
-		}
-		if err := store.CreateCity311ServiceRequest(ctx, tx, stored); err != nil {
-			return err
-		}
-		for _, item := range attachments {
-			if err := store.CreateCity311RequestAttachment(ctx, tx, &composeTypes.City311RequestAttachment{
-				ID: svc.nextID(), RequestID: requestID, Filename: item.Filename, MediaType: item.MediaType,
-				Size: uint64(len(item.Content)), Content: item.Content, CreatedAt: now,
-			}); err != nil {
-				return err
-			}
-		}
-		audit := &composeTypes.City311AuditEvent{
-			ID: svc.nextID(), RequestID: requestID, EventType: "SERVICE_REQUEST_SUBMITTED",
-			ActorType: options.ActorType, ActorID: options.ActorID, SourceChannel: options.SourceChannel,
-			Before: map[string]any{}, After: requestSnapshot(stored), CreatedAt: now,
-		}
-		if err := store.CreateCity311AuditEvent(ctx, tx, audit); err != nil {
-			return err
-		}
-		if err := store.CreateCity311PublicHistoryItem(ctx, tx, &composeTypes.City311PublicHistoryItem{
-			ID: svc.nextID(), RequestID: requestID, Action: string(stored.Status),
-			ResponsibleDepartment: stored.OwningDepartment, OccurredAt: now,
+		sequence = &composeTypes.City311RequestSequence{ID: year, NextNumber: start}
+		err = store.CreateCity311RequestSequence(ctx, tx, sequence)
+	}
+	if err != nil {
+		return 0, 0, err
+	}
+	number := sequence.NextNumber
+	sequence.NextNumber++
+	return year, number, store.UpdateCity311RequestSequence(ctx, tx, sequence)
+}
+
+func (svc *Service) persistSubmission(ctx context.Context, tx store.Storer, prepared *preparedSubmission, referenced *composeTypes.City311Constituent, year, number uint64, now time.Time) (*composeTypes.City311ServiceRequest, error) {
+	requestID := svc.nextID()
+	department, _ := departmentForServiceType(prepared.input.ServiceType)
+	profile, err := svc.persistSubmissionConstituent(ctx, tx, prepared.input.Requester, referenced, requestID, department, now)
+	if err != nil {
+		return nil, err
+	}
+	stored := newStoredRequest(prepared, profile, requestID, department, year, number, now)
+	if err = store.CreateCity311ServiceRequest(ctx, tx, stored); err != nil {
+		return nil, err
+	}
+	if err = svc.persistSubmissionAttachments(ctx, tx, requestID, prepared.attachments, now); err != nil {
+		return nil, err
+	}
+	if err = svc.persistSubmissionEvents(ctx, tx, stored, prepared.options, now); err != nil {
+		return nil, err
+	}
+	return stored, nil
+}
+
+func (svc *Service) persistSubmissionConstituent(ctx context.Context, tx store.Storer, requester contract.RequesterInput, referenced *composeTypes.City311Constituent, requestID uint64, department contract.DepartmentCode, now time.Time) (map[string]any, error) {
+	if referenced != nil {
+		profile := cloneMap(referenced.Profile)
+		profile["constituent_id"] = referenced.ConstituentID
+		return profile, nil
+	}
+	profile := requesterMap(requestID, requester)
+	constituent := &composeTypes.City311Constituent{
+		ID: svc.nextID(), ConstituentID: fmt.Sprint(profile["constituent_id"]), Profile: cloneMap(profile),
+		OwningDepartment: department, CreatedAt: now, UpdatedAt: now,
+	}
+	return profile, store.CreateCity311Constituent(ctx, tx, constituent)
+}
+
+func newStoredRequest(prepared *preparedSubmission, profile map[string]any, requestID uint64, department contract.DepartmentCode, year, number uint64, now time.Time) *composeTypes.City311ServiceRequest {
+	originClass := contract.OriginClassExternal
+	if prepared.options.SourceChannel == contract.SourceChannelStaffInPerson {
+		originClass = contract.OriginClassInternal
+	}
+	return &composeTypes.City311ServiceRequest{
+		ID: requestID, RequestNumber: fmt.Sprintf("SR-%04d-%05d", year, number),
+		Summary: strings.TrimSpace(prepared.input.Summary), Description: strings.TrimSpace(prepared.input.Description),
+		ServiceType: prepared.input.ServiceType, OwningDepartment: department, SourceChannel: prepared.options.SourceChannel,
+		OriginClass: originClass, Status: contract.ServiceRequestStatusSubmitted, PrimaryRequester: profile,
+		Location: locationMap(prepared.input.Location), CustomFields: cloneMap(prepared.input.CustomFields),
+		CollaboratorIDs: composeTypes.City311Uint64Set{}, Version: 1, CreatedAt: now, UpdatedAt: now,
+	}
+}
+
+func (svc *Service) persistSubmissionAttachments(ctx context.Context, tx store.Storer, requestID uint64, attachments []validatedAttachment, now time.Time) error {
+	for _, item := range attachments {
+		if err := store.CreateCity311RequestAttachment(ctx, tx, &composeTypes.City311RequestAttachment{
+			ID: svc.nextID(), RequestID: requestID, Filename: item.Filename, MediaType: item.MediaType,
+			Size: uint64(len(item.Content)), Content: item.Content, CreatedAt: now,
 		}); err != nil {
 			return err
 		}
+	}
+	return nil
+}
 
-		response = responseFor(stored)
-		body, marshalErr := mapFrom(response)
-		if marshalErr != nil {
-			return marshalErr
-		}
-		if idempotencyKey == "" {
-			return nil
-		}
-		return store.CreateCity311IdempotencyRecord(ctx, tx, &composeTypes.City311IdempotencyRecord{
-			ID: svc.nextID(), Operation: options.Operation, KeyHash: keyHash, RequestHash: requestHash,
-			ResponseStatus: 201, ResponseBody: body, RequestID: requestID,
-			CreatedAt: now, ExpiresAt: now.Add(idempotencyLifetime),
-		})
+func (svc *Service) persistSubmissionEvents(ctx context.Context, tx store.Storer, request *composeTypes.City311ServiceRequest, options SubmissionOptions, now time.Time) error {
+	audit := &composeTypes.City311AuditEvent{
+		ID: svc.nextID(), RequestID: request.ID, EventType: "SERVICE_REQUEST_SUBMITTED",
+		ActorType: options.ActorType, ActorID: options.ActorID, SourceChannel: options.SourceChannel,
+		Before: map[string]any{}, After: requestSnapshot(request), CreatedAt: now,
+	}
+	if err := store.CreateCity311AuditEvent(ctx, tx, audit); err != nil {
+		return err
+	}
+	return store.CreateCity311PublicHistoryItem(ctx, tx, &composeTypes.City311PublicHistoryItem{
+		ID: svc.nextID(), RequestID: request.ID, Action: string(request.Status),
+		ResponsibleDepartment: request.OwningDepartment, OccurredAt: now,
 	})
-	return response, status, err
+}
+
+func (svc *Service) persistIdempotencyRecord(ctx context.Context, tx store.Storer, prepared *preparedSubmission, response *contract.ServiceRequestResponse, keyHash string, requestID uint64, now time.Time) error {
+	if prepared.idempotencyKey == "" {
+		return nil
+	}
+	body, err := mapFrom(response)
+	if err != nil {
+		return err
+	}
+	return store.CreateCity311IdempotencyRecord(ctx, tx, &composeTypes.City311IdempotencyRecord{
+		ID: svc.nextID(), Operation: prepared.options.Operation, KeyHash: keyHash, RequestHash: prepared.requestHash,
+		ResponseStatus: http.StatusCreated, ResponseBody: body, RequestID: requestID,
+		CreatedAt: now, ExpiresAt: now.Add(idempotencyLifetime),
+	})
 }
 
 func (svc *Service) FindActor(ctx context.Context, userID uint64) (contract.Actor, error) {
@@ -459,7 +555,7 @@ func (svc *Service) Find(ctx context.Context, actor contract.Actor, requestID ui
 		return nil, err
 	}
 	if !canRead(actor, stored) {
-		return nil, apiError(403, contract.ErrorForbidden, "The service request is outside the actor's record scope.")
+		return nil, apiError(403, contract.ErrorForbidden, requestScopeDeniedMessage)
 	}
 	return svc.detail(ctx, actor, stored)
 }
@@ -483,7 +579,7 @@ func (svc *Service) Transition(ctx context.Context, actor contract.Actor, reques
 			return err
 		}
 		if !canRead(actor, request) {
-			return apiError(403, contract.ErrorForbidden, "The service request is outside the actor's record scope.")
+			return apiError(403, contract.ErrorForbidden, requestScopeDeniedMessage)
 		}
 		if !canOperateRequest(actor) {
 			return apiError(403, contract.ErrorForbidden, "The actor cannot transition service requests.")
