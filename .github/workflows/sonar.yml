@@ -18,6 +18,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "${{ env.NODE_VERSION }}"
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
       - name: Enable Corepack
         run: corepack enable
       - name: Build and install current C311 packages
@@ -61,6 +65,13 @@ jobs:
           test -s "$GITHUB_WORKSPACE/.sonar/coverage/lib-js.info"
           test -s "$GITHUB_WORKSPACE/.sonar/coverage/lib-vue.info"
           test -s "$GITHUB_WORKSPACE/.sonar/coverage/c311.info"
+      - name: Generate City 311 Go coverage report
+        working-directory: server
+        run: |
+          go test -covermode=atomic -coverprofile=../.sonar/coverage/go.out \
+            -coverpkg=./compose/rest/city311,./compose/service/city311,./compose/types/city311,./app \
+            ./compose/rest/city311 ./compose/service/city311 ./compose/types/city311 ./app/... ./store/tests/...
+          test -s ../.sonar/coverage/go.out
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6
         env:

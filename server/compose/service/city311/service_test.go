@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -370,4 +371,100 @@ func TestResolveConstituentUsesIndexedResourceBeyondOneHundredRequests(t *testin
 	require.NoError(t, err)
 	require.Equal(t, lastConstituentID, resolved.ConstituentID)
 	require.Equal(t, "Constituent 109", resolved.Profile["display_name"])
+}
+
+func TestValidationInitializationAndListErrorPaths(t *testing.T) {
+	svc, st := testService(t)
+	ctx := context.Background()
+	previousDefault := Default
+	t.Cleanup(func() { Default = previousDefault })
+
+	t.Setenv("BENCHMARK_NOW", "not-a-time")
+	require.Error(t, Initialize(ctx, st))
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+	require.Equal(t, "validation failed", (&ServiceError{Payload: contract.APIError{Message: "validation failed"}}).Error())
+
+	invalid := validSubmission()
+	invalid.Summary = strings.Repeat("s", 161)
+	invalid.Description = strings.Repeat("d", 5001)
+	invalid.ServiceType = contract.ServiceType("UNKNOWN")
+	invalid.Requester = contract.RequesterInput{DisplayName: strings.Repeat("n", 121), Email: "Named <named@example.invalid>", Phone: "555-0100"}
+	invalid.Location = nil
+	invalid.Attachments = make([]contract.AttachmentInput, 6)
+	require.GreaterOrEqual(t, len(validateWrite(invalid).Payload.Errors), 7)
+
+	latitude, longitude := 91.0, 181.0
+	locationErrors := validateLocation(contract.ServiceTypePothole, &contract.LocationInput{Address: "Address", Latitude: &latitude, Longitude: &longitude})
+	require.Len(t, locationErrors, 2)
+	require.Len(t, validateLocation(contract.ServiceTypePothole, &contract.LocationInput{Address: "Address"}), 1)
+	require.Empty(t, validateLocation(contract.ServiceTypeGeneralInquiry, nil))
+
+	_, attachmentErr := validateInlineAttachments([]contract.AttachmentInput{
+		{Filename: "", MediaType: "invalid/type", ContentBase64: "not-base64"},
+		{Filename: strings.Repeat("a", 121), MediaType: "text/plain", ContentBase64: base64.StdEncoding.EncodeToString([]byte("ok"))},
+	})
+	require.NotNil(t, attachmentErr)
+	require.GreaterOrEqual(t, len(attachmentErr.Payload.Errors), 4)
+
+	for _, serviceType := range contract.ServiceTypes {
+		_, ok := departmentForServiceType(serviceType)
+		require.True(t, ok, serviceType)
+	}
+	_, ok := departmentForServiceType(contract.ServiceType("UNKNOWN"))
+	require.False(t, ok)
+	require.Error(t, validateIdempotencyKey("", true))
+	require.Error(t, validateIdempotencyKey(strings.Repeat("k", 256), false))
+	_, err := hashJSON(make(chan int))
+	require.Error(t, err)
+
+	require.Error(t, validateTransitionInput(0, contract.RequestTransition{ToStatus: contract.ServiceRequestStatusTriaged}))
+	require.Error(t, validateTransitionInput(1, contract.RequestTransition{}))
+	_, err = svc.FindActor(ctx, 999999999)
+	require.Error(t, err)
+	_, err = svc.Find(ctx, contract.Actor{Roles: []contract.ApplicationRole{contract.ApplicationRolePlatformAdministrator}}, 999999999)
+	require.Error(t, err)
+	_, err = svc.ResolveConstituent(ctx, contract.Actor{}, " ")
+	require.Error(t, err)
+	_, err = svc.ResolveConstituent(ctx, contract.Actor{Roles: []contract.ApplicationRole{contract.ApplicationRolePlatformAdministrator}}, "missing")
+	require.Error(t, err)
+
+	staff := contract.Actor{ID: 100, Roles: []contract.ApplicationRole{contract.ApplicationRoleServiceAgent}, Department: contract.DepartmentStreets, Districts: []contract.DistrictCode{contract.DistrictNorth}}
+	_, err = svc.List(ctx, contract.Actor{}, RequestFilter{})
+	require.Error(t, err)
+	_, err = svc.List(ctx, staff, RequestFilter{PageSize: 101})
+	require.Error(t, err)
+	_, err = svc.List(ctx, staff, RequestFilter{Sort: "unknown"})
+	require.Error(t, err)
+	_, err = svc.List(ctx, staff, RequestFilter{PageToken: "not-base64"})
+	require.Error(t, err)
+	token, err := encodePageToken(100, []string{"-updated_at"})
+	require.NoError(t, err)
+	_, err = svc.List(ctx, staff, RequestFilter{PageSize: 1, PageToken: token})
+	require.Error(t, err)
+
+	from, to := svc.now(), svc.now().Add(-time.Hour)
+	filterErrors := validateRequestFilter(RequestFilter{
+		Statuses: []contract.ServiceRequestStatus{"UNKNOWN"}, ServiceTypes: []contract.ServiceType{"UNKNOWN"},
+		OwningDepartments: []contract.DepartmentCode{"UNKNOWN"}, CouncilDistricts: []contract.DistrictCode{"UNKNOWN"},
+		OriginClasses: []contract.OriginClass{"UNKNOWN"}, SourceChannels: []contract.SourceChannel{"UNKNOWN"},
+		Categories: []contract.ContactCategory{"UNKNOWN"}, CreatedFrom: &from, CreatedTo: &to,
+	})
+	require.Len(t, filterErrors, 8)
+	require.Empty(t, validateRequestFilter(RequestFilter{}))
+
+	_, err = decodePageToken(base64.RawURLEncoding.EncodeToString([]byte("{")), []string{"-updated_at"})
+	require.Error(t, err)
+	mismatched, err := encodePageToken(1, []string{"created_at"})
+	require.NoError(t, err)
+	_, err = decodePageToken(mismatched, []string{"-updated_at"})
+	require.Error(t, err)
+	_, err = normalizeSort("created_at,updated_at,status,request_number")
+	require.Error(t, err)
+
+	left := &composeTypes.City311ServiceRequest{RequestNumber: "SR-1", Status: contract.ServiceRequestStatusSubmitted, CreatedAt: svc.now(), UpdatedAt: svc.now()}
+	right := &composeTypes.City311ServiceRequest{RequestNumber: "SR-2", Status: contract.ServiceRequestStatusTriaged, CreatedAt: svc.now().Add(time.Minute), UpdatedAt: svc.now().Add(time.Minute)}
+	for _, field := range []string{"created_at", "updated_at", "request_number", "status"} {
+		require.Less(t, compareServiceRequestField(left, right, field), 0, field)
+	}
+	require.Zero(t, compareServiceRequestField(left, right, "unknown"))
 }

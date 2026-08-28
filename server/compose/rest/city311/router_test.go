@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -324,4 +325,87 @@ func TestParseIfMatchRequiresOneStrongQuotedPositiveVersion(t *testing.T) {
 		_, err = parseIfMatch(value)
 		require.Error(t, err, value)
 	}
+}
+
+func TestStaffDetailAndExplodedQueueFilterErrors(t *testing.T) {
+	router, st, _ := testRouter(t)
+	ctx := context.Background()
+	user, err := store.LookupUserByEmail(ctx, st, "service-agent@city311.example.invalid")
+	require.NoError(t, err)
+	request, err := store.LookupCity311ServiceRequestByRequestNumber(ctx, st, "SR-2026-00034")
+	require.NoError(t, err)
+
+	detailPath := fmt.Sprintf("/api/v1/staff/service-requests/%d", request.ID)
+	detail := executeJSON(t, router, http.MethodGet, detailPath, nil, nil, user.ID)
+	require.Equal(t, http.StatusOK, detail.Code, detail.Body.String())
+	require.Contains(t, detail.Body.String(), request.RequestNumber)
+
+	invalidDetail := executeJSON(t, router, http.MethodGet, "/api/v1/staff/service-requests/not-an-id", nil, nil, user.ID)
+	require.Equal(t, http.StatusUnprocessableEntity, invalidDetail.Code)
+	missingDetail := executeJSON(t, router, http.MethodGet, "/api/v1/staff/service-requests/999999999", nil, nil, user.ID)
+	require.Equal(t, http.StatusNotFound, missingDetail.Code)
+
+	query := url.Values{}
+	query.Set("filters[status]", "SUBMITTED,CLOSED")
+	query.Set("service_type", "POTHOLE")
+	query.Set("created_from", request.CreatedAt.Add(-time.Minute).Format(time.RFC3339))
+	query.Set("filters[created_to]", request.CreatedAt.Add(time.Minute).Format(time.RFC3339))
+	queue := executeJSON(t, router, http.MethodGet, "/api/v1/staff/service-requests?"+query.Encode(), nil, nil, user.ID)
+	require.Equal(t, http.StatusOK, queue.Code, queue.Body.String())
+
+	invalidQueries := []string{
+		"page_size=0",
+		"filters=" + url.QueryEscape(`{"unknown":true}`),
+		"filters=" + url.QueryEscape(`{"status":"SUBMITTED"} {}`),
+		"assignee=not-an-id",
+		"created_from=not-a-time",
+	}
+	for _, rawQuery := range invalidQueries {
+		response := executeJSON(t, router, http.MethodGet, "/api/v1/staff/service-requests?"+rawQuery, nil, nil, user.ID)
+		require.Equal(t, http.StatusUnprocessableEntity, response.Code, rawQuery+": "+response.Body.String())
+	}
+}
+
+func TestRouterHelperAndAuthorizationErrorPaths(t *testing.T) {
+	var values stringList
+	require.NoError(t, json.Unmarshal([]byte(`"single"`), &values))
+	require.Equal(t, stringList{"single"}, values)
+	require.Error(t, json.Unmarshal([]byte(`1`), &values))
+
+	router, st, svc := testRouter(t)
+	previousDefault := city311Service.Default
+	city311Service.Default = svc
+	t.Cleanup(func() { city311Service.Default = previousDefault })
+	defaultRouter := chi.NewRouter()
+	defaultRouter.Route("/api/v1", MountRoutes())
+
+	authenticatedPortal := executeJSON(t, defaultRouter, http.MethodPost, "/api/v1/portal/service-requests", validPortalBody(), map[string]string{contract.IdempotencyHeader: "authenticated-portal"}, 321)
+	require.Equal(t, http.StatusCreated, authenticatedPortal.Code, authenticatedPortal.Body.String())
+
+	malformedRequest := httptest.NewRequest(http.MethodPost, "/api/v1/portal/service-requests", bytes.NewBufferString(`{"summary":`))
+	malformedRequest.Header.Set("Content-Type", "application/json")
+	malformed := httptest.NewRecorder()
+	router.ServeHTTP(malformed, malformedRequest)
+	require.Equal(t, http.StatusUnprocessableEntity, malformed.Code)
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/portal/service-requests", bytes.NewBufferString(`{} {}`))
+	request.Header.Set("Content-Type", "application/json")
+	trailing := httptest.NewRecorder()
+	router.ServeHTTP(trailing, request)
+	require.Equal(t, http.StatusUnprocessableEntity, trailing.Code)
+
+	workflowDesigner, err := store.LookupUserByEmail(context.Background(), st, "workflow-designer@city311.example.invalid")
+	require.NoError(t, err)
+	staffBody := map[string]any{"request": validPortalBody(), "constituent": map[string]any{"constituent_id": "C-1"}}
+	forbidden := executeJSON(t, router, http.MethodPost, "/api/v1/staff/service-requests", staffBody, nil, workflowDesigner.ID)
+	require.Equal(t, http.StatusForbidden, forbidden.Code)
+
+	missingActor := executeJSON(t, router, http.MethodGet, "/api/v1/staff/service-requests", nil, nil, 999999999)
+	require.Equal(t, http.StatusForbidden, missingActor.Code)
+	invalidTransition := executeJSON(t, router, http.MethodPost, "/api/v1/staff/service-requests/not-an-id/transitions", map[string]any{"to_status": "TRIAGED"}, map[string]string{contract.IfMatchHeader: `"1"`}, workflowDesigner.ID)
+	require.Equal(t, http.StatusUnprocessableEntity, invalidTransition.Code)
+
+	generic := httptest.NewRecorder()
+	writeResult(generic, 0, nil, errors.New("store failure"))
+	require.Equal(t, http.StatusInternalServerError, generic.Code)
+	require.False(t, actorCanCreate(contract.Actor{Roles: []contract.ApplicationRole{contract.ApplicationRoleWorkflowDesigner}}))
 }
