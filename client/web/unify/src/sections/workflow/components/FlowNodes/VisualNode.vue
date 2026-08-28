@@ -10,8 +10,8 @@
   >
     <NodeResizer
       :is-visible="selected"
-      :min-width="160"
-      :min-height="80"
+      :min-width="VISUAL_NODE.min.width"
+      :min-height="VISUAL_NODE.min.height"
       :line-style="{ borderColor: 'var(--p-primary-color)' }"
       :handle-style="{
         backgroundColor: 'var(--p-primary-color)',
@@ -39,6 +39,7 @@ import { useVueFlow } from '@vue-flow/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import eventBus from '../../lib/eventBus'
+import { CANVAS_GRID, VISUAL_NODE } from '../../lib/style'
 
 const { t } = useI18n()
 
@@ -60,9 +61,15 @@ function onResize({ params }) {
   const node = findNode(props.id)
   if (!node) return
   if (!node.data) node.data = {}
-  node.data.width = width
-  node.data.height = height
-  node.style = { ...(node.style || {}), width: `${width}px`, height: `${height}px` }
+
+  // NodeResizer has no snap of its own, so the raw drag size is rounded here
+  // to keep a resized box on the same grid a dragged one lands on.
+  const w = Math.max(Math.round(width / CANVAS_GRID) * CANVAS_GRID, VISUAL_NODE.min.width)
+  const h = Math.max(Math.round(height / CANVAS_GRID) * CANVAS_GRID, VISUAL_NODE.min.height)
+
+  node.data.width = w
+  node.data.height = h
+  node.style = { ...(node.style || {}), width: `${w}px`, height: `${h}px` }
   eventBus.emit('change-detected')
 }
 </script>

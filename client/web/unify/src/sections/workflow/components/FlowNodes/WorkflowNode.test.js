@@ -12,6 +12,8 @@ vi.mock('vue-i18n', () => ({
 }))
 
 vi.mock('../../lib/style', () => ({
+  CANVAS_GRID: 32,
+  STEP_NODE: { width: 192, height: 64 },
   getStyleFromKind: () => ({ icon: 'icon', style: 'plain' }),
 }))
 

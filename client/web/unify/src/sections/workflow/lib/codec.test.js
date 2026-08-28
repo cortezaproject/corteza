@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { decodeWorkflow, encodeWorkflow } from './codec'
+import { STEP_NODE, VISUAL_NODE } from './style'
 
 // ─── Minimal factories ────────────────────────────────────────────────────────
 
@@ -434,5 +435,77 @@ describe('full decode → encode round-trip', () => {
     // No style → no handle set (null)
     expect(edges[0].sourceHandle).toBeNull()
     expect(edges[0].targetHandle).toBeNull()
+  })
+})
+
+describe('node size on the grid', () => {
+  // A step is a fixed grid-aligned box, so an old workflow's stored size is
+  // whatever the default was the day it was drawn.
+  it('re-encodes a step at the current box, not the size it was saved with', () => {
+    const wf = makeWorkflow([
+      makeStep({
+        stepID: '10',
+        meta: { visual: { id: '10', xywh: [64, 32, 180, 64], parent: '1' } },
+      }),
+    ])
+
+    const { nodes, edges } = decodeWorkflow(wf, [])
+
+    expect(nodes[0].data.width).toBeUndefined()
+    expect(nodes[0].data.height).toBeUndefined()
+
+    const { steps } = encodeWorkflow(nodes, edges)
+    const [, , w, h] = steps[0].meta.visual.xywh
+
+    expect([w, h]).toEqual([STEP_NODE.width, STEP_NODE.height])
+  })
+
+  // A visual node is the one kind a user can resize, so its size is real data.
+  it('keeps a resizable visual node at the size it was saved with', () => {
+    const wf = makeWorkflow([
+      makeStep({
+        stepID: '20',
+        kind: 'visual',
+        ref: 'swimlane',
+        meta: { visual: { id: '20', xywh: [0, 0, 640, 288], parent: '1' } },
+      }),
+    ])
+
+    const { nodes, edges } = decodeWorkflow(wf, [])
+
+    expect(nodes[0].data.width).toBe(640)
+
+    const { steps } = encodeWorkflow(nodes, edges)
+
+    expect(steps[0].meta.visual.xywh.slice(2)).toEqual([640, 288])
+  })
+
+  it('falls back to the current box when a step has no stored size at all', () => {
+    const wf = makeWorkflow([
+      makeStep({ stepID: '30', meta: { visual: { id: '30', parent: '1' } } }),
+    ])
+
+    const { nodes, edges } = decodeWorkflow(wf, [])
+    const { steps } = encodeWorkflow(nodes, edges)
+
+    expect(steps[0].meta.visual.xywh.slice(2)).toEqual([STEP_NODE.width, STEP_NODE.height])
+  })
+
+  it('sizes a visual node with no stored size at the content default', () => {
+    const wf = makeWorkflow([
+      makeStep({
+        stepID: '40',
+        kind: 'visual',
+        ref: 'content',
+        meta: { visual: { id: '40', parent: '1' } },
+      }),
+    ])
+
+    const { nodes } = decodeWorkflow(wf, [])
+
+    expect(nodes[0].style).toEqual({
+      width: `${VISUAL_NODE.content.width}px`,
+      height: `${VISUAL_NODE.content.height}px`,
+    })
   })
 })

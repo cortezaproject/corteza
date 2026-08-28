@@ -1,7 +1,21 @@
 // Editor canvas grid: the background dot spacing and the snap increment for
-// every node placement, so a step always lands on a dot. Half the 64px node
+// every node placement, so a step always lands on a dot. Half the step node's
 // height, as in the TAQ builder.
 export const CANVAS_GRID = 32
+
+// Node boxes are whole numbers of grid cells, so every edge lands on a dot
+// whenever the corner does.
+const cells = n => n * CANVAS_GRID
+
+// One box for every step kind: six cells by two.
+export const STEP_NODE = { width: cells(6), height: cells(2) }
+
+// The two resizable kinds, and the smallest a resize may leave one.
+export const VISUAL_NODE = {
+  swimlane: { width: cells(10), height: cells(5) },
+  content: { width: cells(12), height: cells(7) },
+  min: { width: cells(5), height: cells(2) },
+}
 
 export function getStyleFromKind({ kind = '', ref = '' }) {
   let kindRef = kind
@@ -16,134 +30,115 @@ export function getStyleFromKind({ kind = '', ref = '' }) {
 // The style property tells mxGraph what internal style to use for displaying the specific step
 const kindToStyle = {
   visualSwimlane: {
-    width: 320,
-    height: 160,
+    ...VISUAL_NODE.swimlane,
     icon: 'swimlane',
     style: 'swimlane',
   },
 
   expressions: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'expressions',
     style: 'expressions',
   },
 
   function: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'function',
     style: 'function',
   },
 
   iterator: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'iterator',
     style: 'iterator',
   },
 
   'exec-workflow': {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'exec-workflow',
     style: 'exec-workflow',
   },
 
   break: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'break',
     style: 'break',
   },
 
   continue: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'continue',
     style: 'continue',
   },
 
   trigger: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'trigger',
     style: 'trigger',
   },
 
   'error-handler': {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'error-handler',
     style: 'error-handler',
   },
 
   error: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'error',
     style: 'error',
   },
 
   termination: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'termination',
     style: 'termination',
   },
 
   gatewayExcl: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'gateway-exclusive',
     style: 'gatewayExclusive',
   },
 
   gatewayIncl: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'gateway-inclusive',
     style: 'gatewayInclusive',
   },
 
   gatewayFork: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'gateway-parallel',
     style: 'gatewayParallel',
   },
 
   gatewayJoin: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'gateway-parallel',
     style: 'gatewayParallel',
   },
 
   prompt: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'prompt',
     style: 'prompt',
   },
 
   delay: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'delay',
     style: 'delay',
   },
 
   debug: {
-    width: 180,
-    height: 64,
+    ...STEP_NODE,
     icon: 'debug',
     style: 'debug',
   },
 
   visualContent: {
-    width: 400,
-    height: 240,
+    ...VISUAL_NODE.content,
     icon: 'content',
     style: 'content',
   },

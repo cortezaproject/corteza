@@ -8,6 +8,7 @@
       'termination-node--trace-error': data?.traceState === 'error',
       'termination-node--connecting': isConnecting,
     }"
+    :style="box"
   >
     <Handle
       type="target"
@@ -92,8 +93,13 @@
 import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getStyleFromKind } from '../../lib/style'
+import { STEP_NODE, getStyleFromKind } from '../../lib/style'
 import { getIcon as resolveIcon } from '../../lib/icon'
+
+// The box is grid-aligned geometry, not styling, so it comes from the same
+// constant the codec and the drop handler use. A termination grows past its
+// two cells rather than clipping, so the height is a floor.
+const box = { width: `${STEP_NODE.width}px`, minHeight: `${STEP_NODE.height}px` }
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -134,8 +140,6 @@ const displayDescription = computed(() => props.data?.description || stepDescrip
   background: var(--p-content-background);
   border: 1px solid var(--p-content-border-color);
   border-radius: 5px;
-  width: 180px;
-  min-height: 64px;
   box-shadow: var(--p-card-shadow);
   cursor: pointer;
   transition: box-shadow 0.2s;

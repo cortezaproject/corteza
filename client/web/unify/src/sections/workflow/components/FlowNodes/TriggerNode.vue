@@ -9,7 +9,7 @@
       'trigger-node--trace-success': data?.traceState === 'success',
       'trigger-node--trace-error': data?.traceState === 'error',
     }"
-    :style="{ width: '180px' }"
+    :style="box"
     @mouseenter="showPopup"
     @mouseleave="hidePopup"
   >
@@ -138,12 +138,16 @@
 import { Handle, Position } from '@vue-flow/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getStyleFromKind } from '../../lib/style'
+import { STEP_NODE, getStyleFromKind } from '../../lib/style'
 import { getConstraintNameLabel } from '../../lib/constraint'
 import { camelToTitle } from '../../lib/string'
 import { getIcon as resolveIcon } from '../../lib/icon'
 import { useNodePreview } from '../../composables/useNodePreview'
 import NodePreview from './NodePreview.vue'
+
+// The box is grid-aligned geometry, not styling, so it comes from the same
+// constant the codec and the drop handler use.
+const box = { width: `${STEP_NODE.width}px`, height: `${STEP_NODE.height}px` }
 
 const { rootEl, popupStyle, showPopup, hidePopup } = useNodePreview()
 
@@ -279,8 +283,6 @@ const valueRows = computed(() => {
   background: var(--p-content-background);
   border: 1px solid var(--p-content-border-color);
   border-radius: 5px;
-  width: 180px;
-  height: 64px;
   overflow: hidden;
   box-shadow: var(--p-card-shadow);
   cursor: pointer;

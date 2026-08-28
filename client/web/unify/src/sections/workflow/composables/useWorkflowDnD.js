@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { CANVAS_GRID, getStyleFromKind } from '../lib/style'
+import { CANVAS_GRID, STEP_NODE, getStyleFromKind } from '../lib/style'
 import { nextId } from '../lib/id'
 
 /**
@@ -25,8 +25,8 @@ export function useWorkflowDnD(nodes, edges, saveToHistory, projectPosition) {
     // so we append it off-screen, call setDragImage, then remove it on the next
     // tick (by which point the browser has snapshotted it).
     const styleInfo = getStyleFromKind(toolbarItem) || {}
-    const w = styleInfo.width || 200
-    const h = styleInfo.height || 80
+    const w = styleInfo.width || STEP_NODE.width
+    const h = styleInfo.height || STEP_NODE.height
     const ghost = document.createElement('div')
     ghost.style.position = 'absolute'
     ghost.style.top = '-1000px'
@@ -65,8 +65,8 @@ export function useWorkflowDnD(nodes, edges, saveToHistory, projectPosition) {
     }
 
     const styleInfo = getStyleFromKind(item) || {}
-    const nodeWidth = styleInfo.width || 200
-    const nodeHeight = styleInfo.height || 80
+    const nodeWidth = styleInfo.width || STEP_NODE.width
+    const nodeHeight = styleInfo.height || STEP_NODE.height
 
     // VueFlow's project() expects coordinates relative to the flow container,
     // not raw screen/client coordinates. Subtract the container's bounding rect.

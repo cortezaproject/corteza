@@ -4,7 +4,7 @@
  * decodeWorkflow  : (workflow, triggers) → { nodes, edges }
  * encodeWorkflow  : (nodes, edges)       → { steps, paths, triggers }
  */
-import { getStyleFromKind } from './style'
+import { STEP_NODE, getStyleFromKind } from './style'
 
 /**
  * Handle ↔ mxGraph exit/entry bidirectional map.
@@ -189,7 +189,7 @@ export function decodeWorkflow(workflow, triggers = []) {
   // 1. Triggers → trigger nodes + trigger→step edges
   triggers.forEach(({ meta, stepID, ...triggerConfig }) => {
     const vis = meta?.visual || {}
-    const xywh = vis.xywh || [0, 0, 200, 80]
+    const xywh = vis.xywh || [0, 0, STEP_NODE.width, STEP_NODE.height]
 
     nodes.push({
       id: String(vis.id),
@@ -277,7 +277,6 @@ export function decodeWorkflow(workflow, triggers = []) {
   const steps = workflow.steps || []
   steps.forEach(({ stepID, kind, ref, meta, defaultName, arguments: args, results, ...rest }) => {
     const vis = meta?.visual || {}
-    const xywh = vis.xywh || [0, 0, 200, 80]
 
     // Fix #18: silently upgrade the deprecated `workflow` kind to `exec-workflow`.
     // Human wrote this kind before the rename; data shape is identical, only
@@ -294,17 +293,20 @@ export function decodeWorkflow(workflow, triggers = []) {
     if (stepKind === 'termination') nodeType = 'termination'
     else if (stepKind === 'visual') nodeType = 'visual'
 
+    // A missing or short xywh falls back to this kind's own box, so a visual
+    // node is never sized like a step.
+    const box = getStyleFromKind({ kind: stepKind, ref })
+    const [x = 0, y = 0, w = box.width || STEP_NODE.width, h = box.height || STEP_NODE.height] =
+      vis.xywh || []
+
     nodes.push({
       id: String(vis.id || stepID),
       type: nodeType,
-      position: { x: xywh[0], y: xywh[1] },
+      position: { x, y },
       zIndex: nodeType === 'visual' ? -1 : undefined,
       parentNode: vis.parent && vis.parent !== '1' ? String(vis.parent) : undefined,
       extent: undefined,
-      style:
-        nodeType === 'visual'
-          ? { width: `${xywh[2] || 400}px`, height: `${xywh[3] || 240}px` }
-          : undefined,
+      style: nodeType === 'visual' ? { width: `${w}px`, height: `${h}px` } : undefined,
       data: {
         ...rest,
         stepID: String(stepID),
@@ -319,8 +321,10 @@ export function decodeWorkflow(workflow, triggers = []) {
         highlighted: false,
         traceState: null,
         traceLog: null,
-        width: xywh[2] || undefined,
-        height: xywh[3] || undefined,
+        // Only a visual node has a size of its own to remember. A step is a
+        // fixed grid-aligned box, so a stored one is whatever the default was
+        // the day it was drawn, and carrying it would outvote the current box.
+        ...(nodeType === 'visual' ? { width: w, height: h } : {}),
       },
     })
   })
@@ -463,7 +467,7 @@ export function encodeWorkflow(nodes, edges) {
             id: node.id,
             value: data.label || '',
             defaultName: data.defaultName || false,
-            xywh: [abs.x, abs.y, data.width || 200, data.height || 80],
+            xywh: [abs.x, abs.y, STEP_NODE.width, STEP_NODE.height],
             parent: node.parentNode || '1',
             edges: triggerEdges,
           },
@@ -513,8 +517,8 @@ export function encodeWorkflow(nodes, edges) {
             xywh: [
               abs.x,
               abs.y,
-              data.width || styleInfo.width || 200,
-              data.height || styleInfo.height || 80,
+              data.width || styleInfo.width || STEP_NODE.width,
+              data.height || styleInfo.height || STEP_NODE.height,
             ],
             parent: node.parentNode || '1',
           },
