@@ -8,7 +8,7 @@
     >
       <!-- The header is the grab target; the details below it hold inputs. -->
       <div
-        class="expression-row__header flex items-start gap-2 px-3 py-2 hover:bg-emphasis cursor-grab"
+        class="expression-row__header flex items-start gap-2 px-3 py-2 hover:bg-emphasis cursor-pointer"
         @click="item._showDetails = !item._showDetails"
       >
         <div class="flex-1 min-w-0 flex flex-col gap-0.5">
@@ -157,7 +157,7 @@ export default {
 }
 
 .expression-row__header {
-  cursor: grab;
+  cursor: pointer;
   user-select: none;
 }
 

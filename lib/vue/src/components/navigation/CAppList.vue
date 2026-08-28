@@ -20,7 +20,7 @@
         :class="[
           itemClass,
           {
-            'cursor-grab': canReorder && isOpenable(app),
+            'cursor-pointer': isOpenable(app),
             'cursor-not-allowed opacity-50': !isOpenable(app),
             '!border-primary bg-primary/5': variant === 'list' && isActiveApp(app),
           },
