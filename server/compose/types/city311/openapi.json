@@ -9137,19 +9137,35 @@
                     "value": {
                       "actor_role_mappings": [
                         {
-                          "application_role": "public_visitor",
+                          "application_role": "service_agent",
                           "asserted_role": "service_agent"
+                        },
+                        {
+                          "application_role": "supervisor",
+                          "asserted_role": "supervisor"
+                        },
+                        {
+                          "application_role": "department_manager",
+                          "asserted_role": "department_manager"
+                        },
+                        {
+                          "application_role": "platform_administrator",
+                          "asserted_role": "platform_administrator"
+                        },
+                        {
+                          "application_role": "workflow_designer",
+                          "asserted_role": "workflow_designer"
                         }
                       ],
-                      "oidc_client_secret_configured": false,
-                      "oidc_enabled": false,
-                      "oidc_issuer_url": "https://city311.example.test/resource",
-                      "oidc_public_client_id": "xxxxxx",
-                      "oidc_staff_client_id": "xxxxxx",
-                      "saml_enabled": false,
-                      "saml_metadata_url": "https://city311.example.test/resource",
-                      "saml_sp_entity_id": "https://city311.example.test/resource",
-                      "updated_at": "2026-08-25T12:00:00Z",
+                      "oidc_client_secret_configured": true,
+                      "oidc_enabled": true,
+                      "oidc_issuer_url": "https://identity.example.test",
+                      "oidc_public_client_id": "city311-public",
+                      "oidc_staff_client_id": "city311-staff",
+                      "saml_enabled": true,
+                      "saml_metadata_url": "https://identity.example.test/saml/metadata",
+                      "saml_sp_entity_id": "https://city311.example.test/saml",
+                      "updated_at": "2026-08-25T10:00:00Z",
                       "version": 1
                     }
                   }
@@ -9164,19 +9180,35 @@
               "body": {
                 "actor_role_mappings": [
                   {
-                    "application_role": "public_visitor",
+                    "application_role": "service_agent",
                     "asserted_role": "service_agent"
+                  },
+                  {
+                    "application_role": "supervisor",
+                    "asserted_role": "supervisor"
+                  },
+                  {
+                    "application_role": "department_manager",
+                    "asserted_role": "department_manager"
+                  },
+                  {
+                    "application_role": "platform_administrator",
+                    "asserted_role": "platform_administrator"
+                  },
+                  {
+                    "application_role": "workflow_designer",
+                    "asserted_role": "workflow_designer"
                   }
                 ],
-                "oidc_client_secret_configured": false,
-                "oidc_enabled": false,
-                "oidc_issuer_url": "https://city311.example.test/resource",
-                "oidc_public_client_id": "xxxxxx",
-                "oidc_staff_client_id": "xxxxxx",
-                "saml_enabled": false,
-                "saml_metadata_url": "https://city311.example.test/resource",
-                "saml_sp_entity_id": "https://city311.example.test/resource",
-                "updated_at": "2026-08-25T12:00:00Z",
+                "oidc_client_secret_configured": true,
+                "oidc_enabled": true,
+                "oidc_issuer_url": "https://identity.example.test",
+                "oidc_public_client_id": "city311-public",
+                "oidc_staff_client_id": "city311-staff",
+                "saml_enabled": true,
+                "saml_metadata_url": "https://identity.example.test/saml/metadata",
+                "saml_sp_entity_id": "https://city311.example.test/saml",
+                "updated_at": "2026-08-25T10:00:00Z",
                 "version": 1
               },
               "status": 200
@@ -13092,7 +13124,7 @@
                 "examples": {
                   "accepted_for_every_email": {
                     "value": {
-                      "message": "xxxxxx"
+                      "message": "If the account is eligible, a reset link has been sent."
                     }
                   },
                   "password_reset_requested": {
@@ -13109,7 +13141,7 @@
             "description": "accepted for every email",
             "x-city311-example": {
               "body": {
-                "message": "xxxxxx"
+                "message": "If the account is eligible, a reset link has been sent."
               },
               "status": 202
             }
@@ -13495,8 +13527,8 @@
             "x-city311-example": {
               "body": {
                 "error": "RATE_LIMITED",
-                "message": "rate limited.",
-                "retryable": false
+                "message": "The client request limit has been exceeded.",
+                "retryable": true
               },
               "status": 429
             }
@@ -13556,9 +13588,9 @@
                   },
                   "success": {
                     "value": {
-                      "address": "xxxxxx",
-                      "latitude": 1,
-                      "longitude": 1,
+                      "address": "100 Example Street, Buffalo, NY 14201",
+                      "latitude": 42.9001,
+                      "longitude": -78.8801,
                       "precision_digits": 4,
                       "provider": "BENCHMARK_MAP"
                     }
@@ -13572,9 +13604,9 @@
             "description": "success",
             "x-city311-example": {
               "body": {
-                "address": "xxxxxx",
-                "latitude": 1,
-                "longitude": 1,
+                "address": "100 Example Street, Buffalo, NY 14201",
+                "latitude": 42.9001,
+                "longitude": -78.8801,
                 "precision_digits": 4,
                 "provider": "BENCHMARK_MAP"
               },
@@ -13588,7 +13620,7 @@
                   "address_not_found": {
                     "value": {
                       "error": "ADDRESS_NOT_FOUND",
-                      "message": "address not found.",
+                      "message": "The address was not found.",
                       "retryable": false
                     }
                   },
@@ -13609,7 +13641,7 @@
             "x-city311-example": {
               "body": {
                 "error": "ADDRESS_NOT_FOUND",
-                "message": "address not found.",
+                "message": "The address was not found.",
                 "retryable": false
               },
               "status": 404
@@ -13656,7 +13688,7 @@
                   "map_temporarily_unavailable": {
                     "value": {
                       "error": "MAP_TEMPORARILY_UNAVAILABLE",
-                      "message": "map temporarily unavailable.",
+                      "message": "The mapping service is temporarily unavailable.",
                       "retryable": true
                     }
                   }
@@ -13670,7 +13702,7 @@
             "x-city311-example": {
               "body": {
                 "error": "MAP_TEMPORARILY_UNAVAILABLE",
-                "message": "map temporarily unavailable.",
+                "message": "The mapping service is temporarily unavailable.",
                 "retryable": true
               },
               "status": 503
@@ -13713,11 +13745,15 @@
                 "examples": {
                   "success": {
                     "value": {
+                      "completed_at": null,
                       "created_at": "2026-08-25T12:00:00Z",
-                      "kind": "xxxxxx",
-                      "operation_id": "xxxxxx",
-                      "status": "PENDING",
-                      "updated_at": "2026-08-25T12:00:00Z"
+                      "error": null,
+                      "kind": "REPORT_EXPORT",
+                      "operation_id": "op-00041",
+                      "progress": 40,
+                      "result": null,
+                      "status": "RUNNING",
+                      "updated_at": "2026-08-25T12:00:04Z"
                     }
                   }
                 },
@@ -13729,11 +13765,15 @@
             "description": "success",
             "x-city311-example": {
               "body": {
+                "completed_at": null,
                 "created_at": "2026-08-25T12:00:00Z",
-                "kind": "xxxxxx",
-                "operation_id": "xxxxxx",
-                "status": "PENDING",
-                "updated_at": "2026-08-25T12:00:00Z"
+                "error": null,
+                "kind": "REPORT_EXPORT",
+                "operation_id": "op-00041",
+                "progress": 40,
+                "result": null,
+                "status": "RUNNING",
+                "updated_at": "2026-08-25T12:00:04Z"
               },
               "status": 200
             }
@@ -13902,11 +13942,11 @@
                   },
                   "success": {
                     "value": {
-                      "attachment_token": "xxxxxx",
-                      "expires_at": "2026-08-25T12:00:00Z",
-                      "filename": "xxxxxx",
+                      "attachment_token": "upload-00031",
+                      "expires_at": "2026-08-25T12:15:00Z",
+                      "filename": "pothole.jpg",
                       "media_type": "image/jpeg",
-                      "size": 1
+                      "size": 248031
                     }
                   }
                 },
@@ -13918,11 +13958,11 @@
             "description": "success",
             "x-city311-example": {
               "body": {
-                "attachment_token": "xxxxxx",
-                "expires_at": "2026-08-25T12:00:00Z",
-                "filename": "xxxxxx",
+                "attachment_token": "upload-00031",
+                "expires_at": "2026-08-25T12:15:00Z",
+                "filename": "pothole.jpg",
                 "media_type": "image/jpeg",
-                "size": 1
+                "size": 248031
               },
               "status": 201
             }
@@ -15478,11 +15518,11 @@
                   },
                   "success": {
                     "value": {
-                      "created_at": "2026-08-25T12:00:00Z",
+                      "created_at": "2026-08-24T12:00:00Z",
                       "links": {
-                        "self": "xxxxxx"
+                        "self": "/api/v1/service-requests/case-7c58d2"
                       },
-                      "request_id": "xxxxxx",
+                      "request_id": "case-7c58d2",
                       "request_number": "SR-2026-00041",
                       "status": "SUBMITTED",
                       "version": 1
@@ -15497,11 +15537,11 @@
             "description": "success",
             "x-city311-example": {
               "body": {
-                "created_at": "2026-08-25T12:00:00Z",
+                "created_at": "2026-08-24T12:00:00Z",
                 "links": {
-                  "self": "xxxxxx"
+                  "self": "/api/v1/service-requests/case-7c58d2"
                 },
-                "request_id": "xxxxxx",
+                "request_id": "case-7c58d2",
                 "request_number": "SR-2026-00041",
                 "status": "SUBMITTED",
                 "version": 1
@@ -15556,7 +15596,13 @@
                   "validation_error": {
                     "value": {
                       "error": "VALIDATION_ERROR",
-                      "message": "validation error.",
+                      "errors": [
+                        {
+                          "code": "INVALID_VALUE",
+                          "field": "/attachments/2/media_type"
+                        }
+                      ],
+                      "message": "The request contains invalid fields.",
                       "retryable": false
                     }
                   }
@@ -15570,7 +15616,13 @@
             "x-city311-example": {
               "body": {
                 "error": "VALIDATION_ERROR",
-                "message": "validation error.",
+                "errors": [
+                  {
+                    "code": "INVALID_VALUE",
+                    "field": "/attachments/2/media_type"
+                  }
+                ],
+                "message": "The request contains invalid fields.",
                 "retryable": false
               },
               "status": 422
@@ -16136,13 +16188,19 @@
                   },
                   "success": {
                     "value": {
-                      "accent_colour": "xxxxxx",
-                      "font_family": "xxxxxx",
-                      "organisation_name": "xxxxxx",
-                      "primary_colour": "xxxxxx",
-                      "published": false,
-                      "updated_at": "2026-08-25T12:00:00Z",
-                      "version": 1
+                      "accent_colour": "#FFB81C",
+                      "favicon_url": "/assets/favicon.ico",
+                      "font_family": "Arial",
+                      "login_header": "City services, one place",
+                      "logo_url": "/assets/city-logo.svg",
+                      "organisation_name": "City 311",
+                      "portal_wallpaper_url": "/assets/portal-wallpaper.jpg",
+                      "primary_colour": "#005EA8",
+                      "public_footer": "City services",
+                      "public_header": "City 311",
+                      "published": true,
+                      "updated_at": "2026-08-25T10:00:00Z",
+                      "version": 3
                     }
                   }
                 },
@@ -16154,13 +16212,19 @@
             "description": "success",
             "x-city311-example": {
               "body": {
-                "accent_colour": "xxxxxx",
-                "font_family": "xxxxxx",
-                "organisation_name": "xxxxxx",
-                "primary_colour": "xxxxxx",
-                "published": false,
-                "updated_at": "2026-08-25T12:00:00Z",
-                "version": 1
+                "accent_colour": "#FFB81C",
+                "favicon_url": "/assets/favicon.ico",
+                "font_family": "Arial",
+                "login_header": "City services, one place",
+                "logo_url": "/assets/city-logo.svg",
+                "organisation_name": "City 311",
+                "portal_wallpaper_url": "/assets/portal-wallpaper.jpg",
+                "primary_colour": "#005EA8",
+                "public_footer": "City services",
+                "public_header": "City 311",
+                "published": true,
+                "updated_at": "2026-08-25T10:00:00Z",
+                "version": 3
               },
               "status": 200
             }
@@ -16209,12 +16273,12 @@
                   },
                   "success": {
                     "value": {
-                      "body": "xxxxxx",
+                      "body": "\u003cp\u003eWelcome to City 311.\u003c/p\u003e",
                       "content_key": "HOME",
-                      "published": false,
-                      "state": "DRAFT",
-                      "updated_at": "2026-08-25T12:00:00Z",
-                      "version": 1
+                      "published": true,
+                      "state": "PUBLISHED",
+                      "updated_at": "2026-08-25T10:00:00Z",
+                      "version": 2
                     }
                   }
                 },
@@ -16226,12 +16290,12 @@
             "description": "success",
             "x-city311-example": {
               "body": {
-                "body": "xxxxxx",
+                "body": "\u003cp\u003eWelcome to City 311.\u003c/p\u003e",
                 "content_key": "HOME",
-                "published": false,
-                "state": "DRAFT",
-                "updated_at": "2026-08-25T12:00:00Z",
-                "version": 1
+                "published": true,
+                "state": "PUBLISHED",
+                "updated_at": "2026-08-25T10:00:00Z",
+                "version": 2
               },
               "status": 200
             }
@@ -16315,10 +16379,10 @@
                   },
                   "success": {
                     "value": {
-                      "body": "xxxxxx",
-                      "help_key": "admin.branding.publish",
+                      "body": "\u003cp\u003eDescribe the issue, choose its type, and provide the location where City service is needed.\u003c/p\u003e",
+                      "help_key": "public.request.submit",
                       "language": "EN",
-                      "updated_at": "2026-08-25T12:00:00Z",
+                      "updated_at": "2026-08-25T10:00:00Z",
                       "version": 1
                     }
                   }
@@ -16331,10 +16395,10 @@
             "description": "success",
             "x-city311-example": {
               "body": {
-                "body": "xxxxxx",
-                "help_key": "admin.branding.publish",
+                "body": "\u003cp\u003eDescribe the issue, choose its type, and provide the location where City service is needed.\u003c/p\u003e",
+                "help_key": "public.request.submit",
                 "language": "EN",
-                "updated_at": "2026-08-25T12:00:00Z",
+                "updated_at": "2026-08-25T10:00:00Z",
                 "version": 1
               },
               "status": 200
@@ -16429,17 +16493,17 @@
                       "request_detail": {
                         "history": [
                           {
-                            "action": "xxxxxx",
-                            "occurred_at": "2026-08-25T12:00:00Z",
-                            "responsible_department": "PUBLIC_WORKS"
+                            "action": "Request submitted",
+                            "occurred_at": "2026-08-24T12:00:00Z",
+                            "responsible_department": "STREETS"
                           }
                         ],
-                        "owning_department": "PUBLIC_WORKS",
+                        "owning_department": "STREETS",
                         "request_number": "SR-2026-00041",
-                        "service_type": "TREE_MAINTENANCE",
-                        "status": "DRAFT",
-                        "summary": "xxxxxx",
-                        "updated_at": "2026-08-25T12:00:00Z"
+                        "service_type": "POTHOLE",
+                        "status": "IN_PROGRESS",
+                        "summary": "Pothole blocking the eastbound lane",
+                        "updated_at": "2026-08-24T14:00:00Z"
                       }
                     }
                   }
@@ -16455,17 +16519,17 @@
                 "request_detail": {
                   "history": [
                     {
-                      "action": "xxxxxx",
-                      "occurred_at": "2026-08-25T12:00:00Z",
-                      "responsible_department": "PUBLIC_WORKS"
+                      "action": "Request submitted",
+                      "occurred_at": "2026-08-24T12:00:00Z",
+                      "responsible_department": "STREETS"
                     }
                   ],
-                  "owning_department": "PUBLIC_WORKS",
+                  "owning_department": "STREETS",
                   "request_number": "SR-2026-00041",
-                  "service_type": "TREE_MAINTENANCE",
-                  "status": "DRAFT",
-                  "summary": "xxxxxx",
-                  "updated_at": "2026-08-25T12:00:00Z"
+                  "service_type": "POTHOLE",
+                  "status": "IN_PROGRESS",
+                  "summary": "Pothole blocking the eastbound lane",
+                  "updated_at": "2026-08-24T14:00:00Z"
                 }
               },
               "status": 200
@@ -16482,21 +16546,7 @@
                   },
                   "generic_not_found": {
                     "value": {
-                      "request_detail": {
-                        "history": [
-                          {
-                            "action": "xxxxxx",
-                            "occurred_at": "2026-08-25T12:00:00Z",
-                            "responsible_department": "PUBLIC_WORKS"
-                          }
-                        ],
-                        "owning_department": "PUBLIC_WORKS",
-                        "request_number": "SR-2026-00041",
-                        "service_type": "TREE_MAINTENANCE",
-                        "status": "DRAFT",
-                        "summary": "xxxxxx",
-                        "updated_at": "2026-08-25T12:00:00Z"
-                      }
+                      "request_detail": null
                     }
                   }
                 },
@@ -16508,21 +16558,7 @@
             "description": "generic not found",
             "x-city311-example": {
               "body": {
-                "request_detail": {
-                  "history": [
-                    {
-                      "action": "xxxxxx",
-                      "occurred_at": "2026-08-25T12:00:00Z",
-                      "responsible_department": "PUBLIC_WORKS"
-                    }
-                  ],
-                  "owning_department": "PUBLIC_WORKS",
-                  "request_number": "SR-2026-00041",
-                  "service_type": "TREE_MAINTENANCE",
-                  "status": "DRAFT",
-                  "summary": "xxxxxx",
-                  "updated_at": "2026-08-25T12:00:00Z"
-                }
+                "request_detail": null
               },
               "status": 404
             }
@@ -16583,11 +16619,11 @@
                 "examples": {
                   "equivalent_replay": {
                     "value": {
-                      "created_at": "2026-08-25T12:00:00Z",
+                      "created_at": "2026-08-24T12:00:00Z",
                       "links": {
-                        "self": "xxxxxx"
+                        "self": "/api/v1/service-requests/case-7c58d2"
                       },
-                      "request_id": "xxxxxx",
+                      "request_id": "case-7c58d2",
                       "request_number": "SR-2026-00041",
                       "status": "SUBMITTED",
                       "version": 1
@@ -16614,11 +16650,11 @@
             "description": "equivalent replay",
             "x-city311-example": {
               "body": {
-                "created_at": "2026-08-25T12:00:00Z",
+                "created_at": "2026-08-24T12:00:00Z",
                 "links": {
-                  "self": "xxxxxx"
+                  "self": "/api/v1/service-requests/case-7c58d2"
                 },
-                "request_id": "xxxxxx",
+                "request_id": "case-7c58d2",
                 "request_number": "SR-2026-00041",
                 "status": "SUBMITTED",
                 "version": 1
@@ -16632,11 +16668,11 @@
                 "examples": {
                   "created": {
                     "value": {
-                      "created_at": "2026-08-25T12:00:00Z",
+                      "created_at": "2026-08-24T12:00:00Z",
                       "links": {
-                        "self": "xxxxxx"
+                        "self": "/api/v1/service-requests/case-7c58d2"
                       },
-                      "request_id": "xxxxxx",
+                      "request_id": "case-7c58d2",
                       "request_number": "SR-2026-00041",
                       "status": "SUBMITTED",
                       "version": 1
@@ -16663,11 +16699,11 @@
             "description": "created",
             "x-city311-example": {
               "body": {
-                "created_at": "2026-08-25T12:00:00Z",
+                "created_at": "2026-08-24T12:00:00Z",
                 "links": {
-                  "self": "xxxxxx"
+                  "self": "/api/v1/service-requests/case-7c58d2"
                 },
-                "request_id": "xxxxxx",
+                "request_id": "case-7c58d2",
                 "request_number": "SR-2026-00041",
                 "status": "SUBMITTED",
                 "version": 1
@@ -16696,7 +16732,7 @@
             "x-city311-example": {
               "body": {
                 "error": "UNAUTHENTICATED",
-                "message": "unauthenticated.",
+                "message": "Authentication is required.",
                 "retryable": false
               },
               "status": 401
@@ -16723,7 +16759,7 @@
             "x-city311-example": {
               "body": {
                 "error": "FORBIDDEN",
-                "message": "forbidden.",
+                "message": "The authenticated actor is not permitted to perform this operation.",
                 "retryable": false
               },
               "status": 403
@@ -16790,7 +16826,13 @@
             "x-city311-example": {
               "body": {
                 "error": "VALIDATION_ERROR",
-                "message": "validation error.",
+                "errors": [
+                  {
+                    "code": "REQUIRED",
+                    "field": "/summary"
+                  }
+                ],
+                "message": "The request contains invalid fields.",
                 "retryable": false
               },
               "status": 422
@@ -16999,7 +17041,9 @@
                   },
                   "success": {
                     "value": {
+                      "actor": null,
                       "authenticated": false,
+                      "expires_at": null,
                       "preferred_language": "EN"
                     }
                   }
@@ -17012,7 +17056,9 @@
             "description": "success",
             "x-city311-example": {
               "body": {
+                "actor": null,
                 "authenticated": false,
+                "expires_at": null,
                 "preferred_language": "EN"
               },
               "status": 200
@@ -17094,7 +17140,7 @@
                   "unauthenticated": {
                     "value": {
                       "error": "UNAUTHENTICATED",
-                      "message": "unauthenticated.",
+                      "message": "The login identifier or password is incorrect.",
                       "retryable": false
                     }
                   }
@@ -17108,7 +17154,7 @@
             "x-city311-example": {
               "body": {
                 "error": "UNAUTHENTICATED",
-                "message": "unauthenticated.",
+                "message": "The login identifier or password is incorrect.",
                 "retryable": false
               },
               "status": 401
@@ -21065,13 +21111,15 @@
                   },
                   "success": {
                     "value": {
-                      "applied_filters": {},
-                      "items": [
-                        {}
-                      ],
-                      "next_page_token": "xxxxxx",
+                      "applied_filters": {
+                        "status": [
+                          "CLOSED"
+                        ]
+                      },
+                      "items": [],
+                      "next_page_token": null,
                       "sort": [
-                        "xxxxxx"
+                        "-updated_at"
                       ],
                       "total_count": 0
                     }
@@ -21085,13 +21133,15 @@
             "description": "success",
             "x-city311-example": {
               "body": {
-                "applied_filters": {},
-                "items": [
-                  {}
-                ],
-                "next_page_token": "xxxxxx",
+                "applied_filters": {
+                  "status": [
+                    "CLOSED"
+                  ]
+                },
+                "items": [],
+                "next_page_token": null,
                 "sort": [
-                  "xxxxxx"
+                  "-updated_at"
                 ],
                 "total_count": 0
               },
@@ -21764,8 +21814,10 @@
                   },
                   "version_conflict": {
                     "value": {
+                      "current_version": 4,
                       "error": "VERSION_CONFLICT",
-                      "message": "version conflict.",
+                      "failing_request_id": "case-7c58d2",
+                      "message": "The resource was updated by another operation.",
                       "retryable": false
                     }
                   }
@@ -21778,8 +21830,10 @@
             "description": "IDEMPOTENCY CONFLICT",
             "x-city311-example": {
               "body": {
+                "current_version": 4,
                 "error": "VERSION_CONFLICT",
-                "message": "version conflict.",
+                "failing_request_id": "case-7c58d2",
+                "message": "The resource was updated by another operation.",
                 "retryable": false
               },
               "status": 409
@@ -21806,7 +21860,14 @@
                   "validation_error": {
                     "value": {
                       "error": "VALIDATION_ERROR",
-                      "message": "validation error.",
+                      "errors": [
+                        {
+                          "code": "INVALID_VALUE",
+                          "field": "/changes/status"
+                        }
+                      ],
+                      "failing_request_id": "case-7c58d2",
+                      "message": "One selected request is not eligible for this bulk operation.",
                       "retryable": false
                     }
                   }
@@ -21820,7 +21881,14 @@
             "x-city311-example": {
               "body": {
                 "error": "VALIDATION_ERROR",
-                "message": "validation error.",
+                "errors": [
+                  {
+                    "code": "INVALID_VALUE",
+                    "field": "/changes/status"
+                  }
+                ],
+                "failing_request_id": "case-7c58d2",
+                "message": "One selected request is not eligible for this bulk operation.",
                 "retryable": false
               },
               "status": 422
@@ -22136,7 +22204,7 @@
             "x-city311-example": {
               "body": {
                 "error": "NOT_FOUND",
-                "message": "not found.",
+                "message": "The requested resource was not found.",
                 "retryable": false
               },
               "status": 404
@@ -27198,8 +27266,9 @@
             "description": "VERSION CONFLICT",
             "x-city311-example": {
               "body": {
+                "current_version": 2,
                 "error": "VERSION_CONFLICT",
-                "message": "version conflict.",
+                "message": "The resource was updated by another operation.",
                 "retryable": false
               },
               "status": 409
@@ -27253,7 +27322,7 @@
             "x-city311-example": {
               "body": {
                 "error": "EXPECTED_VERSION_REQUIRED",
-                "message": "expected version required.",
+                "message": "If-Match is required for this update.",
                 "retryable": false
               },
               "status": 428
@@ -27330,7 +27399,7 @@
                   "temporarily_unavailable": {
                     "value": {
                       "error": "TEMPORARILY_UNAVAILABLE",
-                      "message": "temporarily unavailable.",
+                      "message": "A required database connection or migration is unavailable.",
                       "retryable": true
                     }
                   }
@@ -27344,7 +27413,7 @@
             "x-city311-example": {
               "body": {
                 "error": "TEMPORARILY_UNAVAILABLE",
-                "message": "temporarily unavailable.",
+                "message": "A required database connection or migration is unavailable.",
                 "retryable": true
               },
               "status": 503
@@ -27441,7 +27510,7 @@
                   "invalid_signature": {
                     "value": {
                       "error": "INVALID_SIGNATURE",
-                      "message": "invalid signature.",
+                      "message": "The CivicWorks event signature is invalid.",
                       "retryable": false
                     }
                   }
@@ -27455,7 +27524,7 @@
             "x-city311-example": {
               "body": {
                 "error": "INVALID_SIGNATURE",
-                "message": "invalid signature.",
+                "message": "The CivicWorks event signature is invalid.",
                 "retryable": false
               },
               "status": 401
@@ -27614,14 +27683,14 @@
                   },
                   "created": {
                     "value": {
-                      "created_at": "2026-08-25T12:00:00Z",
-                      "external_status_url": "https://city311.example.test/resource",
+                      "created_at": "2026-08-20T10:00:00Z",
+                      "external_status_url": "http://civicworks:8080/ui/work-orders/WO-000001",
                       "service_request_number": "SR-2026-00041",
-                      "source_case_id": "xxxxxx",
+                      "source_case_id": "case-7c58d2",
                       "status": "ASSIGNED",
-                      "updated_at": "2026-08-25T12:00:00Z",
+                      "updated_at": "2026-08-20T10:00:00Z",
                       "version": 1,
-                      "work_order_id": "xxxxxx"
+                      "work_order_id": "WO-000001"
                     }
                   }
                 },
@@ -27633,14 +27702,14 @@
             "description": "created",
             "x-city311-example": {
               "body": {
-                "created_at": "2026-08-25T12:00:00Z",
-                "external_status_url": "https://city311.example.test/resource",
+                "created_at": "2026-08-20T10:00:00Z",
+                "external_status_url": "http://civicworks:8080/ui/work-orders/WO-000001",
                 "service_request_number": "SR-2026-00041",
-                "source_case_id": "xxxxxx",
+                "source_case_id": "case-7c58d2",
                 "status": "ASSIGNED",
-                "updated_at": "2026-08-25T12:00:00Z",
+                "updated_at": "2026-08-20T10:00:00Z",
                 "version": 1,
-                "work_order_id": "xxxxxx"
+                "work_order_id": "WO-000001"
               },
               "status": 201
             }
@@ -27886,7 +27955,7 @@
         ],
         "summary": "mapping geocode",
         "tags": [
-          "geocode"
+          "internal"
         ],
         "x-city311-authentication": {
           "mode": "server_api_token",
@@ -27894,7 +27963,7 @@
         },
         "x-city311-direction": "consumed_by_crm"
       },
-      "path": "/api/v1/geocode"
+      "path": "/internal/integrations/mapping/geocode"
     },
     "workflow_action_execute": {
       "method": "POST",
@@ -27962,14 +28031,14 @@
                   "invalid_client": {
                     "value": {
                       "error": "INVALID_CLIENT",
-                      "message": "invalid client.",
+                      "message": "The authenticated workflow action failed.",
                       "retryable": false
                     }
                   },
                   "invalid_token": {
                     "value": {
                       "error": "INVALID_TOKEN",
-                      "message": "invalid token.",
+                      "message": "The authenticated workflow action failed.",
                       "retryable": false
                     }
                   },
@@ -27997,7 +28066,7 @@
             "x-city311-example": {
               "body": {
                 "error": "INVALID_TOKEN",
-                "message": "invalid token.",
+                "message": "The authenticated workflow action failed.",
                 "retryable": false
               },
               "status": 401
@@ -28010,7 +28079,7 @@
                   "insufficient_scope": {
                     "value": {
                       "error": "INSUFFICIENT_SCOPE",
-                      "message": "insufficient scope.",
+                      "message": "The authenticated workflow action failed.",
                       "retryable": false
                     }
                   },
@@ -28031,7 +28100,7 @@
             "x-city311-example": {
               "body": {
                 "error": "INSUFFICIENT_SCOPE",
-                "message": "insufficient scope.",
+                "message": "The authenticated workflow action failed.",
                 "retryable": false
               },
               "status": 403
@@ -28071,7 +28140,7 @@
                   "temporarily_unavailable": {
                     "value": {
                       "error": "TEMPORARILY_UNAVAILABLE",
-                      "message": "temporarily unavailable.",
+                      "message": "The authenticated workflow action failed.",
                       "retryable": true
                     }
                   },
@@ -28092,7 +28161,7 @@
             "x-city311-example": {
               "body": {
                 "error": "TEMPORARILY_UNAVAILABLE",
-                "message": "temporarily unavailable.",
+                "message": "The authenticated workflow action failed.",
                 "retryable": true
               },
               "status": 503
@@ -28126,5 +28195,16 @@
     "first_published_version": "1.0.0",
     "supported_major": 1,
     "major_version_rule": "after first publication, any consumer-incompatible contract revision increments the major version"
+  },
+  "x-city311-server-error-policy": {
+    "declared_statuses": [
+      503
+    ],
+    "rule": "only declared 5xx statuses have a stable City 311 error mapping; undeclared 5xx responses are terminal transport failures outside this contract",
+    "undeclared_statuses": [
+      500,
+      502,
+      504
+    ]
   }
 }

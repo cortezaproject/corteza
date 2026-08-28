@@ -94,8 +94,8 @@ func clientMocks() map[string]MockContract {
 			}},
 			"next_page_token": nil, "total_count": 1, "applied_filters": map[string]interface{}{"status": []string{"IN_PROGRESS"}}, "sort": []string{"-updated_at"},
 		}),
-		"civicworks_event_acknowledged":     {HTTPStatus: 204, Body: map[string]interface{}{}},
-		"civicworks_duplicate_acknowledged": {HTTPStatus: 204, Body: map[string]interface{}{}},
+		"civicworks_event_acknowledged":     {HTTPStatus: 204, Body: nil},
+		"civicworks_duplicate_acknowledged": {HTTPStatus: 204, Body: nil},
 		"civicworks_invalid_signature": mock(401, APIError{
 			Error: ErrorInvalidSignature, Message: "The CivicWorks event signature is invalid.", Retryable: false,
 		}),

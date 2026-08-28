@@ -1,0 +1,33 @@
+{
+  "fixtureVersion": "2026-08-26.1",
+  "fixtureID": "contract-v1",
+  "contractVersion": "1.0.0",
+  "benchmarkNow": "2026-01-15T15:00:00.000Z",
+  "reports": [
+    {
+      "reportID": "311-fixture-report",
+      "name": "Request volume",
+      "handle": "request_volume",
+      "createdAt": "2026-01-15T15:00:00.000Z",
+      "updatedAt": "2026-01-15T15:00:00.000Z",
+      "config": { "columns": ["request_number", "status"], "filters": [] }
+    }
+  ],
+  "builder": {
+    "reportID": "311-fixture-report",
+    "name": "Request volume",
+    "columns": ["request_number", "status"],
+    "filters": [],
+    "rows": [{ "request_number": "SR-2026-00001", "status": "SUBMITTED" }]
+  },
+  "scenarios": {
+    "success": { "status": 200 },
+    "empty": { "status": 200, "set": [], "total": 0 },
+    "forbidden": { "status": 403, "error": "FORBIDDEN", "retryable": false },
+    "not-found": { "status": 404, "error": "NOT_FOUND", "retryable": false },
+    "validation": { "status": 422, "error": "VALIDATION_ERROR", "retryable": false, "errors": [{ "field": "/columns", "code": "REQUIRED" }] },
+    "retryable": { "status": 503, "error": "TEMPORARILY_UNAVAILABLE", "retryable": true },
+    "terminal": { "status": 200, "operation_status": "FAILED", "error": { "error": "OPERATION_FAILED", "message": "The operation failed permanently.", "retryable": false } },
+    "version-conflict": { "status": 409, "error": "VERSION_CONFLICT", "retryable": false, "current_version": 2 }
+  }
+}

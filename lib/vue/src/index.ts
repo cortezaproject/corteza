@@ -8,7 +8,10 @@ import * as url from './libs/url'
 import * as filter from './libs/filter'
 import * as handle from './libs/handle'
 import * as websocket from './libs/websocket'
+import * as c311Router from './libs/c311-router'
+import * as c311I18n from './libs/c311-i18n'
 import i18n from './i18n'
+import * as c311 from './libs/c311'
 
 export {
   plugins,
@@ -21,5 +24,8 @@ export {
   filter,
   handle,
   websocket,
+  c311Router,
+  c311I18n,
   i18n,
+  c311,
 }
