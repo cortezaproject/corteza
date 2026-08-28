@@ -237,6 +237,17 @@ type (
 		CreatedAt     time.Time                  `db:"created_at"`
 	}
 
+	// auxCity311Constituent is an auxiliary structure used for transporting to/from RDBMS store
+	auxCity311Constituent struct {
+		ID               uint64                     `db:"id"`
+		ConstituentID    string                     `db:"constituent_id"`
+		Profile          composeType.City311JSON    `db:"profile"`
+		OwningDepartment composeType.DepartmentCode `db:"owning_department"`
+		CouncilDistrict  composeType.DistrictCode   `db:"council_district"`
+		CreatedAt        time.Time                  `db:"created_at"`
+		UpdatedAt        time.Time                  `db:"updated_at"`
+	}
+
 	// auxCity311IdempotencyRecord is an auxiliary structure used for transporting to/from RDBMS store
 	auxCity311IdempotencyRecord struct {
 		ID             uint64                  `db:"id"`
@@ -1563,6 +1574,50 @@ func (aux *auxCity311AuditEvent) scan(row scanner) error {
 		&aux.Before,
 		&aux.After,
 		&aux.CreatedAt,
+	)
+}
+
+// encodes City311Constituent to auxCity311Constituent
+//
+// This function is auto-generated
+func (aux *auxCity311Constituent) encode(res *composeType.City311Constituent) (_ error) {
+	aux.ID = res.ID
+	aux.ConstituentID = res.ConstituentID
+	aux.Profile = res.Profile
+	aux.OwningDepartment = res.OwningDepartment
+	aux.CouncilDistrict = res.CouncilDistrict
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	return
+}
+
+// decodes City311Constituent from auxCity311Constituent
+//
+// This function is auto-generated
+func (aux auxCity311Constituent) decode() (res *composeType.City311Constituent, _ error) {
+	res = new(composeType.City311Constituent)
+	res.ID = aux.ID
+	res.ConstituentID = aux.ConstituentID
+	res.Profile = aux.Profile
+	res.OwningDepartment = aux.OwningDepartment
+	res.CouncilDistrict = aux.CouncilDistrict
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	return
+}
+
+// scans row and fills auxCity311Constituent fields
+//
+// This function is auto-generated
+func (aux *auxCity311Constituent) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.ConstituentID,
+		&aux.Profile,
+		&aux.OwningDepartment,
+		&aux.CouncilDistrict,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
 	)
 }
 

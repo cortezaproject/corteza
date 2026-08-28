@@ -56,6 +56,10 @@ func TestSeedIsRepeatableAndPreservesSeededRows(t *testing.T) {
 	require.NoError(t, err)
 	seeded.Summary = "Preserved operator edit"
 	require.NoError(t, store.UpdateCity311ServiceRequest(ctx, st, seeded))
+	constituent, err := store.LookupCity311ConstituentByConstituentID(ctx, st, "C-1")
+	require.NoError(t, err)
+	constituent.Profile["display_name"] = "Preserved constituent edit"
+	require.NoError(t, store.UpdateCity311Constituent(ctx, st, constituent))
 	require.NoError(t, svc.Seed(ctx, svc.now()))
 
 	set, _, err := store.SearchCity311ServiceRequests(ctx, st, composeTypes.City311ServiceRequestFilter{Paging: filter.Paging{Limit: 100}})
@@ -64,6 +68,12 @@ func TestSeedIsRepeatableAndPreservesSeededRows(t *testing.T) {
 	seeded, err = store.LookupCity311ServiceRequestByRequestNumber(ctx, st, "SR-2026-00034")
 	require.NoError(t, err)
 	require.Equal(t, "Preserved operator edit", seeded.Summary)
+	constituent, err = store.LookupCity311ConstituentByConstituentID(ctx, st, "C-1")
+	require.NoError(t, err)
+	require.Equal(t, "Preserved constituent edit", constituent.Profile["display_name"])
+	constituents, _, err := store.SearchCity311Constituents(ctx, st, composeTypes.City311ConstituentFilter{Paging: filter.Paging{Limit: 100}})
+	require.NoError(t, err)
+	require.Len(t, constituents, 8)
 	history, _, err := store.SearchCity311PublicHistoryItems(ctx, st, composeTypes.City311PublicHistoryItemFilter{RequestID: seeded.ID})
 	require.NoError(t, err)
 	require.Len(t, history, 1)
@@ -100,6 +110,9 @@ func TestSubmitIsTransactionalAndIdempotent(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 201, status)
 	require.Equal(t, "SR-2026-00041", first.RequestNumber)
+	createdConstituent, err := store.LookupCity311ConstituentByConstituentID(ctx, st, "C-"+first.RequestID)
+	require.NoError(t, err)
+	require.Equal(t, "Alex Resident", createdConstituent.Profile["display_name"])
 
 	replay, status, err := svc.Submit(ctx, validSubmission(), "request-key-1", options)
 	require.NoError(t, err)
@@ -117,6 +130,9 @@ func TestSubmitIsTransactionalAndIdempotent(t *testing.T) {
 	set, _, err := store.SearchCity311ServiceRequests(ctx, st, composeTypes.City311ServiceRequestFilter{Paging: filter.Paging{Limit: 100}})
 	require.NoError(t, err)
 	require.Len(t, set, 9)
+	constituents, _, err := store.SearchCity311Constituents(ctx, st, composeTypes.City311ConstituentFilter{Paging: filter.Paging{Limit: 100}})
+	require.NoError(t, err)
+	require.Len(t, constituents, 9)
 	sequence, err := store.LookupCity311RequestSequenceByID(ctx, st, 2026)
 	require.NoError(t, err)
 	require.Equal(t, uint64(42), sequence.NextNumber)
@@ -328,4 +344,30 @@ func TestValidationPrecedesPersistence(t *testing.T) {
 	set, _, searchErr := store.SearchCity311ServiceRequests(ctx, st, composeTypes.City311ServiceRequestFilter{Paging: filter.Paging{Limit: 100}})
 	require.NoError(t, searchErr)
 	require.Len(t, set, 8)
+}
+
+func TestResolveConstituentUsesIndexedResourceBeyondOneHundredRequests(t *testing.T) {
+	svc, _ := testService(t)
+	ctx := context.Background()
+	require.NoError(t, svc.Seed(ctx, svc.now()))
+	actor := contract.Actor{
+		ID: 100, Roles: []contract.ApplicationRole{contract.ApplicationRoleServiceAgent},
+		Department: contract.DepartmentStreets, Districts: []contract.DistrictCode{contract.DistrictNorth},
+	}
+	lastConstituentID := ""
+	for index := 0; index < 110; index++ {
+		input := validSubmission()
+		input.Requester.DisplayName = fmt.Sprintf("Constituent %d", index)
+		input.Requester.Email = fmt.Sprintf("constituent-%d@example.invalid", index)
+		response, status, err := svc.Submit(ctx, input, "", SubmissionOptions{
+			SourceChannel: contract.SourceChannelAPI, ActorType: contract.AuditActorIntegrationClient,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 201, status)
+		lastConstituentID = "C-" + response.RequestID
+	}
+	resolved, err := svc.ResolveConstituent(ctx, actor, lastConstituentID)
+	require.NoError(t, err)
+	require.Equal(t, lastConstituentID, resolved.ConstituentID)
+	require.Equal(t, "Constituent 109", resolved.Profile["display_name"])
 }

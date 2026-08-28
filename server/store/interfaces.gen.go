@@ -58,6 +58,7 @@ type (
 		AutomationWorkflows
 		City311ActorProfiles
 		City311AuditEvents
+		City311Constituents
 		City311IdempotencyRecords
 		City311PublicHistoryItems
 		City311RequestAttachments
@@ -281,6 +282,19 @@ type (
 		DeleteCity311AuditEventByID(ctx context.Context, id uint64) error
 		TruncateCity311AuditEvents(ctx context.Context) error
 		LookupCity311AuditEventByID(ctx context.Context, id uint64) (*composeType.City311AuditEvent, error)
+	}
+
+	City311Constituents interface {
+		SearchCity311Constituents(ctx context.Context, f composeType.City311ConstituentFilter) (composeType.City311ConstituentSet, composeType.City311ConstituentFilter, error)
+		CreateCity311Constituent(ctx context.Context, rr ...*composeType.City311Constituent) error
+		UpdateCity311Constituent(ctx context.Context, rr ...*composeType.City311Constituent) error
+		UpsertCity311Constituent(ctx context.Context, rr ...*composeType.City311Constituent) error
+		DeleteCity311Constituent(ctx context.Context, rr ...*composeType.City311Constituent) error
+
+		DeleteCity311ConstituentByID(ctx context.Context, id uint64) error
+		TruncateCity311Constituents(ctx context.Context) error
+		LookupCity311ConstituentByID(ctx context.Context, id uint64) (*composeType.City311Constituent, error)
+		LookupCity311ConstituentByConstituentID(ctx context.Context, constituentID string) (*composeType.City311Constituent, error)
 	}
 
 	City311IdempotencyRecords interface {
@@ -1691,6 +1705,69 @@ func TruncateCity311AuditEvents(ctx context.Context, s City311AuditEvents) error
 // This function is auto-generated
 func LookupCity311AuditEventByID(ctx context.Context, s City311AuditEvents, id uint64) (*composeType.City311AuditEvent, error) {
 	return s.LookupCity311AuditEventByID(ctx, id)
+}
+
+// SearchCity311Constituents returns all matching City311Constituents from store
+//
+// This function is auto-generated
+func SearchCity311Constituents(ctx context.Context, s City311Constituents, f composeType.City311ConstituentFilter) (composeType.City311ConstituentSet, composeType.City311ConstituentFilter, error) {
+	return s.SearchCity311Constituents(ctx, f)
+}
+
+// CreateCity311Constituent creates one or more City311Constituents in store
+//
+// This function is auto-generated
+func CreateCity311Constituent(ctx context.Context, s City311Constituents, rr ...*composeType.City311Constituent) error {
+	return s.CreateCity311Constituent(ctx, rr...)
+}
+
+// UpdateCity311Constituent updates one or more (existing) City311Constituents in store
+//
+// This function is auto-generated
+func UpdateCity311Constituent(ctx context.Context, s City311Constituents, rr ...*composeType.City311Constituent) error {
+	return s.UpdateCity311Constituent(ctx, rr...)
+}
+
+// UpsertCity311Constituent creates new or updates existing one or more City311Constituents in store
+//
+// This function is auto-generated
+func UpsertCity311Constituent(ctx context.Context, s City311Constituents, rr ...*composeType.City311Constituent) error {
+	return s.UpsertCity311Constituent(ctx, rr...)
+}
+
+// DeleteCity311Constituent deletes one or more City311Constituents from store
+//
+// This function is auto-generated
+func DeleteCity311Constituent(ctx context.Context, s City311Constituents, rr ...*composeType.City311Constituent) error {
+	return s.DeleteCity311Constituent(ctx, rr...)
+}
+
+// DeleteCity311ConstituentByID deletes one or more City311Constituents from store
+//
+// This function is auto-generated
+func DeleteCity311ConstituentByID(ctx context.Context, s City311Constituents, id uint64) error {
+	return s.DeleteCity311ConstituentByID(ctx, id)
+}
+
+// TruncateCity311Constituents Deletes all City311Constituents from store
+//
+// This function is auto-generated
+func TruncateCity311Constituents(ctx context.Context, s City311Constituents) error {
+	return s.TruncateCity311Constituents(ctx)
+}
+
+// LookupCity311ConstituentByID
+//
+// This function is auto-generated
+func LookupCity311ConstituentByID(ctx context.Context, s City311Constituents, id uint64) (*composeType.City311Constituent, error) {
+	return s.LookupCity311ConstituentByID(ctx, id)
+}
+
+// LookupCity311ConstituentByConstituentID
+//
+// This function is auto-generated
+func LookupCity311ConstituentByConstituentID(ctx context.Context, s City311Constituents, constituentID string) (*composeType.City311Constituent, error) {
+	return s.LookupCity311ConstituentByConstituentID(ctx, constituentID)
 }
 
 // SearchCity311IdempotencyRecords returns all matching City311IdempotencyRecords from store

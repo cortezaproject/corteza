@@ -391,6 +391,101 @@ var City311AuditEvent = &dal.Model{
 	},
 }
 
+var City311Constituent = &dal.Model{
+	Ident:        "compose_city311_constituent",
+	ResourceType: types.City311ConstituentResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "ConstituentID", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "constituent_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Profile",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "profile"},
+		},
+
+		&dal.Attribute{
+			Ident: "OwningDepartment", Sortable: true,
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "owning_department"},
+		},
+
+		&dal.Attribute{
+			Ident: "CouncilDistrict", Sortable: true,
+			Type:  &dal.TypeText{Length: 32},
+			Store: &dal.CodecAlias{Ident: "council_district"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "compose_city311_constituent_constituentScope",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "OwningDepartment",
+				},
+
+				{
+					AttributeIdent: "CouncilDistrict",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:  "compose_city311_constituent_uniqueConstituentId",
+			Type:   "BTREE",
+			Unique: true,
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ConstituentID",
+				},
+			},
+		},
+	},
+}
+
 var City311IdempotencyRecord = &dal.Model{
 	Ident:        "compose_city311_idempotency",
 	ResourceType: types.City311IdempotencyRecordResourceType,
@@ -1823,6 +1918,7 @@ func init() {
 		Chart,
 		City311ActorProfile,
 		City311AuditEvent,
+		City311Constituent,
 		City311IdempotencyRecord,
 		City311PublicHistoryItem,
 		City311RequestAttachment,

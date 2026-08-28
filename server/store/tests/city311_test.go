@@ -31,6 +31,29 @@ func testCity311ActorProfiles(t *testing.T, s store.City311ActorProfiles) {
 	require.NoError(t, s.DeleteCity311ActorProfileByID(ctx, profile.ID))
 }
 
+func testCity311Constituents(t *testing.T, s store.City311Constituents) {
+	ctx := context.Background()
+	require.NoError(t, s.TruncateCity311Constituents(ctx))
+	constituent := &composeTypes.City311Constituent{
+		ID: 151, ConstituentID: "C-151",
+		Profile:          composeTypes.City311JSON{"constituent_id": "C-151", "display_name": "Alex Resident"},
+		OwningDepartment: contract.DepartmentStreets, CouncilDistrict: contract.DistrictNorth,
+		CreatedAt: *now(), UpdatedAt: *now(),
+	}
+	require.NoError(t, s.CreateCity311Constituent(ctx, constituent))
+	fetched, err := s.LookupCity311ConstituentByConstituentID(ctx, constituent.ConstituentID)
+	require.NoError(t, err)
+	require.Equal(t, constituent.Profile, fetched.Profile)
+	set, _, err := s.SearchCity311Constituents(ctx, composeTypes.City311ConstituentFilter{
+		OwningDepartment: string(contract.DepartmentStreets), CouncilDistrict: string(contract.DistrictNorth),
+	})
+	require.NoError(t, err)
+	require.Len(t, set, 1)
+	fetched.Profile["display_name"] = "Updated Resident"
+	require.NoError(t, s.UpdateCity311Constituent(ctx, fetched))
+	require.NoError(t, s.DeleteCity311ConstituentByID(ctx, fetched.ID))
+}
+
 func testCity311AuditEvents(t *testing.T, s store.City311AuditEvents) {
 	ctx := context.Background()
 	require.NoError(t, s.TruncateCity311AuditEvents(ctx))

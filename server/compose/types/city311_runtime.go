@@ -60,6 +60,25 @@ type (
 	}
 	City311ServiceRequestSet []*City311ServiceRequest
 
+	City311Constituent struct {
+		ID               uint64                      `json:"id,string"`
+		ConstituentID    string                      `json:"constituentID"`
+		Profile          City311JSON                 `json:"profile"`
+		OwningDepartment city311Types.DepartmentCode `json:"owningDepartment"`
+		CouncilDistrict  city311Types.DistrictCode   `json:"councilDistrict,omitempty"`
+		CreatedAt        time.Time                   `json:"createdAt"`
+		UpdatedAt        time.Time                   `json:"updatedAt"`
+	}
+	City311ConstituentFilter struct {
+		ConstituentID    string
+		OwningDepartment string
+		CouncilDistrict  string
+		Check            func(*City311Constituent) (bool, error)
+		filter.Sorting
+		filter.Paging
+	}
+	City311ConstituentSet []*City311Constituent
+
 	City311RequestSequence struct {
 		ID         uint64 `json:"year"`
 		NextNumber uint64 `json:"nextNumber"`

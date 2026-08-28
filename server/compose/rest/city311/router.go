@@ -143,7 +143,7 @@ func (h *handler) staffSubmit(w http.ResponseWriter, r *http.Request) {
 		writeValidation(w, "/request/attachment_tokens", contract.ValidationInvalidValue)
 		return
 	}
-	requester, err := h.staffRequester(r, input.Constituent)
+	requester, existingConstituentID, err := staffRequester(input.Constituent)
 	if err != nil {
 		writeResult(w, 0, nil, err)
 		return
@@ -153,7 +153,7 @@ func (h *handler) staffSubmit(w http.ResponseWriter, r *http.Request) {
 		Requester: requester, Location: input.Request.Location, CustomFields: input.Request.CustomFields,
 	}, "", city311Service.SubmissionOptions{
 		Operation: "staff_service_request_create", SourceChannel: contract.SourceChannelStaffInPerson,
-		ActorType: contract.AuditActorStaff, ActorID: actor.ID, StaffActor: &actor,
+		ActorType: contract.AuditActorStaff, ActorID: actor.ID, StaffActor: &actor, ExistingConstituentID: existingConstituentID,
 	})
 	if err != nil {
 		writeResult(w, 0, nil, err)
@@ -164,26 +164,33 @@ func (h *handler) staffSubmit(w http.ResponseWriter, r *http.Request) {
 	writeResult(w, http.StatusCreated, detail, err)
 }
 
-func (h *handler) staffRequester(r *http.Request, value contract.StaffConstituentInput) (contract.RequesterInput, error) {
+func staffRequester(value contract.StaffConstituentInput) (contract.RequesterInput, string, error) {
 	hasReference := value.ConstituentID != nil
 	hasDisplayName := value.DisplayName != nil
 	hasEmail := value.Email != nil
 	if hasReference && (hasDisplayName || hasEmail) {
-		return contract.RequesterInput{}, &city311Service.ServiceError{Status: 422, Payload: contract.APIError{
+		return contract.RequesterInput{}, "", &city311Service.ServiceError{Status: 422, Payload: contract.APIError{
 			Error: contract.ErrorValidation, Message: "The request contains invalid fields.", Retryable: false,
 			Errors: []contract.FieldError{{Field: "/constituent", Code: contract.ValidationInvalidValue}},
 		}}
 	}
 	if hasReference {
-		return h.service.ResolveConstituent(r.Context(), *value.ConstituentID)
+		constituentID := strings.TrimSpace(*value.ConstituentID)
+		if constituentID == "" {
+			return contract.RequesterInput{}, "", &city311Service.ServiceError{Status: 422, Payload: contract.APIError{
+				Error: contract.ErrorValidation, Message: "The request contains invalid fields.", Retryable: false,
+				Errors: []contract.FieldError{{Field: "/constituent/constituent_id", Code: contract.ValidationRequired}},
+			}}
+		}
+		return contract.RequesterInput{}, constituentID, nil
 	}
 	if !hasDisplayName || !hasEmail {
-		return contract.RequesterInput{}, &city311Service.ServiceError{Status: 422, Payload: contract.APIError{
+		return contract.RequesterInput{}, "", &city311Service.ServiceError{Status: 422, Payload: contract.APIError{
 			Error: contract.ErrorValidation, Message: "The request contains invalid fields.", Retryable: false,
 			Errors: []contract.FieldError{{Field: "/constituent", Code: contract.ValidationRequired}},
 		}}
 	}
-	return contract.RequesterInput{DisplayName: *value.DisplayName, Email: *value.Email}, nil
+	return contract.RequesterInput{DisplayName: *value.DisplayName, Email: *value.Email}, "", nil
 }
 
 func (h *handler) staffList(w http.ResponseWriter, r *http.Request) {

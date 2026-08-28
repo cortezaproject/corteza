@@ -11,6 +11,7 @@ const (
 	ChartResourceType                    = "corteza::compose:chart"
 	City311ActorProfileResourceType      = "corteza::compose:city311-actor-profile"
 	City311AuditEventResourceType        = "corteza::compose:city311-audit-event"
+	City311ConstituentResourceType       = "corteza::compose:city311-constituent"
 	City311IdempotencyRecordResourceType = "corteza::compose:city311-idempotency-record"
 	City311PublicHistoryItemResourceType = "corteza::compose:city311-public-history-item"
 	City311RequestAttachmentResourceType = "corteza::compose:city311-request-attachment"

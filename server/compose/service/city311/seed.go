@@ -144,6 +144,9 @@ func (svc *Service) seedRequests(ctx context.Context, tx store.Storer, benchmark
 				return err
 			}
 		}
+		if err := svc.seedConstituent(ctx, tx, request); err != nil {
+			return err
+		}
 		audits, _, err := store.SearchCity311AuditEvents(ctx, tx, composeTypes.City311AuditEventFilter{RequestID: request.ID, EventType: "SEED_CREATED"})
 		if err != nil {
 			return err
@@ -170,4 +173,23 @@ func (svc *Service) seedRequests(ctx context.Context, tx store.Storer, benchmark
 		}
 	}
 	return nil
+}
+
+func (svc *Service) seedConstituent(ctx context.Context, tx store.Storer, request *composeTypes.City311ServiceRequest) error {
+	constituentID := fmt.Sprint(request.PrimaryRequester["constituent_id"])
+	if constituentID == "" || constituentID == "<nil>" {
+		return nil
+	}
+	_, err := store.LookupCity311ConstituentByConstituentID(ctx, tx, constituentID)
+	if err == nil {
+		return nil
+	}
+	if !errors.IsNotFound(err) {
+		return err
+	}
+	return store.CreateCity311Constituent(ctx, tx, &composeTypes.City311Constituent{
+		ID: svc.nextID(), ConstituentID: constituentID, Profile: cloneMap(request.PrimaryRequester),
+		OwningDepartment: request.OwningDepartment, CouncilDistrict: request.CouncilDistrict,
+		CreatedAt: request.CreatedAt, UpdatedAt: request.CreatedAt,
+	})
 }

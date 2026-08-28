@@ -72,6 +72,9 @@ type (
 		// optional city311AuditEvent filter function called after the generated function
 		City311AuditEvent func(*Store, composeType.City311AuditEventFilter) ([]goqu.Expression, composeType.City311AuditEventFilter, error)
 
+		// optional city311Constituent filter function called after the generated function
+		City311Constituent func(*Store, composeType.City311ConstituentFilter) ([]goqu.Expression, composeType.City311ConstituentFilter, error)
+
 		// optional city311IdempotencyRecord filter function called after the generated function
 		City311IdempotencyRecord func(*Store, composeType.City311IdempotencyRecordFilter) ([]goqu.Expression, composeType.City311IdempotencyRecordFilter, error)
 
@@ -549,6 +552,30 @@ func City311AuditEventFilter(d drivers.Dialect, f composeType.City311AuditEventF
 
 	if val := strings.TrimSpace(f.EventType); len(val) > 0 {
 		ee = append(ee, goqu.C("event_type").Eq(f.EventType))
+	}
+
+	return ee, f, err
+}
+
+// City311ConstituentFilter returns logical expressions
+//
+// This function is called from Store.QueryCity311Constituents() and can be extended
+// by setting Store.Filters.City311Constituent. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func City311ConstituentFilter(d drivers.Dialect, f composeType.City311ConstituentFilter) (ee []goqu.Expression, _ composeType.City311ConstituentFilter, err error) {
+
+	if val := strings.TrimSpace(f.ConstituentID); len(val) > 0 {
+		ee = append(ee, goqu.C("constituent_id").Eq(f.ConstituentID))
+	}
+
+	if val := strings.TrimSpace(f.OwningDepartment); len(val) > 0 {
+		ee = append(ee, goqu.C("owning_department").Eq(f.OwningDepartment))
+	}
+
+	if val := strings.TrimSpace(f.CouncilDistrict); len(val) > 0 {
+		ee = append(ee, goqu.C("council_district").Eq(f.CouncilDistrict))
 	}
 
 	return ee, f, err

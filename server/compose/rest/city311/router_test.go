@@ -198,6 +198,22 @@ func TestStaffCreateSupportsConstituentReferenceAndRejectsMixedUnion(t *testing.
 	require.Equal(t, http.StatusCreated, created.Code, created.Body.String())
 	require.Contains(t, created.Body.String(), "constituent1@city311.example.invalid")
 	require.Contains(t, created.Body.String(), `"origin_class":"INTERNAL"`)
+	detail := contract.StaffServiceRequestDetail{}
+	require.NoError(t, json.Unmarshal(created.Body.Bytes(), &detail))
+	require.Equal(t, "C-1", detail.Request.PrimaryRequester.ConstituentID)
+
+	newBody := map[string]any{
+		"request":     validPortalBody(),
+		"constituent": map[string]any{"display_name": "New Staff Constituent", "email": "new-staff@example.invalid"},
+	}
+	created = executeJSON(t, router, http.MethodPost, "/api/v1/staff/service-requests", newBody, nil, user.ID)
+	require.Equal(t, http.StatusCreated, created.Code, created.Body.String())
+	detail = contract.StaffServiceRequestDetail{}
+	require.NoError(t, json.Unmarshal(created.Body.Bytes(), &detail))
+	require.NotEmpty(t, detail.Request.PrimaryRequester.ConstituentID)
+	persisted, err := store.LookupCity311ConstituentByConstituentID(context.Background(), st, detail.Request.PrimaryRequester.ConstituentID)
+	require.NoError(t, err)
+	require.Equal(t, "New Staff Constituent", persisted.Profile["display_name"])
 
 	body["constituent"] = map[string]any{"constituent_id": "C-1", "display_name": "Mixed", "email": "mixed@example.invalid"}
 	mixed := executeJSON(t, router, http.MethodPost, "/api/v1/staff/service-requests", body, nil, user.ID)
@@ -215,6 +231,37 @@ func TestStaffCreateAuthorizesDerivedScopeBeforePersistence(t *testing.T) {
 	body := map[string]any{"request": request, "constituent": map[string]any{"constituent_id": "C-1"}}
 	response := executeJSON(t, router, http.MethodPost, "/api/v1/staff/service-requests", body, nil, user.ID)
 	require.Equal(t, http.StatusForbidden, response.Code, response.Body.String())
+	after, _, err := store.SearchCity311ServiceRequests(context.Background(), st, composeTypes.City311ServiceRequestFilter{})
+	require.NoError(t, err)
+	require.Len(t, after, len(before))
+}
+
+func TestStaffCreateEnforcesConstituentDepartmentAndDistrictScopeBeforePersistence(t *testing.T) {
+	router, st, _ := testRouter(t)
+	user, err := store.LookupUserByEmail(context.Background(), st, "service-agent@city311.example.invalid")
+	require.NoError(t, err)
+	before, _, err := store.SearchCity311ServiceRequests(context.Background(), st, composeTypes.City311ServiceRequestFilter{})
+	require.NoError(t, err)
+	now := time.Date(2026, 2, 3, 15, 4, 5, 0, time.UTC)
+	constituents := []*composeTypes.City311Constituent{
+		{
+			ID: id.Next(), ConstituentID: "C-private-sanitation",
+			Profile:          composeTypes.City311JSON{"constituent_id": "C-private-sanitation", "display_name": "Private Sanitation Resident", "emails": []string{"private-sanitation@example.invalid"}},
+			OwningDepartment: contract.DepartmentSanitation, CouncilDistrict: contract.DistrictNorth, CreatedAt: now, UpdatedAt: now,
+		},
+		{
+			ID: id.Next(), ConstituentID: "C-private-south",
+			Profile:          composeTypes.City311JSON{"constituent_id": "C-private-south", "display_name": "Private South Resident", "emails": []string{"private-south@example.invalid"}},
+			OwningDepartment: contract.DepartmentStreets, CouncilDistrict: contract.DistrictSouth, CreatedAt: now, UpdatedAt: now,
+		},
+	}
+	require.NoError(t, store.CreateCity311Constituent(context.Background(), st, constituents...))
+	for _, constituent := range constituents {
+		body := map[string]any{"request": validPortalBody(), "constituent": map[string]any{"constituent_id": constituent.ConstituentID}}
+		response := executeJSON(t, router, http.MethodPost, "/api/v1/staff/service-requests", body, nil, user.ID)
+		require.Equal(t, http.StatusForbidden, response.Code, response.Body.String())
+		require.NotContains(t, response.Body.String(), fmt.Sprint(constituent.Profile["display_name"]))
+	}
 	after, _, err := store.SearchCity311ServiceRequests(context.Background(), st, composeTypes.City311ServiceRequestFilter{})
 	require.NoError(t, err)
 	require.Len(t, after, len(before))

@@ -12,6 +12,7 @@ component: schema.#component & {
 		"chart":                       chart
 		"city311-actor-profile":       actorProfile
 		"city311-audit-event":         auditEvent
+		"city311-constituent":         constituent
 		"city311-idempotency-record":  idempotencyRecord
 		"city311-public-history-item": publicHistoryItem
 		"city311-request-attachment":  requestAttachment

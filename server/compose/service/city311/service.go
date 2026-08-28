@@ -21,7 +21,6 @@ import (
 	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
 	contract "github.com/cortezaproject/corteza/server/compose/types/city311"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 )
@@ -46,12 +45,13 @@ type (
 	}
 
 	SubmissionOptions struct {
-		Operation          string
-		SourceChannel      contract.SourceChannel
-		ActorType          contract.AuditActorType
-		ActorID            uint64
-		StaffActor         *contract.Actor
-		RequireIdempotency bool
+		Operation             string
+		SourceChannel         contract.SourceChannel
+		ActorType             contract.AuditActorType
+		ActorID               uint64
+		StaffActor            *contract.Actor
+		ExistingConstituentID string
+		RequireIdempotency    bool
 	}
 
 	RequestFilter struct {
@@ -238,6 +238,22 @@ func hashKey(value string) string {
 }
 
 func (svc *Service) Submit(ctx context.Context, in contract.ServiceRequestCreate, idempotencyKey string, options SubmissionOptions) (*contract.ServiceRequestResponse, int, error) {
+	var referencedConstituent *composeTypes.City311Constituent
+	if options.ExistingConstituentID != "" {
+		options.ExistingConstituentID = strings.TrimSpace(options.ExistingConstituentID)
+		if options.ExistingConstituentID == "" {
+			return nil, 0, validationError(contract.FieldError{Field: "/constituent/constituent_id", Code: contract.ValidationRequired})
+		}
+		if options.StaffActor == nil {
+			return nil, 0, apiError(403, contract.ErrorForbidden, "A staff actor is required to reference an existing constituent.")
+		}
+		var err error
+		referencedConstituent, err = svc.ResolveConstituent(ctx, *options.StaffActor, options.ExistingConstituentID)
+		if err != nil {
+			return nil, 0, err
+		}
+		in.Requester = requesterInput(referencedConstituent.Profile)
+	}
 	if err := validateWrite(in); err != nil {
 		return nil, 0, err
 	}
@@ -261,7 +277,10 @@ func (svc *Service) Submit(ctx context.Context, in contract.ServiceRequestCreate
 	if options.Operation == "" {
 		options.Operation = "service_request_create"
 	}
-	requestHash, err := hashJSON(in)
+	requestHash, err := hashJSON(struct {
+		Request               contract.ServiceRequestCreate `json:"request"`
+		ExistingConstituentID string                        `json:"existing_constituent_id,omitempty"`
+	}{Request: in, ExistingConstituentID: options.ExistingConstituentID})
 	if err != nil {
 		return nil, 0, err
 	}
@@ -305,6 +324,20 @@ func (svc *Service) Submit(ctx context.Context, in contract.ServiceRequestCreate
 			}
 		}
 
+		if options.ExistingConstituentID != "" {
+			current, lookupErr := store.LookupCity311ConstituentByConstituentID(ctx, tx, options.ExistingConstituentID)
+			if errors.IsNotFound(lookupErr) {
+				return apiError(404, contract.ErrorNotFound, "The constituent was not found.")
+			}
+			if lookupErr != nil {
+				return lookupErr
+			}
+			if !canReadConstituent(*options.StaffActor, current) {
+				return apiError(403, contract.ErrorForbidden, "The constituent is outside the actor's record scope.")
+			}
+			referencedConstituent = current
+		}
+
 		year := uint64(now.Year())
 		sequence, sequenceErr := store.LookupCity311RequestSequenceByID(ctx, tx, year)
 		if errors.IsNotFound(sequenceErr) {
@@ -331,6 +364,20 @@ func (svc *Service) Submit(ctx context.Context, in contract.ServiceRequestCreate
 		if options.SourceChannel == contract.SourceChannelStaffInPerson {
 			originClass = contract.OriginClassInternal
 		}
+		constituentProfile := map[string]any(nil)
+		if referencedConstituent != nil {
+			constituentProfile = cloneMap(referencedConstituent.Profile)
+			constituentProfile["constituent_id"] = referencedConstituent.ConstituentID
+		} else {
+			constituentProfile = requesterMap(requestID, in.Requester)
+			constituent := &composeTypes.City311Constituent{
+				ID: svc.nextID(), ConstituentID: fmt.Sprint(constituentProfile["constituent_id"]), Profile: cloneMap(constituentProfile),
+				OwningDepartment: department, CreatedAt: now, UpdatedAt: now,
+			}
+			if err := store.CreateCity311Constituent(ctx, tx, constituent); err != nil {
+				return err
+			}
+		}
 		stored := &composeTypes.City311ServiceRequest{
 			ID:               requestID,
 			RequestNumber:    fmt.Sprintf("SR-%04d-%05d", year, number),
@@ -341,7 +388,7 @@ func (svc *Service) Submit(ctx context.Context, in contract.ServiceRequestCreate
 			SourceChannel:    options.SourceChannel,
 			OriginClass:      originClass,
 			Status:           contract.ServiceRequestStatusSubmitted,
-			PrimaryRequester: requesterMap(requestID, in.Requester),
+			PrimaryRequester: constituentProfile,
 			Location:         locationMap(in.Location),
 			CustomFields:     cloneMap(in.CustomFields),
 			CollaboratorIDs:  composeTypes.City311Uint64Set{},
@@ -732,27 +779,24 @@ func compareServiceRequestField(left, right *composeTypes.City311ServiceRequest,
 	}
 }
 
-// ResolveConstituent resolves an existing staff-intake reference from the
-// request aggregate. Constituent snapshots are intentionally immutable inside
-// the request so historical intake remains reproducible.
-func (svc *Service) ResolveConstituent(ctx context.Context, constituentID string) (contract.RequesterInput, error) {
+// ResolveConstituent performs an indexed lookup of an addressable constituent
+// and enforces the caller's department and district scope before exposing PII.
+func (svc *Service) ResolveConstituent(ctx context.Context, actor contract.Actor, constituentID string) (*composeTypes.City311Constituent, error) {
 	constituentID = strings.TrimSpace(constituentID)
 	if constituentID == "" {
-		return contract.RequesterInput{}, validationError(contract.FieldError{Field: "/constituent/constituent_id", Code: contract.ValidationRequired})
+		return nil, validationError(contract.FieldError{Field: "/constituent/constituent_id", Code: contract.ValidationRequired})
 	}
-	set, _, err := store.SearchCity311ServiceRequests(ctx, svc.store, composeTypes.City311ServiceRequestFilter{
-		Paging: filter.Paging{Limit: 100},
-		Check: func(item *composeTypes.City311ServiceRequest) (bool, error) {
-			return fmt.Sprint(item.PrimaryRequester["constituent_id"]) == constituentID, nil
-		},
-	})
+	constituent, err := store.LookupCity311ConstituentByConstituentID(ctx, svc.store, constituentID)
+	if errors.IsNotFound(err) {
+		return nil, apiError(404, contract.ErrorNotFound, "The constituent was not found.")
+	}
 	if err != nil {
-		return contract.RequesterInput{}, err
+		return nil, err
 	}
-	if len(set) == 0 {
-		return contract.RequesterInput{}, apiError(404, contract.ErrorNotFound, "The constituent was not found.")
+	if !canReadConstituent(actor, constituent) {
+		return nil, apiError(403, contract.ErrorForbidden, "The constituent is outside the actor's record scope.")
 	}
-	return requesterInput(set[0].PrimaryRequester), nil
+	return constituent, nil
 }
 
 func appliedFilters(requested RequestFilter) map[string]any {
@@ -835,6 +879,24 @@ func canRead(actor contract.Actor, request *composeTypes.City311ServiceRequest) 
 	}
 	for _, district := range actor.Districts {
 		if district == request.CouncilDistrict {
+			return true
+		}
+	}
+	return false
+}
+
+func canReadConstituent(actor contract.Actor, constituent *composeTypes.City311Constituent) bool {
+	if hasRole(actor, contract.ApplicationRolePlatformAdministrator) {
+		return true
+	}
+	if !isStaff(actor) || actor.Department != constituent.OwningDepartment {
+		return false
+	}
+	if hasRole(actor, contract.ApplicationRoleDepartmentManager) || constituent.CouncilDistrict == "" {
+		return true
+	}
+	for _, district := range actor.Districts {
+		if district == constituent.CouncilDistrict {
 			return true
 		}
 	}

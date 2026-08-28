@@ -59,6 +59,44 @@ serviceRequest: {
 	}
 }
 
+constituent: {
+	model: {
+		ident:            "compose_city311_constituent"
+		omitGetterSetter: true
+		attributes: {
+			id: schema.IdField
+			constituent_id: {ident: "constituentID", goType: "string", sortable: true, dal: {type: "Text", length: 64}}
+			profile: {goType: "types.City311JSON", dal: {type: "JSON", defaultEmptyObject: true}}
+			owning_department: {goType: "types.DepartmentCode", sortable: true, dal: {type: "Text", length: 64}}
+			council_district: {goType: "types.DistrictCode", sortable: true, dal: {type: "Text", length: 32}}
+			created_at: schema.SortableTimestampNowField
+			updated_at: schema.SortableTimestampNowField
+		}
+		indexes: {
+			primary: {attribute: "id"}
+			unique_constituent_id: {attribute: "constituent_id"}
+			constituent_scope: {attributes: ["owning_department", "council_district"]}
+		}
+	}
+	filter: {
+		struct: {
+			constituent_id: {ident: "constituentID", goType: "string"}
+			owning_department: {goType: "string"}
+			council_district: {goType: "string"}
+		}
+		byValue: ["constituent_id", "owning_department", "council_district"]
+	}
+	features: {labels: false, flags: false}
+	envoy: {omit: true}
+	store: {
+		ident: "city311Constituent"
+		api: lookups: [
+			{fields: ["id"]},
+			{fields: ["constituent_id"], constraintCheck: true},
+		]
+	}
+}
+
 requestSequence: {
 	model: {
 		ident:            "compose_city311_request_sequence"
