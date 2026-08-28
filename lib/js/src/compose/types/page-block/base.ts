@@ -32,6 +32,8 @@ interface PageBlockMeta {
   customID?: string;
   customCSSClass?: string;
   visibility: Visibility;
+  // `namespaceID` is used to identify what namespace the block belongs too and also if the block is a global block on the namespace
+  namespaceID?: string;
 }
 
 export type PageBlockInput = PageBlock | Partial<PageBlock>
@@ -59,6 +61,7 @@ export class PageBlock {
       expression: '',
       roles: [],
     },
+    namespaceID: undefined,
   }
 
   public style: PageBlockStyle = {

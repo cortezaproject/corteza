@@ -653,6 +653,37 @@ func (svc namespace) handleUpdate(ctx context.Context, upd *types.Namespace) nam
 			res.Meta = upd.Meta
 		}
 
+		// Get max blockID for later use
+		blockID := uint64(0)
+		for _, b := range res.Blocks {
+			if b.BlockID == blockID {
+				// assign ids on new page blocks
+				for i := range upd.Blocks {
+					upd.Blocks[i].BlockID = uint64(i) + 1
+				}
+			}
+
+			if b.BlockID > blockID {
+				blockID = b.BlockID
+			}
+		}
+
+		if !reflect.DeepEqual(res.Blocks, upd.Blocks) {
+			res.Blocks = upd.Blocks
+			changes |= namespaceChanged
+		}
+
+		// Assure blockIDs
+		for i, b := range res.Blocks {
+			if b.BlockID == 0 {
+				blockID++
+				b.BlockID = blockID
+				res.Blocks[i] = b
+
+				changes |= namespaceChanged
+			}
+		}
+
 		if upd.Labels != nil {
 			if label.Changed(res.Labels, upd.Labels) {
 				changes |= namespaceLabelsChanged
