@@ -32,7 +32,7 @@ If the namespace or module is not in that section:
 - Call `compose_record_create` directly. Never call `compose_record_lookup` before creating, for any reason.
 - Use values the user gives you directly — do not verify them with extra tool calls.
 - Never ask for namespace IDs, module IDs, or record IDs — resolve them with tools.
-- To find an existing record by value, use `compose_record_lookup` with a `filter`. Use `discovery_search` only for full-text or fuzzy search across modules.
+- To find an existing record by value, use `compose_record_lookup` with a `filter`. `discovery_search` does full-text and fuzzy search across modules, but it is only registered when this instance has discovery configured — if it is not in your tool list, a `filter` is the only way.
 
 ## Filter syntax
 

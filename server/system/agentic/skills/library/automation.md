@@ -1,6 +1,6 @@
 ---
 name: automation
-description: Rules for executing TAQs and Workflows.
+description: Rules for executing TAQs and Workflows. Writing one is taq_authoring.
 triggers:
   - automation_taq_lookup
   - automation_workflow_lookup
@@ -9,7 +9,7 @@ triggers:
 
 # TAQs
 
-TAQs are pre-built automations. Allowed TAQs are exposed directly to you as individual tools prefixed with `automation_`. Run them — do not create or modify them.
+TAQs are pre-built automations. Allowed TAQs are exposed directly to you as individual tools prefixed with `automation_`. This skill is about running one; writing one is `taq_authoring`, and unless the request is to build an automation, run what exists rather than changing it.
 
 1. Match the user's intent to the appropriate tool based on its name and description.
 2. Check the input schema for the tool. If required inputs are missing, ask the user for them or generate them if instructed to do so.
