@@ -166,6 +166,14 @@ DOM as it is; use a visibility assertion when visibility is the question.
   `triggers` array, so POST `/automation/triggers/` separately — and `stepID`
   there is accepted, ignored, and echoed back as `0`, which reads exactly like
   the server refusing the value.
+- **An RBAC check on a wildcard resource always answers "no".**
+  `rbac.service.checkValidity` refuses any resource containing `*`, so
+  `Can(ses, op, "corteza::compose:record/1/2/*")` is false however the rules
+  read, and `/permissions/effective?resource=…/*` reports everything denied.
+  `Trace` is the one entry point that evaluates a wildcard honestly — rules are
+  matched with `path.Match` against the requested pattern, so a rule at the same
+  or a broader scope matches and a narrower one does not. It skips the
+  user-group branch, so it can only under-report.
 - Tokens need `scope=profile api` — the API middleware requires the `api`
   scope.
 - Envoy YAML import cannot configure auth clients fully (`validGrant` is
