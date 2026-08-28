@@ -36,7 +36,7 @@ What this skill adds to it:
 - **A change whose test was never broken to prove it asserts is Medium**, per
   step 6, however green the suite is.
 - **`⚠️ NOT DONE` holds the second problem** you found and did not fold in —
-  and it goes to `backlog.sh` at the same time, or it is forgotten.
+  and it goes to `backlog.sh add --global` then, or it is forgotten.
 - **The footer names the checkout and its URL** — after a change, that is where
   the human goes to look at it.
 - **A change that needs the server** belongs in its own worktree
@@ -85,9 +85,10 @@ before writing one in `client/web/unify` — otherwise you ship a second copy th
 drifts from the first.
 
 Scope discipline: do what was asked. If you find a second, real problem, finish
-the first, then queue it — `dev/agent/backlog.sh add "…" --why … --files …` —
-and name it in `⚠️ NOT DONE`. Do not fold it in silently, and do not leave it
-as a sentence in a report nobody re-reads.
+the first, then queue it — `dev/agent/backlog.sh add "…" --why … --files …
+--global` — and name it in `⚠️ NOT DONE`. Do not fold it in silently, and do not
+leave it as a sentence in a report nobody re-reads. Only what would change a
+file this change is already touching stays off `--global`.
 
 ## 5. Verify
 

@@ -42,13 +42,13 @@ Three inputs, all valid:
 - **Pasted issues** — free text. Each becomes a lane candidate.
 - **Backlog ids** — `dev/agent/backlog.sh show <id>`. These already record
   `--files`, which phase 3 needs.
-- **Nothing** — `backlog.sh list` and work what it shows: the shared pool plus
-  your own. Another session's unpromoted items are invisible on purpose — they
-  are findings it is still holding opinions about, and its files are often live
-  while it works them.
+- **Nothing** — `backlog.sh list --global` and work what it shows. Invoking this
+  skill is one of the two moments the pool is read at all; another checkout's
+  local todo stays invisible on purpose, because its files are live while it
+  works them.
 
-`backlog.sh list --orphaned` is worth a glance at intake: items whose session
-has ended without promoting them. Nobody owns those, and nobody will.
+`backlog.sh list --orphaned` is worth a glance at intake: local items whose
+worktree is gone or whose session ended. Nobody owns those, and nobody will.
 
 Restate the list before doing anything, numbered. The human corrects the
 restatement now, not after three worktrees exist.

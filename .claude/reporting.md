@@ -105,18 +105,24 @@ are all the wall of text growing back.
 ## The queue
 
 **Anything in `⚠️ NOT DONE` that should outlive the turn goes to the backlog as
-you write it** — `dev/agent/backlog.sh add "…" --why … --files … --task …`. So
-does the second, real problem you found and did not fold in. Deferring without
-queueing is how a thing gets forgotten, which is the whole reason the queue
-exists.
+you write it** — `dev/agent/backlog.sh add "…" --why … --files … --task …`.
+Deferring without queueing is how a thing gets forgotten, which is the whole
+reason the queue exists.
+
+Which tier is not a judgement call, it is a test:
+
+- **Local** — doing it would change a file this task is already changing, or it
+  follows directly from this change. This is the default, and it is the only
+  thing read back to you.
+- **`--global`** — everything else, including the second, real problem you found
+  while looking at something else. Filed, named here, and out of the way.
 
 Not everything: a declared non-goal is not a todo, and neither is something
 ruled against. Queue what someone would want done later.
 
-The queue is shared by every session and worktree on this machine, and it is
-read back at exactly two moments — triage, where a queued item against a file
-you are about to change is a warning, and `➡️ NEXT`, where the open items
-become interview options once the current task is fully finished.
+The local todo is read back at exactly one moment — `➡️ NEXT`, where the open
+items become interview options once the current task is fully finished. The
+global pool is read when the human asks for it and at no other time.
 
 ## Confidence
 

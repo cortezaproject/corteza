@@ -1,30 +1,38 @@
 #!/usr/bin/env bash
 #
 # The queue of work deferred out of a task, so it survives the turn that found
-# it.
+# it. Two tiers:
 #
-# It lives in the shared .state, which every worktree symlinks — one queue for
-# every session on this machine, not one per checkout. It is gitignored, so it
-# never lands in a commit and never leaves this machine.
+#   local   this checkout's todo — the worktree's, or the session's on the
+#           primary. Read back automatically, at triage and at the end of a
+#           task.
+#   global  everything else, owned by nobody. Read only when somebody asks
+#           for it.
 #
-#   backlog.sh add TEXT [--why W] [--files F,F] [--task T] [--shared]
-#   backlog.sh promote ID                                   hand it to everyone
-#   backlog.sh list [--mine|--shared|--orphaned|--all] [--files F]
+#   backlog.sh add TEXT [--why W] [--files F,F] [--task T] [--global]
+#   backlog.sh promote ID                                   local -> global
+#   backlog.sh list [--global|--both|--orphaned] [--closed] [--files F]
 #   backlog.sh show ID                                      one item in full
 #   backlog.sh done ID [--note N]                           close it
 #   backlog.sh drop ID [--note N]                           close it as not-doing
+#   backlog.sh release OWNER                                a whole todo -> global
+#   backlog.sh owner                                        who owns local items here
 #
-# An item is **yours** until you promote it. A session's own findings stay out
-# of everyone else's way while it is still holding opinions about them; what it
-# genuinely wants someone else to pick up, it promotes. `list` shows yours and
-# the shared pool, never another session's private ones.
+# An item is local when doing it would change a file the current task is
+# already changing, or when it follows directly from that change. Everything
+# else is global: filed, named in the report, and out of the way until the
+# pool is asked for.
 #
-# Items with no scope recorded are shared: they were filed before scoping
-# existed, and retro-assigning them to sessions that have since ended would
-# hide work people are already acting on.
+# A worktree owns its todo, so the queue survives the session that opened it
+# and dies with `worktree.sh rm`, which promotes what is still open. On the
+# primary there is no such boundary, so the session is the owner.
 #
-# `--orphaned` is the recovery path — private items whose session is no longer
-# running, which would otherwise be lost with it.
+# Every scope this file did not write is global — the shared pool, and the
+# per-session items from before the tiers existed. Sessions that have since
+# ended cannot act on them, and the pool is where unowned work belongs.
+#
+# `--orphaned` is the recovery path: local items whose worktree is gone or
+# whose session has ended without promoting them.
 #
 # An item records where it came from — the task that deferred it, the session,
 # the commit HEAD was on. Six weeks later that provenance is the difference
@@ -36,7 +44,24 @@ AGENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$AGENT_DIR/common.sh"
 
 BACKLOG="$STATE_DIR/backlog.jsonl"
+WT_DIR="$STATE_DIR/worktrees"
 touch "$BACKLOG"
+
+# Who owns a local item here: the worktree this checkout is, else the session.
+# A registry entry's path is the checkout it was made for, so a worktree
+# answers with its own name however many sessions have driven it.
+owner_now() {
+  local f path
+  for f in "$WT_DIR"/*.json; do
+    [[ -f "$f" ]] || continue
+    path="$(json_get path <"$f" 2>/dev/null || true)"
+    if [[ "$path" == "$REPO_DIR" ]]; then
+      echo "wt:$(json_get name <"$f")"
+      return
+    fi
+  done
+  echo "s:$AGENT_SESSION"
+}
 
 die() {
   bad "backlog: $*"
@@ -46,12 +71,12 @@ die() {
 py() { python3 -c "$1" "${@:2}"; }
 
 cmd_add() {
-  local text="${1:-}" why="" files="" task="" scope="session"
+  local text="${1:-}" why="" files="" task="" scope="local"
   shift || true
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --shared)
-        scope="shared"
+      --global)
+        scope="global"
         shift
         ;;
       --why)
@@ -69,7 +94,7 @@ cmd_add() {
       *) die "unknown flag $1" ;;
     esac
   done
-  [[ -n "$text" ]] || die "usage: backlog.sh add TEXT [--why W] [--files F,F] [--task T]"
+  [[ -n "$text" ]] || die "usage: backlog.sh add TEXT [--why W] [--files F,F] [--task T] [--global]"
 
   local head branch
   head="$(git -C "$REPO_DIR" rev-parse --short HEAD 2>/dev/null || echo '')"
@@ -79,7 +104,7 @@ cmd_add() {
   # interleave lines, they do not corrupt each other's.
   py '
 import json, os, secrets, sys, time
-text, why, files, task, session, head, branch, path, scope = sys.argv[1:10]
+text, why, files, task, session, head, branch, path, scope, owner = sys.argv[1:11]
 item = {
     # Random, not a truncated clock: two sessions queueing in the same
     # millisecond got the same id, and list() folds same-id records together,
@@ -88,16 +113,17 @@ item = {
     "text": text, "why": why or None,
     "files": [f for f in files.split(",") if f] or None,
     "task": task or None, "status": "open", "scope": scope,
+    "owner": owner if scope == "local" else None,
     "session": session, "commit": head or None, "branch": branch or None,
     "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
 }
 with open(path, "a") as fh:
     fh.write(json.dumps(item) + "\n")
-print(item["id"])
-' "$text" "$why" "$files" "$task" "$AGENT_SESSION" "$head" "$branch" "$BACKLOG" "$scope"
+print("%s %s" % (item["id"], scope))
+' "$text" "$why" "$files" "$task" "$AGENT_SESSION" "$head" "$branch" "$BACKLOG" "$scope" "$(owner_now)"
 }
 
-# Hand an item to everyone. Append-only, like a close.
+# Out of this checkout's todo and into the pool. Append-only, like a close.
 cmd_promote() {
   [[ -n "${1:-}" ]] || die "usage: backlog.sh promote ID"
   py '
@@ -107,23 +133,50 @@ if not any(json.loads(l)["id"] == want for l in open(path) if l.strip()):
     sys.exit("backlog: no item %s" % want)
 with open(path, "a") as fh:
     fh.write(json.dumps({
-        "id": want, "scope": "shared", "promoted_by": session,
+        "id": want, "scope": "global", "owner": None, "promoted_by": session,
         "promoted": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
     }) + "\n")
-print("%s shared" % want)
+print("%s global" % want)
+' "$BACKLOG" "$1" "$AGENT_SESSION"
+}
+
+# Every open local item of one owner, handed to the pool. `worktree.sh rm`
+# calls this: the checkout is going, and its todo would go with it.
+cmd_release() {
+  [[ -n "${1:-}" ]] || die "usage: backlog.sh release OWNER"
+  py '
+import json, sys, time
+path, owner, session = sys.argv[1:4]
+items = {}
+for line in open(path):
+    line = line.strip()
+    if line:
+        it = json.loads(line)
+        items.setdefault(it["id"], {}).update(it)
+stale = [i for i in items.values()
+         if i.get("status") == "open" and i.get("scope") == "local"
+         and i.get("owner") == owner]
+with open(path, "a") as fh:
+    for i in stale:
+        fh.write(json.dumps({
+            "id": i["id"], "scope": "global", "owner": None,
+            "promoted_by": session,
+            "promoted": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        }) + "\n")
+print(len(stale))
 ' "$BACKLOG" "$1" "$AGENT_SESSION"
 }
 
 # Later lines win, so a close is just another append.
 cmd_list() {
-  local all="" files="" view="default"
+  local closed="" files="" view="local"
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --all)
-        all=1
+      --closed)
+        closed=1
         shift
         ;;
-      --mine | --shared | --orphaned)
+      --global | --both | --orphaned)
         view="${1#--}"
         shift
         ;;
@@ -135,16 +188,21 @@ cmd_list() {
     esac
   done
 
-  # Which sessions still have a process, so an unpromoted item can be told
-  # apart from one abandoned with its session.
-  local live
+  # What an owner string can still refer to: a worktree the registry knows, a
+  # session with a process. Anything else owns items nobody will ever pick up.
+  local live wts f
   live="$(pgrep -af 'claude' 2>/dev/null | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | sort -u | tr '\n' ',' || true)"
   live="${live}${AGENT_SESSION}"
+  wts=""
+  for f in "$WT_DIR"/*.json; do
+    [[ -f "$f" ]] && wts="$wts$(basename "$f" .json),"
+  done
 
   py '
 import json, os, sys
-path, show_all, want, view, me, live = sys.argv[1:7]
+path, closed, want, view, me, live, wts = sys.argv[1:8]
 live = set(x for x in live.split(",") if x)
+wts = set(x for x in wts.split(",") if x)
 items = {}
 for line in open(path):
     line = line.strip()
@@ -153,40 +211,46 @@ for line in open(path):
     it = json.loads(line)
     items.setdefault(it["id"], {}).update(it)
 items = list(items.values())
-if not show_all:
+if not closed:
     items = [i for i in items if i.get("status") == "open"]
 if want:
     items = [i for i in items if any(want in f for f in (i.get("files") or []))]
 
 
-# No scope recorded means it predates scoping, and those are shared.
-def scope(i):
-    return i.get("scope", "shared")
+# Only what this script wrote as local is local. Every other scope — the old
+# shared pool, the per-session items from before the tiers — is global.
+def local(i):
+    return i.get("scope") == "local"
 
 
 def mine(i):
-    return scope(i) == "session" and i.get("session") == me
+    return local(i) and i.get("owner") == me
 
 
 def orphaned(i):
-    return scope(i) == "session" and i.get("session") not in live
+    if not local(i):
+        return False
+    owner = i.get("owner") or ""
+    if owner.startswith("wt:"):
+        return owner[3:] not in wts
+    return owner[2:] not in live
 
 
-if view == "mine":
-    items = [i for i in items if mine(i)]
-elif view == "shared":
-    items = [i for i in items if scope(i) == "shared"]
+if view == "global":
+    items = [i for i in items if not local(i)]
 elif view == "orphaned":
     items = [i for i in items if orphaned(i)]
+elif view == "both":
+    items = [i for i in items if mine(i) or not local(i)]
 else:
-    items = [i for i in items if scope(i) == "shared" or mine(i)]
+    items = [i for i in items if mine(i)]
 
 if not items:
     hint = {
-        "mine": "nothing of yours queued",
-        "shared": "nothing in the shared pool",
-        "orphaned": "no items abandoned by a finished session",
-    }.get(view, "nothing queued")
+        "global": "nothing in the global pool",
+        "orphaned": "no items abandoned by a finished worktree or session",
+        "both": "nothing queued",
+    }.get(view, "nothing on the local todo")
     print(hint if not want else "%s against %s" % (hint, want))
     raise SystemExit
 # Colour arrives from tty.sh, already empty when it is switched off, so there
@@ -200,14 +264,14 @@ for i in sorted(items, key=lambda x: x["ts"]):
         "done": ("[x]", GREEN),
         "dropped": ("[-]", DIM),
     }.get(i["status"], ("[?]", DIM))
-    tag = "  " if scope(i) == "shared" else ("me" if mine(i) else "··")
+    tag = "me" if mine(i) else ("··" if local(i) else "  ")
     print("%s%s %s %s%s%s  %s%s" % (
         colour, mark, tag, CYAN, i["id"], RESET + colour, i["text"], RESET))
     if i.get("files"):
         print("%s        files: %s%s" % (DIM, ", ".join(i["files"]), RESET))
     if i.get("task"):
         print("%s        from:  %s (%s)%s" % (DIM, i["task"], i["ts"][:10], RESET))
-' "$BACKLOG" "$all" "$files" "$view" "$AGENT_SESSION" "$live"
+' "$BACKLOG" "$closed" "$files" "$view" "$(owner_now)" "$live" "$wts"
 }
 
 cmd_show() {
@@ -255,6 +319,13 @@ case "${1:-}" in
     shift
     cmd_promote "$@"
     ;;
+  release)
+    shift
+    cmd_release "$@"
+    ;;
+  owner)
+    owner_now
+    ;;
   list)
     shift
     cmd_list "$@"
@@ -272,7 +343,7 @@ case "${1:-}" in
     cmd_close dropped "$@"
     ;;
   *)
-    sed -n '2,19p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
+    sed -n '2,20p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
     exit 1
     ;;
 esac

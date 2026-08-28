@@ -42,8 +42,11 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
   checkout, server, webapp and database — `dev/agent/worktree.sh new <name>`,
   then `up`/`down`/`rm`. The primary is slot 0 and is never reassigned.
 - **Deferred work**: `dev/agent/backlog.sh add` queues anything named in
-  `⚠️ NOT DONE` that should outlive the turn. Shared across every worktree,
-  read at triage and offered back when a task finishes.
+  `⚠️ NOT DONE` that should outlive the turn. An item is **local** — this
+  checkout's todo, read at triage and offered back when the task finishes —
+  only when doing it would change a file the task is already changing.
+  Everything else is `--global`: filed, named in the report, and read only when
+  the human asks for the pool.
 - **Reporting**: `/dev-task` and `/dev-change` reply in the standard block —
   sections, confidence grade, open things asked as an interview. The format is
   `.claude/reporting.md`.

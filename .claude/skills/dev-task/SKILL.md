@@ -77,12 +77,15 @@ Two things about a worktree that catch people out: it checks out **HEAD**, so
 uncommitted work in the primary does not come with it, and its own `up` builds
 Go and installs node modules the first time, which is minutes, not seconds.
 
-### Read the queue
+### Read the todo
 
-`dev/agent/backlog.sh list` — and `--files <path>` for the files you are about
-to change. A queued item against one of them is either the task you are
-actually doing, or a warning that someone deferred something there on purpose.
-Say which in `🔍 FOUND`.
+`dev/agent/backlog.sh list` — this checkout's own open items, nothing else. On
+a fresh worktree that is empty; where it is not, an item there is either the
+task you are actually doing or a piece of it. Say which in `🔍 FOUND`.
+
+The global pool is not read here. It is read when the human asks for it —
+`list --global`, or `--global --files <path>` for the files you are about to
+change.
 
 ## 1. Write the task
 
@@ -233,6 +236,8 @@ issue tracker is never yours to close, comment on, or ask about (CLAUDE.md
 **Queue what you are not doing.** Every `⚠️ NOT DONE` entry that should outlive
 the turn goes to `dev/agent/backlog.sh add`, with `--why`, `--files` and
 `--task`, before you write the report — not after, and not "I'll remember".
+What belongs to this task stays local; anything else takes `--global`, which
+files it without putting it in front of the next turn.
 
 **Remove what you created.** `dev_fixture_cleanup` (or `dev/agent/cleanup.sh`)
 deletes what this session's ledger records and nothing else — data the session
@@ -262,10 +267,11 @@ worktree away; `--keep` lands an increment and leaves it running.
 
 Pushing is not on the menu at any grade.
 
-**Once the task is fully finished, the open queue is part of that question.**
-Read `backlog.sh list` and offer the items as options so the human picks which
-one continues — never pick for them, and never start one unasked. Where more is
-needed, loop:
+**Once the task is fully finished, this checkout's todo is part of that
+question.** Read `backlog.sh list` — local only — and offer those items as
+options so the human picks which one continues. Never pick for them, never
+start one unasked, and do not reach into the global pool to fill the list out.
+Where more is needed, loop:
 
 - **New information changes the plan** → back to step 5.
 - **The plan was wrong** → back to step 6.

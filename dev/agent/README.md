@@ -333,37 +333,54 @@ What catches people out:
 - **`rm` refuses while the checkout is dirty.** It will not discard your work.
 - **A worktree needs no `cleanup.sh`** — `rm` drops its whole database, so
   nothing it created can outlive it.
+- **`rm` hands the checkout's open todo to the global pool**, so the queue is
+  the one thing it does not take with it.
 
 ## Deferred work: `backlog.sh`
 
 The queue of things a task decided not to do, so they survive the turn that
-found them.
+found them. It has two tiers, and which one an item lands in is the whole
+design.
 
 ```
-backlog.sh add TEXT [--why W] [--files F,F] [--task T] [--shared]
-backlog.sh promote ID
-backlog.sh list [--mine|--shared|--orphaned|--all] [--files F]
+backlog.sh add TEXT [--why W] [--files F,F] [--task T] [--global]
+backlog.sh promote ID                       local → global
+backlog.sh list [--global|--both|--orphaned] [--closed] [--files F]
 backlog.sh show ID
 backlog.sh done ID [--note N]   /   backlog.sh drop ID [--note N]
 ```
 
-**An item is yours until you promote it.** A session's own findings stay out of
-everyone else's way while it is still holding opinions about them and its files
-are still live; what it genuinely wants someone else to pick up, it promotes.
-`list` shows yours and the shared pool, never another session's private ones.
+**Local is this checkout's todo.** An item belongs there when doing it would
+change a file the current task is already changing, or when it follows
+directly from that change. `list` with no flags shows exactly that, and it is
+what triage and the end of a task read.
 
-`--orphaned` is the recovery path: private items whose session has ended, which
-would otherwise be lost with it. Items filed before scoping existed count as
-shared.
+**Everything else is `--global`.** A real defect found while looking at
+something else is filed, named in the report, and then out of the way. The
+pool is read when somebody asks for it — `list --global` — and at
+`/orchestrate` intake, which is asking for it.
 
-It lives in the shared `.state`, which every worktree symlinks, so it is one
-queue for every session on this machine. Append-only JSONL: two sessions
+The two tiers are one file, so nothing is lost by filing globally; it is only
+not put in front of the next turn.
+
+**A worktree owns its local items**, so the queue survives the session that
+opened the checkout, and `worktree.sh rm` promotes what is still open rather
+than dropping it with the directory. On the primary there is no such boundary,
+so the owner is the session.
+
+Every scope the current script did not write is global: the old shared pool,
+and the per-session items from before the tiers. `--orphaned` is the recovery
+path for local items whose worktree is gone or whose session ended.
+
+It lives in the shared `.state`, which every worktree symlinks, so both tiers
+are one file for every session on this machine. Append-only JSONL: two sessions
 writing at once interleave lines rather than corrupting each other, and closing
 an item is another append, not a rewrite.
 
 Each item records where it came from — the task, the session, the commit HEAD
-was on. `--files` is what makes it findable later: `list --files <path>` is what
-triage runs before touching anything.
+was on. `--files` is what makes it findable later, and `list --global --files
+<path>` is the deliberate check for whether anyone deferred something where you
+are about to work.
 
 ## State
 

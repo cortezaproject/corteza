@@ -684,6 +684,15 @@ cmd_rm() {
   local ahead
   ahead="$(git -C "$primary" rev-list --count "main..$name" 2>/dev/null || echo 0)"
 
+  # The checkout owns its todo, so what is still open on it goes to the global
+  # pool rather than out with the directory.
+  local released
+  released="$("$primary/dev/agent/backlog.sh" release "wt:$name" 2>/dev/null || true)"
+  [[ "$released" =~ ^[0-9]+$ ]] || released=0
+  if [[ "$released" -gt 0 ]]; then
+    step backlog "$released open item(s) $(paint "$C_DIM" "→ global pool")"
+  fi
+
   cmd_down "$name" || true
   git -C "$primary" worktree remove "$path" --force
   pg dropdb --if-exists "$db"
