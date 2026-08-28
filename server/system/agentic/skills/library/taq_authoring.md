@@ -8,6 +8,7 @@ triggers:
   - automation_taq_delete
   - automation_taq_undelete
   - automation_event_type_lookup
+  - automation_taq_construct_lookup
 ---
 
 # Authoring a TAQ
@@ -20,17 +21,21 @@ Executing one is a different skill — see `automation`.
 
 ## Look the vocabulary up first, from the right place
 
-Two endpoints, and they are the authority:
+`automation_taq_construct_lookup` is the authority and returns both halves in
+one call:
 
-- `GET /automation/construct-library/functions` — every `ref` a function or
-  iterator step may name, with its parameters, their exact type names, and
-  which are required. There are 19.
-- `GET /automation/construct-library/triggers` — the 22 legal
-  `resourceType`/`eventType` pairs.
+- `functions` — every `ref` a function or iterator step may name, with its
+  parameters, their exact type names, and which are required. There are 19.
+- `triggers` — the 22 legal `resourceType`/`eventType` pairs.
 
-**Do not use `GET /automation/functions/`.** That is the workflow function
-registry; most of its entries do not exist in a TAQ, and a step naming one
-stores fine and never runs.
+**Do not use `automation_workflow_function_lookup`.** That is the workflow
+function registry; most of its 93 entries do not exist in a TAQ, and a step
+naming one stores fine and never runs. It also keys its parameters by `name`
+where the construct library keys them by `argumentName`, so an argument list
+carried across is wrong even where the ref exists in both.
+
+A ref that is not in the library comes back as a `function.unknown` issue that
+names the near matches, so a singular/plural slip corrects itself.
 
 `automation:trigger:agentic` + `onAgentic` is the pair `automation_taq_exec`
 runs, so give the TAQ one if you want to be able to test it. The

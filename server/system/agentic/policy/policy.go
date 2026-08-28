@@ -337,6 +337,13 @@ var resourceScopeExempt = map[string]bool{
 	"automation_trigger_undelete":  true,
 	"automation_event_type_lookup": true,
 
+	// The construct library and the workflow function registry are read-only
+	// catalogues of what an automation may be built from, identical for every
+	// caller. There is no namespace, module or automation for checkAllow to
+	// narrow on.
+	"automation_taq_construct_lookup":     true,
+	"automation_workflow_function_lookup": true,
+
 	// Theme colours are one instance-wide setting. There is no namespace or
 	// module for checkAllow to narrow on — the palette is the same object for
 	// every caller — and the settings service gates the write itself with

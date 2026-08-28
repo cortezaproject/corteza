@@ -59,6 +59,7 @@ func buildRegistry(t *testing.T) *hmcp.Registry {
 	autoAgentic.WorkflowHandler(reg)
 	autoAgentic.TriggerHandler(reg)
 	autoAgentic.EventTypeHandler(reg)
+	autoAgentic.ConstructHandler(reg)
 	sysAgentic.ReminderHandler(reg)
 	sysAgentic.UserHandler(reg)
 	sysAgentic.UserGroupHandler(reg)
@@ -255,6 +256,12 @@ func TestLookupContract(t *testing.T) {
 		// A compile-time constant slice, not a store. Measured at 118 entries
 		// and 37 KB — 14% of the JSONResult ceiling — so it returns whole.
 		"automation_event_type_lookup": true,
+		// The construct library and the workflow function registry are both
+		// process-wide in-memory registries with no store behind them. Measured
+		// at 13 KB and 44 KB with the webapp's form spec dropped, so both return
+		// whole; their own filters narrow them.
+		"automation_taq_construct_lookup":     true,
+		"automation_workflow_function_lookup": true,
 		// One setting holding three themes — general, light, dark — fixed at
 		// provisioning. There is no store behind it to page through, and the
 		// whole palette is a few hundred bytes.
@@ -268,9 +275,11 @@ func TestLookupContract(t *testing.T) {
 	// Of those, the ones that cannot meaningfully bound either. discovery_search
 	// still caps result size, so it keeps its `limit`.
 	noLimit := map[string]bool{
-		"automation_event_type_lookup": true,
-		"system_theme_lookup":          true,
-		"system_skill_lookup":          true,
+		"automation_event_type_lookup":        true,
+		"automation_taq_construct_lookup":     true,
+		"automation_workflow_function_lookup": true,
+		"system_theme_lookup":                 true,
+		"system_skill_lookup":                 true,
 	}
 
 	for _, tool := range buildRegistry(t).Tools() {
@@ -360,7 +369,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 	src := string(body)
 	for _, ctor := range []string{
 		"RecordHandler(", "NamespaceHandler(", "ModuleHandler(", "PageHandler(",
-		"ChartHandler(", "PageLayoutHandler(", "TAQHandler(", "WorkflowHandler(", "TriggerHandler(", "EventTypeHandler(", "ReminderHandler(",
+		"ChartHandler(", "PageLayoutHandler(", "TAQHandler(", "WorkflowHandler(", "TriggerHandler(", "EventTypeHandler(", "ConstructHandler(", "ReminderHandler(",
 		"DiscoveryHandler(", "UserHandler(", "UserGroupHandler(", "RoleHandler(",
 		"AuthClientHandler(", "ApplicationHandler(", "ThemeHandler(", "SkillHandler(",
 		"AgentHandler(", "ChatbotHandler(",
@@ -375,7 +384,8 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 		"RecordHandler": true, "NamespaceHandler": true, "ModuleHandler": true,
 		"PageHandler": true, "ChartHandler": true, "PageLayoutHandler": true, "TAQHandler": true,
 		"WorkflowHandler": true, "TriggerHandler": true, "EventTypeHandler": true,
-		"ReminderHandler": true, "DiscoveryHandler": true,
+		"ConstructHandler": true,
+		"ReminderHandler":  true, "DiscoveryHandler": true,
 		"UserHandler": true, "UserGroupHandler": true, "RoleHandler": true,
 		"AuthClientHandler": true, "ApplicationHandler": true, "ThemeHandler": true,
 		"SkillHandler": true, "AgentHandler": true, "ChatbotHandler": true,

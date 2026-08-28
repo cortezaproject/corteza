@@ -15,11 +15,12 @@ rather than to Human, and are added to the MCP server directly
 (`pkg/mcpkit/server.go`, `registerMetaTools`). A `tools/list` returns them
 too, so a live listing is two longer than this table.
 
-## Registered tools (112)
+## Registered tools (114)
 
 | Tool | Group | Risk | Surface |
 |---|---|---|---|
 | `automation_event_type_lookup` | configuring | read | both |
+| `automation_taq_construct_lookup` | configuring | read | both |
 | `automation_taq_create` | configuring | write | both |
 | `automation_taq_delete` | configuring | destructive | both |
 | `automation_taq_exec` | usage | write | both |
@@ -36,6 +37,7 @@ too, so a live listing is two longer than this table.
 | `automation_workflow_create` | configuring | write | both |
 | `automation_workflow_delete` | configuring | destructive | both |
 | `automation_workflow_exec` | usage | write | both |
+| `automation_workflow_function_lookup` | configuring | read | both |
 | `automation_workflow_lookup` | configuring | read | both |
 | `automation_workflow_undelete` | configuring | write | both |
 | `automation_workflow_update` | configuring | write | both |
@@ -144,9 +146,9 @@ Present in the table above, but not on every instance.
 
 | Dimension | Value | Tools |
 |---|---|---|
-| group | configuring | 90 |
+| group | configuring | 92 |
 | group | configuring, usage | 4 |
 | group | usage | 18 |
 | risk | destructive | 18 |
-| risk | read | 27 |
+| risk | read | 29 |
 | risk | write | 67 |

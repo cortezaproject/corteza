@@ -41,15 +41,28 @@ day of being written.
 
 ### automation
 
-| REST resource  | Tool segment            | Notes                                                                                                           |
-| -------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `ngAutomation` | `automation_taq`        | **vocabulary divergence** — TAQ = Trigger Action Query, never "ngAutomation" or "Task Queue" in any description |
-| `workflow`     | `automation_workflow`   |                                                                                                                 |
-| `trigger`      | `automation_trigger`    |                                                                                                                 |
-| `eventTypes`   | `automation_event_type` | singularised                                                                                                    |
+| REST resource      | Tool segment                   | Notes                                                                                                           |
+| ------------------ | ------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `ngAutomation`     | `automation_taq`               | **vocabulary divergence** — TAQ = Trigger Action Query, never "ngAutomation" or "Task Queue" in any description |
+| `workflow`         | `automation_workflow`          |                                                                                                                 |
+| `trigger`          | `automation_trigger`           |                                                                                                                 |
+| `eventTypes`       | `automation_event_type`        | singularised                                                                                                    |
+| `constructLibrary` | `automation_taq_construct`     | **vocabulary divergence** — named for what it is the vocabulary _of_. See below                                 |
+| `function`         | `automation_workflow_function` | the workflow function registry, and not the construct library. See below                                        |
 
 Note `automation_<numeric id>` is reserved: the runtime mints per-TAQ tools
 under that shape. No static tool may take a numeric resource segment.
+
+`constructLibrary` and `function` are two catalogues of step refs for two
+different engines, and naming one from the other is the failure both authoring
+tools warn about hardest — the definition stores, validates as far as anything
+checks, and never runs. A single `automation_function_lookup` would have been
+the one tool both callers reached for, so the segment carries the engine
+instead: a TAQ author finds `automation_taq_construct_lookup` beside
+`automation_taq_create`, a workflow author finds
+`automation_workflow_function_lookup` beside `automation_workflow_create`, and
+neither name reads as the other's. This is the prefix shadowing below used on
+purpose.
 
 ### system
 
@@ -117,6 +130,8 @@ Two families produce names where one resource's prefix is another's:
 
 - `compose_page_*` and `compose_page_layout_*`
 - `system_project_*` and the eight `system_project_<sub>_*`
+- `automation_taq_*` and `automation_taq_construct_*`
+- `automation_workflow_*` and `automation_workflow_function_*`
 
 This is safe for dispatch — nothing parses names — but these are exactly the
 pairs a model is most likely to confuse when selecting a tool. Descriptions in

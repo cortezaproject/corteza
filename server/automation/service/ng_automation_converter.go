@@ -178,7 +178,9 @@ func buildExecSteps(
 			reg := ConstructLibrary()
 			def, ok := reg.Function(step.Ref)
 			if !ok {
-				issues = append(issues, issue(automationTypes.IssueCodeFunctionUnknown, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailMissingReference("function", step.Ref, uiID, "", 0)))
+				iss := issue(automationTypes.IssueCodeFunctionUnknown, automationTypes.NgAutomationSeverityError, automationTypes.NewDetailMissingReference("function", step.Ref, uiID, "", 0))
+				iss.Message += unknownFunctionHint(reg.Functions(), step.Ref)
+				issues = append(issues, iss)
 				continue
 			}
 

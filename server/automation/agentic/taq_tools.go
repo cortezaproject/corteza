@@ -23,7 +23,7 @@ import (
 
 const taqTriggersDoc = `JSON array of triggers — what starts the TAQ. One trigger:
 {"triggerID":"1001","handle":"onAgent","enabled":true,"resourceType":"automation:trigger:agentic","eventType":"onAgentic","meta":{"short":"Invoked by an agent"},"inputSchema":[{"name":"subject","type":"String","required":true}]}
-resourceType and eventType are a pair from the trigger catalogue: GET /automation/construct-library/triggers, 22 entries. "automation:trigger:agentic" with "onAgentic" is the pair automation_taq_exec runs, so include one of those if you want to be able to run the TAQ on demand; the compose:record and system:user pairs fire on real events instead.
+resourceType and eventType are a pair from the trigger catalogue: automation_taq_construct_lookup with catalogue "triggers", 22 entries. "automation:trigger:agentic" with "onAgentic" is the pair automation_taq_exec runs, so include one of those if you want to be able to run the TAQ on demand; the compose:record and system:user pairs fire on real events instead.
 triggerID is a string of digits. Omit it on create and one is minted for you and returned. Supply it when a path references the trigger, and echo the existing triggerID on update — a trigger sent without one is replaced by a new trigger with a new ID, orphaning any path that pointed at the old one.
 handle names the trigger: it is what automation_taq_exec takes as entryPoint, and what a step reads from as a scope.
 inputSchema declares the parameters automation_taq_exec accepts under "input"; it is the only place those names are written down.`
@@ -32,7 +32,7 @@ const taqStepsDoc = `JSON array of steps — what the TAQ does. One step:
 {"stepID":"1","handle":"notify","kind":"function","ref":"notificationSend","meta":{"short":"Notify the owner"},"arguments":[{"argumentName":"recipient","value":"507566326668132353","type":"ID"},{"argumentName":"title","value":"Hello","type":"String"}]}
 stepID is a string of digits you choose, unique across steps AND triggers; paths reference steps by it.
 kind is one of: function, iterator, gatewayExclusive, gatewayInclusive, termination, error. Those are the only six, and they are NOT the workflow step kinds — a TAQ has no "expressions" step. A kind outside the six is rejected before anything is written.
-ref, on a function or an iterator, names a construct-library function. List them with GET /automation/construct-library/functions — each with its parameters, their types and whether they are required; that endpoint is the authority on which refs exist. Do NOT use GET /automation/functions/: that is the workflow function registry, and most of its entries do not exist here.
+ref, on a function or an iterator, names a construct-library function. List them with automation_taq_construct_lookup — each with its parameters, their types and whether they are required; it is the authority on which refs exist. Do NOT use automation_workflow_function_lookup: that is the workflow function registry, and most of its entries do not exist here. A ref that is not in the construct library is stored anyway and comes back as a "function.unknown" issue that names the near matches.
 arguments bind by argumentName, which must equal one of that function's parameter argumentNames exactly; every required parameter must be present. "type" is compared literally against that parameter's "types" array and must be spelled as listed there (ID, String, Integer, Boolean, ComposeRecord, …) — omitting it is the same as sending "" and fails. Supply a literal with "value", copy an earlier step's output with "source" plus "scope" (the producing step's handle), or compute one with "expr".
 An "expr" is evaluated INSIDE its own "scope", and without one that is the trigger's: so in an iterator body the record variable is still the trigger's record, and reaching the loop item means giving the argument the iterator's handle as "scope". One expression sees one scope, so a formula needing both the trigger's record and the loop item cannot be written as a single expr — split it across arguments, or derive the value with a module field value expression instead (compose_module_update, "fields[].expressions.value" — its scope is the record's own fields by bare name, documented on that parameter and in the field_expressions skill).
 In an expression a Record-ref field holds the target's ID as a string, not a record: a filter over them reads "card = " + record.values.card (string concatenation). Writing record.values.card.recordID yields nothing, so the query matches nothing and an iterator over it runs ZERO times in silence — no error, no issue, and the execution still reports completed. The resolved query is recorded in that step's frame under "args", which is where a filter that came out wrong becomes obvious.
@@ -80,10 +80,10 @@ func (h *taqHandler) register() {
 				"Create a TAQ (Trigger Action Query automation) — its triggers, steps and paths in one "+
 					"call. A TAQ is a graph: triggers say what starts it, steps say what it does, paths "+
 					"connect them. "+
-					"Find out what a step can do before writing one. GET /automation/construct-library/functions "+
+					"Find out what a step can do before writing one. automation_taq_construct_lookup "+
 					"lists every function a step's 'ref' may name, each with its parameters, their exact "+
-					"type names and whether they are required; GET /automation/construct-library/triggers lists "+
-					"the resourceType/eventType pairs a trigger may use. Do not use GET /automation/functions/ "+
+					"type names and whether they are required, and every resourceType/eventType pair a "+
+					"trigger may use. Do not use automation_workflow_function_lookup "+
 					"— that is the workflow function registry and most of its entries are unavailable to a TAQ. "+
 					"The smallest TAQ that runs is one trigger, one function step, and no paths at all: a lone "+
 					"unconnected trigger and a lone unconnected step are wired together for you, and termination "+

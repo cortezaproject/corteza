@@ -19,7 +19,7 @@ const (
 		`"expr" is an expression evaluated against the workflow scope, "value" is a literal used when there is no "expr", and "type" is the expression type — "Any" when omitted, except on a function or iterator argument, where it must match one of that parameter's declared types exactly. ` +
 		`Step kinds and what each one expects: ` +
 		`"expressions" — no ref, one or more arguments, at most one outbound path, e.g. {"target":"total","expr":"1 + 1","type":"Integer"}. ` +
-		`"function" — "ref" names a construct from GET /automation/functions/ (93 of them; NOT /automation/construct-library/functions, which is the 17-entry registry Trigger-Action-Query automations use and which a workflow must not be built from), ` +
+		`"function" — "ref" names a construct from automation_workflow_function_lookup (93 of them; NOT automation_taq_construct_lookup, which is the smaller registry Trigger-Action-Query automations use and which a workflow must not be built from), ` +
 		`arguments match that construct's parameters by "target", results copy its outputs into scope as {"target":"<variable>","expr":"<result name>","type":"<type>"}, at most one outbound path. ` +
 		`"iterator" — like function but the ref must be an iterating construct (composeRecordsEach and friends), and it needs exactly two outbound paths. ` +
 		`"gateway" — "ref" is "fork" (run every branch), "join" (wait for branches to meet), "excl" (take the first matching branch) or "incl" (take every matching branch); no arguments and no results. ` +
@@ -91,11 +91,11 @@ func (h *workflowHandler) register() {
 					"starting step, and this tool refuses a graph with more than one rather than storing "+
 					"something that fails on its first run. "+
 					workflowIssuesDoc+
-					"Before you write a 'function' or 'iterator' step, fetch the construct catalogue with a REST "+
-					"GET on /automation/functions/ — 93 entries, each with the 'ref' you put on the step, "+
+					"Before you write a 'function' or 'iterator' step, read the catalogue with "+
+					"automation_workflow_function_lookup — 93 entries, each with the 'ref' you put on the step, "+
 					"its parameters, and the exact type names each parameter accepts (a parameter declares "+
 					"'types' as a list; your argument's single 'type' has to be one of them, spelled the same). "+
-					"There is no tool for this catalogue and a guessed ref stores a workflow that will not run. "+
+					"A guessed ref stores a workflow that will not run. "+
 					"NOTHING FIRES THIS WORKFLOW ON ITS OWN. Triggers are a separate resource: call "+
 					"automation_trigger_create with this workflow's handle or ID afterwards, and give it 'stepID' "+
 					"when you want it to start somewhere other than the workflow's only starting step. Until then "+
