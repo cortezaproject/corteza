@@ -9,6 +9,7 @@ triggers:
   - system_chatbot_update
   - system_chatbot_lookup
   - system_llm_provider_lookup
+  - system_agent_exec
 ---
 
 # Agents and chatbots
@@ -58,6 +59,24 @@ several and the run fails naming them. So an agent read back with an empty
 `execution.model` is normal on a single-provider instance and a failure waiting
 to happen on any other — which is why the provider list is worth reading before
 deciding to omit it.
+
+## Run it before you call it done
+
+`system_agent_exec` sends the agent a message and returns what it said. Storing
+an agent proves nothing: a prompt that ignores its tools, a tool that was never
+granted and a model that cannot be resolved all look identical until a run.
+
+Read `toolCalls`, not just `output`. An agent that answered plausibly having
+called nothing made the answer up from its prompt — an empty `toolCalls` on a
+question that needed data is the tell.
+
+A `status` of `awaiting_approval` is not a failure: a tool granted with
+permission `ask` stops the run every time. `pendingApproval` says which tool and
+with what arguments; send the call again with that name in `approvedTools` to
+carry on.
+
+An agent cannot call `system_agent_exec` to start another agent. Chaining is a
+TAQ step (`agentPrompt`) or a workflow step (`agentRun`).
 
 ## Three things decide whether the chatbot answers
 

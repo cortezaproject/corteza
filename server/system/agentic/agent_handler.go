@@ -6,8 +6,10 @@ import (
 	"strconv"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
+	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
+	"github.com/crusttech/human/server/system/agentic/runtime"
 	sysService "github.com/crusttech/human/server/system/service"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -312,4 +314,68 @@ func applyAgentSections(a *sysTypes.Agent, args map[string]any) error {
 	}
 
 	return nil
+}
+
+// exec runs an agent through the agentic runtime.
+//
+// It mirrors the REST controller (system/rest/agent.go, Agent.Exec): resolve
+// the agent through the access-checked service, refuse one that is not open to
+// user invocation, then hand the request to the runtime. The runtime carries
+// the caller's identity, so every tool the agent calls is checked against the
+// caller and the agent's allow-list can only narrow that.
+//
+// One thing the REST path does not have to say: an agent may not call this.
+// Nothing in the runtime bounds recursion, and system_agent_exec sits in the
+// usage group at write risk, so a group grant would hand an agent the ability
+// to start agents — itself included. Chaining agents has a supported route that
+// this is not: the construct library's agentPrompt for a TAQ, agentRun for a
+// workflow.
+func (h *agentHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	if invoking := auth.GetAgentIDFromContext(ctx); invoking != 0 {
+		return nil, fmt.Errorf("agent execution refused: agent %d is already running this call, and an agent cannot start another agent here. Chain agents with a TAQ step (agentPrompt) or a workflow step (agentRun)", invoking)
+	}
+
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	ref, err := toolkit.ReqRef(args, "agent")
+	if err != nil {
+		return nil, err
+	}
+
+	a, err := findAgent(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+
+	if !a.Invocation.User.Enabled {
+		return nil, fmt.Errorf("agent %d is not available for user invocation — set invocation.user.enabled with system_agent_update", a.ID)
+	}
+
+	conversationID, err := toolkit.ID(args, "conversationID")
+	if err != nil {
+		return nil, err
+	}
+
+	execReq := &runtime.AgentRequest{
+		AgentID:        a.ID,
+		Input:          toolkit.Str(args, "input"),
+		ConversationID: conversationID,
+	}
+
+	if _, err = toolkit.JSONArg(args, "context", "context", &execReq.ExecContext); err != nil {
+		return nil, err
+	}
+	if _, err = toolkit.JSONArg(args, "approvedTools", "approvedTools", &execReq.ApprovedTools); err != nil {
+		return nil, err
+	}
+
+	res, err := sysService.DefaultAgenticRuntime.Run(ctx, execReq)
+	if err != nil {
+		return nil, toolkit.Errf("agent execution", err)
+	}
+
+	return toolkit.JSONResult(res)
 }

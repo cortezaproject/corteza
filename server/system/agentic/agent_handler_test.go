@@ -1,9 +1,12 @@
 package agentic
 
 import (
+	"context"
 	"testing"
 
+	"github.com/crusttech/human/server/pkg/auth"
 	sysTypes "github.com/crusttech/human/server/system/types"
+	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,4 +75,32 @@ func TestApplyAgentSectionsTreatsAnEmptyStringAsAbsent(t *testing.T) {
 	a := &sysTypes.Agent{Meta: sysTypes.AgentMeta{Short: "Kept"}}
 	require.NoError(t, applyAgentSections(a, map[string]any{"meta": "  "}))
 	require.Equal(t, "Kept", a.Meta.Short)
+}
+
+// An agent must not be able to start another agent through system_agent_exec.
+// Nothing in the runtime bounds recursion, and the tool sits in the usage group
+// at write risk, so a group grant would otherwise hand every agent the ability
+// to run agents — itself included.
+func TestAgentExecRefusesAnAgentInvocation(t *testing.T) {
+	ctx := auth.SetIdentityToContext(context.Background(),
+		auth.IdentityWithAgent(auth.Authenticated(42), 511))
+
+	h := &agentHandler{}
+	_, err := h.exec(ctx, mcp.CallToolRequest{})
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "agent cannot start another agent")
+	require.Contains(t, err.Error(), "511")
+}
+
+// The guard must not fire for an ordinary user, which is every call over the
+// MCP transport. It falls through to argument validation instead.
+func TestAgentExecAllowsAPlainUser(t *testing.T) {
+	ctx := auth.SetIdentityToContext(context.Background(), auth.Authenticated(42))
+
+	h := &agentHandler{}
+	_, err := h.exec(ctx, mcp.CallToolRequest{})
+
+	require.Error(t, err)
+	require.NotContains(t, err.Error(), "agent cannot start another agent")
 }

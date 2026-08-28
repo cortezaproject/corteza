@@ -170,4 +170,42 @@ func (h *agentHandler) register() {
 		"Undelete agent",
 		h.undelete,
 	)
+
+	h.reg.RegisterTool(
+		mcp.NewTool("system_agent_exec",
+			mcp.WithDescription(
+				"Run an agent and return what it said. This is how you find out whether an agent you "+
+					"just wrote actually works — storing one proves nothing, and most of what goes wrong "+
+					"with an agent (no model, a prompt that ignores its tools, a tool it was never "+
+					"granted) is invisible until it runs. "+
+					"'input' is the message to send. Pass 'conversationID' from a previous response to "+
+					"carry on the same conversation; leave it out and a new one is started, and its ID is "+
+					"in the response. "+
+					"Read 'toolCalls' in the response, not just 'output'. An agent that answered "+
+					"plausibly having called nothing is the usual failure: it made the answer up from its "+
+					"prompt. An empty 'toolCalls' on a question that needed data is the tell. "+
+					"'status' is \"complete\", or \"awaiting_approval\" when the run stopped to ask. In "+
+					"that case 'pendingApproval' names the tool it wants to use and the arguments it "+
+					"wants to use it with; send the same call again with that tool's name in "+
+					"'approvedTools' to let it carry on. A tool the agent was granted with permission "+
+					"\"ask\" stops the run this way every time. "+
+					"The agent runs as YOU. Its tool allow-list narrows what it may do; it never widens "+
+					"it, so the agent cannot reach anything you could not reach yourself. "+
+					"The agent must have invocation.user enabled, which is the default for one created "+
+					"through system_agent_create. "+
+					"An agent cannot call this tool to start another agent. Chaining agents is what a TAQ "+
+					"or workflow step is for — 'agentPrompt' in the construct library, 'agentRun' in the "+
+					"workflow registry.",
+			),
+			mcp.WithString("agent", mcp.Required(), mcp.Description("Agent handle, or ID as a string to prevent precision loss.")),
+			mcp.WithString("input", mcp.Description("The message to send. Omit it only when resuming a run with 'approvedTools'.")),
+			mcp.WithString("conversationID", mcp.Description("Conversation to continue, as a string. From a previous response. Omit to start a new one.")),
+			mcp.WithString("context", mcp.Description("JSON object of extra facts the agent's prompt can read, e.g. {\"recordID\":\"511\"}. Treated as data, not instructions.")),
+			mcp.WithString("approvedTools", mcp.Description("JSON array of tool names the agent may now use, e.g. [\"compose_record_create\"]. Send this with the same input and conversationID to resume a run that came back \"awaiting_approval\". An approval covers this call only.")),
+			hmcp.InGroup(hmcp.GroupUsage),
+			hmcp.WithRisk(hmcp.RiskWrite),
+		),
+		"Execute agent",
+		h.exec,
+	)
 }

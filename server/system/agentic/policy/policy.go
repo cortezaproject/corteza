@@ -365,11 +365,18 @@ var resourceScopeExempt = map[string]bool{
 	// agent's own tool allow-list, so an agent granted it can re-grant itself
 	// anything. That is a real escalation path and it is bounded by RBAC on the
 	// invoking identity, not by this map.
-	"system_agent_lookup":           true,
-	"system_agent_create":           true,
-	"system_agent_update":           true,
-	"system_agent_delete":           true,
-	"system_agent_undelete":         true,
+	"system_agent_lookup":   true,
+	"system_agent_create":   true,
+	"system_agent_update":   true,
+	"system_agent_delete":   true,
+	"system_agent_undelete": true,
+
+	// system_agent_exec is classified here rather than mapped in buildResource
+	// because an agent carries no compose namespace or module dimension of its
+	// own — the run is narrowed by the invoked agent's own allow-list and by
+	// RBAC on the caller. Reaching it from inside an agent is refused in the
+	// handler, so this entry cannot become a recursion grant.
+	"system_agent_exec":             true,
 	"system_chatbot_lookup":         true,
 	"system_chatbot_create":         true,
 	"system_chatbot_update":         true,

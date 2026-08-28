@@ -15,7 +15,7 @@ rather than to Human, and are added to the MCP server directly
 (`pkg/mcpkit/server.go`, `registerMetaTools`). A `tools/list` returns them
 too, so a live listing is two longer than this table.
 
-## Registered tools (120)
+## Registered tools (121)
 
 | Tool | Group | Risk | Surface |
 |---|---|---|---|
@@ -76,6 +76,7 @@ too, so a live listing is two longer than this table.
 | `discovery_search` | usage | read | both, conditional |
 | `system_agent_create` | configuring | write | both |
 | `system_agent_delete` | configuring | destructive | both |
+| `system_agent_exec` | usage | write | both |
 | `system_agent_lookup` | configuring | read | both |
 | `system_agent_undelete` | configuring | write | both |
 | `system_agent_update` | configuring | write | both |
@@ -154,7 +155,7 @@ Present in the table above, but not on every instance.
 |---|---|---|
 | group | configuring | 98 |
 | group | configuring, usage | 4 |
-| group | usage | 18 |
+| group | usage | 19 |
 | risk | destructive | 19 |
 | risk | read | 32 |
-| risk | write | 69 |
+| risk | write | 70 |
