@@ -172,6 +172,7 @@ editor:
     loadFailed: The list of tools could not be loaded, so the tools this agent holds
       cannot be shown or changed. Reload the page to try again.
     dialog:
+      chosen: '{n} tools chosen'
       area:
         automation_event: Events
         automation_taq: TAQs

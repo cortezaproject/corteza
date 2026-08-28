@@ -50,12 +50,12 @@
 
                   <!-- The split, not the total: a section reads as what it lets
                        the agent do, and the total is the sum of what is shown. -->
-                  <span class="flex items-center gap-2.5 text-xs text-muted-color">
+                  <span class="flex items-center gap-2.5 text-sm text-muted-color">
                     <span
                       v-for="c in sectionCounts(d)"
                       :key="c.mode"
+                      v-tooltip.top="modeLabel(c.mode)"
                       class="flex items-center gap-1"
-                      :title="modeLabel(c.mode)"
                     >
                       <i :class="[modeIcon(c.mode), modeColour(c.mode)]" />
                       <span class="tabular-nums">{{ c.n }}</span>
@@ -79,7 +79,7 @@
               option-label="label"
               option-value="value"
               size="small"
-              class="w-44 shrink-0"
+              class="w-48 shrink-0"
               :disabled="disabled"
               :aria-label="$t('agent.editor.tools.mode.section')"
               :data-testid="`section-mode-${d.key}`"
@@ -138,23 +138,36 @@
                       <div
                         class="flex-1 min-w-0 flex items-start gap-2"
                         :class="{ 'tool-row-blocked': !toolOn(tool) }"
-                        :title="covered(tool) ? $t('agent.editor.tools.dialog.fromFamily') : ''"
                       >
                         <!-- Risk is a column, not a prefix. Inline, it pushed
                              every title off the left edge its own description
                              sat on. -->
                         <i
+                          v-tooltip.top="riskLabel(tool.risk)"
                           :class="[riskIcon(tool.risk), riskColour(tool.risk)]"
                           class="text-xs shrink-0 w-3 mt-1"
-                          :title="riskLabel(tool.risk)"
                         />
 
                         <div class="min-w-0 flex-1">
-                          <span class="text-sm text-color block">
+                          <!-- Where a family covers this tool, the title says
+                               so. On the row it wrapped every control in it,
+                               and the risk glyph inside answered with the row's
+                               tooltip instead of its own. -->
+                          <span
+                            v-tooltip.top="
+                              covered(tool) ? $t('agent.editor.tools.dialog.fromFamily') : ''
+                            "
+                            class="text-sm text-color block"
+                          >
                             {{ tool.title || tool.name }}
                           </span>
+                          <!-- Under a search the row shows the sentence the
+                               search hit, not the first one: matching runs over
+                               the whole description, so a row whose opening
+                               sentence lacks the term still earns its place and
+                               has to be able to show why. -->
                           <span class="text-xs text-muted-color block line-clamp-2">
-                            {{ summarise(tool.description) }}
+                            {{ describe(tool) }}
                           </span>
 
                           <!-- What the row's settings hold, so a configured tool
@@ -283,11 +296,11 @@
                          in, and left the control unable to show its own. -->
                           <template #option="{ option }">
                             <i
+                              v-tooltip.top="option.label"
                               :class="[
                                 option.icon,
                                 rowMode(tool) === option.value ? option.colour : '',
                               ]"
-                              :title="option.label"
                             />
                           </template>
                         </SelectButton>
@@ -311,20 +324,28 @@
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <Button
-          :label="$t('general.label.cancel')"
-          severity="secondary"
-          text
-          size="small"
-          @click="$emit('update:visible', false)"
-        />
-        <Button
-          :label="$t('general.label.apply')"
-          size="small"
-          :disabled="disabled"
-          @click="apply"
-        />
+      <div class="flex flex-col items-end gap-2">
+        <div class="flex gap-2">
+          <Button
+            :label="$t('general.label.cancel')"
+            severity="secondary"
+            text
+            size="small"
+            @click="$emit('update:visible', false)"
+          />
+          <Button
+            :label="$t('general.label.apply')"
+            size="small"
+            :disabled="disabled"
+            @click="apply"
+          />
+        </div>
+
+        <!-- What Apply would grant, counted the way the panel behind this
+             dialog counts it, so leaving here never changes the number. -->
+        <span class="text-sm text-muted-color" data-testid="tool-dialog-total">
+          {{ $t('agent.editor.tools.dialog.chosen', { n: heldCount }) }}
+        </span>
       </div>
     </template>
   </Dialog>
@@ -352,6 +373,7 @@ import {
   modeOf,
   scopeBlocked,
   scopesModules,
+  summaryOf,
   tally,
 } from '../toolAccess'
 
@@ -434,6 +456,13 @@ const families = ref([])
 // be told from an entry that was already there.
 const named = ref(new Set())
 const chosenCount = computed(() => draft.value.size + families.value.length)
+
+// How many tools the agent would end up holding. Counted through summaryOf so
+// the dialog and the readout behind it can never state different totals; the
+// label it takes is only used for the rows, which this ignores.
+const heldCount = computed(
+  () => summaryOf(props.tools, permissions.value, families.value, key => key).total,
+)
 
 // Which domains are folded shut, or null while the default still stands. A
 // search folds separately: it opens everything so no match hides in a shut
@@ -679,6 +708,18 @@ function byRiskThenName(a, b) {
 
 function matches(tool, q) {
   return `${tool.name} ${tool.title || ''} ${tool.description || ''}`.toLowerCase().includes(q)
+}
+
+// What the row shows of a description: the sentence carrying the search term
+// while one is active, and otherwise the first.
+function describe(tool) {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return summarise(tool.description)
+
+  const text = String(tool.description || '').trim()
+  const hit = text.split(/(?<=\.)\s+/).find(sentence => sentence.toLowerCase().includes(q))
+
+  return hit || summarise(tool.description)
 }
 
 // The first sentence, which is what a tool description leads with. The rest is

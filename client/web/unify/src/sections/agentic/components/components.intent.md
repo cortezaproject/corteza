@@ -25,7 +25,7 @@ chosen. All three are embedded only by `views/Editor.vue`.
 
 - `AiChat.vue` — chat UI over `CChatMessages`; runs the turn through `useAgentTurn` (lib/vue), appends user/agent messages and a trace entry per exchange, renders the approval gate, and can embed an `AiTrace` side panel with two-way selection between messages and trace cards.
 - `AiTrace.vue` — read-only trace inspector: injected context (rendered markdown), per-exchange cards of decisions (tool call vs response) with payloads and token usage; exposes `selectExternal`/`highlightLatest` and emits `select`.
-- `AgentToolDialog.vue` — the tool picker: every tool the server offers, grouped by subject, each row carrying its permission and optional per-tool note and namespace/module narrowing. Takes `tools`/`grants`/`namespaces`/`modules`, emits `apply` with the whole grant list.
+- `AgentToolDialog.vue` — the tool picker: every tool the server offers, grouped by subject, each row carrying its permission and optional per-tool note and namespace/module narrowing. Takes `tools`/`grants`/`namespaces`/`modules`, emits `apply` with the whole grant list. The footer states what Apply would grant, counted through `summaryOf` so it can never disagree with the readout behind it.
 
 ## Data touched
 
@@ -41,4 +41,6 @@ chosen. All three are embedded only by `views/Editor.vue`.
 - The dialog edits copies. `draft` (named grants) and `families` are rebuilt from `grants` every time it opens, and only `apply` hands them back — closing any other way must leave the agent exactly as it was.
 - **Blocking a tool nothing else grants deletes its entry** rather than storing a `deny`; a `deny` is kept only where a family would otherwise cover the tool. An entry that grants nothing is noise on the wire.
 - **Choosing the mode the tool's risk would give anyway clears the override** instead of pinning it, so a tool that should simply follow the rule still follows it if the rule changes. An entry the dialog was opened with is left alone — `named` is what tells an override added this session from one that was already there.
+- Under a search a row shows the sentence the search hit rather than its first one. Matching runs over the whole description, so a row whose opening sentence lacks the term still earns its place and has to be able to show why.
+- Hover text is PrimeVue's `v-tooltip`, as everywhere else in the app — never the browser's `title`. Nested tooltips resolve outermost-first, so the one that belongs to a glyph goes on the glyph and not on a wrapper around it.
 - Family grants are handed back untouched. The dialog chooses tools and no longer writes families, but it must still know which tools an existing family covers.
