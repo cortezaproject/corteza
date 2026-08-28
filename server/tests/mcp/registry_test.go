@@ -429,10 +429,15 @@ type toolRow struct {
 	Groups string
 	Risk   string
 	Hidden bool
+	// When is what has to be true for this tool to be registered at all, empty
+	// for the tools every instance has. A caller reading the matrix as the list
+	// of what it can call needs to know which entries are not promises.
+	When string
 }
 
-func rows(reg *hmcp.Registry) []toolRow {
+func rows(t *testing.T, reg *hmcp.Registry) []toolRow {
 	tools := reg.Tools()
+	conditional := conditionalTools(t)
 	out := make([]toolRow, 0, len(tools))
 	for _, tool := range tools {
 		groups := make([]string, 0, 2)
@@ -445,12 +450,13 @@ func rows(reg *hmcp.Registry) []toolRow {
 			Groups: strings.Join(groups, ", "),
 			Risk:   string(hmcp.RiskOf(tool)),
 			Hidden: reg.IsHidden(tool.Name),
+			When:   conditional[tool.Name],
 		})
 	}
 	return out
 }
 
-func renderMatrix(reg *hmcp.Registry) string {
+func renderMatrix(t *testing.T, reg *hmcp.Registry) string {
 	var b strings.Builder
 
 	b.WriteString("# MCP tool coverage\n\n")
@@ -458,8 +464,13 @@ func renderMatrix(reg *hmcp.Registry) string {
 	b.WriteString("```sh\ncd server && go test ./tests/mcp/ -run TestToolsMatrix -update\n```\n\n")
 	b.WriteString("Resource-to-tool naming is fixed by `RESOURCES.md`; the rules these\n")
 	b.WriteString("tools are held to are in `CONVENTIONS.md`.\n\n")
+	b.WriteString("This is the registry. Two more tools answer over HTTP and are deliberately\n")
+	b.WriteString("not here — `human_tool_search` and `human_tool_load` belong to the transport\n")
+	b.WriteString("rather than to Human, and are added to the MCP server directly\n")
+	b.WriteString("(`pkg/mcpkit/server.go`, `registerMetaTools`). A `tools/list` returns them\n")
+	b.WriteString("too, so a live listing is two longer than this table.\n\n")
 
-	rr := rows(reg)
+	rr := rows(t, reg)
 	fmt.Fprintf(&b, "## Registered tools (%d)\n\n", len(rr))
 	b.WriteString("| Tool | Group | Risk | Surface |\n|---|---|---|---|\n")
 	for _, r := range rr {
@@ -467,8 +478,13 @@ func renderMatrix(reg *hmcp.Registry) string {
 		if r.Hidden {
 			surface = "in-process"
 		}
+		if r.When != "" {
+			surface += ", conditional"
+		}
 		fmt.Fprintf(&b, "| `%s` | %s | %s | %s |\n", r.Name, r.Groups, r.Risk, surface)
 	}
+
+	b.WriteString(renderConditional(rr))
 
 	byRisk := map[string]int{}
 	byGroup := map[string]int{}
@@ -487,6 +503,111 @@ func renderMatrix(reg *hmcp.Registry) string {
 	}
 
 	return b.String()
+}
+
+// renderConditional names the tools an instance may not have. Listing them
+// beside the rest without saying so advertises a tool a caller cannot call, and
+// the failure reads as a broken client rather than as a configuration.
+func renderConditional(rr []toolRow) string {
+	var b strings.Builder
+
+	rows := make([]toolRow, 0, 2)
+	for _, r := range rr {
+		if r.When != "" {
+			rows = append(rows, r)
+		}
+	}
+	if len(rows) == 0 {
+		return ""
+	}
+
+	b.WriteString("\n### Conditionally registered\n\n")
+	b.WriteString("Present in the table above, but not on every instance.\n\n")
+	b.WriteString("| Tool | Registered when |\n|---|---|\n")
+	for _, r := range rows {
+		fmt.Fprintf(&b, "| `%s` | %s |\n", r.Name, r.When)
+	}
+
+	return b.String()
+}
+
+// conditionalHandlers are the handlers app/boot_levels.go wires inside a
+// condition rather than in the flat block, so their tools are on some instances
+// and missing from others. The value is what has to be true, in the operator's
+// terms; an empty value means the condition is a build invariant rather than a
+// setting, and those tools are not marked in the matrix.
+//
+// TestConditionalWiringIsDocumented reads boot_levels.go and fails when a
+// handler is wired conditionally without an entry here.
+var conditionalHandlers = map[string]string{
+	"DiscoveryHandler": "`DISCOVERY_ENABLED`, `DISCOVERY_BASE_URL` and `DISCOVERY_JWT_SECRET` are all set",
+	// The skill library is embedded, so the only way it fails to load is a
+	// malformed markdown file in the repository — a broken build, not an
+	// instance without the tool.
+	"SkillHandler": "",
+}
+
+// conditionalTools maps a tool name to the condition its handler is wired
+// under. Each handler goes into its own registry, which is the only way to ask
+// which tools came from which handler — the shared one has no provenance.
+func conditionalTools(t *testing.T) map[string]string {
+	t.Helper()
+
+	out := map[string]string{}
+	for ctor, when := range conditionalHandlers {
+		if when == "" {
+			continue
+		}
+
+		reg := hmcp.NewRegistry()
+		switch ctor {
+		case "DiscoveryHandler":
+			sysAgentic.DiscoveryHandler(reg, "http://discovery.invalid", stubSigner{})
+		default:
+			t.Fatalf("conditionalHandlers names %s but nothing here builds it", ctor)
+		}
+
+		for _, tool := range reg.Tools() {
+			out[tool.Name] = when
+		}
+	}
+	return out
+}
+
+// TestConditionalWiringIsDocumented catches a handler becoming conditional
+// without the matrix saying so. Indentation is the signal: the wiring block
+// puts every unconditional handler at one tab, so a deeper one is inside an if
+// or an else.
+func TestConditionalWiringIsDocumented(t *testing.T) {
+	body, err := os.ReadFile(filepath.Join(repoRoot(t), "server", "app", "boot_levels.go"))
+	require.NoError(t, err)
+
+	for _, line := range strings.Split(string(body), "\n") {
+		if !strings.HasPrefix(line, "\t\t") {
+			continue
+		}
+
+		for _, prefix := range []string{"cmpAgentic.", "autoAgentic.", "sysAgentic."} {
+			idx := strings.Index(line, prefix)
+			if idx < 0 {
+				continue
+			}
+			rest := line[idx+len(prefix):]
+			end := strings.Index(rest, "(")
+			if end < 0 {
+				continue
+			}
+			ctor := rest[:end]
+			if !strings.HasSuffix(ctor, "Handler") {
+				continue
+			}
+
+			_, documented := conditionalHandlers[ctor]
+			assert.Truef(t, documented,
+				"boot_levels.go wires %s conditionally; add it to conditionalHandlers "+
+					"so TOOLS.md does not advertise its tools as always present", ctor)
+		}
+	}
 }
 
 func sortedKeys(m map[string]int) []string {

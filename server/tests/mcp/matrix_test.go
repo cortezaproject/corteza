@@ -28,7 +28,7 @@ func matrixPath(t *testing.T) string {
 // test, so a stale matrix fails CI instead of quietly describing a surface that
 // no longer exists.
 func TestToolsMatrix(t *testing.T) {
-	want := renderMatrix(buildRegistry(t))
+	want := renderMatrix(t, buildRegistry(t))
 	path := matrixPath(t)
 
 	if *update {

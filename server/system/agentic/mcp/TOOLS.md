@@ -9,6 +9,12 @@ cd server && go test ./tests/mcp/ -run TestToolsMatrix -update
 Resource-to-tool naming is fixed by `RESOURCES.md`; the rules these
 tools are held to are in `CONVENTIONS.md`.
 
+This is the registry. Two more tools answer over HTTP and are deliberately
+not here — `human_tool_search` and `human_tool_load` belong to the transport
+rather than to Human, and are added to the MCP server directly
+(`pkg/mcpkit/server.go`, `registerMetaTools`). A `tools/list` returns them
+too, so a live listing is two longer than this table.
+
 ## Registered tools (112)
 
 | Tool | Group | Risk | Surface |
@@ -65,7 +71,7 @@ tools are held to are in `CONVENTIONS.md`.
 | `compose_record_report` | usage | read | both |
 | `compose_record_undelete` | usage | write | both |
 | `compose_record_update` | usage | write | both |
-| `discovery_search` | usage | read | both |
+| `discovery_search` | usage | read | both, conditional |
 | `system_agent_create` | configuring | write | both |
 | `system_agent_delete` | configuring | destructive | both |
 | `system_agent_lookup` | configuring | read | both |
@@ -125,6 +131,14 @@ tools are held to are in `CONVENTIONS.md`.
 | `system_user_undelete` | configuring | write | both |
 | `system_user_unsuspend` | configuring | write | both |
 | `system_user_update` | configuring | write | both |
+
+### Conditionally registered
+
+Present in the table above, but not on every instance.
+
+| Tool | Registered when |
+|---|---|
+| `discovery_search` | `DISCOVERY_ENABLED`, `DISCOVERY_BASE_URL` and `DISCOVERY_JWT_SECRET` are all set |
 
 ## Totals
 
