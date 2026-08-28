@@ -25,6 +25,7 @@ import (
 type (
 	agentLLMValidator interface {
 		ValidateTemperature(ctx context.Context, providerID uint64, model string, temperature *float64) error
+		ResolveModel(ctx context.Context, providerID uint64, model string) (uint64, string, error)
 	}
 
 	agentServices struct {
@@ -94,9 +95,20 @@ func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 
 	defaultInvocation(&new.Invocation)
 
-	if new.Execution.Model.Temperature != nil && svc.services.llm != nil {
-		if err = svc.services.llm.ValidateTemperature(ctx, new.Execution.Model.LLMProviderID, new.Execution.Model.Model, new.Execution.Model.Temperature); err != nil {
+	if svc.services.llm != nil {
+		// Settle the provider and model now. Stored unresolved, an agent is
+		// accepted here and fails on its first prompt, in front of whoever runs
+		// it rather than whoever wrote it.
+		if new.Execution.Model.LLMProviderID, new.Execution.Model.Model, err = svc.services.llm.ResolveModel(
+			ctx, new.Execution.Model.LLMProviderID, new.Execution.Model.Model,
+		); err != nil {
 			return
+		}
+
+		if new.Execution.Model.Temperature != nil {
+			if err = svc.services.llm.ValidateTemperature(ctx, new.Execution.Model.LLMProviderID, new.Execution.Model.Model, new.Execution.Model.Temperature); err != nil {
+				return
+			}
 		}
 	}
 
@@ -148,9 +160,18 @@ func (svc *agent) onUpdate(ctx context.Context, s store.Storer, upd, res *types.
 	// (otherwise it would vanish from the project-scoped resource graph).
 	upd.ProjectID = res.ProjectID
 
-	if upd.Execution.Model.Temperature != nil && svc.services.llm != nil {
-		if err := svc.services.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {
+	if svc.services.llm != nil {
+		var err error
+		if upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, err = svc.services.llm.ResolveModel(
+			ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model,
+		); err != nil {
 			return err
+		}
+
+		if upd.Execution.Model.Temperature != nil {
+			if err := svc.services.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {
+				return err
+			}
 		}
 	}
 

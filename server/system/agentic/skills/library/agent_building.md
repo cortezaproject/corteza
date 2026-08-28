@@ -47,18 +47,23 @@ namespace and turns on the platform context. It is **ignored when you also send
 `access`**, and it grants no tool on its own. Sending both leaves
 `injectSystemContext` false, which is usually not what was meant.
 
-## The model is resolved when the agent runs
+## The model is settled when the agent is written
 
 `system_llm_provider_lookup` lists the providers this instance has and, with
 `models` set, the model names a provider advertises. Both go in
 `execution.model`.
 
-Leaving `llmProviderID` out is not an error and not a default written at
-create: it is resolved on each run. One active provider and that one is used;
-several and the run fails naming them. So an agent read back with an empty
-`execution.model` is normal on a single-provider instance and a failure waiting
-to happen on any other — which is why the provider list is worth reading before
-deciding to omit it.
+Creation resolves both and stores what it resolved, so an agent always carries
+the provider and model it will actually run on.
+
+- Leaving `llmProviderID` out is fine where one provider is active — that one is
+  written onto the agent. Where several are, the write is refused naming them.
+- A model name is required. If the agent names none and the provider has no
+  `config.model` of its own, the write is refused and the provider's models are
+  listed in the error.
+
+`system_agent_update` settles it the same way, so an edit cannot leave an agent
+in a state creation would have refused.
 
 ## Run it before you call it done
 
