@@ -13,6 +13,7 @@ const {
   C311HelpDrawer,
   C311AccessPage,
   C311LanguageSelector,
+  C311MainNav,
   C311ResponsiveData,
   C311StatusAnnouncer,
 } = components
@@ -39,6 +40,10 @@ const mocks = {
 }
 
 const stubs = { 'b-button': ButtonStub }
+const RouterLinkStub = {
+  props: ['to'],
+  template: '<a v-bind="$attrs" :href="to"><slot /></a>',
+}
 
 describe('C311 shared components', () => {
   afterEach(() => {
@@ -54,6 +59,25 @@ describe('C311 shared components', () => {
     expect(vueEntry).toContain(`${path.sep}node_modules${path.sep}@cortezaproject${path.sep}corteza-vue${path.sep}`)
     expect(fs.readFileSync(jsEntry, 'utf8')).toContain('MockC311Provider')
     expect(fs.readFileSync(vueEntry, 'utf8')).toContain('C311AppShell')
+  })
+
+  it('exposes stable route attributes independent of translated labels', () => {
+    const wrapper = mount(C311MainNav, {
+      propsData: {
+        items: [
+          { route: '/c311/submit', label: 'Enviar una solicitud' },
+          { route: '/c311/status', label: 'Consultar estado' },
+        ],
+      },
+      mocks: {
+        ...mocks,
+        $route: { path: '/c311/submit' },
+        $C311: { can: () => true, hasScope: () => true },
+      },
+      stubs: { 'router-link': RouterLinkStub },
+    })
+    expect(wrapper.find('[data-c311-route="/c311/status"]').exists()).toBe(true)
+    expect(wrapper.find('[data-c311-route="/c311/status"]').text()).toBe('Consultar estado')
   })
 
   it('renders and announces all eight data states', async () => {

@@ -5,6 +5,7 @@
       :key="item.route || item.href"
       class="btn btn-link btn-sm"
       :to="item.route"
+      :data-c311-route="item.route"
       :aria-current="$route && $route.path === item.route ? 'page' : undefined"
     >
       {{ item.label }}

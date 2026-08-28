@@ -104,11 +104,11 @@ def check_language_and_dirty(page: Page, base_url: str, label: str) -> None:
     page.locator("#c311-summary").fill("Draft modified before leaving")
 
     page.once("dialog", lambda dialog: dialog.dismiss())
-    page.get_by_role("link", name="Check status").click()
+    page.locator('[data-c311-route="/c311/status"]').click()
     page.wait_for_timeout(100)
     check("/c311/submit" in page.url, f"{label} dirty cancel allowed navigation")
     page.once("dialog", lambda dialog: dialog.accept())
-    page.get_by_role("link", name="Check status").click()
+    page.locator('[data-c311-route="/c311/status"]').click()
     page.wait_for_url("**/c311/status")
 
 
@@ -177,7 +177,7 @@ def run() -> dict:
                     assert_route_focus(page, path)
                     if viewport == 360:
                         if app == "compose":
-                            page.get_by_role("link", name="Check status").click()
+                            page.locator('[data-c311-route="/c311/status"]').click()
                             page.wait_for_url("**/c311/status")
                             assert_route_focus(page, "/c311/status")
                         check_help_and_modal(page, base_url, label)
