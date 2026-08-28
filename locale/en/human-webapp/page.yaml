@@ -102,7 +102,6 @@ page-layout:
   create: Create new layout
   descriptionHint: Optional. A note for whoever maintains this page; it is never
     shown to the people viewing it.
-  general: General
   handle: Handle
   handleDescription: Optional. Unique identifier for this layout (alphanumerics, dash,
     underscore, dot)
@@ -174,7 +173,6 @@ page-layout:
   useTitle: Use layout title
   useTitleDescription: Show a custom title for this layout instead of the page title. The title
     may interpolate the signed-in user, and on a record page the record that is open.
-  visibility: Visibility
 pageMoveFailed: Could not move this page
 placeholder:
   title: Page title (e.g. "Leads")
