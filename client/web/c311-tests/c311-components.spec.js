@@ -3,7 +3,44 @@ import fs from 'fs'
 import path from 'path'
 import { mount } from '@vue/test-utils'
 import { components, mixins, c311I18n } from './c311-components'
-import { formatC311DateTime } from './time-test-helper'
+import { formatC311DateTime as mockFormatC311DateTime } from './time-test-helper'
+import Portal from '../compose/src/views/C311/Portal.vue'
+import Staff from '../admin/src/views/C311/Staff.vue'
+import composeRoutes from '../compose/src/views/routes'
+import adminRoutes from '../admin/src/views/routes'
+
+jest.mock('@cortezaproject/corteza-js', () => ({
+  formatC311DateTime: value => mockFormatC311DateTime(value, 'en-US'),
+}))
+jest.mock('@cortezaproject/corteza-vue', () => ({
+  components: {
+    C311AppShell: {},
+    C311DataState: {},
+    C311ErrorSummary: {},
+    C311CapabilityAction: {},
+    C311HelpDrawer: {},
+    C311LanguageSelector: {},
+    C311MainNav: {},
+    C311ResponsiveData: {},
+  },
+  mixins: {
+    c311DirtyGuard: {
+      data: () => ({ c311Dirty: false, c311DirtyStorageKey: '' }),
+      methods: {
+        c311MarkDirty (value = true) { this.c311Dirty = value },
+        c311ReadDirtyDraft () { return null },
+        c311SaveDirtyDraft () {},
+        c311ClearDirtyDraft () { this.c311Dirty = false },
+      },
+    },
+  },
+  c311: {
+    c311StateForError (error) {
+      if (error?.status === 503 || error?.retryable) return 'retryable-error'
+      return 'terminal-error'
+    },
+  },
+}))
 
 const {
   C311CapabilityAction,
@@ -44,6 +81,9 @@ const RouterLinkStub = {
   props: ['to'],
   template: '<a v-bind="$attrs" :href="to"><slot /></a>',
 }
+const AppShellStub = { template: '<main><slot name="nav" /><slot /></main>' }
+const DataStateStub = { template: '<section><slot name="populated" /></section>' }
+const ChildStub = { template: '<span><slot /></span>' }
 
 describe('C311 shared components', () => {
   afterEach(() => {
@@ -221,7 +261,90 @@ describe('C311 shared components', () => {
   })
 
   it('formats instants in the fixed New York timezone with EST/EDT', () => {
-    expect(formatC311DateTime('2026-01-15T15:00:00.000Z', 'en-US')).toBe('01/15/2026 10:00 AM EST')
-    expect(formatC311DateTime('2026-07-15T15:00:00.000Z', 'en-US')).toBe('07/15/2026 11:00 AM EDT')
+    expect(mockFormatC311DateTime('2026-01-15T15:00:00.000Z', 'en-US')).toBe('01/15/2026 10:00 AM EST')
+    expect(mockFormatC311DateTime('2026-07-15T15:00:00.000Z', 'en-US')).toBe('07/15/2026 11:00 AM EDT')
+  })
+
+  it('covers public portal loading, validation, submit success, and provider errors', async () => {
+    const provider = {
+      listPortalRequests: jest.fn().mockResolvedValue({ items: [{ request_id: 'request-1', updated_at: '2026-01-15T15:00:00.000Z' }] }),
+      submitPortalRequest: jest.fn().mockResolvedValue({ request_number: 'SR-2026-00002' }),
+    }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.submit' }, $C311: { provider, session: { actor: { actor_id: 'actor-1' } } } },
+      stubs: {
+        'c311-app-shell': AppShellStub,
+        'c311-data-state': DataStateStub,
+        'c311-error-summary': ChildStub,
+        'c311-capability-action': ChildStub,
+        'c311-help-drawer': ChildStub,
+        'c311-language-selector': ChildStub,
+        'c311-main-nav': ChildStub,
+        'c311-responsive-data': ChildStub,
+      },
+    })
+    await wrapper.vm.load()
+    expect(wrapper.vm.state).toBe('populated')
+    expect(wrapper.vm.actorID).toBe('actor-1')
+    expect(wrapper.vm.translatedColumns[3].format('2026-01-15T15:00:00.000Z')).toBe('01/15/2026 10:00 AM EST')
+
+    await wrapper.vm.submit()
+    expect(wrapper.vm.formErrors[0].code).toBe('REQUIRED')
+    wrapper.vm.form.summary = 'Pothole'
+    await wrapper.vm.submit()
+    expect(provider.submitPortalRequest).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Pothole' }))
+    expect(wrapper.vm.statusMessage).toContain('SR-2026-00002')
+
+    provider.listPortalRequests.mockRejectedValueOnce({ status: 503, retryable: true })
+    await wrapper.vm.load()
+    expect(wrapper.vm.state).toBe('retryable-error')
+  })
+
+  it('covers staff queue empty, populated, and terminal provider states', async () => {
+    const provider = { listStaffRequests: jest.fn().mockResolvedValue({ items: [] }) }
+    const wrapper = mount(Staff, {
+      mocks: { ...mocks, $route: { name: 'c311.staff' }, $C311: { provider, session: { actor: { actor_id: 'staff-1' } } } },
+      stubs: {
+        'c311-app-shell': AppShellStub,
+        'c311-data-state': DataStateStub,
+        'c311-help-drawer': ChildStub,
+        'c311-language-selector': ChildStub,
+        'c311-main-nav': ChildStub,
+        'c311-responsive-data': ChildStub,
+      },
+    })
+    await wrapper.vm.load()
+    expect(wrapper.vm.state).toBe('empty')
+    expect(wrapper.vm.actorID).toBe('staff-1')
+    expect(wrapper.vm.navItems).toEqual(expect.arrayContaining([
+      expect.objectContaining({ route: '/c311/staff/reports', capability: 'report_catalogue' }),
+      expect.objectContaining({ route: '/c311/staff/workflows', scope: 'workflow.execute' }),
+    ]))
+    expect(wrapper.vm.translatedColumns[4].format('2026-07-15T15:00:00.000Z')).toBe('07/15/2026 11:00 AM EDT')
+
+    provider.listStaffRequests.mockRejectedValueOnce(new Error('unavailable'))
+    await wrapper.vm.load()
+    expect(wrapper.vm.state).toBe('terminal-error')
+    expect(wrapper.vm.dataError.message).toBe('unavailable')
+  })
+
+  it('defines public portal and guarded staff routes with mock interaction gating', () => {
+    const composeStatus = composeRoutes.find(route => route.name === 'c311.status')
+    expect(composeStatus.path).toBe('/c311/status')
+    expect(composeStatus.meta.c311.public).toBe(true)
+    const composeInteraction = composeRoutes.find(route => route.name === 'c311.test.interaction')
+    const composeNext = jest.fn()
+    window.C311Mode = 'mock'
+    composeInteraction.beforeEnter({}, {}, composeNext)
+    expect(composeNext).toHaveBeenCalledWith()
+    window.C311Mode = 'http'
+    composeInteraction.beforeEnter({}, {}, composeNext)
+    expect(composeNext).toHaveBeenLastCalledWith({ name: 'c311.not-found' })
+
+    const staff = adminRoutes.find(route => route.name === 'c311.staff')
+    expect(staff.meta.c311).toEqual(expect.objectContaining({ requiresAuth: true, route: 'staff_request_queue', capabilities: ['staff_request_queue'], scopes: ['service_requests.write'] }))
+    expect(adminRoutes.find(route => route.name === 'c311.unauthorized').path).toBe('/c311/401')
+    expect(adminRoutes.find(route => route.name === 'c311.forbidden').path).toBe('/c311/403')
+    expect(adminRoutes.find(route => route.name === 'c311.not-found').path).toBe('/c311/404')
   })
 })
