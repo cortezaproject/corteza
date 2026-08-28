@@ -925,9 +925,14 @@ func foldBlockOptionAliases(options map[string]any) {
 
 // resolveBlockRefs translates human-readable module/chart references in block
 // options to their uint64 ID strings, which the frontend SDK requires.
-// Handles moduleID and chartID — including the "module"/"chart" aliases agents
-// write, which are folded into those keys first — and the moduleID inside
-// Calendar feeds and Metric metrics.
+//
+// The walk is recursive because moduleID is not only a top-level option: a
+// Calendar feed carries its module under feeds[].options.moduleID and a
+// Progress block under value/minValue/maxValue.moduleID. Resolving only the
+// places a hand-written list happened to name left a handle sitting where the
+// webapp expects an ID, which renders as an empty panel rather than an error.
+// Every key of these two names means the same thing wherever it appears, so
+// the rule is the name, not the location.
 func resolveBlockRefs(ctx context.Context, nsID uint64, blocks cmpTypes.PageBlocks) error {
 	for i := range blocks {
 		b := &blocks[i]
@@ -937,49 +942,62 @@ func resolveBlockRefs(ctx context.Context, nsID uint64, blocks cmpTypes.PageBloc
 
 		foldBlockOptionAliases(b.Options)
 
-		// moduleID → module ID (Metric, Progress, Comment, RecordOrganizer, etc.)
-		if ref, _ := b.Options["moduleID"].(string); ref != "" {
-			if _, err := strconv.ParseUint(ref, 10, 64); err != nil {
-				mod, err := cmpService.DefaultModule.FindByAny(ctx, nsID, ref)
-				if err != nil {
-					return fmt.Errorf("block %q: moduleID %q not found: %w", b.Title, ref, err)
-				}
-				b.Options["moduleID"] = strconv.FormatUint(mod.ID, 10)
-			}
+		if err := resolveRefsIn(ctx, nsID, b.Title, b.Options); err != nil {
+			return err
 		}
+	}
+	return nil
+}
 
-		// chartID → chart ID (Chart block). A handle left here is what the
-		// webapp reports as "invalid ID".
-		if ref, _ := b.Options["chartID"].(string); ref != "" {
-			if _, err := strconv.ParseUint(ref, 10, 64); err != nil {
-				ch, err := findChartByAny(ctx, nsID, ref)
-				if err != nil {
-					return fmt.Errorf("block %q: chart %q not found: %w", b.Title, ref, err)
-				}
-				b.Options["chartID"] = strconv.FormatUint(ch.ID, 10)
+// resolveRefsIn rewrites every moduleID and chartID under options, at any
+// depth, from whatever the caller wrote to the numeric ID.
+func resolveRefsIn(ctx context.Context, nsID uint64, title string, options map[string]any) error {
+	for key, raw := range options {
+		switch v := raw.(type) {
+		case map[string]any:
+			if err := resolveRefsIn(ctx, nsID, title, v); err != nil {
+				return err
 			}
-		}
-
-		// Calendar feeds[].moduleID and Metric metrics[].moduleID
-		for _, arrayKey := range []string{"feeds", "metrics"} {
-			items, _ := b.Options[arrayKey].([]interface{})
-			for _, item := range items {
-				m, _ := item.(map[string]interface{})
+			continue
+		case []any:
+			for _, item := range v {
+				m, _ := item.(map[string]any)
 				if m == nil {
 					continue
 				}
-				if ref, _ := m["moduleID"].(string); ref != "" {
-					if _, err := strconv.ParseUint(ref, 10, 64); err != nil {
-						mod, err := cmpService.DefaultModule.FindByAny(ctx, nsID, ref)
-						if err != nil {
-							return fmt.Errorf("block %q %s item: moduleID %q not found: %w", b.Title, arrayKey, ref, err)
-						}
-						m["moduleID"] = strconv.FormatUint(mod.ID, 10)
-					}
+				if err := resolveRefsIn(ctx, nsID, title, m); err != nil {
+					return err
 				}
 			}
+			continue
+		}
+
+		ref, _ := raw.(string)
+		if ref == "" {
+			continue
+		}
+		if _, err := strconv.ParseUint(ref, 10, 64); err == nil {
+			continue
+		}
+
+		switch key {
+		case "moduleID":
+			mod, err := cmpService.DefaultModule.FindByAny(ctx, nsID, ref)
+			if err != nil {
+				return fmt.Errorf("block %q: moduleID %q not found: %w", title, ref, err)
+			}
+			options[key] = strconv.FormatUint(mod.ID, 10)
+
+		// A handle left here is what the webapp reports as "invalid ID".
+		case "chartID":
+			ch, err := findChartByAny(ctx, nsID, ref)
+			if err != nil {
+				return fmt.Errorf("block %q: chart %q not found: %w", title, ref, err)
+			}
+			options[key] = strconv.FormatUint(ch.ID, 10)
 		}
 	}
+
 	return nil
 }
 
