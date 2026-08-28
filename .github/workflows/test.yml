@@ -35,7 +35,7 @@ jobs:
         run: corepack enable
       - name: "Install Python browser test dependencies"
         run: |
-          python3 -m pip install -r tools/c311-browser/requirements.txt
+          python3 -m pip install --require-hashes --only-binary=:all: -r tools/c311-browser/requirements.txt
           python3 -m playwright install --with-deps chromium
       - name: "Build and install current C311 packages"
         run: tools/ci/install-local-c311-packages.sh
@@ -55,6 +55,8 @@ jobs:
         run: |
           corepack yarn --cwd client/web/compose test:c311
           corepack yarn --cwd client/web/admin test:c311
+      - name: "FE-01 browser helper tests"
+        run: python3 -m unittest discover -s tools/c311-browser -p 'test_*.py'
       - name: "Compose and Admin production builds"
         run: |
           cp client/web/compose/public/config.example.js client/web/compose/public/config.js

@@ -1,6 +1,6 @@
 <template>
   <div class="c311-responsive-data" data-c311-responsive-data>
-    <div class="c311-responsive-data__table" tabindex="0" role="region" :aria-label="label" data-c311-responsive-table>
+    <div class="c311-responsive-data__table" tabindex="-1" role="region" :aria-label="label" data-c311-responsive-table>
       <table class="table table-hover mb-0">
         <thead>
           <tr>

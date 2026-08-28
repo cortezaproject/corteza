@@ -214,6 +214,8 @@ describe('C311 shared components', () => {
       propsData: { items: [{ id: '1', name: 'Request' }], columns: [{ key: 'id', label: 'ID' }, { key: 'name', label: 'Name' }] },
     })
     expect(wrapper.find('[data-c311-responsive-table]').exists()).toBe(true)
+    expect(wrapper.find('[data-c311-responsive-table]').attributes('role')).toBe('region')
+    expect(wrapper.find('[data-c311-responsive-table]').attributes('tabindex')).toBe('-1')
     expect(wrapper.find('[data-c311-responsive-cards]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Request')
   })
