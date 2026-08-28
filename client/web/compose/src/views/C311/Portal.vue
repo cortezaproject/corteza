@@ -50,6 +50,7 @@
           :busy="submitting"
           :allow-anonymous="true"
           :explain-when-denied="true"
+          data-c311-action="submit-request"
           type="submit"
         >
           {{ t('action.submit', 'Submit request') }}

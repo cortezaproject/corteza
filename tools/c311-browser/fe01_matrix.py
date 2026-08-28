@@ -131,7 +131,7 @@ def check_portal_errors(page: Page, base_url: str, label: str) -> None:
 
     open_c311(page, base_url, "/c311/submit", "public_visitor", "validation")
     page.locator("#c311-summary").fill("valid summary")
-    page.get_by_role("button", name="Submit request").click()
+    page.locator('[data-c311-action="submit-request"]').click()
     page.locator("[data-c311-error-summary]").wait_for(state="visible")
     check(page.evaluate("document.activeElement.matches('[data-c311-error-summary]')"), f"{label} validation summary did not receive focus")
     page.locator("[data-c311-error-summary] a").click()
