@@ -30,6 +30,8 @@ jobs:
       GOFLAGS: -mod=readonly
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v3
         with: { go-version: "${{ env.GO_VERSION }}" }
       - name: "Copy language files"
@@ -38,9 +40,6 @@ jobs:
       - name: "Unit"
         working-directory: server
         run: make test.unit
-      - name: "Store"
-        working-directory: server
-        run: make test.store
       - name: "Integration"
         working-directory: server
         run: make test.integration
@@ -52,6 +51,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v3
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - uses: actions/cache@v3
@@ -89,6 +90,8 @@ jobs:
     steps:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v3
         with: { go-version: "${{ env.GO_VERSION }}" }
       - name: "Restore web console dist from cache"
@@ -120,6 +123,8 @@ jobs:
         lib: [ "js", "vue" ]
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v3
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - uses: actions/cache@v3
@@ -146,6 +151,8 @@ jobs:
         lib: [ "js", "vue" ]
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v3
         with:
           registry-url: 'https://registry.npmjs.org/'
@@ -190,6 +197,8 @@ jobs:
     needs: [ "lib-build-and-publish" ]
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v3
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: "Setup YARN"
@@ -223,6 +232,8 @@ jobs:
     steps:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v3
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: "Setup YARN"
@@ -261,6 +272,8 @@ jobs:
       RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - name: "Prepare dist dir"
         run: |
@@ -334,6 +347,8 @@ jobs:
     steps:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: "Download"
         run: |
           curl --silent --location "${{ env.RELEASE_BASE_URL }}/corteza-server-${{ env.BUILD_VERSION }}-${{ matrix.os }}-amd64.tar.gz" | \
@@ -384,6 +399,8 @@ jobs:
     steps:
       - run: echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v3
         with: { go-version: "${{ env.GO_VERSION }}" }
       - name: "Copy essentials"
@@ -419,6 +436,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: "Parse version tag"
         id: version
         run: |
@@ -469,6 +488,8 @@ jobs:
     needs: [ docker-images, release ]
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: "Parse version tag"
         id: version
         run: |
@@ -503,6 +524,8 @@ jobs:
     needs: [ notify ]
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Create Sentry release
         uses: getsentry/action-release@v1

@@ -32,6 +32,8 @@ jobs:
         lib: [ "js", "vue" ]
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v3
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - uses: actions/cache@v3
@@ -56,6 +58,8 @@ jobs:
       matrix: { app: [ admin, compose, discovery, privacy, reporter, one, workflow ] }
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v3
         with: { node-version: "${{ env.NODE_VERSION }}" }
       - name: "Setup YARN"
@@ -80,22 +84,95 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       GOFLAGS: -mod=readonly
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: corteza
+          POSTGRES_PASSWORD: corteza
+          POSTGRES_DB: corteza_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: corteza
+          MYSQL_DATABASE: corteza_test
+          MYSQL_USER: corteza
+          MYSQL_PASSWORD: corteza
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          SA_PASSWORD: Corteza123!
+          ACCEPT_EULA: Y
+          MSSQL_PID: Express
+        options: >-
+          --health-cmd="/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Corteza123! -C -Q 'SELECT 1'"
+          --health-interval=15s
+          --health-timeout=10s
+          --health-retries=5
+        ports:
+          - 1433:1433
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v3
         with: { go-version: "${{ env.GO_VERSION }}" }
       - name: "Copy language files"
         working-directory: server/pkg/locale
         run: make src/en
+      - name: "Wait for databases"
+        run: |
+          # Wait a bit longer for SQL Server to fully initialize
+          sleep 30
+          # Test connections (wait for all databases to be ready)
+          until docker exec $(docker ps -qf "ancestor=postgres:15") pg_isready; do sleep 1; done
+          until docker exec $(docker ps -qf "ancestor=mysql:8.0") mysqladmin ping -h localhost --silent; do sleep 1; done
+          until docker exec $(docker ps -qf "ancestor=mcr.microsoft.com/mssql/server:2019-latest") /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Corteza123!' -C -Q 'SELECT 1'; do sleep 1; done
+      - name: "Create SQL Server test database"
+        run: |
+          # Create the corteza_test database in SQL Server
+          docker exec $(docker ps -qf "ancestor=mcr.microsoft.com/mssql/server:2019-latest") /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Corteza123!' -C -Q 'CREATE DATABASE corteza_test;'
       - name: "Unit"
         working-directory: server
         run: make test.unit
-      - name: "Store"
+      - name: "Store - SQLite"
         working-directory: server
-        run: make test.store
+        env:
+          RDBMS_SQLITE_DSN: "sqlite3://file::memory:?cache=shared&mode=memory"
+        run: go test -v ./store/tests/... -run Test_RDBMS_SQLITE
+      - name: "Store - PostgreSQL"
+        working-directory: server
+        env:
+          RDBMS_PGSQL_DSN: "postgres://corteza:corteza@localhost:5432/corteza_test?sslmode=disable"
+        run: go test -v ./store/tests/... -run Test_RDBMS_PGSQL
+      - name: "Store - MySQL"
+        working-directory: server
+        env:
+          RDBMS_MYSQL_DSN: "mysql://corteza:corteza@tcp(localhost:3306)/corteza_test"
+        run: go test -v ./store/tests/... -run Test_RDBMS_MYSQL
+      - name: "Store - SQL Server 2019"
+        working-directory: server
+        env:
+          RDBMS_SQLSERVER_2019_DSN: "sqlserver://sa:Corteza123!@localhost:1433?database=corteza_test"
+        run: go test -v ./store/tests/... -run Test_RDBMS_SQLSERVER_2019
       - name: "Integration"
         working-directory: server
         run: make test.integration
+
 
   notify:
     if: failure()
