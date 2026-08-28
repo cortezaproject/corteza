@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { getStyleFromKind } from '../lib/style'
+import { CANVAS_GRID, getStyleFromKind } from '../lib/style'
 import { nextId } from '../lib/id'
 
 /**
@@ -96,9 +96,9 @@ export function useWorkflowDnD(nodes, edges, saveToHistory, projectPosition) {
     position.x -= nodeWidth / 2
     position.y -= nodeHeight / 2
 
-    // 8px grid snap
-    position.x = Math.round(position.x / 8) * 8
-    position.y = Math.round(position.y / 8) * 8
+    // Land on the canvas grid, the same as a dragged node
+    position.x = Math.round(position.x / CANVAS_GRID) * CANVAS_GRID
+    position.y = Math.round(position.y / CANVAS_GRID) * CANVAS_GRID
 
     // Generate incrementing integer ID (like Human's mxGraph)
     const id = String(nextId(nodes, edges))

@@ -177,7 +177,7 @@
         v-model:nodes="nodes"
         v-model:edges="edges"
         :snap-to-grid="true"
-        :snap-grid="[8, 8]"
+        :snap-grid="[CANVAS_GRID, CANVAS_GRID]"
         :min-zoom="0.1"
         :max-zoom="3"
         :pan-on-drag="[1, 2]"
@@ -206,7 +206,11 @@
         @dragover="onCanvasDragOver"
         @drop="onCanvasDrop"
       >
-        <Background variant="dots" />
+        <!-- Dot grid at the snap pitch, so every dot is a place a step can
+             land. `size` is a diameter VueFlow scales by zoom and halves into a
+             radius, so anything below 2 is a sub-pixel circle antialiasing
+             washes out. -->
+        <Background :gap="CANVAS_GRID" :size="2" />
         <template #node-workflow="props">
           <WorkflowNode
             v-bind="props"
@@ -501,7 +505,7 @@ import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 
 import { decodeWorkflow, encodeWorkflow } from '../lib/codec'
-import { getStyleFromKind } from '../lib/style'
+import { CANVAS_GRID, getStyleFromKind } from '../lib/style'
 import {
   buildScopeFields,
   buildInputFields,
@@ -2516,7 +2520,7 @@ defineExpose({
 }
 
 .vueflow-canvas :deep(.vue-flow__background pattern circle) {
-  fill: color-mix(in srgb, var(--p-text-muted-color) 30%, transparent);
+  fill: color-mix(in srgb, var(--p-text-muted-color) 60%, transparent);
 }
 
 .vueflow-canvas :deep(.vue-flow__edge-path) {

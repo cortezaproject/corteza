@@ -1,3 +1,8 @@
+// Editor canvas grid: the background dot spacing and the snap increment for
+// every node placement, so a step always lands on a dot. Half the 64px node
+// height, as in the TAQ builder.
+export const CANVAS_GRID = 32
+
 export function getStyleFromKind({ kind = '', ref = '' }) {
   let kindRef = kind
 
