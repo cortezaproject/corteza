@@ -5,7 +5,10 @@ import { mount, flushPromises } from '@vue/test-utils'
 // it on the record payload. An empty revisions table and a refused one look the
 // same, so the block says which it is rather than reporting "no revisions".
 
-vi.mock('@planetcrust/human-vue', () => ({}))
+vi.mock('@planetcrust/human-vue', () => ({
+  components: { CFieldViewer: { template: '<span />' } },
+  useModuleStore: () => ({ getByID: () => null }),
+}))
 
 const fetch = vi.fn(() => Promise.resolve([{ revision: 1, operation: 'create', changes: [] }]))
 
@@ -13,6 +16,7 @@ function mountBlock(record) {
   return mount(RecordRevisionsBlock, {
     props: {
       block: { kind: 'RecordRevisions', options: { preload: true }, fetch },
+      page: { moduleID: '0' },
       record,
     },
     global: {

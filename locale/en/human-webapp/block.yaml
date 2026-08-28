@@ -1292,6 +1292,7 @@ recordRevisions:
           label: Old value
     errors:
       disabled-on-module: Record revisions are disabled on this module
+      load-failed: The record revisions could not be loaded
       no-record: No record found to display revisions for
       no-revisions: No record revisions found
     operations:
