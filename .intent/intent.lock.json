@@ -516,10 +516,25 @@
       "doc": "client/web/unify/src/sections/admin/views/ui/Theming/Index.intent.md",
       "t": "2026-08-19"
     },
-    "client/web/unify/src/sections/agentic/components/AiChat.vue": {
-      "h": "5efaae7f2cb0",
+    "client/web/unify/src/sections/agentic/components/AgentToolDialog.test.ts": {
+      "h": "fc0355e21b67",
       "doc": "client/web/unify/src/sections/agentic/components/components.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-08-28"
+    },
+    "client/web/unify/src/sections/agentic/components/AgentToolDialog.vue": {
+      "h": "6252648d80a6",
+      "doc": "client/web/unify/src/sections/agentic/components/components.intent.md",
+      "t": "2026-08-28"
+    },
+    "client/web/unify/src/sections/agentic/components/AiChat.approval.test.ts": {
+      "h": "32b4eb4ca9f0",
+      "doc": "client/web/unify/src/sections/agentic/components/components.intent.md",
+      "t": "2026-08-28"
+    },
+    "client/web/unify/src/sections/agentic/components/AiChat.vue": {
+      "h": "c168573ee311",
+      "doc": "client/web/unify/src/sections/agentic/components/components.intent.md",
+      "t": "2026-08-28"
     },
     "client/web/unify/src/sections/agentic/components/AiTrace.vue": {
       "h": "a7ad75a67cfe",
@@ -532,9 +547,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/agentic/index.js": {
-      "h": "16604f12b9a9",
+      "h": "489fc7b5e10e",
       "doc": "client/web/unify/src/sections/agentic/agentic.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-08-28"
     },
     "client/web/unify/src/sections/agentic/sidebar/AgenticSidebar.vue": {
       "h": "9cd6875eac46",
