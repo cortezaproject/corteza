@@ -62,6 +62,7 @@
         >
           <CFieldEditor
             :field="resolvedFieldDef"
+            :namespace="resolvedNamespace"
             :model-value="valueVal"
             class="flex-1 min-w-0"
             @update:model-value="onValueChange"
@@ -178,6 +179,9 @@ function makeFieldDef(kind = 'String', options = {}) {
 }
 
 const resolvedFieldDef = vueRef(makeFieldDef())
+// The namespace the resolved field's module lives in; Record/User sub-editors
+// need it to list records, and the builder has no `$namespace` to inject.
+const resolvedNamespace = vueRef({})
 const userChangedSymbol = vueRef(false)
 
 // Derived for use in onValueChange typing logic
@@ -191,6 +195,7 @@ watch(resolvedVariableType, (newKind, oldKind) => {
 })
 
 watchEffect(async () => {
+  resolvedNamespace.value = {}
   const left = leftArg.value
   if (!left?.symbol || !left?.meta?.scope) {
     resolvedFieldDef.value = makeFieldDef()
@@ -247,6 +252,7 @@ watchEffect(async () => {
           })
           const field = mod.fields?.find(f => f.name === customFieldName)
           if (field) {
+            resolvedNamespace.value = { namespaceID: topLevel.namespaceID }
             resolvedFieldDef.value = {
               kind: field.kind,
               name: field.name,

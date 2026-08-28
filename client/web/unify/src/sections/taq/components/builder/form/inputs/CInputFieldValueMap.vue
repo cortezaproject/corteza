@@ -37,6 +37,7 @@
       <div v-else class="flex gap-1 items-center">
         <CFieldEditor
           :field="getFieldDef(row.field)"
+          :namespace="namespace"
           :model-value="row.value"
           :disabled="disabled || !row.field"
           :add-label="t('builder.fieldValueMap.addValue')"
@@ -69,7 +70,7 @@
 </template>
 
 <script setup>
-import { inject, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CReferenceChip from '../CReferenceChip.vue'
 import { CFieldEditor } from '@planetcrust/human-vue/src/components/field'
@@ -100,6 +101,12 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'toggleRowReference'])
 const { t } = useI18n()
 const moduleStore = useModuleStore()
+
+// Record/User sub-editors resolve their record list against a namespace. The
+// builder is outside compose, so there is no `$namespace` to inject — the
+// step's own namespace argument is the one in play.
+const namespace = computed(() => ({ namespaceID: props.namespaceID }))
+
 const fields = ref([])
 const rows = ref([])
 const loading = ref(false)
