@@ -1026,5 +1026,27 @@ tabs:
     editDisabled: Editing tabbed blocks is disabled until you save this block
     addBlock: Add new block
 
+group:
+  label: Group
+  noBlocks: No blocks configured
+  padding: Padding between blocks
+  paddingOptions:
+    none: None (0px)
+    small: Small (4px)
+    medium: Medium (8px)
+    large: Large (12px)
+  blocks:
+    title: Group Blocks
+  table:
+    columns:
+      block:
+        label: Block
+  placeholder:
+    block: Select a block
+  tooltip:
+    edit: Edit block
+    delete: Remove block from group
+  newBlockModal: Add new block
+
 noConfiguration: Block not configured correctly
 interpolationFootnote: Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)

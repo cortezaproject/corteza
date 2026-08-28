@@ -197,6 +197,11 @@ export default {
           image: images.Tabs,
         },
         {
+          label: this.$t('group.label'),
+          block: new compose.PageBlockGroup(),
+          image: images.Tabs, // Using Tabs image for now
+        },
+        {
           label: this.$t('navigation.label'),
           block: new compose.PageBlockNavigation(),
           image: images.Navigation,

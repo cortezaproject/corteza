@@ -263,7 +263,7 @@
     >
       <new-block-selector
         :record-page="!!module"
-        :disabled-kinds="['Tabs']"
+        :disabled-kinds="[]"
         @select="addBlock"
       />
     </b-modal>
@@ -325,11 +325,38 @@ export default {
   },
 
   computed: {
+    childToParent () {
+      const map = new Map()
+      for (const b of this.page.blocks) {
+        if (b.kind === 'Tabs') {
+          (b.options.tabs || []).forEach(t => t.blockID && map.set(t.blockID, b.blockID))
+        } else if (b.kind === 'Group') {
+          (b.options.blocks || []).forEach(x => x.blockID && map.set(x.blockID, b.blockID))
+        }
+      }
+      return map
+    },
+
     blockOptions () {
-      return [
-        ...this.page.blocks.filter(({ blockID, kind }) => kind !== 'Tabs' && !this.blocks.some(b => b.blockID === blockID) && this.options.tabs.some(b => b.blockID === blockID)),
-        ...this.blocks.filter(b => b.kind !== 'Tabs'),
-      ].map(b => ({ ...b, value: fetchID(b) }))
+      const myParentID = this.childToParent.get(this.block.blockID) || null
+      const ownChildIDs = new Set((this.block.options.tabs || []).map(t => t.blockID).filter(Boolean))
+
+      const pool = [
+        ...this.page.blocks.filter(({ blockID }) => !this.blocks.some(b => b.blockID === blockID) && ownChildIDs.has(blockID)),
+        ...this.blocks,
+      ]
+
+      const seen = new Set()
+      return pool
+        .filter(b => {
+          if (b.blockID === this.block.blockID) return false
+          if (seen.has(b.blockID)) return false
+          seen.add(b.blockID)
+          if (ownChildIDs.has(b.blockID)) return true
+          const parent = this.childToParent.get(b.blockID) || null
+          return parent === myParentID
+        })
+        .map(b => ({ ...b, value: fetchID(b) }))
     },
   },
 
