@@ -74,6 +74,14 @@ func (h helper) lookupModuleByID(ID uint64) *types.Module {
 	return res
 }
 
+func (h helper) lookupModuleByHandle(handle string) *types.Module {
+	set, _, err := store.SearchComposeModules(context.Background(), service.DefaultStore, types.ModuleFilter{Handle: handle})
+	h.noError(err)
+	h.a.Len(set, 1)
+
+	return h.lookupModuleByID(set[0].ID)
+}
+
 func TestModuleRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
@@ -204,6 +212,59 @@ func TestModuleCreate(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
+}
+
+// A default value is stored without a field name — the field it belongs to
+// already says which one it is. Only the update path used to canonicalise it,
+// so a module created with names in its defaults had them stripped the first
+// time anything else about it was edited, and the stored shape changed under
+// the caller for a field they had not touched.
+func TestModuleCreate_defaultValueIsCanonicalisedLikeUpdate(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "update")
+
+	ns := h.makeNamespace("some-namespace")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
+		JSON(`{"name":"defaults-module","handle":"defaults_module","fields":[
+			{"name":"title","kind":"String"},
+			{"name":"stage","kind":"String","defaultValue":[{"name":"stage","value":"applied"}]}
+		]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	m := h.lookupModuleByHandle("defaults_module")
+	h.a.NotNil(m)
+
+	created := m.Fields.FindByName("stage")
+	h.a.NotNil(created)
+	h.a.Len(created.DefaultValue, 1)
+	h.a.Equal("applied", created.DefaultValue[0].Value)
+	h.a.Equal("", created.DefaultValue[0].Name)
+
+	// Editing an unrelated field must leave the default exactly as created.
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		JSON(fmt.Sprintf(`{"name":"defaults-module","handle":"defaults_module","fields":[
+			{"fieldID":"%d","name":"title","kind":"String","label":"Title"},
+			{"fieldID":"%d","name":"stage","kind":"String","defaultValue":[{"name":"","value":"applied"}]}
+		]}`, m.Fields.FindByName("title").ID, created.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	after := h.lookupModuleByHandle("defaults_module").Fields.FindByName("stage")
+	h.a.NotNil(after)
+	h.a.Equal(created.DefaultValue[0].Name, after.DefaultValue[0].Name)
+	h.a.Equal(created.DefaultValue[0].Value, after.DefaultValue[0].Value)
 }
 
 func TestModuleCreateInvalidField(t *testing.T) {

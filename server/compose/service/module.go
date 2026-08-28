@@ -569,6 +569,15 @@ func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.
 		// Verify dal system field mappings
 		_ = handleDalSysFieldEncodingUpdate(new)
 
+		// Sanitize, validate and canonicalise default values, the same pass
+		// every later edit runs (updateModuleFields). Without it a module is
+		// created holding a default that an unrelated edit would later reject,
+		// and one whose stored shape changes under the caller the first time
+		// the module is updated.
+		if new.Fields, err = moduleFieldDefaultPreparer(ctx, s, new, new.Fields); err != nil {
+			return err
+		}
+
 		aProps.setChanged(new)
 
 		if err = svc.services.eventbus.WaitFor(ctx, event.ModuleBeforeCreate(new, nil, ns)); err != nil {
