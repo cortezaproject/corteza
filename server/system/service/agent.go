@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/label"
 
 	"github.com/crusttech/human/server/store"
@@ -81,6 +82,10 @@ func (svc *agent) onLookup(ctx context.Context, ID uint64, aProps *agentActionPr
 func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 	new.ID = nextID()
 	new.CreatedAt = *now()
+	// An agent carries a tool allow-list and reads data on somebody's behalf,
+	// so it is the resource where authorship matters most; it was the one
+	// resource recording none.
+	new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
 	new.Revision = 1
 
 	if new.Status == "" {
@@ -134,7 +139,9 @@ func (svc *agent) onUpdate(ctx context.Context, s store.Storer, upd, res *types.
 
 	upd.Revision = res.Revision + 1
 	upd.UpdatedAt = now()
+	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 	upd.CreatedAt = res.CreatedAt
+	upd.CreatedBy = res.CreatedBy
 	upd.DeletedAt = res.DeletedAt
 	// ProjectID is set at create and isn't part of the update payload; preserve
 	// the existing owning project so an update never unlinks the agent from it
