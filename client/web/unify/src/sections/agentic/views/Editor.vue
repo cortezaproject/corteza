@@ -500,8 +500,10 @@
                                 :key="col"
                                 scope="col"
                                 class="border-b border-surface pb-2 text-right font-normal"
-                                :class="columnClass(col)"
+                                :class="[columnClass(col), columnLit(col)]"
                                 :aria-label="columnLabel(col)"
+                                @mouseenter="litColumn = col"
+                                @mouseleave="litColumn = null"
                               >
                                 <i
                                   v-tooltip.top="columnLabel(col)"
@@ -534,6 +536,7 @@
                                 class="py-1 pt-2 text-right tabular-nums"
                                 :class="[
                                   columnClass(col),
+                                  columnLit(col),
                                   subject[col] ? 'text-color' : 'text-muted-color',
                                 ]"
                               >
@@ -558,6 +561,7 @@
                                 class="border-t border-surface pt-3 text-right tabular-nums"
                                 :class="[
                                   columnClass(col),
+                                  columnLit(col),
                                   toolSummary.totals[col] ? '' : 'text-muted-color',
                                 ]"
                               >
@@ -1062,14 +1066,24 @@ function isRisk(col) {
   return RISK_MODES.includes(col)
 }
 
-// The column the rule falls after, so the gap either side of it is equal.
+// Padding sits on both sides of a number rather than only its left, so the
+// column highlight is a band the digit is centred in. The gap between columns
+// is the two halves together; the rule keeps a wider one either side.
 const LAST_PERMISSION = SUMMARY_MODES[SUMMARY_MODES.length - 1]
 
+// The column under the pointer. A row lights from its own hover; a column has
+// no element spanning it, so its cells are told which one is lit.
+const litColumn = ref(null)
+
+function columnLit(col) {
+  return litColumn.value === col ? 'bg-emphasis' : ''
+}
+
 function columnClass(col) {
-  if (col === RISK_MODES[0]) return 'border-l border-surface pl-6'
-  if (col === LAST_PERMISSION) return 'pl-6 pr-6'
-  if (col === RISK_MODES[RISK_MODES.length - 1]) return 'pl-6 pr-2'
-  return 'pl-6'
+  if (col === RISK_MODES[0]) return 'border-l border-surface pl-6 pr-3'
+  if (col === LAST_PERMISSION) return 'pl-3 pr-6'
+  if (col === RISK_MODES[RISK_MODES.length - 1]) return 'pl-3 pr-2'
+  return 'px-3'
 }
 
 function columnIcon(col) {
