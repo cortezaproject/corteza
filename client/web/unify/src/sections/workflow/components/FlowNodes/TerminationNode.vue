@@ -211,13 +211,10 @@ const displayDescription = computed(() => props.data?.description || stepDescrip
   height: 16px;
 }
 
-/* z-index:-1 tucks the circle behind the node so only the outer half pokes
-   past the border. */
+/* Hidden until a connection is looking for a home; size and grabbability are
+   the canvas's, in WorkflowEditor.vue. */
 .termination-node :deep(.vue-flow__handle) {
   opacity: 0;
-  width: 12px;
-  height: 12px;
-  z-index: -1;
   transition: opacity 0.2s;
 }
 

@@ -189,6 +189,7 @@
         :multi-selection-key-code="'Shift'"
         :delete-key-code="null"
         :connection-mode="ConnectionMode.Loose"
+        :connection-radius="CANVAS_GRID"
         :edges-updatable="true"
         :is-valid-connection="isValidConnection"
         :default-edge-options="defaultEdgeOptions"
@@ -2521,6 +2522,22 @@ defineExpose({
 
 .vueflow-canvas :deep(.vue-flow__background pattern circle) {
   fill: color-mix(in srgb, var(--p-text-muted-color) 60%, transparent);
+}
+
+/* Handles sit above the node, so a press near one starts an edge instead of
+   being swallowed by the node drag underneath. */
+.vueflow-canvas :deep(.vue-flow__handle) {
+  width: 12px;
+  height: 12px;
+  z-index: 1;
+}
+
+/* The catch area is bigger than the dot: aiming is at the pixel the eye picks,
+   which is the middle of a 12px circle, not its outer half. */
+.vueflow-canvas :deep(.vue-flow__handle)::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
 }
 
 .vueflow-canvas :deep(.vue-flow__edge-path) {

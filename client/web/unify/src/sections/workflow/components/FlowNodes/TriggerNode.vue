@@ -415,13 +415,10 @@ const valueRows = computed(() => {
   height: 16px;
 }
 
-/* Hide handles by default. z-index:-1 tucks the circle behind the node so
-   only the outer half pokes past the border. */
+/* Hidden until hover; size and grabbability are the canvas's, in
+   WorkflowEditor.vue. */
 .trigger-node :deep(.vue-flow__handle) {
   opacity: 0;
-  width: 12px;
-  height: 12px;
-  z-index: -1;
   transition: opacity 0.2s;
 }
 
