@@ -20,19 +20,19 @@ Call `compose_page_create` with:
 - `title` — the module name, usually pluralised (e.g. "Sleep Logs")
 - `visible: true` — it appears in the sidebar navigation
 - Do NOT set `module` at the page level
-- `blocks` — a single `RecordList` block with `module` in options (required):
+- `blocks` — a single `RecordList` block with `moduleID` in options (required):
 
 ```json
 [{
   "kind": "RecordList",
   "title": "Sleep Logs",
   "options": {
-    "module": "Sleep Log",
+    "moduleID": "Sleep Log",
     "perPage": 20
   }
 }]
 ```
 
-Do not include `xywh` — the server computes position and height automatically. The server resolves `"module"` from a name to an ID — you do not need to look up the ID first.
+Do not include `xywh` — the server computes position and height automatically. `moduleID` takes a module name, handle or ID and the server resolves it — you do not need to look it up first.
 
 After creating the list page, immediately create the matching record detail page. Save the list page ID — the detail page will be set as its child.
