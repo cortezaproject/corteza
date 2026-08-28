@@ -428,6 +428,7 @@ var resourceScopeExempt = map[string]bool{
 // Do not add a compose_ or automation_ prefix here. Those resources have a real
 // dimension and belong in buildResource.
 var resourceScopeExemptPrefixes = []string{
+	"system_permission_",
 	"system_user_",
 	"system_user_group_",
 	"system_role_",

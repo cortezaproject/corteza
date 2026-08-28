@@ -140,7 +140,30 @@ a project task is not a project.
 
 ## Not in this table
 
-Non-resource REST surfaces with no codegen'd resource — `permissions`, `stats`,
-`dml`, `expression`, `locales`, `sink`, `settings`, `data_privacy` — are out of
-scope for the resource grammar. Where they need tools, the shape is decided
-case by case and recorded here first.
+Non-resource REST surfaces with no codegen'd resource — `stats`, `dml`,
+`expression`, `locales`, `sink`, `settings`, `data_privacy` — are out of scope
+for the resource grammar. Where they need tools, the shape is decided case by
+case and recorded here first.
+
+`permissions` is the first of those to get tools, so its shape is recorded
+here. The segment is `system_permission`, singular, under `system` even though
+rules span three components — RBAC is one mechanism with one vocabulary, and a
+`compose_permission_*` family beside a `system_permission_*` family would make
+a caller pick a tool by the resource they happen to be granting on. The
+component is a property of the resource string, resolved from it, never a tool
+name. Four ops: `schema` (a domain op, the grantable catalogue, precedent
+`compose_page_block_schema`), `lookup`, `grant` and `revoke` — the last two
+domain ops rather than `update`/`delete`, because that is the product's own
+word for them and because revoke is `destructive` while grant is `write`.
+
+**The one rule that makes these tools safe to have: an agent may grant only
+what it already holds.** The service layer's `Grant` checks a single
+component-wide `grant` permission and then writes whatever rule it is handed —
+that is what the admin UI needs and it is an escalation path for an agent, so
+the tools add a per-rule check of the caller's own access on the same resource.
+Any later tool that writes an RBAC rule inherits that rule; a tool that passes
+a rule straight to `Grant` must not be written.
+
+Federation is out of scope: its services initialise conditionally and after the
+MCP registry is wired, and its REST routes do not load unless
+`FEDERATION_ENABLED` is set. A federation resource is refused by name.

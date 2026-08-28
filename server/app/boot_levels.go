@@ -458,6 +458,7 @@ func (app *HumanApp) InitServices(ctx context.Context) (err error) {
 	sysAgentic.UserHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.UserGroupHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.RoleHandler(sysService.DefaultMCPRegistry)
+	sysAgentic.PermissionHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.AuthClientHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ApplicationHandler(sysService.DefaultMCPRegistry)
 	sysAgentic.ThemeHandler(sysService.DefaultMCPRegistry)

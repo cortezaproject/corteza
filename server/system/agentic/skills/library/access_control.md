@@ -1,6 +1,6 @@
 ---
 name: access_control
-description: Roles, user groups and users — which of the two grants access, what a new role does not do, and the permission surface these tools do not have.
+description: Roles, user groups and users — which of the two grants access, how a permission rule is written, and the ceiling on what an agent may grant.
 triggers:
   - system_role_create
   - system_role_update
@@ -11,6 +11,10 @@ triggers:
   - system_user_group_update
   - system_user_group_member_add
   - system_user_create
+  - system_permission_schema
+  - system_permission_lookup
+  - system_permission_grant
+  - system_permission_revoke
 ---
 
 # Access control
@@ -24,20 +28,52 @@ Two hierarchies, and they are not interchangeable.
 
 Both are privilege changes and both take effect immediately.
 
-## There is no permission tool
+## A new role grants nothing until you write a rule
 
-Nothing on this surface reads, writes or lists a permission **rule**. You can
-create a role and put people in it; you cannot grant that role a single
-permission through these tools. Two consequences:
+Creating a role and adding members gives nobody anything. The rule is the
+grant, and there are four tools for it:
 
-- A new role grants nothing. It is an empty container until somebody assigns it
-  rules in the admin UI, or until you copy another role's whole rule set onto
-  it with `system_role_clone_rules`.
-- `system_role_clone_rules` is the only way to give a role permissions from
-  here, and it **replaces** the target's rules rather than adding to them.
+- `system_permission_schema` — every resource type, the shape of its resource
+  string, and the operations valid on it. Read it first; nothing here is
+  guessable and a wrong string is refused rather than stored.
+- `system_permission_lookup` — the rules a role holds, and `yourAccess`: what
+  you personally hold on a resource.
+- `system_permission_grant` — write allow/deny rules.
+- `system_permission_revoke` — remove rules, back to inherit.
 
-Say so plainly when a user asks for "permission to do X" — offer the role and
-the members, and tell them the rules themselves are a UI step.
+`system_role_clone_rules` is still there and still **replaces** the target's
+whole rule set. Use grant for anything narrower.
+
+## You can only grant what you hold
+
+Every write checks the operation against your own access on that exact
+resource, and refuses what you do not have — on revoke as well as on grant.
+It is not a policy, it is the same RBAC evaluation the server runs when you
+act yourself, so there is no argument that gets around it. You also need the
+`grant` permission on the component; holding an operation is not the same as
+being allowed to delegate it.
+
+When a grant is refused, read `yourAccess` from `system_permission_lookup` for
+that resource: that list is the ceiling, and the answer for the user is
+usually "ask someone who has it", not another attempt.
+
+## Writing a rule
+
+A rule is a resource string, an operation, and allow or deny.
+
+- The resource is the whole string: `corteza::compose:module/511/512`, not
+  `module/*`. Every path segment counts — a module has two, a record has three.
+  A component-wide rule ends in a slash: `corteza::compose/`.
+- `*` in a segment covers every resource at that level, and you can only write
+  one if you hold the operation at that same breadth.
+- Operations live on the resource that owns them, which is rarely the obvious
+  one: `record.create` is on the **module**, `module.create` is on the
+  **namespace**. Letting a role into an application needs `access` and `read`
+  together, on the application.
+- Nothing here covers federation.
+
+A rule takes effect immediately for new sessions. Someone already signed in
+keeps the access their session was built with until they sign in again.
 
 ## A user belongs to exactly one group
 

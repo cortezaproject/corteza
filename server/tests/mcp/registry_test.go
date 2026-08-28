@@ -64,6 +64,7 @@ func buildRegistry(t *testing.T) *hmcp.Registry {
 	sysAgentic.UserHandler(reg)
 	sysAgentic.UserGroupHandler(reg)
 	sysAgentic.RoleHandler(reg)
+	sysAgentic.PermissionHandler(reg)
 	sysAgentic.AuthClientHandler(reg)
 	sysAgentic.ApplicationHandler(reg)
 	sysAgentic.ThemeHandler(reg)
@@ -270,6 +271,10 @@ func TestLookupContract(t *testing.T) {
 		// and a one-line description each, and reading one is deliberately the
 		// whole file.
 		"system_skill_lookup": true,
+		// RBAC keeps its whole rule set in memory as one slice and offers no
+		// cursor over it; the rules are read with FindRulesByRoleID, which
+		// filters that slice. The tool caps and reports the overflow instead.
+		"system_permission_lookup": true,
 	}
 
 	// Of those, the ones that cannot meaningfully bound either. discovery_search
@@ -370,7 +375,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 	for _, ctor := range []string{
 		"RecordHandler(", "NamespaceHandler(", "ModuleHandler(", "PageHandler(",
 		"ChartHandler(", "PageLayoutHandler(", "TAQHandler(", "WorkflowHandler(", "TriggerHandler(", "EventTypeHandler(", "ConstructHandler(", "ReminderHandler(",
-		"DiscoveryHandler(", "UserHandler(", "UserGroupHandler(", "RoleHandler(",
+		"DiscoveryHandler(", "UserHandler(", "UserGroupHandler(", "RoleHandler(", "PermissionHandler(",
 		"AuthClientHandler(", "ApplicationHandler(", "ThemeHandler(", "SkillHandler(",
 		"AgentHandler(", "ChatbotHandler(",
 	} {
@@ -387,6 +392,7 @@ func TestRegistryMatchesBootWiring(t *testing.T) {
 		"ConstructHandler": true,
 		"ReminderHandler":  true, "DiscoveryHandler": true,
 		"UserHandler": true, "UserGroupHandler": true, "RoleHandler": true,
+		"PermissionHandler": true,
 		"AuthClientHandler": true, "ApplicationHandler": true, "ThemeHandler": true,
 		"SkillHandler": true, "AgentHandler": true, "ChatbotHandler": true,
 	}

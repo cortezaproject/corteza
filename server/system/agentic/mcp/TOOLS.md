@@ -15,7 +15,7 @@ rather than to Human, and are added to the MCP server directly
 (`pkg/mcpkit/server.go`, `registerMetaTools`). A `tools/list` returns them
 too, so a live listing is two longer than this table.
 
-## Registered tools (114)
+## Registered tools (118)
 
 | Tool | Group | Risk | Surface |
 |---|---|---|---|
@@ -97,6 +97,10 @@ too, so a live listing is two longer than this table.
 | `system_chatbot_regenerate_key` | configuring | write | both |
 | `system_chatbot_undelete` | configuring | write | both |
 | `system_chatbot_update` | configuring | write | both |
+| `system_permission_grant` | configuring | write | both |
+| `system_permission_lookup` | configuring | read | both |
+| `system_permission_revoke` | configuring | destructive | both |
+| `system_permission_schema` | configuring | read | both |
 | `system_reminder_create` | usage | write | both |
 | `system_reminder_delete` | usage | destructive | both |
 | `system_reminder_dismiss` | usage | write | both |
@@ -146,9 +150,9 @@ Present in the table above, but not on every instance.
 
 | Dimension | Value | Tools |
 |---|---|---|
-| group | configuring | 92 |
+| group | configuring | 96 |
 | group | configuring, usage | 4 |
 | group | usage | 18 |
-| risk | destructive | 18 |
-| risk | read | 29 |
-| risk | write | 67 |
+| risk | destructive | 19 |
+| risk | read | 31 |
+| risk | write | 68 |
