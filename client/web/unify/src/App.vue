@@ -12,9 +12,12 @@
       </template>
     </CSidebar>
 
-    <!-- Main content area -->
+    <!-- Main content area. min-w-0 is load-bearing: without it the column's
+         automatic minimum size is its content's min-content width, so a wide
+         block (a record list with many columns) makes it wider than the space
+         beside the sidebar and the margin carries the topbar off screen. -->
     <div
-      class="flex-1 flex flex-col transition-[margin] duration-300 max-w-full"
+      class="flex-1 min-w-0 flex flex-col transition-[margin] duration-300"
       :style="{ marginLeft: contentMargin }"
     >
       <header>
