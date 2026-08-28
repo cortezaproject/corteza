@@ -561,62 +561,84 @@ func (svc *Service) Find(ctx context.Context, actor contract.Actor, requestID ui
 }
 
 func (svc *Service) Transition(ctx context.Context, actor contract.Actor, requestID uint64, expectedVersion uint64, input contract.RequestTransition) (*contract.StaffServiceRequestDetail, error) {
-	if expectedVersion == 0 {
-		return nil, apiError(428, contract.ErrorExpectedVersionRequired, "If-Match must identify the expected record version.")
-	}
-	if strings.TrimSpace(string(input.ToStatus)) == "" {
-		return nil, validationError(contract.FieldError{Field: "/to_status", Code: contract.ValidationRequired})
+	if err := validateTransitionInput(expectedVersion, input); err != nil {
+		return nil, err
 	}
 
 	svc.mu.Lock()
 	defer svc.mu.Unlock()
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, tx store.Storer) error {
-		request, err := store.LookupCity311ServiceRequestByID(ctx, tx, requestID)
-		if errors.IsNotFound(err) {
-			return apiError(404, contract.ErrorNotFound, "The service request was not found.")
-		}
-		if err != nil {
-			return err
-		}
-		if !canRead(actor, request) {
-			return apiError(403, contract.ErrorForbidden, requestScopeDeniedMessage)
-		}
-		if !canOperateRequest(actor) {
-			return apiError(403, contract.ErrorForbidden, "The actor cannot transition service requests.")
-		}
-		if uint64(request.Version) != expectedVersion {
-			current := uint64(request.Version)
-			return &ServiceError{Status: 409, Payload: contract.APIError{
-				Error: contract.ErrorVersionConflict, Message: "The service request was updated by another operation.",
-				Retryable: false, CurrentVersion: &current,
-			}}
-		}
-		if !transitionAllowed(request.Status, input.ToStatus) {
-			return validationError(contract.FieldError{Field: "/to_status", Code: contract.ValidationInvalidValue})
-		}
-		before := requestSnapshot(request)
-		request.Status = input.ToStatus
-		request.Version++
-		request.UpdatedAt = svc.now()
-		if err = store.UpdateCity311ServiceRequest(ctx, tx, request); err != nil {
-			return err
-		}
-		if err = store.CreateCity311AuditEvent(ctx, tx, &composeTypes.City311AuditEvent{
-			ID: svc.nextID(), RequestID: request.ID, EventType: "SERVICE_REQUEST_TRANSITIONED",
-			ActorType: contract.AuditActorStaff, ActorID: actor.ID, SourceChannel: contract.SourceChannelStaffInPerson,
-			Before: before, After: requestSnapshot(request), CreatedAt: request.UpdatedAt,
-		}); err != nil {
-			return err
-		}
-		return store.CreateCity311PublicHistoryItem(ctx, tx, &composeTypes.City311PublicHistoryItem{
-			ID: svc.nextID(), RequestID: request.ID, Action: string(request.Status),
-			ResponsibleDepartment: request.OwningDepartment, OccurredAt: request.UpdatedAt,
-		})
+		return svc.transitionRequest(ctx, tx, actor, requestID, expectedVersion, input.ToStatus)
 	})
 	if err != nil {
 		return nil, err
 	}
 	return svc.Find(ctx, actor, requestID)
+}
+
+func validateTransitionInput(expectedVersion uint64, input contract.RequestTransition) error {
+	if expectedVersion == 0 {
+		return apiError(428, contract.ErrorExpectedVersionRequired, "If-Match must identify the expected record version.")
+	}
+	if strings.TrimSpace(string(input.ToStatus)) == "" {
+		return validationError(contract.FieldError{Field: "/to_status", Code: contract.ValidationRequired})
+	}
+	return nil
+}
+
+func (svc *Service) transitionRequest(ctx context.Context, tx store.Storer, actor contract.Actor, requestID, expectedVersion uint64, toStatus contract.ServiceRequestStatus) error {
+	request, err := store.LookupCity311ServiceRequestByID(ctx, tx, requestID)
+	if errors.IsNotFound(err) {
+		return apiError(404, contract.ErrorNotFound, "The service request was not found.")
+	}
+	if err != nil {
+		return err
+	}
+	if err = authorizeTransition(actor, request, expectedVersion, toStatus); err != nil {
+		return err
+	}
+	before := requestSnapshot(request)
+	request.Status = toStatus
+	request.Version++
+	request.UpdatedAt = svc.now()
+	if err = store.UpdateCity311ServiceRequest(ctx, tx, request); err != nil {
+		return err
+	}
+	return svc.persistTransitionEvents(ctx, tx, actor.ID, request, before)
+}
+
+func authorizeTransition(actor contract.Actor, request *composeTypes.City311ServiceRequest, expectedVersion uint64, toStatus contract.ServiceRequestStatus) error {
+	if !canRead(actor, request) {
+		return apiError(403, contract.ErrorForbidden, requestScopeDeniedMessage)
+	}
+	if !canOperateRequest(actor) {
+		return apiError(403, contract.ErrorForbidden, "The actor cannot transition service requests.")
+	}
+	if uint64(request.Version) != expectedVersion {
+		current := uint64(request.Version)
+		return &ServiceError{Status: 409, Payload: contract.APIError{
+			Error: contract.ErrorVersionConflict, Message: "The service request was updated by another operation.",
+			Retryable: false, CurrentVersion: &current,
+		}}
+	}
+	if !transitionAllowed(request.Status, toStatus) {
+		return validationError(contract.FieldError{Field: "/to_status", Code: contract.ValidationInvalidValue})
+	}
+	return nil
+}
+
+func (svc *Service) persistTransitionEvents(ctx context.Context, tx store.Storer, actorID uint64, request *composeTypes.City311ServiceRequest, before map[string]any) error {
+	if err := store.CreateCity311AuditEvent(ctx, tx, &composeTypes.City311AuditEvent{
+		ID: svc.nextID(), RequestID: request.ID, EventType: "SERVICE_REQUEST_TRANSITIONED",
+		ActorType: contract.AuditActorStaff, ActorID: actorID, SourceChannel: contract.SourceChannelStaffInPerson,
+		Before: before, After: requestSnapshot(request), CreatedAt: request.UpdatedAt,
+	}); err != nil {
+		return err
+	}
+	return store.CreateCity311PublicHistoryItem(ctx, tx, &composeTypes.City311PublicHistoryItem{
+		ID: svc.nextID(), RequestID: request.ID, Action: string(request.Status),
+		ResponsibleDepartment: request.OwningDepartment, OccurredAt: request.UpdatedAt,
+	})
 }
 
 func transitionAllowed(from, to contract.ServiceRequestStatus) bool {

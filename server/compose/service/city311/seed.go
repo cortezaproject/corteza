@@ -74,47 +74,88 @@ func seedSequence(ctx context.Context, tx store.Storer) error {
 
 func (svc *Service) seedActors(ctx context.Context, tx store.Storer, createdAt time.Time) error {
 	for _, item := range seedActors {
-		roleHandle := "city311-" + string(item.Role)
-		role, err := store.LookupRoleByHandle(ctx, tx, roleHandle)
-		if errors.IsNotFound(err) {
-			role = &systemTypes.Role{ID: svc.nextID(), Handle: roleHandle, Name: item.Name, Meta: &systemTypes.RoleMeta{Description: "City 311 application role " + string(item.Role)}, CreatedAt: createdAt}
-			if err = store.CreateRole(ctx, tx, role); err != nil {
-				return fmt.Errorf("create role for %s: %w", item.Handle, err)
-			}
-		} else if err != nil {
-			return fmt.Errorf("lookup role for %s: %w", item.Handle, err)
+		if err := svc.seedActorRecord(ctx, tx, item, createdAt); err != nil {
+			return err
 		}
+	}
+	return nil
+}
 
-		user, err := store.LookupUserByEmail(ctx, tx, item.Email)
-		if errors.IsNotFound(err) {
-			user = &systemTypes.User{ID: svc.nextID(), Handle: item.Handle, Username: item.Handle, Email: item.Email, Name: item.Name, EmailConfirmed: true, Meta: &systemTypes.UserMeta{PreferredLanguage: "en"}, CreatedAt: createdAt}
-			if err = store.CreateUser(ctx, tx, user); err != nil {
-				return fmt.Errorf("create user for %s: %w", item.Handle, err)
-			}
-		} else if err != nil {
-			return fmt.Errorf("lookup user for %s: %w", item.Handle, err)
-		}
-		membership := &systemTypes.RoleMember{RoleID: role.ID, Resource: fmt.Sprintf("corteza::system:user/%d", user.ID)}
-		memberships, _, err := store.SearchRoleMembers(ctx, tx, systemTypes.RoleMemberFilter{RoleID: role.ID, Resource: membership.Resource, Limit: 1})
-		if err != nil {
-			return fmt.Errorf("search role membership for %s: %w", item.Handle, err)
-		}
-		if len(memberships) == 0 {
-			if err = store.CreateRoleMember(ctx, tx, membership); err != nil {
-				return fmt.Errorf("create role membership for %s: %w", item.Handle, err)
-			}
-		}
+func (svc *Service) seedActorRecord(ctx context.Context, tx store.Storer, item seedActor, createdAt time.Time) error {
+	role, err := svc.findOrCreateSeedRole(ctx, tx, item, createdAt)
+	if err != nil {
+		return err
+	}
+	user, err := svc.findOrCreateSeedUser(ctx, tx, item, createdAt)
+	if err != nil {
+		return err
+	}
+	if err = ensureSeedRoleMembership(ctx, tx, item.Handle, role.ID, user.ID); err != nil {
+		return err
+	}
+	return svc.ensureSeedActorProfile(ctx, tx, item, user.ID, createdAt)
+}
 
-		if _, err = store.LookupCity311ActorProfileByID(ctx, tx, user.ID); errors.IsNotFound(err) {
-			if err = store.CreateCity311ActorProfile(ctx, tx, &composeTypes.City311ActorProfile{
-				ID: user.ID, ApplicationRoles: composeTypes.City311ApplicationRoleSet{item.Role}, Department: item.Department,
-				Districts: composeTypes.City311DistrictCodeSet(item.Districts), CreatedAt: createdAt, UpdatedAt: createdAt,
-			}); err != nil {
-				return fmt.Errorf("create actor profile for %s: %w", item.Handle, err)
-			}
-		} else if err != nil {
-			return fmt.Errorf("lookup actor profile for %s: %w", item.Handle, err)
-		}
+func (svc *Service) findOrCreateSeedRole(ctx context.Context, tx store.Storer, item seedActor, createdAt time.Time) (*systemTypes.Role, error) {
+	roleHandle := "city311-" + string(item.Role)
+	role, err := store.LookupRoleByHandle(ctx, tx, roleHandle)
+	if err == nil {
+		return role, nil
+	}
+	if !errors.IsNotFound(err) {
+		return nil, fmt.Errorf("lookup role for %s: %w", item.Handle, err)
+	}
+	role = &systemTypes.Role{ID: svc.nextID(), Handle: roleHandle, Name: item.Name, Meta: &systemTypes.RoleMeta{Description: "City 311 application role " + string(item.Role)}, CreatedAt: createdAt}
+	if err = store.CreateRole(ctx, tx, role); err != nil {
+		return nil, fmt.Errorf("create role for %s: %w", item.Handle, err)
+	}
+	return role, nil
+}
+
+func (svc *Service) findOrCreateSeedUser(ctx context.Context, tx store.Storer, item seedActor, createdAt time.Time) (*systemTypes.User, error) {
+	user, err := store.LookupUserByEmail(ctx, tx, item.Email)
+	if err == nil {
+		return user, nil
+	}
+	if !errors.IsNotFound(err) {
+		return nil, fmt.Errorf("lookup user for %s: %w", item.Handle, err)
+	}
+	user = &systemTypes.User{ID: svc.nextID(), Handle: item.Handle, Username: item.Handle, Email: item.Email, Name: item.Name, EmailConfirmed: true, Meta: &systemTypes.UserMeta{PreferredLanguage: "en"}, CreatedAt: createdAt}
+	if err = store.CreateUser(ctx, tx, user); err != nil {
+		return nil, fmt.Errorf("create user for %s: %w", item.Handle, err)
+	}
+	return user, nil
+}
+
+func ensureSeedRoleMembership(ctx context.Context, tx store.Storer, handle string, roleID, userID uint64) error {
+	membership := &systemTypes.RoleMember{RoleID: roleID, Resource: fmt.Sprintf("corteza::system:user/%d", userID)}
+	memberships, _, err := store.SearchRoleMembers(ctx, tx, systemTypes.RoleMemberFilter{RoleID: roleID, Resource: membership.Resource, Limit: 1})
+	if err != nil {
+		return fmt.Errorf("search role membership for %s: %w", handle, err)
+	}
+	if len(memberships) > 0 {
+		return nil
+	}
+	if err = store.CreateRoleMember(ctx, tx, membership); err != nil {
+		return fmt.Errorf("create role membership for %s: %w", handle, err)
+	}
+	return nil
+}
+
+func (svc *Service) ensureSeedActorProfile(ctx context.Context, tx store.Storer, item seedActor, userID uint64, createdAt time.Time) error {
+	_, err := store.LookupCity311ActorProfileByID(ctx, tx, userID)
+	if err == nil {
+		return nil
+	}
+	if !errors.IsNotFound(err) {
+		return fmt.Errorf("lookup actor profile for %s: %w", item.Handle, err)
+	}
+	err = store.CreateCity311ActorProfile(ctx, tx, &composeTypes.City311ActorProfile{
+		ID: userID, ApplicationRoles: composeTypes.City311ApplicationRoleSet{item.Role}, Department: item.Department,
+		Districts: composeTypes.City311DistrictCodeSet(item.Districts), CreatedAt: createdAt, UpdatedAt: createdAt,
+	})
+	if err != nil {
+		return fmt.Errorf("create actor profile for %s: %w", item.Handle, err)
 	}
 	return nil
 }
@@ -122,57 +163,77 @@ func (svc *Service) seedActors(ctx context.Context, tx store.Storer, createdAt t
 func (svc *Service) seedRequests(ctx context.Context, tx store.Storer, benchmarkNow time.Time) error {
 	latitude, longitude := 42.8865, -78.8784
 	for index, status := range seedStatuses {
-		requestNumber := fmt.Sprintf("SR-2026-%05d", 33+index)
-		request, lookupErr := store.LookupCity311ServiceRequestByRequestNumber(ctx, tx, requestNumber)
-		if lookupErr != nil && !errors.IsNotFound(lookupErr) {
-			return lookupErr
-		}
-		createdAt := benchmarkNow.Add(-time.Duration(len(seedStatuses)-index) * time.Hour)
-		if errors.IsNotFound(lookupErr) {
-			request = &composeTypes.City311ServiceRequest{
-				ID: svc.nextID(), RequestNumber: requestNumber, Summary: "Seeded City 311 request " + strconv.Itoa(index+1),
-				Description: "Deterministic seeded request retained for brownfield and lifecycle regression checks.",
-				ServiceType: contract.ServiceTypePothole, OwningDepartment: contract.DepartmentStreets,
-				CouncilDistrict: contract.DistrictNorth, SourceChannel: contract.SourceChannelStaffInPerson,
-				OriginClass: contract.OriginClassInternal, Status: status,
-				PrimaryRequester: requesterMap(uint64(index+1), contract.RequesterInput{DisplayName: "Seed Constituent", Email: "constituent1@city311.example.invalid"}),
-				Location:         locationMap(&contract.LocationInput{Address: "100 Example Street, Buffalo, NY 14201", Latitude: &latitude, Longitude: &longitude}),
-				CustomFields:     map[string]any{}, CollaboratorIDs: composeTypes.City311Uint64Set{}, Version: 1,
-				CreatedAt: createdAt, UpdatedAt: createdAt,
-			}
-			if err := store.CreateCity311ServiceRequest(ctx, tx, request); err != nil {
-				return err
-			}
-		}
-		if err := svc.seedConstituent(ctx, tx, request); err != nil {
+		if err := svc.seedRequestRecord(ctx, tx, benchmarkNow, index, status, latitude, longitude); err != nil {
 			return err
-		}
-		audits, _, err := store.SearchCity311AuditEvents(ctx, tx, composeTypes.City311AuditEventFilter{RequestID: request.ID, EventType: "SEED_CREATED"})
-		if err != nil {
-			return err
-		}
-		if len(audits) == 0 {
-			if err = store.CreateCity311AuditEvent(ctx, tx, &composeTypes.City311AuditEvent{
-				ID: svc.nextID(), RequestID: request.ID, EventType: "SEED_CREATED", ActorType: contract.AuditActorSystem,
-				SourceChannel: contract.SourceChannelStaffInPerson, Before: map[string]any{}, After: requestSnapshot(request), CreatedAt: request.CreatedAt,
-			}); err != nil {
-				return err
-			}
-		}
-		history, _, err := store.SearchCity311PublicHistoryItems(ctx, tx, composeTypes.City311PublicHistoryItemFilter{RequestID: request.ID})
-		if err != nil {
-			return err
-		}
-		if len(history) == 0 {
-			if err = store.CreateCity311PublicHistoryItem(ctx, tx, &composeTypes.City311PublicHistoryItem{
-				ID: svc.nextID(), RequestID: request.ID, Action: string(request.Status),
-				ResponsibleDepartment: request.OwningDepartment, OccurredAt: request.CreatedAt,
-			}); err != nil {
-				return err
-			}
 		}
 	}
 	return nil
+}
+
+func (svc *Service) seedRequestRecord(ctx context.Context, tx store.Storer, benchmarkNow time.Time, index int, status contract.ServiceRequestStatus, latitude, longitude float64) error {
+	request, err := svc.findOrCreateSeedRequest(ctx, tx, benchmarkNow, index, status, latitude, longitude)
+	if err != nil {
+		return err
+	}
+	if err = svc.seedConstituent(ctx, tx, request); err != nil {
+		return err
+	}
+	if err = svc.ensureSeedAudit(ctx, tx, request); err != nil {
+		return err
+	}
+	return svc.ensureSeedHistory(ctx, tx, request)
+}
+
+func (svc *Service) findOrCreateSeedRequest(ctx context.Context, tx store.Storer, benchmarkNow time.Time, index int, status contract.ServiceRequestStatus, latitude, longitude float64) (*composeTypes.City311ServiceRequest, error) {
+	requestNumber := fmt.Sprintf("SR-2026-%05d", 33+index)
+	request, err := store.LookupCity311ServiceRequestByRequestNumber(ctx, tx, requestNumber)
+	if err == nil {
+		return request, nil
+	}
+	if !errors.IsNotFound(err) {
+		return nil, err
+	}
+	createdAt := benchmarkNow.Add(-time.Duration(len(seedStatuses)-index) * time.Hour)
+	request = &composeTypes.City311ServiceRequest{
+		ID: svc.nextID(), RequestNumber: requestNumber, Summary: "Seeded City 311 request " + strconv.Itoa(index+1),
+		Description: "Deterministic seeded request retained for brownfield and lifecycle regression checks.",
+		ServiceType: contract.ServiceTypePothole, OwningDepartment: contract.DepartmentStreets,
+		CouncilDistrict: contract.DistrictNorth, SourceChannel: contract.SourceChannelStaffInPerson,
+		OriginClass: contract.OriginClassInternal, Status: status,
+		PrimaryRequester: requesterMap(uint64(index+1), contract.RequesterInput{DisplayName: "Seed Constituent", Email: "constituent1@city311.example.invalid"}),
+		Location:         locationMap(&contract.LocationInput{Address: "100 Example Street, Buffalo, NY 14201", Latitude: &latitude, Longitude: &longitude}),
+		CustomFields:     map[string]any{}, CollaboratorIDs: composeTypes.City311Uint64Set{}, Version: 1,
+		CreatedAt: createdAt, UpdatedAt: createdAt,
+	}
+	return request, store.CreateCity311ServiceRequest(ctx, tx, request)
+}
+
+func (svc *Service) ensureSeedAudit(ctx context.Context, tx store.Storer, request *composeTypes.City311ServiceRequest) error {
+	audits, _, err := store.SearchCity311AuditEvents(ctx, tx, composeTypes.City311AuditEventFilter{RequestID: request.ID, EventType: "SEED_CREATED"})
+	if err != nil {
+		return err
+	}
+	if len(audits) > 0 {
+		return nil
+	}
+	return store.CreateCity311AuditEvent(ctx, tx, &composeTypes.City311AuditEvent{
+		ID: svc.nextID(), RequestID: request.ID, EventType: "SEED_CREATED", ActorType: contract.AuditActorSystem,
+		SourceChannel: contract.SourceChannelStaffInPerson, Before: map[string]any{}, After: requestSnapshot(request), CreatedAt: request.CreatedAt,
+	})
+}
+
+func (svc *Service) ensureSeedHistory(ctx context.Context, tx store.Storer, request *composeTypes.City311ServiceRequest) error {
+	history, _, err := store.SearchCity311PublicHistoryItems(ctx, tx, composeTypes.City311PublicHistoryItemFilter{RequestID: request.ID})
+	if err != nil {
+		return err
+	}
+	if len(history) > 0 {
+		return nil
+	}
+	return store.CreateCity311PublicHistoryItem(ctx, tx, &composeTypes.City311PublicHistoryItem{
+		ID: svc.nextID(), RequestID: request.ID, Action: string(request.Status),
+		ResponsibleDepartment: request.OwningDepartment, OccurredAt: request.CreatedAt,
+	})
 }
 
 func (svc *Service) seedConstituent(ctx context.Context, tx store.Storer, request *composeTypes.City311ServiceRequest) error {
