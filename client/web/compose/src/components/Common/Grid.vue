@@ -49,6 +49,7 @@
             :block-index="item.i"
             :resizing="resizing"
             :loading-record="loadingRecord"
+            :on-block-height-change="onBlockHeightChange"
             v-on="$listeners"
           />
         </grid-item>
@@ -101,6 +102,9 @@ export default {
       layout: [],
 
       resizing: false,
+
+      // Track which blocks have been programmatically modified (e.g., collapse/expand)
+      programmaticHeightChanges: {},
     }
   },
 
@@ -131,8 +135,15 @@ export default {
       immediate: true,
       deep: true,
       handler (blocks) {
+        const programmaticChanges = this.programmaticHeightChanges
+        const now = Date.now()
         const layout = blocks.map(({ meta = {}, xywh = [] }, i) => {
           const [x = 0, y = 0, w = 48, h = 15] = (xywh || []).map(v => Number(v) || 0)
+
+          // Skip blocks that were recently programmatically changed
+          if (programmaticChanges[i] && (now - programmaticChanges[i].timestamp) < 500) {
+            return this.layout[i] || { i, x, y, w, h }
+          }
 
           // To avoid collision with hidden elements
           if (meta.hidden || (meta.invisible && !this.editable)) {
@@ -185,6 +196,27 @@ export default {
     forceRerender () {
       // Force the grid layout to recalculate its dimensions
       window.dispatchEvent(new Event('resize'))
+    },
+
+    onBlockHeightChange ({ blockIndex, newHeight }) {
+      // Only handle height changes in view mode (not in the page builder)
+      if (this.editable) return
+
+      // Mark this block as programmatically changed so the watcher doesn't reset it
+      this.$set(this.programmaticHeightChanges, blockIndex, {
+        h: newHeight,
+        timestamp: Date.now(),
+      })
+
+      // Find the layout item by blockIndex (which is the 'i' property)
+      const item = this.layout.find(l => l.i === blockIndex)
+      if (item) {
+        this.$set(item, 'h', newHeight)
+        // Force the grid to recalculate after height change
+        this.$nextTick(() => {
+          this.forceRerender()
+        })
+      }
     },
   },
 }
