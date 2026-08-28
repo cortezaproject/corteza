@@ -481,7 +481,7 @@
                            the foot. -->
                       <div
                         v-else-if="toolSummary.total"
-                        class="max-w-lg rounded-border border border-surface bg-emphasis p-3 text-sm"
+                        class="w-fit max-w-lg rounded-border border border-surface bg-emphasis p-4 text-sm"
                         data-testid="tool-summary"
                       >
                         <!-- Sized by its content rather than by the box, so a
@@ -492,21 +492,21 @@
                             <tr class="text-muted-color">
                               <!-- The subject column heads itself: every cell
                                    under it names one. -->
-                              <th />
+                              <th class="border-b border-surface" />
                               <!-- The glyph alone heads the column; what it
-                                   counts is the sentence the dialog's own
-                                   sections carry, so the two read as one
-                                   notation. -->
+                                   counts is the sentence the dialog's own rows
+                                   carry, so the two read as one notation. -->
                               <th
-                                v-for="mode in SUMMARY_MODES"
-                                :key="mode"
+                                v-for="col in SUMMARY_COLUMNS"
+                                :key="col"
                                 scope="col"
-                                class="pb-1 pl-8 text-right font-normal"
-                                :aria-label="modeLabel(mode)"
+                                class="border-b border-surface pb-2 text-right font-normal"
+                                :class="columnClass(col)"
+                                :aria-label="columnLabel(col)"
                               >
                                 <i
-                                  v-tooltip.top="modeLabel(mode)"
-                                  :class="[modeIcon(mode), modeColour(mode)]"
+                                  v-tooltip.top="columnLabel(col)"
+                                  :class="[columnIcon(col), columnColour(col)]"
                                   class="text-base"
                                 />
                               </th>
@@ -519,37 +519,49 @@
                               :key="subject.key"
                               :data-testid="`tool-summary-${subject.key}`"
                             >
-                              <th scope="row" class="py-0.5 text-left font-normal text-color">
+                              <th
+                                scope="row"
+                                class="py-1 pr-2 pt-2 text-left font-normal text-color"
+                              >
                                 {{ subject.label }}
                               </th>
                               <!-- A subject with nothing in one column has no
                                    count there, and a dash says so without
                                    putting a number in the eye's way. -->
                               <td
-                                v-for="mode in SUMMARY_MODES"
-                                :key="mode"
-                                class="py-0.5 pl-8 text-right tabular-nums"
-                                :class="subject[mode] ? 'text-color' : 'text-muted-color'"
+                                v-for="col in SUMMARY_COLUMNS"
+                                :key="col"
+                                class="py-1 pt-2 text-right tabular-nums"
+                                :class="[
+                                  columnClass(col),
+                                  subject[col] ? 'text-color' : 'text-muted-color',
+                                ]"
                               >
-                                {{ subject[mode] || '—' }}
+                                {{ count(subject[col]) }}
                               </td>
                             </tr>
                           </tbody>
 
-                          <tfoot>
+                          <!-- One subject is its own total, and a row
+                               restating the row above it is noise. -->
+                          <tfoot v-if="toolSummary.subjects.length > 1">
                             <tr class="font-medium text-color" data-testid="tool-summary-total">
                               <th
                                 scope="row"
-                                class="border-t border-surface pt-1.5 text-left font-medium"
+                                class="border-t border-surface pr-2 pt-3 text-left font-medium"
                               >
                                 {{ $t('agent.editor.tools.summary.allTools') }}
                               </th>
                               <td
-                                v-for="mode in SUMMARY_MODES"
-                                :key="mode"
-                                class="border-t border-surface pt-1.5 pl-8 text-right tabular-nums"
+                                v-for="col in SUMMARY_COLUMNS"
+                                :key="col"
+                                class="border-t border-surface pt-3 text-right tabular-nums"
+                                :class="[
+                                  columnClass(col),
+                                  toolSummary.totals[col] ? '' : 'text-muted-color',
+                                ]"
                               >
-                                {{ toolSummary.totals[mode] }}
+                                {{ count(toolSummary.totals[col]) }}
                               </td>
                             </tr>
                           </tfoot>
@@ -854,7 +866,10 @@ import { useEditorSplit } from '../composables/useEditorSplit'
 import {
   MODE_COLOURS,
   MODE_ICONS,
-  SUMMARY_MODES,
+  RISK_COLOURS,
+  RISK_ICONS,
+  RISK_MODES,
+  SUMMARY_COLUMNS,
   confineTo,
   splitGrants,
   summaryOf,
@@ -1037,6 +1052,36 @@ function modeColour(mode) {
 
 function modeLabel(mode) {
   return t(`agent.editor.tools.mode.${mode}`)
+}
+
+// The readout's columns are two partitions of the same tools. A rule and a
+// wider gutter open before the second so the five numbers read as two answers
+// rather than one run that does not add up.
+function isRisk(col) {
+  return RISK_MODES.includes(col)
+}
+
+function columnClass(col) {
+  return col === RISK_MODES[0] ? 'border-l border-surface pl-8' : 'pl-6'
+}
+
+function columnIcon(col) {
+  return isRisk(col) ? RISK_ICONS[col] : modeIcon(col)
+}
+
+function columnColour(col) {
+  return isRisk(col) ? RISK_COLOURS[col] : modeColour(col)
+}
+
+// A column with nothing in it reads the same in a subject's row and in the
+// total beneath it; a dash there and a nought here made the two rows look like
+// they were counting different things.
+function count(n) {
+  return n || '—'
+}
+
+function columnLabel(col) {
+  return isRisk(col) ? t(`agent.editor.tools.dialog.risk.${col}`) : modeLabel(col)
 }
 
 // Tool configuration dialog

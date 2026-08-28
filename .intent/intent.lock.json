@@ -557,17 +557,17 @@
       "t": "2026-08-14"
     },
     "client/web/unify/src/sections/agentic/toolAccess.js": {
-      "h": "5c45ce546c3e",
+      "h": "de36cd770a96",
       "doc": "client/web/unify/src/sections/agentic/toolAccess.intent.md",
       "t": "2026-08-28"
     },
     "client/web/unify/src/sections/agentic/toolAccess.test.ts": {
-      "h": "27c9378a583f",
+      "h": "7b6c097b4c9a",
       "doc": "client/web/unify/src/sections/agentic/agentic.intent.md",
       "t": "2026-08-28"
     },
     "client/web/unify/src/sections/agentic/views/Editor.vue": {
-      "h": "b1802b54b2fd",
+      "h": "fce3f7a615a7",
       "doc": "client/web/unify/src/sections/agentic/views/Editor.intent.md",
       "t": "2026-08-28"
     },

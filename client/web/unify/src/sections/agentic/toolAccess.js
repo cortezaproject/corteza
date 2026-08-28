@@ -33,6 +33,25 @@ export const MODE_COLOURS = {
 // what the agent does not have.
 export const MODES = ['always', 'ask', 'deny']
 
+// The three risks a tool carries, harmless first. The glyphs and colours are
+// here rather than in either consumer so the readout and the dialog cannot draw
+// the same risk two ways.
+export const RISK_MODES = ['read', 'write', 'destructive']
+
+export const RISK_ICONS = {
+  read: 'pi pi-eye',
+  write: 'pi pi-pencil',
+  destructive: 'pi pi-trash',
+}
+
+// Reading is the quiet one: it is most of the list, and colouring it would
+// leave the two that matter nothing to stand out against.
+export const RISK_COLOURS = {
+  read: 'text-muted-color',
+  write: 'text-amber-500',
+  destructive: 'text-red-500',
+}
+
 // Reading changes nothing and runs unannounced; anything that writes is put to
 // the user first.
 export function defaultModeFor(risk) {
@@ -77,6 +96,20 @@ export function tally(tools, named, families) {
   const counts = { always: 0, ask: 0, deny: 0 }
   for (const tool of tools) counts[modeOf(tool, named, families)]++
   return MODES.filter(mode => counts[mode]).map(mode => ({ mode, n: counts[mode] }))
+}
+
+// How many of the tools an agent holds sit at each risk. A denied tool is not
+// held, so a subject's risks and its permissions are two partitions of the same
+// set and add up to the same total.
+export function riskTally(tools, named, families) {
+  const counts = { read: 0, write: 0, destructive: 0 }
+
+  for (const tool of tools) {
+    if (modeOf(tool, named, families) === 'deny') continue
+    counts[tool.risk || 'read']++
+  }
+
+  return counts
 }
 
 // Skills are attached to a tool, not chosen: the runtime injects one when the
@@ -164,7 +197,12 @@ export function sectionsOf(tools, named, families, label) {
   return spec
     .map(d => {
       const held = d.areas.filter(k => byArea.has(k)).flatMap(k => byArea.get(k))
-      return { key: d.key, label: label(d.key), counts: tally(held, named, families) }
+      return {
+        key: d.key,
+        label: label(d.key),
+        counts: tally(held, named, families),
+        risks: riskTally(held, named, families),
+      }
     })
     .filter(d => d.counts.some(c => c.mode !== 'deny'))
 }
@@ -202,8 +240,13 @@ export function confineTo(grants, namespaceID) {
 // has.
 export const SUMMARY_MODES = ['always', 'ask']
 
-// What an agent's grants amount to: one row per subject carrying both counts,
-// and the same two counts summed over the whole agent.
+// The two questions a subject's row answers, in the order it answers them: how
+// much of it runs unattended, and how much of it can change or destroy
+// something. Two partitions of the same tools, so each group sums to the row.
+export const SUMMARY_COLUMNS = [...SUMMARY_MODES, ...RISK_MODES]
+
+// What an agent's grants amount to: one row per subject carrying both
+// partitions, and the same counts summed over the whole agent.
 //
 // A subject appears once. The counts are the row, so how much of a subject runs
 // unattended is read across it, and which subject an agent is heaviest in is
@@ -216,11 +259,18 @@ export const SUMMARY_MODES = ['always', 'ask']
 export function summaryOf(tools, named, families, label) {
   const subjects = sectionsOf(tools, named, families, label).map(s => {
     const counts = Object.fromEntries(s.counts.map(c => [c.mode, c.n]))
-    return { key: s.key, label: s.label, always: counts.always || 0, ask: counts.ask || 0 }
+
+    return {
+      key: s.key,
+      label: s.label,
+      always: counts.always || 0,
+      ask: counts.ask || 0,
+      ...s.risks,
+    }
   })
 
   const totals = Object.fromEntries(
-    SUMMARY_MODES.map(mode => [mode, subjects.reduce((sum, s) => sum + s[mode], 0)]),
+    SUMMARY_COLUMNS.map(key => [key, subjects.reduce((sum, s) => sum + s[key], 0)]),
   )
 
   return { total: SUMMARY_MODES.reduce((sum, mode) => sum + totals[mode], 0), totals, subjects }

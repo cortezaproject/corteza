@@ -10,6 +10,7 @@ import {
   scopesModules,
   summaryOf,
   sectionsOf,
+  riskTally,
   splitGrants,
   tally,
 } from './toolAccess'
@@ -150,8 +151,14 @@ describe('sectionsOf', () => {
           { mode: 'always', n: 1 },
           { mode: 'deny', n: 1 },
         ],
+        risks: { read: 1, write: 0, destructive: 0 },
       },
-      { key: 'people', label: 'people', counts: [{ mode: 'ask', n: 1 }] },
+      {
+        key: 'people',
+        label: 'people',
+        counts: [{ mode: 'ask', n: 1 }],
+        risks: { read: 0, write: 1, destructive: 0 },
+      },
     ])
   })
 
@@ -235,6 +242,44 @@ describe('confineTo', () => {
   })
 })
 
+describe('riskTally', () => {
+  const read = { name: 'compose_record_lookup', groups: ['usage'], risk: 'read' }
+  const write = { name: 'compose_record_create', groups: ['usage'], risk: 'write' }
+  const destroy = { name: 'compose_record_delete', groups: ['usage'], risk: 'destructive' }
+
+  it('counts each risk among the tools the agent holds', () => {
+    const { named, families } = splitGrants([
+      { name: read.name },
+      { name: write.name },
+      { name: destroy.name },
+    ])
+
+    expect(riskTally([read, write, destroy], named, families)).toEqual({
+      read: 1,
+      write: 1,
+      destructive: 1,
+    })
+  })
+
+  // A denied tool is not held, so it belongs to neither partition. Counting it
+  // here would put the risk group above the permission group beside it.
+  it('leaves out a tool the agent does not hold', () => {
+    const { named, families } = splitGrants([{ name: read.name }])
+    expect(riskTally([read, write, destroy], named, families)).toEqual({
+      read: 1,
+      write: 0,
+      destructive: 0,
+    })
+  })
+
+  it('reads a tool with no risk stated as a read', () => {
+    const { named, families } = splitGrants([{ name: 'compose_record_lookup' }])
+    expect(
+      riskTally([{ name: 'compose_record_lookup', groups: ['usage'] }], named, families),
+    ).toEqual({ read: 1, write: 0, destructive: 0 })
+  })
+})
+
 describe('summaryOf', () => {
   const label = (key: string) => key
   const tools = [
@@ -247,7 +292,7 @@ describe('summaryOf', () => {
     { name: 'system_skill_lookup', groups: ['usage'], risk: 'read' },
   ]
 
-  it('gives each subject one row carrying both counts', () => {
+  it('gives each subject one row carrying both partitions', () => {
     const { named, families } = splitGrants([
       { name: 'compose_record_lookup' },
       { name: 'compose_record_create' },
@@ -256,12 +301,27 @@ describe('summaryOf', () => {
 
     expect(summaryOf(tools, named, families, label)).toEqual({
       total: 3,
-      totals: { always: 1, ask: 2 },
+      totals: { always: 1, ask: 2, read: 1, write: 2, destructive: 0 },
       subjects: [
-        { key: 'records', label: 'records', always: 1, ask: 1 },
-        { key: 'people', label: 'people', always: 0, ask: 1 },
+        { key: 'records', label: 'records', always: 1, ask: 1, read: 1, write: 1, destructive: 0 },
+        { key: 'people', label: 'people', always: 0, ask: 1, read: 0, write: 1, destructive: 0 },
       ],
     })
+  })
+
+  // The readout draws them as two groups that each sum to the row, so a subject
+  // whose partitions disagree is a readout that contradicts itself.
+  it('partitions every subject two ways over the same tools', () => {
+    const { named, families } = splitGrants([
+      { name: 'compose_record_lookup' },
+      { name: 'compose_record_create' },
+      { name: 'compose_record_delete' },
+      { name: 'system_user_create' },
+    ])
+
+    for (const s of summaryOf(tools, named, families, label).subjects) {
+      expect(s.always + s.ask).toBe(s.read + s.write + s.destructive)
+    }
   })
 
   // A subject appears once however many permissions its tools sit in: reading
@@ -274,7 +334,15 @@ describe('summaryOf', () => {
 
     const { subjects } = summaryOf(tools, named, families, label)
     expect(subjects.map(s => s.key)).toEqual(['records'])
-    expect(subjects[0]).toEqual({ key: 'records', label: 'records', always: 1, ask: 1 })
+    expect(subjects[0]).toEqual({
+      key: 'records',
+      label: 'records',
+      always: 1,
+      ask: 1,
+      read: 1,
+      write: 1,
+      destructive: 0,
+    })
   })
 
   // The foot of the table is the sum of the rows above it. Counted over the
@@ -291,7 +359,7 @@ describe('summaryOf', () => {
 
     expect(summary.total).toBe(shown)
     expect(summary.total).toBe(1)
-    expect(summary.totals).toEqual({ always: 1, ask: 0 })
+    expect(summary.totals).toEqual({ always: 1, ask: 0, read: 1, write: 0, destructive: 0 })
     expect(summary.subjects.map(s => s.key)).toEqual(['records'])
   })
 
@@ -300,7 +368,7 @@ describe('summaryOf', () => {
   it('carries a zero for a column the subject has nothing in', () => {
     const { named, families } = splitGrants([{ name: 'system_user_create' }])
     expect(summaryOf(tools, named, families, label).subjects).toEqual([
-      { key: 'people', label: 'people', always: 0, ask: 1 },
+      { key: 'people', label: 'people', always: 0, ask: 1, read: 0, write: 1, destructive: 0 },
     ])
   })
 
@@ -308,7 +376,7 @@ describe('summaryOf', () => {
     const { named, families } = splitGrants([])
     expect(summaryOf(tools, named, families, label)).toEqual({
       total: 0,
-      totals: { always: 0, ask: 0 },
+      totals: { always: 0, ask: 0, read: 0, write: 0, destructive: 0 },
       subjects: [],
     })
   })
