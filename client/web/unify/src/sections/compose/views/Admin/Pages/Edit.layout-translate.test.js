@@ -216,8 +216,8 @@ async function mountEdit() {
 }
 
 const translateButtons = w => w.findAll('.layout-row [data-icon="pi pi-language"]')
-// The row's cells are the grid's columns in order: title, applies-when, actions.
-const cells = w => w.findAll('.layout-row > div')
+const titleCell = w => w.find('[data-layout-title]')
+const actionCell = w => w.find('[data-layout-actions]')
 
 beforeEach(() => {
   translationsOn = true
@@ -251,17 +251,17 @@ describe('layout row translate button', () => {
   })
 
   it('sits in the title cell, since meta.title is what it translates', async () => {
-    const [title, , actions] = cells(await mountEdit())
-    expect(title.find('[data-icon="pi pi-language"]').exists()).toBe(true)
-    expect(actions.find('[data-icon="pi pi-language"]').exists()).toBe(false)
+    const w = await mountEdit()
+    expect(titleCell(w).find('[data-icon="pi pi-language"]').exists()).toBe(true)
+    expect(actionCell(w).find('[data-icon="pi pi-language"]').exists()).toBe(false)
   })
 
   it("leaves configure, build and delete as the row's own actions", async () => {
-    const [, , actions] = cells(await mountEdit())
-    expect(actions.findAll('button').map(b => b.attributes('data-icon'))).toEqual([
-      'pi pi-cog',
-      'pi pi-wrench',
-      'pi pi-trash',
-    ])
+    const w = await mountEdit()
+    expect(
+      actionCell(w)
+        .findAll('button')
+        .map(b => b.attributes('data-icon')),
+    ).toEqual(['pi pi-cog', 'pi pi-wrench', 'pi pi-trash'])
   })
 })

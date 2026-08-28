@@ -144,23 +144,29 @@
             v-model="layouts"
             hide-remove
             draggable
+            fit-width
             :empty-message="$t('page.noLayouts')"
             :columns="[
               {
                 label: $t('page.page-layout.title'),
-                width: '1fr',
+                width: 'minmax(180px, 1fr)',
                 tooltip: $t('page.page-layout.tooltip.title'),
               },
               {
-                label: $t('page.page-layout.appliesWhen.label'),
-                width: '1fr',
-                tooltip: $t('page.page-layout.tooltip.appliesWhen'),
+                label: $t('page.page-layout.condition.label'),
+                width: 'minmax(190px, 1.1fr)',
+                tooltip: $t('page.page-layout.tooltip.condition'),
+              },
+              {
+                label: $t('page.page-layout.roles.label'),
+                width: 'minmax(170px, 1fr)',
+                tooltip: $t('page.page-layout.tooltip.roles'),
               },
               { width: '7rem' },
             ]"
           >
             <template #row="{ item, index }">
-              <div class="flex flex-col gap-1 min-w-0">
+              <div data-layout-title class="flex flex-col gap-1 min-w-0">
                 <!-- With useTitle on this string is the page's own title, read as
                      a `${}` template — so it is authored the way the config
                      dialog authors it. focusin, not a component event: the hint
@@ -211,32 +217,37 @@
               </div>
 
               <!-- Layouts are matched in weight order and the first whose
-                   condition and roles both pass is the one shown, so this is
-                   the rule read back. The handle is edited in the config
-                   dialog. -->
-              <div class="flex flex-col gap-0.5 text-sm min-w-0">
-                <span v-if="!layoutIsConditional(item)" class="text-muted-color">
-                  {{ $t('page.page-layout.appliesWhen.always') }}
-                </span>
-                <template v-else>
-                  <span
-                    v-if="item.config?.visibility?.expression"
-                    v-tooltip.top="item.config.visibility.expression"
-                    class="font-mono text-xs truncate"
-                  >
-                    ƒ {{ item.config.visibility.expression }}
-                  </span>
-                  <span
-                    v-if="item.config?.visibility?.roles?.length"
-                    v-tooltip.top="layoutRoleLabel(item)"
-                    class="truncate"
-                  >
-                    {{ $t('page.page-layout.appliesWhen.roles', [layoutRoleLabel(item)]) }}
-                  </span>
-                </template>
-              </div>
+                   condition and roles both pass is the one shown. Both halves of
+                   that rule are edited here and in the config dialog, the way the
+                   title is; empty means the half imposes nothing. The handle is
+                   the dialog's alone. -->
+              <InputGroup data-layout-condition class="min-w-0">
+                <!-- The addon has no small variant of its own, and at its normal
+                     size it is what sets the group's height — 40px beside a
+                     33.25px field. -->
+                <InputGroupAddon class="px-2 py-0 text-sm">ƒ</InputGroupAddon>
+                <CInputExpression
+                  v-model="item.config.visibility.expression"
+                  dialect="expr"
+                  :scope="exprScope"
+                  :min-lines="1"
+                  size="small"
+                  :placeholder="$t('page.page-layout.condition.listPlaceholder')"
+                  @update:model-value="item._updated = true"
+                />
+              </InputGroup>
 
-              <div class="flex items-center justify-end gap-1">
+              <CInputRole
+                v-model="item.config.visibility.roles"
+                :placeholder="$t('page.page-layout.roles.listPlaceholder')"
+                multiple
+                size="small"
+                data-layout-roles
+                class="min-w-0"
+                @update:model-value="item._updated = true"
+              />
+
+              <div data-layout-actions class="flex items-center justify-end gap-1">
                 <Button
                   v-tooltip.top="$t('page.page-layout.tooltip.configure')"
                   icon="pi pi-cog"
@@ -330,7 +341,7 @@
   >
     <template v-if="configLayout">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <CFormGroup :label="$t('page.page-layout.title')">
+        <CFormGroup :label="$t('page.page-layout.title')" required>
           <template v-if="configLayout.config.useTitle">
             <CInputExpression
               ref="layoutTitleInput"
@@ -350,6 +361,14 @@
           <InputText v-model="configLayout.handle" />
         </CFormGroup>
       </div>
+
+      <CFormGroup
+        :label="$t('page.label.description')"
+        :description="$t('page.page-layout.descriptionHint')"
+        class="mb-4"
+      >
+        <Textarea v-model="configLayout.meta.description" rows="2" auto-resize />
+      </CFormGroup>
 
       <CInputToggleCard
         v-model="configLayout.config.useTitle"
@@ -398,10 +417,9 @@
 
       <CFormGroup :label="$t('page.page-layout.roles.label')" class="mb-4">
         <CInputRole
-          :value="configLayoutRoles"
+          v-model="configLayout.config.visibility.roles"
           :placeholder="$t('page.page-layout.roles.placeholder')"
           multiple
-          @input="onConfigLayoutRoleChange"
         />
       </CFormGroup>
 
@@ -655,7 +673,7 @@
         <Button
           :label="$t('general.label.save')"
           size="small"
-          :disabled="!configLayout?.meta?.title"
+          :disabled="!configLayout?.meta?.title?.trim()"
           @click="saveLayoutConfig"
         />
       </div>
@@ -788,7 +806,6 @@ const { t } = useI18n()
 const { showTranslatorButton } = useResourceTranslations()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
-const $SystemAPI = inject('$SystemAPI')
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
 
@@ -821,7 +838,7 @@ let layoutKeyCounter = 0
 const layoutConfigVisible = ref(false)
 const configLayout = ref(null)
 const configLayoutIndex = ref(-1)
-const configLayoutRoles = ref([])
+const layoutConfigIsNew = ref(false)
 
 // Delete menu ref
 const deleteMenu = ref()
@@ -878,47 +895,6 @@ const anyLayoutUsesTitle = computed(() => layouts.value.some(l => l.config?.useT
 // input passing through must not become the one the hint aims at.
 function onLayoutTitleFocus(layout, index) {
   if (layout.config?.useTitle) activeLayoutRow.value = index
-}
-
-// ─── Layout visibility summary ──────────────────────────────────────────────
-
-// Role names for the ids layouts restrict themselves to. Decoration: a name
-// that never arrives leaves the id, and the row still reads.
-const roleNameByID = ref({})
-
-const layoutRoleIDs = computed(() => [
-  ...new Set(layouts.value.flatMap(l => l.config?.visibility?.roles || [])),
-])
-
-watch(
-  layoutRoleIDs,
-  async ids => {
-    const missing = ids.filter(id => id && id !== NoID && !(id in roleNameByID.value))
-    if (!missing.length || !$SystemAPI?.roleList) return
-
-    try {
-      const { set = [] } = await $SystemAPI.roleList({ roleID: missing, limit: missing.length })
-      const resolved = { ...roleNameByID.value }
-      set.forEach(r => {
-        resolved[r.roleID] = r.name || r.handle || r.roleID
-      })
-      roleNameByID.value = resolved
-    } catch {
-      // Names are decoration; the ids stand in for them.
-    }
-  },
-  { immediate: true },
-)
-
-function layoutIsConditional(layout) {
-  const { expression, roles } = layout.config?.visibility || {}
-  return !!(expression?.trim() || roles?.length)
-}
-
-function layoutRoleLabel(layout) {
-  return (layout.config?.visibility?.roles || [])
-    .map(roleID => roleNameByID.value[roleID] || roleID)
-    .join(', ')
 }
 const { scope, exprScope } = useExpressionScope({
   page: computed(() => page.value),
@@ -1052,12 +1028,13 @@ const deleteMenuItems = computed(() => [
   },
 ])
 
-// Layout config dialog title
+// Layout config dialog title. The same dialog creates a layout and configures
+// one, and an untitled "Configure layout" is the wrong promise for the first.
 const layoutConfigTitle = computed(() => {
-  if (configLayout.value?.meta?.title) {
-    return t('page.page-layout.configure', { title: configLayout.value.meta.title })
+  if (layoutConfigIsNew.value) {
+    return t('page.page-layout.create')
   }
-  return t('page.page-layout.configure', { title: '' })
+  return t('page.page-layout.configure', { title: configLayout.value?.meta?.title || '' })
 })
 
 // Action options for layout config
@@ -1173,6 +1150,10 @@ async function loadLayouts() {
 
 // ─── Layout CRUD ────────────────────────────────────────────────────────────
 
+// A layout is created through its own dialog, so the row that appears is one
+// that has already been named and scoped. Nothing joins `layouts` until Save,
+// and the draft is the typed resource itself — it is not in the list yet, so
+// there is nothing to clone it away from.
 function addLayout() {
   const layout = new compose.PageLayout({
     namespaceID: props.namespace.namespaceID,
@@ -1180,7 +1161,12 @@ function addLayout() {
   })
   ensureLayoutKey(layout)
   layout._updated = true
-  layouts.value.push(layout)
+  ensureVisibility(layout)
+
+  configLayout.value = layout
+  configLayoutIndex.value = -1
+  layoutConfigIsNew.value = true
+  layoutConfigVisible.value = true
 }
 
 function removeLayout(index) {
@@ -1203,30 +1189,34 @@ function openLayoutTranslation(layout) {
 
 // ─── Layout Config Dialog ───────────────────────────────────────────────────
 
+// Both editors of a layout's visibility bind straight into it, so the shape has
+// to be there before either renders.
+function ensureVisibility(layout) {
+  const config = (layout.config ??= {})
+  const visibility = (config.visibility ??= {})
+  visibility.expression ??= ''
+  visibility.roles ??= []
+  return layout
+}
+
 function openLayoutConfig(layout) {
-  const idx = layouts.value.indexOf(layout)
-  configLayoutIndex.value = idx
+  configLayoutIndex.value = layouts.value.indexOf(layout)
+  layoutConfigIsNew.value = false
   // Deep clone the layout for editing
-  configLayout.value = JSON.parse(JSON.stringify(layout))
-
-  // Resolve roles
-  configLayoutRoles.value = (configLayout.value.config?.visibility?.roles || []).map(roleID => ({
-    roleID,
-  }))
-
+  configLayout.value = ensureVisibility(JSON.parse(JSON.stringify(layout)))
   layoutConfigVisible.value = true
 }
 
 function onLayoutConfigClose() {
   configLayout.value = null
   configLayoutIndex.value = -1
-  configLayoutRoles.value = []
+  layoutConfigIsNew.value = false
 }
 
 function saveLayoutConfig() {
-  if (configLayoutIndex.value >= 0 && configLayout.value) {
-    // Apply roles back
-    configLayout.value.config.visibility.roles = configLayoutRoles.value.map(r => r.roleID || r)
+  if (layoutConfigIsNew.value && configLayout.value) {
+    layouts.value.push(configLayout.value)
+  } else if (configLayoutIndex.value >= 0 && configLayout.value) {
     configLayout.value._updated = true
 
     // Preserve the _key
@@ -1234,10 +1224,6 @@ function saveLayoutConfig() {
     layouts.value.splice(configLayoutIndex.value, 1, configLayout.value)
   }
   layoutConfigVisible.value = false
-}
-
-function onConfigLayoutRoleChange(roles) {
-  configLayoutRoles.value = roles
 }
 
 // ─── Layout Actions ─────────────────────────────────────────────────────────

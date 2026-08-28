@@ -211,8 +211,11 @@ afterEach(() => {
   wrapper = null
 })
 
-const rowInputs = w => w.findAll('.layout-row .expr')
-const rowPlain = w => w.findAll('.layout-row .plain')
+// The condition column holds an expression input of its own, so the title's is
+// only findable inside the title cell.
+const TITLE_CELL = '[data-layout-title]'
+const rowInputs = w => w.findAll(`${TITLE_CELL} .expr`)
+const rowPlain = w => w.findAll(`${TITLE_CELL} .plain`)
 
 describe('layout list title input', () => {
   it('authors the title as a template once the layout titles the page', async () => {
@@ -222,7 +225,7 @@ describe('layout list title input', () => {
     expect(rowInputs(wrapper)).toHaveLength(1)
     expect(rowPlain(wrapper)).toHaveLength(0) // the row has no other input
 
-    const expr = wrapper.findAllComponents(ExpressionStub)[0]
+    const expr = wrapper.find(TITLE_CELL).findComponent(ExpressionStub)
     expect(expr.props('dialect')).toBe('interpolation')
     expect(expr.props('minLines')).toBe(1)
     expect(expr.props('scope')).toEqual(SCOPE)
@@ -251,7 +254,7 @@ describe('layout list title input', () => {
     layouts = layoutWith(true)
     await mountEdit()
 
-    await wrapper.findAllComponents(ExpressionStub)[0].vm.$emit('update:modelValue', 'x')
+    await wrapper.find(TITLE_CELL).findComponent(ExpressionStub).vm.$emit('update:modelValue', 'x')
     expect(wrapper.vm.layouts[0]._updated).toBe(true)
   })
 
@@ -259,7 +262,7 @@ describe('layout list title input', () => {
     layouts = [...layoutWith(true, 'one'), { ...layoutWith(true, 'two')[0], pageLayoutID: 'L2' }]
     await mountEdit()
 
-    await wrapper.findAll('.layout-row .expr')[1].trigger('focusin')
+    await wrapper.findAll(`${TITLE_CELL} .expr`)[1].trigger('focusin')
     await wrapper.findComponent(HintStub).vm.$emit('insert', '${recordID}')
 
     expect(wrapper.vm.layouts[1].meta.title).toBe('two${recordID}')

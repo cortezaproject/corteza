@@ -91,17 +91,17 @@ noPages: No pages
 notVisible: Hidden
 page-layout:
   add: Add layout
-  appliesWhen:
-    always: Always
-    label: Applies when
-    roles: 'Roles: {0}'
   condition:
     description:
       non-record-page: 'You can use {0}, {1} inside the expression, for example: {2} or {3}. Evaluated when the page opens.'
       record-page: 'You can use {0}, {1}, {2}, {3} inside the expression, for example: {4} or {5}. Evaluated when the page opens, when another record is opened and when switching between view, edit and create — not while field values are being edited.'
     label: Condition
+    listPlaceholder: Always applies
     placeholder: When will the layout be shown
   configure: Configure layout - "{title}"
+  create: Create new layout
+  descriptionHint: Optional. A note for whoever maintains this page; it is never
+    shown to the people viewing it.
   general: General
   handle: Handle
   handleDescription: Optional. Unique identifier for this layout (alphanumerics, dash,
@@ -153,14 +153,19 @@ page-layout:
     selectPlaceholder: Select a field
   roles:
     label: Roles
+    listPlaceholder: Any role
     placeholder: Pick roles that the layout will be shown to
   title: Title
   titleExpressionPlaceholder: Custom title
   tooltip:
-    appliesWhen: When this layout is used. Layouts are tried from the top down, and the
-      first one whose condition and roles both pass is the one that is shown.
+    condition: When this layout is used. Layouts are tried from the top down, and the
+      first one whose condition and roles both pass is the one that is shown. Leave it
+      empty and the condition always passes; open Configure to see what an expression
+      may reference.
     builder: Open layout in builder
     configure: Configure layout
+    roles: Show this layout only to viewers holding at least one of these roles. Leave it
+      empty and any viewer who passes the condition sees it.
     performance:
       condition: Using visibility conditions will impact performance
       requiredFields: Using required fields will impact performance

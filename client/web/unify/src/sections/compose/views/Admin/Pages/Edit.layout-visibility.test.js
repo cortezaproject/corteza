@@ -3,9 +3,10 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { reactive, ref } from 'vue'
 
-// The layout list's second column reads back the rule the public views apply:
-// layouts are tried in weight order and the first whose condition and roles
-// both pass is the one shown (composables/usePageVisibility.ts).
+// The layout list's second column EDITS the rule the public views apply: layouts
+// are tried in weight order and the first whose condition and roles both pass is
+// the one shown (composables/usePageVisibility.ts). Both halves bind straight
+// into the layout, the way the title does.
 
 const route = reactive({
   name: 'admin.pages.edit',
@@ -120,7 +121,6 @@ const GLOBAL_COMPONENTS = Object.fromEntries(
     'ButtonGroup',
     'CEditorActions',
     'CFormGroup',
-    'CInputRole',
     'CPermissionsButton',
     'TieredMenu',
     'CInputToggleCard',
@@ -134,13 +134,28 @@ const GLOBAL_COMPONENTS = Object.fromEntries(
     'Select',
     'Textarea',
     'ToggleSwitch',
-    'CInputExpression',
     'CExpressionHint',
     'InputText',
     'CInputModuleField',
     'PageTranslator',
   ].map(name => [name, true]),
 )
+
+// Both halves of the cell are two-way bound, so their stubs have to emit.
+const ExpressionStub = {
+  name: 'CInputExpression',
+  props: ['modelValue', 'dialect', 'scope', 'minLines', 'size', 'placeholder', 'invalid'],
+  emits: ['update:modelValue'],
+  template:
+    '<input class="expr" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+}
+
+const RoleStub = {
+  name: 'CInputRole',
+  props: ['modelValue', 'placeholder', 'multiple', 'size'],
+  emits: ['update:modelValue'],
+  template: '<div class="roles">{{ (modelValue || []).join(\',\') }}</div>',
+}
 
 const passthrough = name => [name, { name, template: '<div><slot /></div>' }]
 
@@ -154,12 +169,6 @@ const layoutWith = visibility => [
     blocks: [],
   },
 ]
-
-// `$t` here has to carry its arguments through: the roles line is the only
-// place the resolved names reach the DOM.
-const t = (key, args) => (args ? `${key}:${args.join(',')}` : key)
-
-let roleList
 
 async function mountEdit() {
   const wrapper = mount(Edit, {
@@ -181,14 +190,16 @@ async function mountEdit() {
           template: '<div><slot /></div>',
         },
         CFormList: FormListStub,
+        CInputExpression: ExpressionStub,
+        CInputRole: RoleStub,
       },
       renderStubDefaultSlot: true,
       directives: { tooltip: {}, focus: {} },
-      mocks: { $t: t },
+      mocks: { $t: k => k },
       provide: {
         $toast: { toastSuccess: vi.fn(), toastDanger: vi.fn(), toastErrorHandler: () => vi.fn() },
         $ComposeAPI: { iconList: () => Promise.resolve({ set: [] }), baseURL: '' },
-        $SystemAPI: { roleList },
+        $SystemAPI: {},
         $Settings: { get: () => undefined },
         $Auth: { user: { userID: 'U1', roles: [] } },
         $eventBus: null,
@@ -200,47 +211,113 @@ async function mountEdit() {
   return wrapper
 }
 
-// The applies-when cell is the row's second column.
-const summary = w => w.findAll('.layout-row > div')[1].text()
+// Condition and roles are columns of their own, between the title and the
+// actions; each row cell carries its own hook.
+const condition = w => w.find('[data-layout-condition] .expr')
+const roles = w => w.find('[data-layout-roles]')
 
 beforeEach(() => {
   page = { pageID: 'P1', namespaceID: 'N1', title: 'Account', handle: 'account', blocks: [] }
-  roleList = vi.fn(() => Promise.resolve({ set: [{ roleID: 'R1', name: 'Manager' }] }))
 })
 
-describe('layout applies-when column', () => {
-  it('reads Always for a layout nothing restricts', async () => {
+describe('layout condition and roles columns', () => {
+  it('gives the condition and the roles a column each', async () => {
     layouts = layoutWith({ expression: '', roles: [] })
     const w = await mountEdit()
-    expect(summary(w)).toBe('page.page-layout.appliesWhen.always')
-    expect(roleList).not.toHaveBeenCalled()
+
+    expect(condition(w).exists()).toBe(true)
+    expect(roles(w).exists()).toBe(true)
+    // Neither may sit inside the other's column, nor inside the title's.
+    expect(w.find('[data-layout-condition] [data-layout-roles]').exists()).toBe(false)
+    expect(w.find('[data-layout-roles] .expr').exists()).toBe(false)
+    expect(w.find('[data-layout-title] [data-layout-condition]').exists()).toBe(false)
   })
 
-  it('shows the condition expression', async () => {
-    layouts = layoutWith({ expression: 'screen.width < 1024', roles: [] })
+  it('carries the stored condition and roles into them', async () => {
+    layouts = layoutWith({ expression: 'screen.width < 1024', roles: ['R1', 'R2'] })
     const w = await mountEdit()
-    expect(summary(w)).toContain('screen.width < 1024')
-    expect(summary(w)).not.toContain('appliesWhen.always')
+    expect(condition(w).element.value).toBe('screen.width < 1024')
+    expect(roles(w).text()).toBe('R1,R2')
   })
 
-  it('names the roles it is restricted to', async () => {
-    layouts = layoutWith({ expression: '', roles: ['R1'] })
+  it('authors the condition as an expr expression', async () => {
+    layouts = layoutWith({ expression: '', roles: [] })
     const w = await mountEdit()
-    expect(roleList).toHaveBeenCalledWith({ roleID: ['R1'], limit: 1 })
-    expect(summary(w)).toContain('Manager')
+    const expr = w.find('[data-layout-condition]').findComponent(ExpressionStub)
+    expect(expr.props('dialect')).toBe('expr')
+    expect(expr.props('minLines')).toBe(1)
+    expect(expr.props('size')).toBe('small')
   })
 
-  it('falls back to the id when the name never arrives', async () => {
-    roleList = vi.fn(() => Promise.reject(new Error('nope')))
-    layouts = layoutWith({ expression: '', roles: ['R9'] })
+  it('writes an edited condition back and marks the layout changed', async () => {
+    layouts = layoutWith({ expression: '', roles: [] })
     const w = await mountEdit()
-    expect(summary(w)).toContain('R9')
+    await condition(w).setValue('isEdit')
+    expect(w.vm.layouts[0].config.visibility.expression).toBe('isEdit')
+    expect(w.vm.layouts[0]._updated).toBe(true)
   })
 
-  it('shows the condition and the roles together', async () => {
-    layouts = layoutWith({ expression: 'isEdit', roles: ['R1'] })
+  it('writes edited roles back and marks the layout changed', async () => {
+    layouts = layoutWith({ expression: '', roles: [] })
     const w = await mountEdit()
-    expect(summary(w)).toContain('isEdit')
-    expect(summary(w)).toContain('Manager')
+    await w.findComponent(RoleStub).vm.$emit('update:modelValue', ['R7'])
+    expect(w.vm.layouts[0].config.visibility.roles).toEqual(['R7'])
+    expect(w.vm.layouts[0]._updated).toBe(true)
+  })
+})
+
+describe('adding a layout', () => {
+  it('opens the dialog and leaves the list alone until Save', async () => {
+    layouts = layoutWith({ expression: '', roles: [] })
+    const w = await mountEdit()
+    expect(w.vm.layouts).toHaveLength(1)
+
+    w.vm.addLayout()
+    await flushPromises()
+    expect(w.vm.layoutConfigVisible).toBe(true)
+    expect(w.vm.layouts).toHaveLength(1)
+  })
+
+  it('titles the dialog as a create, not a configure', async () => {
+    layouts = layoutWith({ expression: '', roles: [] })
+    const w = await mountEdit()
+    w.vm.addLayout()
+    expect(w.vm.layoutConfigTitle).toBe('page.page-layout.create')
+
+    w.vm.onLayoutConfigClose()
+    w.vm.openLayoutConfig(w.vm.layouts[0])
+    expect(w.vm.layoutConfigTitle).toBe('page.page-layout.configure')
+  })
+
+  it('adds the row once the dialog is saved', async () => {
+    layouts = layoutWith({ expression: '', roles: [] })
+    const w = await mountEdit()
+
+    w.vm.addLayout()
+    w.vm.configLayout.meta.title = 'Mobile'
+    w.vm.saveLayoutConfig()
+    await flushPromises()
+
+    expect(w.vm.layouts).toHaveLength(2)
+    expect(w.vm.layouts[1].meta.title).toBe('Mobile')
+    expect(w.vm.layoutConfigVisible).toBe(false)
+  })
+
+  it('adds nothing when the dialog is dismissed', async () => {
+    layouts = layoutWith({ expression: '', roles: [] })
+    const w = await mountEdit()
+
+    w.vm.addLayout()
+    w.vm.onLayoutConfigClose()
+    await flushPromises()
+
+    expect(w.vm.layouts).toHaveLength(1)
+  })
+
+  it('gives a new layout the visibility shape both editors bind into', async () => {
+    layouts = layoutWith({ expression: '', roles: [] })
+    const w = await mountEdit()
+    w.vm.addLayout()
+    expect(w.vm.configLayout.config.visibility).toEqual({ expression: '', roles: [] })
   })
 })
