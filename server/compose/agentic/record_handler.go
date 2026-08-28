@@ -40,16 +40,81 @@ func withValueIssues(err error, dd *cmpTypes.RecordValueErrorSet) error {
 		return err
 	}
 
-	issues := make([]string, 0, dd.Len())
-	for _, e := range dd.Set {
-		if field, ok := e.Meta["field"].(string); ok && field != "" {
-			issues = append(issues, fmt.Sprintf("%s: %s", field, e.Message))
-			continue
-		}
-		issues = append(issues, e.Message)
+	return fmt.Errorf("%w (%s)", err, strings.Join(valueIssueLines(dd), "; "))
+}
+
+// valueIssueLines renders one record value issue per line, field first.
+//
+// Identical lines are collapsed. Duplicate detection reports once per matching
+// record, so a value held by three of them arrives as the same sentence three
+// times — which says nothing the first one did not, and the record IDs it would
+// take to tell them apart are not in the message.
+func valueIssueLines(dd *cmpTypes.RecordValueErrorSet) []string {
+	if dd.IsValid() {
+		return nil
 	}
 
-	return fmt.Errorf("%w (%s)", err, strings.Join(issues, "; "))
+	var (
+		out  = make([]string, 0, dd.Len())
+		seen = make(map[string]struct{}, dd.Len())
+	)
+
+	for _, e := range dd.Set {
+		line := fillValuePlaceholders(e.Message, e.Meta)
+		if field, ok := e.Meta["field"].(string); ok && field != "" {
+			line = fmt.Sprintf("%s: %s", field, line)
+		}
+
+		if _, dup := seen[line]; dup {
+			continue
+		}
+		seen[line] = struct{}{}
+		out = append(out, line)
+	}
+	return out
+}
+
+// valuePlaceholder matches the slots a record value message is written with.
+var valuePlaceholder = regexp.MustCompile(`{{\s*(\w+)\s*}}`)
+
+// fillValuePlaceholders puts each issue's own meta into its message.
+//
+// The messages are templates — `The value "{{value}}" already exists in another
+// record` — and the value lives in the issue's meta beside them. The webapp
+// fills them (sections/compose/lib/record-errors.js) and nothing else did, so a
+// caller here was told that a value it was never shown is taken.
+func fillValuePlaceholders(msg string, meta map[string]any) string {
+	if len(meta) == 0 || !strings.Contains(msg, "{{") {
+		return msg
+	}
+
+	return valuePlaceholder.ReplaceAllStringFunc(msg, func(whole string) string {
+		v, ok := meta[valuePlaceholder.FindStringSubmatch(whole)[1]]
+		if !ok || v == nil || v == "" {
+			return whole
+		}
+		return fmt.Sprintf("%v", v)
+	})
+}
+
+// duplicateWarningNote states the duplicate rules a write matched without being
+// refused by them.
+//
+// A rule with strict off is meant to warn, and the service hands its matches
+// back beside the record rather than in an error. Dropping them made such a
+// rule do nothing at all that a caller could see: the record was created, the
+// response was a plain success, and the duplicate it was warning about was
+// never mentioned.
+func duplicateWarningNote(dd *cmpTypes.RecordValueErrorSet) string {
+	lines := valueIssueLines(dd)
+	if len(lines) == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf(
+		"Saved, and duplicate detection matched an existing record: %s. The rule is not strict, so the write went through — check whether this record should exist before relying on it.",
+		strings.Join(lines, "; "),
+	)
 }
 
 type (
@@ -367,7 +432,7 @@ func (h *recordHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 	if err != nil {
 		return nil, toolkit.Errf("record creation", withValueIssues(err, dd))
 	}
-	return toolkit.JSONResultWith(rec, recordLinks(ctx, rec))
+	return toolkit.JSONResultWith(rec, withNote(recordLinks(ctx, rec), duplicateWarningNote(dd)))
 }
 
 func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -403,7 +468,7 @@ func (h *recordHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 	if err != nil {
 		return nil, toolkit.Errf("record update", withValueIssues(err, dd))
 	}
-	return toolkit.JSONResultWith(rec, recordLinks(ctx, rec))
+	return toolkit.JSONResultWith(rec, withNote(recordLinks(ctx, rec), duplicateWarningNote(dd)))
 }
 
 func (h *recordHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

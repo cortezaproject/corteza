@@ -2,6 +2,7 @@ package agentic
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	cmpTypes "github.com/crusttech/human/server/compose/types"
@@ -52,5 +53,76 @@ func TestWithValueIssues(t *testing.T) {
 			"invalid record value input (title: This field is required; duplicate value)",
 			withValueIssues(base, dd).Error(),
 		)
+	})
+}
+
+func TestFillValuePlaceholders(t *testing.T) {
+	t.Run("the value comes out of the meta beside it", func(t *testing.T) {
+		require.Equal(t,
+			`The value "taken@example.com" already exists in another record`,
+			fillValuePlaceholders(
+				`The value "{{value}}" already exists in another record`,
+				map[string]any{"value": "taken@example.com"},
+			),
+		)
+	})
+
+	t.Run("a slot with nothing to fill it is left as written", func(t *testing.T) {
+		require.Equal(t,
+			`The value "{{value}}" already exists`,
+			fillValuePlaceholders(`The value "{{value}}" already exists`, map[string]any{"field": "email"}),
+		)
+	})
+
+	t.Run("whitespace inside the slot is still a slot", func(t *testing.T) {
+		require.Equal(t, "got 7", fillValuePlaceholders("got {{ n }}", map[string]any{"n": 7}))
+	})
+
+	t.Run("a message with no slots is untouched", func(t *testing.T) {
+		require.Equal(t, "This field is required", fillValuePlaceholders("This field is required", map[string]any{"value": "x"}))
+	})
+}
+
+func TestWithValueIssuesFillsThePlaceholder(t *testing.T) {
+	base := errors.New("invalid record value input")
+	dd := &cmpTypes.RecordValueErrorSet{Set: []cmpTypes.RecordValueError{{
+		Kind:    "duplicateValue",
+		Message: `The value "{{value}}" already exists in another record`,
+		Meta:    map[string]interface{}{"field": "email", "value": "a@example.com"},
+	}}}
+
+	err := withValueIssues(base, dd)
+	require.Contains(t, err.Error(), "a@example.com")
+	require.NotContains(t, err.Error(), "{{value}}")
+}
+
+func TestDuplicateWarningNote(t *testing.T) {
+	t.Run("nothing matched, nothing to say", func(t *testing.T) {
+		require.Empty(t, duplicateWarningNote(nil))
+		require.Empty(t, duplicateWarningNote(&cmpTypes.RecordValueErrorSet{}))
+	})
+
+	t.Run("a soft match is named, with its value", func(t *testing.T) {
+		dd := &cmpTypes.RecordValueErrorSet{Set: []cmpTypes.RecordValueError{{
+			Kind:    "duplication_warning",
+			Message: `The value "{{value}}" already exists in another record`,
+			Meta:    map[string]interface{}{"field": "phone", "value": "+386 1 234"},
+		}}}
+
+		note := duplicateWarningNote(dd)
+		require.Contains(t, note, "phone")
+		require.Contains(t, note, "+386 1 234")
+		require.Contains(t, note, "not strict")
+	})
+
+	t.Run("the same sentence for several records is said once", func(t *testing.T) {
+		one := cmpTypes.RecordValueError{
+			Kind:    "duplication_warning",
+			Message: `The value "{{value}}" already exists in another record`,
+			Meta:    map[string]interface{}{"field": "phone", "value": "+386 1 234"},
+		}
+		dd := &cmpTypes.RecordValueErrorSet{Set: []cmpTypes.RecordValueError{one, one, one}}
+
+		require.Equal(t, 1, strings.Count(duplicateWarningNote(dd), "+386 1 234"))
 	})
 }
