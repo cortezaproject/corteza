@@ -131,25 +131,34 @@ func (str TokenConsumerNumber) Test(ch rune) bool {
 	return isDigit(ch)
 }
 
-// Consumes entire number (very naive and simplified)
+// Consumes an entire number, fractional part included.
+//
+// The decimal point is the same rune that separates a reference path, so it is
+// taken only when a digit follows it: "4.5" is one number, while the dot in
+// "card.rarity" still belongs to the path and the dot in "4." still stands
+// alone. Without the lookahead a fractional literal lexed as number, DOT,
+// number and the parser refused the whole filter — so no money or score field
+// could be compared against anything but a whole number.
 func (str TokenConsumerNumber) Consume(s RuneReader) Token {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
 
+	seenPoint := false
+
 	for {
-		if ch := s.read(); ch == eof {
-			break
-		} else if !isDigit(ch) {
-			s.unread()
-			break
-		} else {
-			_, _ = buf.WriteRune(ch)
+		switch ch := s.peek(); {
+		case isDigit(ch):
+			_, _ = buf.WriteRune(s.read())
+
+		case ch == '.' && !seenPoint && isDigit(s.peekAt(1)):
+			seenPoint = true
+			_, _ = buf.WriteRune(s.read())
+
+		default:
+			return Token{code: LNUMBER, literal: buf.String()}
 		}
 	}
-
-	// Otherwise return as a regular identifier.
-	return Token{code: LNUMBER, literal: buf.String()}
 }
 
 // isLetter returns true if the rune is a letter.
