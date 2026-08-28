@@ -22,13 +22,35 @@
                 {{ connection.meta.description }}
               </span>
             </div>
-            <CPermissionsButton
-              v-if="canGrant && connection?.connectionID && connection?.status === 'active'"
-              v-tooltip.bottom="$t('general.label.permissions')"
-              :resource="`corteza::system:connection/${connection.connectionID}`"
-              :title="connection.meta?.short || connection.handle || connection.connectionID"
-              :target="connection.meta?.short || connection.handle || connection.connectionID"
-            />
+            <div class="flex items-center gap-2 shrink-0">
+              <Button
+                v-if="oauthAppHandle"
+                :label="$t('system.connections.authSetup.credentialsButton')"
+                icon="pi pi-key"
+                severity="secondary"
+                outlined
+                size="small"
+                @click="authModal = true"
+              />
+              <CInputDelete
+                v-if="connection?.canDeleteConnection"
+                :label="$t('system.connections.list.uninstall')"
+                :message="$t('system.connections.list.uninstallConfirm')"
+                :header="connection.meta?.short || connection.handle"
+                icon="pi pi-trash"
+                severity="secondary"
+                outlined
+                size="small"
+                @confirm="handleUninstall"
+              />
+              <CPermissionsButton
+                v-if="canGrant && connection?.connectionID && connection?.status === 'active'"
+                v-tooltip.bottom="$t('general.label.permissions')"
+                :resource="`corteza::system:connection/${connection.connectionID}`"
+                :title="connection.meta?.short || connection.handle || connection.connectionID"
+                :target="connection.meta?.short || connection.handle || connection.connectionID"
+              />
+            </div>
           </div>
         </template>
       </Card>
@@ -40,6 +62,15 @@
       />
     </CViewContainer>
 
+    <ConnectionAuthSetup
+      v-if="oauthAppHandle"
+      v-model:visible="authModal"
+      :provider="oauthAppHandle"
+      :already-configured="providerConfigured"
+      @saved="handleAuthSaved"
+      @skip="authModal = false"
+    />
+
     <CEditorActions :back-to="{ name: 'system.connections' }" />
   </div>
 </template>
@@ -48,11 +79,11 @@
 import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useRBACStore } from '@planetcrust/human-vue'
+import { components, useRBACStore } from '@planetcrust/human-vue'
 import ConfiguredConnectionsPanel from './ConfiguredConnectionsPanel.vue'
-import { components } from '@planetcrust/human-vue'
+import ConnectionAuthSetup from './ConnectionAuthSetup.vue'
 
-const { CViewContainer } = components
+const { CViewContainer, CInputDelete } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -64,6 +95,54 @@ const rbac = useRBACStore()
 const canGrant = computed(() => rbac.can('system/', 'grant'))
 
 const connection = ref(null)
+
+// OAuth connectors register their client id/secret in a setup dialog. It opens
+// on its own when the provider has no credentials yet, or via the header button.
+const OAUTH_METHOD = 'oauth2_authorization_code'
+const authModal = ref(false)
+const oauthAppHandle = ref('')
+const providerConfigured = ref(false)
+
+// The OAuth app handle the connector authenticates with, if any.
+function oauthHandleOf(conn) {
+  const svc = conn?.service
+  if (!svc) return ''
+  if (svc.auth?.method === OAUTH_METHOD) return svc.auth.oauthApp || ''
+  const opt = (svc.authOptions || []).find(o => o.method === OAUTH_METHOD)
+  return opt?.oauthApp || ''
+}
+
+// A provider is configured once its credentials live in settings; the backend
+// only surfaces an app entry when at least one of its keys is set.
+async function isProviderConfigured(handle) {
+  if (!handle) return true
+  try {
+    const current = await $SystemAPI.settingsCurrent()
+    const apps = current?.connection?.oauth?.apps || []
+    return apps.some(a => a?.handle === handle)
+  } catch {
+    return false
+  }
+}
+
+function handleAuthSaved() {
+  providerConfigured.value = true
+  authModal.value = false
+}
+
+// Uninstall removes the imported connection; the backend rejects it while any
+// configured connection still references it, so surface that detail.
+async function handleUninstall() {
+  try {
+    await $SystemAPI.connectionDelete({ connectionID: connection.value.connectionID })
+    $toast.toastSuccess(t('notification.connection.delete.success'))
+    router.push({ name: 'system.connections' })
+  } catch (e) {
+    const detail = e?.response?.data?.error?.message || e?.message
+    const prefix = t('notification.connection.delete.error')
+    $toast.toastDanger(detail ? `${prefix}: ${detail}` : prefix)
+  }
+}
 
 const headerTitle = computed(() => {
   return (
@@ -86,6 +165,12 @@ async function loadConnection() {
       return
     }
     connection.value = loaded
+
+    const handle = oauthHandleOf(loaded)
+    oauthAppHandle.value = handle
+    providerConfigured.value = await isProviderConfigured(handle)
+    // Pop the setup dialog first when the provider still needs credentials.
+    authModal.value = !!handle && !providerConfigured.value
   } catch (e) {
     $toast.toastErrorHandler(t('notification.connection.fetch.error'))(e)
     router.push({ name: 'system.connections' })

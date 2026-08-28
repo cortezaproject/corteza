@@ -81,7 +81,7 @@
                 {{ c.meta?.description || '' }}
               </p>
 
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between gap-2">
                 <span
                   v-if="isInstalled(c)"
                   class="inline-flex items-center gap-1 text-xs text-green-600"
@@ -90,18 +90,31 @@
                   {{ $t('system.connections.list.installed') }}
                 </span>
                 <span v-else />
-                <Button
-                  :label="
-                    isInstalled(c)
-                      ? $t('system.connections.list.setUp')
-                      : $t('system.connections.list.install')
-                  "
-                  :icon="isInstalled(c) ? 'pi pi-cog' : 'pi pi-download'"
-                  :outlined="isInstalled(c)"
-                  size="small"
-                  :loading="installing === c.catalogID"
-                  @click="handleInstall(c)"
-                />
+                <div class="flex items-center gap-1">
+                  <CInputDelete
+                    v-if="isInstalled(c) && c.canDeleteConnection"
+                    :label="$t('system.connections.list.uninstall')"
+                    :message="$t('system.connections.list.uninstallConfirm')"
+                    :header="c.meta?.short || c.handle"
+                    icon="pi pi-trash"
+                    severity="secondary"
+                    outlined
+                    size="small"
+                    @confirm="handleDelete(c)"
+                  />
+                  <Button
+                    :label="
+                      isInstalled(c)
+                        ? $t('system.connections.list.setUp')
+                        : $t('system.connections.list.install')
+                    "
+                    :icon="isInstalled(c) ? 'pi pi-cog' : 'pi pi-download'"
+                    :outlined="isInstalled(c)"
+                    size="small"
+                    :loading="installing === c.catalogID"
+                    @click="handleInstall(c)"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -230,7 +243,9 @@ async function handleDelete(c) {
     $toast.toastSuccess(t('notification.connection.delete.success'))
     filterList()
   } catch (e) {
-    $toast.toastErrorHandler(t('notification.connection.delete.error'))(e)
+    const detail = e?.response?.data?.error?.message || e?.message
+    const prefix = t('notification.connection.delete.error')
+    $toast.toastDanger(detail ? `${prefix}: ${detail}` : prefix)
   }
 }
 </script>

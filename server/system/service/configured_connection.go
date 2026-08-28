@@ -192,7 +192,35 @@ func (svc *configuredConnection) Update(ctx context.Context, upd *types.Configur
 }
 
 func (svc *configuredConnection) DeleteByID(ctx context.Context, ID uint64) (err error) {
-	return ConfiguredConnectionErrDeletionNotSupported()
+	var (
+		aProps = &configuredConnectionActionProps{connection: &types.ConfiguredConnection{ID: ID}}
+		cc     *types.ConfiguredConnection
+	)
+
+	err = func() error {
+		if cc, err = loadConfiguredConnection(ctx, svc.store, ID); err != nil {
+			return err
+		}
+
+		aProps.setConnection(cc)
+
+		if !svc.ac.CanDeleteConfiguredConnection(ctx, cc) {
+			return ConfiguredConnectionErrNotAllowedToDelete()
+		}
+
+		if err = store.DeleteConfiguredConnectionByID(ctx, svc.store, cc.ID); err != nil {
+			return err
+		}
+
+		// Drop the delegated credential from the live registry. The shared
+		// OAuth credential record is keyed per (provider, user) and left intact
+		// for any sibling configured connections that still use it.
+		_ = cred_registry.Default().Delete(cc.ID)
+
+		return nil
+	}()
+
+	return svc.recordAction(ctx, aProps, ConfiguredConnectionActionDelete, err)
 }
 
 func (svc *configuredConnection) onEnable(ctx context.Context, aProps *configuredConnectionActionProps, ID uint64) (res *types.ConfiguredConnection, err error) {

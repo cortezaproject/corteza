@@ -710,24 +710,17 @@ async function handleConfiguredConnectionEnable() {
   }
 }
 
-// Persist the connection as a draft so the authorize endpoint has a
-// configuredConnectionID to bind the credential to. Returns that ID.
+// Return a configuredConnectionID for the authorize endpoint to bind the
+// credential to. An existing connection is used as-is; a new one is saved as a
+// draft first.
 async function ensureSavedForConnect() {
   const cc = activeConfiguredConnection.value
-  const config = { ...(cc.config || {}), authMethod: selectedAuthMethod.value, params: [] }
-  parseConfiguredConnectionLabels()
-
   if (cc.configurationID) {
-    await $SystemAPI.connectionUpdateConfiguration({
-      connectionID: props.connection.connectionID,
-      configuredConnectionID: cc.configurationID,
-      name: cc.name,
-      config,
-      labels: cc.labels,
-    })
-    cc.config = config
     return cc.configurationID
   }
+
+  const config = { ...(cc.config || {}), authMethod: selectedAuthMethod.value, params: [] }
+  parseConfiguredConnectionLabels()
 
   const saved = await $SystemAPI.connectionConfigure({
     connectionID: props.connection.connectionID,
@@ -741,12 +734,14 @@ async function ensureSavedForConnect() {
   return saved?.configurationID
 }
 
-// True once the callback has linked a credential to the configured connection.
-async function isConfiguredConnectionConnected(configurationID) {
+// True once the callback has linked a credential AND bumped updatedAt past the
+// pre-consent baseline. The updatedAt guard matters for Reconnect, where a
+// credential already exists before consent runs.
+async function isReconnectComplete(configurationID, baselineUpdatedAt) {
   try {
     const cc = await $SystemAPI.configuredConnectionRead({ connectionID: configurationID })
     const id = cc?.config?.credentialID
-    return !!id && id !== '0'
+    return !!id && id !== '0' && cc?.updatedAt !== baselineUpdatedAt
   } catch {
     return false
   }
@@ -754,11 +749,12 @@ async function isConfiguredConnectionConnected(configurationID) {
 
 // Open the provider consent popup and resolve true on success. The auth host is
 // a different origin than the SPA, so the popup's URL cannot be read. Instead we
-// poll the configured connection for its credential — set by the callback — and
-// close the popup once it lands. Origin-independent by design.
+// poll the configured connection for the callback's update and close the popup
+// once it lands. Origin-independent by design.
 function runOAuthPopup(configurationID) {
   const authBase = ($Auth?.authURL || `${window.location.origin}/auth`).replace(/\/$/, '')
   const url = `${authBase}/oauth2/connection/authorize?configuredConnectionID=${configurationID}`
+  const baselineUpdatedAt = activeConfiguredConnection.value?.updatedAt || ''
   const popup = window.open(url, 'oauth2-connect', 'width=520,height=680')
   if (!popup) {
     $toast.toastWarning(t('system.configuredConnections.editor.oauth.popupBlocked'))
@@ -779,13 +775,13 @@ function runOAuthPopup(configurationID) {
       resolve(ok)
     }
     const timer = setInterval(async () => {
-      if (await isConfiguredConnectionConnected(configurationID)) {
+      if (await isReconnectComplete(configurationID, baselineUpdatedAt)) {
         finish(true)
         return
       }
       // User closed the popup — check once more, then give up.
       if (popup.closed) {
-        finish(await isConfiguredConnectionConnected(configurationID))
+        finish(await isReconnectComplete(configurationID, baselineUpdatedAt))
       }
     }, 1500)
     // Safety net so a stalled consent never spins forever.
@@ -809,8 +805,12 @@ async function handleOAuthConnect() {
       return
     }
 
-    const enabled = await checkAndEnableConfiguredConnection(configurationID)
-    if (enabled) {
+    // An active connection is a reconnect: the credential refreshed, and
+    // enabling it again is rejected — so skip to success. A draft still needs
+    // check + enable to go active.
+    if (activeConfiguredConnection.value?.status === 'active') {
+      $toast.toastSuccess(t('system.configuredConnections.editor.oauth.success'))
+    } else if (await checkAndEnableConfiguredConnection(configurationID)) {
       $toast.toastSuccess(t('system.configuredConnections.editor.oauth.success'))
     }
     configuredConnectionModal.value = false

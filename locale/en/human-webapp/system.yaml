@@ -497,6 +497,13 @@ configuredConnections:
     searchPlaceholder: Search for configured connections
     title: Configured Connections
 connections:
+  authSetup:
+    title: 'Connect {provider}'
+    credentialsButton: Provider credentials
+    intro: Register your {provider} OAuth credentials once. Every configured connection for this provider then reuses them.
+    alreadySet: Credentials for this provider are already set. Continue, or enter new ones to replace them.
+    continue: Continue
+    save: Save and continue
   configurePage:
     noConfigured: No configured connections yet.
     title: Configure connection
@@ -564,6 +571,8 @@ connections:
         label: Including
     install: Install
     installed: Installed
+    uninstall: Uninstall
+    uninstallConfirm: Remove this connection? Delete its configured connections first if any remain.
     noConnectors: No connectors match your search.
     resourcePlural: connections
     resourceSingle: connection
