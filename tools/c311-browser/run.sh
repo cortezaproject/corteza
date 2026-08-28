@@ -7,7 +7,7 @@ compose_port="${C311_COMPOSE_PORT:-18081}"
 admin_port="${C311_ADMIN_PORT:-18082}"
 artifact_dir="${C311_ARTIFACT_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/c311-fe01.XXXXXX")}"
 
-if [ -L "$artifact_dir" ]; then
+if [[ -L "$artifact_dir" ]]; then
   echo "artifact directory must not be a symbolic link" >&2
   exit 1
 fi
