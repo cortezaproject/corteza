@@ -469,19 +469,18 @@
                         {{ $t('general.label.loading') }}
                       </span>
 
-                      <!-- A readout, bounded the way the pickers below it are.
-                           Loose text under a button, between two framed
-                           controls, read as something that had come adrift. The
-                           fill says it is read rather than typed into.
+                      <!-- A readout, bounded the way the pickers below it are:
+                           loose text under a button, between two framed
+                           controls, reads as something that has come adrift.
 
-                           A cross-tab of subject against permission: what the
-                           agent may reach, and how much of each subject it runs
-                           unattended. A subject is one row, so its split is read
-                           across it and the whole agent's is the ruled row at
-                           the foot. -->
+                           A cross-tab over two partitions of the same tools —
+                           how much of a subject runs unattended, and how much
+                           of it changes or destroys something. A subject is one
+                           row, each group sums to it, and the whole agent's is
+                           the ruled row at the foot. -->
                       <div
                         v-else-if="toolSummary.total"
-                        class="w-fit max-w-lg rounded-border border border-surface bg-emphasis p-4 text-sm"
+                        class="w-fit max-w-lg rounded-border border border-surface p-4 text-sm"
                         data-testid="tool-summary"
                       >
                         <!-- Sized by its content rather than by the box, so a
@@ -517,11 +516,12 @@
                             <tr
                               v-for="subject in toolSummary.subjects"
                               :key="subject.key"
+                              class="hover:bg-emphasis"
                               :data-testid="`tool-summary-${subject.key}`"
                             >
                               <th
                                 scope="row"
-                                class="py-1 pr-2 pt-2 text-left font-normal text-color"
+                                class="py-1 pl-2 pr-2 pt-2 text-left font-normal text-color"
                               >
                                 {{ subject.label }}
                               </th>
@@ -870,6 +870,7 @@ import {
   RISK_ICONS,
   RISK_MODES,
   SUMMARY_COLUMNS,
+  SUMMARY_MODES,
   confineTo,
   splitGrants,
   summaryOf,
@@ -1061,8 +1062,14 @@ function isRisk(col) {
   return RISK_MODES.includes(col)
 }
 
+// The column the rule falls after, so the gap either side of it is equal.
+const LAST_PERMISSION = SUMMARY_MODES[SUMMARY_MODES.length - 1]
+
 function columnClass(col) {
-  return col === RISK_MODES[0] ? 'border-l border-surface pl-8' : 'pl-6'
+  if (col === RISK_MODES[0]) return 'border-l border-surface pl-6'
+  if (col === LAST_PERMISSION) return 'pl-6 pr-6'
+  if (col === RISK_MODES[RISK_MODES.length - 1]) return 'pl-6 pr-2'
+  return 'pl-6'
 }
 
 function columnIcon(col) {

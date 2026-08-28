@@ -235,9 +235,9 @@ editor:
       empty: No tools are available.
       noMatches: No tool matches that.
       risk:
-        destructive: deletes
-        read: reads
-        write: writes
+        destructive: Deletes
+        read: Reads
+        write: Writes
       search: Search tools…
       title: Tools this agent may use
     mode:
