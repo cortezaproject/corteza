@@ -385,6 +385,36 @@ func TestRecordCreate(t *testing.T) {
 		End()
 }
 
+// A required field carrying a default used to be impossible to create without
+// naming it: defaults were applied after validation, so the field was reported
+// empty for a value the module itself was about to supply.
+func TestRecordCreate_requiredFieldWithDefault(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record default testing module",
+		&types.ModuleField{Name: "title", Kind: "String"},
+		&types.ModuleField{
+			Name:         "stage",
+			Kind:         "String",
+			Required:     true,
+			DefaultValue: types.RecordValueSet{&types.RecordValue{Value: "applied"}},
+		},
+	)
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		JSON(`{"values": [{"name": "title", "value": "t"}]}`).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Contains(`$.response.values[? @.name=="stage"].value`, "applied")).
+		End()
+}
+
 func TestRecordCreateForbidden_forbiddenFields(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()

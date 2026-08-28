@@ -929,6 +929,14 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	// ensure module ref is set before running through records workflows and scripts
 	new.SetModule(m)
 
+	// Defaults fill what the payload left out, and they have to be in place
+	// before anything judges the record: validation runs inside procCreate, so
+	// a required field carrying a default was reported empty and the create
+	// refused, for a value the module itself was about to supply. Applying them
+	// again further down is harmless — RecordValueDefaults only fills a slot
+	// that is still missing.
+	new.Values = RecordValueDefaults(m, new.Values)
+
 	{
 		// handle deDup error/warnings
 		dd, err = svc.DupDetection(ctx, m, new)
