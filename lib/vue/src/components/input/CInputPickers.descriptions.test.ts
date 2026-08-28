@@ -46,3 +46,54 @@ describe('resource pickers show the resource description', () => {
     expect(PICKERS.length).toBeGreaterThanOrEqual(9)
   })
 })
+
+// A description that does not fit is wrapped, never clipped: the whole point of
+// the second line is the text on it, and an ellipsis hides exactly the part that
+// made two options tell apart.
+//
+// Three parts hold that together and none works alone:
+//  - the option wrapper is a shrink-to-fit flex item of the option row, so it
+//    needs `w-full` to reach the row's width and `min-w-0` to be allowed back
+//    below its content's width,
+//  - the option row itself is `white-space: nowrap`, so the wrapper carries
+//    `whitespace-normal` to let the text break and `break-words` to keep an
+//    unbroken token — a URL in a description — inside the row; both properties
+//    inherit, so the name on the first line wraps by the same rule,
+//  - and the overlay is capped, which is what makes the text wrap at all: the
+//    panel is sized by its content, so with nothing bounding it a long
+//    description opens one very wide line instead of several readable ones.
+//    PrimeVue already sets the overlay's `min-width` to the trigger's width
+//    inline, and `min-width` wins over `max-width`, so the cap changes nothing
+//    for a picker already wider than it.
+const WIDTH_RULE = [...PICKERS.map(([file]) => file), 'CInputKnowledgeBase.vue']
+
+const OVERLAY_CAP = `:pt="{ overlay: { class: 'max-w-lg' } }"`
+
+describe('a picker description wraps to the width of its row', () => {
+  it.each(WIDTH_RULE)('%s does not cap the description at a fixed width', file => {
+    expect(read(file)).not.toContain('max-w-64')
+  })
+
+  it.each(WIDTH_RULE)('%s clips no text anywhere', file => {
+    expect(read(file)).not.toContain('truncate')
+  })
+
+  it.each(WIDTH_RULE)('%s lets the option wrapper fill the row and wrap in it', file => {
+    expect(read(file)).toContain(
+      '<div class="flex flex-col w-full min-w-0 whitespace-normal break-words">',
+    )
+  })
+
+  it.each(WIDTH_RULE)(
+    '%s caps the overlay so a long description wraps rather than widens it',
+    file => {
+      const text = read(file)
+      // One cap per dropdown, not one per file: Module and Role each render a
+      // MultiSelect and a Select.
+      const caps = text.split(OVERLAY_CAP).length - 1
+      const dropdowns = text.split('<template #option=').length - 1
+      expect(caps).toBe(dropdowns)
+      expect(caps).toBeGreaterThan(0)
+    },
+  )
+})

@@ -15,11 +15,12 @@
     :filter-fields="['name', 'handle', 'moduleID']"
     fluid
     @show="onShow"
+    :pt="{ overlay: { class: 'max-w-lg' } }"
   >
     <template #option="{ option }">
-      <div class="flex flex-col">
+      <div class="flex flex-col w-full min-w-0 whitespace-normal break-words">
         <span>{{ option.name }}</span>
-        <small v-if="option.meta?.description" class="text-muted-color truncate max-w-64">
+        <small v-if="option.meta?.description" class="text-muted-color">
           {{ option.meta.description }}
         </small>
       </div>
@@ -43,11 +44,12 @@
     fluid
     showClear
     @show="onShow"
+    :pt="{ overlay: { class: 'max-w-lg' } }"
   >
     <template #option="{ option }">
-      <div class="flex flex-col">
+      <div class="flex flex-col w-full min-w-0 whitespace-normal break-words">
         <span>{{ option.name }}</span>
-        <small v-if="option.meta?.description" class="text-muted-color truncate max-w-64">
+        <small v-if="option.meta?.description" class="text-muted-color">
           {{ option.meta.description }}
         </small>
       </div>

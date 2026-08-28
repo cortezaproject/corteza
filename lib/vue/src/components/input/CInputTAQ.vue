@@ -14,11 +14,12 @@
     fluid
     showClear
     @show="onShow"
+    :pt="{ overlay: { class: 'max-w-lg' } }"
   >
     <template #option="{ option }">
-      <div class="flex flex-col">
+      <div class="flex flex-col w-full min-w-0 whitespace-normal break-words">
         <span>{{ option.label }}</span>
-        <small v-if="option.description" class="text-muted-color truncate max-w-64">
+        <small v-if="option.description" class="text-muted-color">
           {{ option.description }}
         </small>
       </div>

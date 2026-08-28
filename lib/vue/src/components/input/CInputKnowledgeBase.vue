@@ -14,11 +14,12 @@
         fluid
         @update:model-value="onPickerSelect"
         @show="onShow"
+        :pt="{ overlay: { class: 'max-w-lg' } }"
       >
         <template #option="{ option }">
-          <div class="flex flex-col">
+          <div class="flex flex-col w-full min-w-0 whitespace-normal break-words">
             <span>{{ option.title || option.handle || option.knowledgeBaseID }}</span>
-            <small v-if="option.description" class="text-muted-color truncate max-w-64">
+            <small v-if="option.description" class="text-muted-color">
               {{ option.description }}
             </small>
           </div>
@@ -41,10 +42,10 @@
         class="flex items-center gap-3 p-3 border border-surface rounded-lg"
       >
         <div class="flex flex-col gap-0.5 flex-1 min-w-0">
-          <span class="font-medium text-color text-sm truncate">
+          <span class="font-medium text-color text-sm break-words">
             {{ entry.kb.title || entry.kb.handle || entry.kb.knowledgeBaseID }}
           </span>
-          <small v-if="entry.kb.description" class="text-muted-color text-xs truncate">
+          <small v-if="entry.kb.description" class="text-muted-color text-xs break-words">
             {{ entry.kb.description }}
           </small>
         </div>
