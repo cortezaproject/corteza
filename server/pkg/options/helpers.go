@@ -70,10 +70,17 @@ func GuessWebappHostname() string {
 }
 
 func guessHostname(base ...string) string {
-	// All env keys we'll check, first one with a value set, will be used as hostname
+	// All env keys we'll check, first one with a value set, will be used as hostname.
+	//
+	// DOMAIN comes last so it is the fallback for the webapp as well as the
+	// first candidate for the API. Without it GuessWebappHostname drops through
+	// to a bare "localhost" whenever nothing names the webapp separately, and a
+	// link built on that has no port — it resolves to nothing on any instance
+	// not served on 80.
 	candidates := append(base, []string{
 		os.Getenv("LETSENCRYPT_HOST"),
 		os.Getenv("VIRTUAL_HOST"),
+		os.Getenv("DOMAIN"),
 	}...)
 
 	for _, host := range candidates {

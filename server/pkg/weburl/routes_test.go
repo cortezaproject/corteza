@@ -172,3 +172,33 @@ func TestBuildersReturnNothingWithoutAnIdentifier(t *testing.T) {
 		}
 	}
 }
+
+// A link that loses the port is a link to nothing. The webapp is routinely
+// served somewhere other than 80 — every dev checkout is — and with nothing
+// naming the webapp host separately the base fell through to a bare
+// "localhost", so every URL these builders returned pointed at a port nobody
+// listens on.
+func TestBaseKeepsThePort(t *testing.T) {
+	for name, tc := range map[string]struct {
+		domain, domainWebapp, webappEnabled, want string
+	}{
+		"served by the API host":   {domain: "localhost:1043", webappEnabled: "true", want: "http://localhost:1043"},
+		"served elsewhere, unsaid": {domain: "localhost:1043", webappEnabled: "false", want: "http://localhost:1043"},
+		"served elsewhere, named":  {domain: "localhost:1043", domainWebapp: "localhost:5173", webappEnabled: "false", want: "http://localhost:5173"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv("DOMAIN", tc.domain)
+			t.Setenv("DOMAIN_WEBAPP", tc.domainWebapp)
+			t.Setenv("HTTP_WEBAPP_ENABLED", tc.webappEnabled)
+			t.Setenv("HTTP_BASE_URL", "")
+			t.Setenv("HTTP_WEBAPP_BASE_URL", "/")
+
+			if got := strings.TrimRight(Base(), "/"); got != tc.want {
+				t.Errorf("Base() = %q, want %q", got, tc.want)
+			}
+			if got := ComposeNamespace("crm"); got != tc.want+"/compose/namespace/crm" {
+				t.Errorf("ComposeNamespace = %q, want %q", got, tc.want+"/compose/namespace/crm")
+			}
+		})
+	}
+}
