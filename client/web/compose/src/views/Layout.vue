@@ -2,7 +2,11 @@
   <div
     :id="namespaceID"
     class="d-flex flex-column w-100 h-viewport overflow-hidden"
+    data-c311-app-shell
   >
+    <a href="#c311-main-content" class="sr-only sr-only-focusable c311-skip-link">
+      {{ $t('c311:accessibility.skipToMain', 'Skip to main content') }}
+    </a>
     <header>
       <c-topbar
         :expanded="expanded"
@@ -71,7 +75,12 @@
       </c-sidebar>
     </aside>
 
-    <main class="d-inline-flex h-100 overflow-auto d-print-flex">
+    <main
+      id="c311-main-content"
+      class="d-inline-flex h-100 overflow-auto d-print-flex"
+      tabindex="-1"
+      data-c311-main
+    >
       <!--
         Content spacer
         Large and xl screens should push in content when the nav is expanded
@@ -419,5 +428,22 @@ export default {
 .h-viewport {
   height: 100vh;
   height: 100dvh;
+}
+
+.c311-skip-link:focus {
+  position: fixed;
+  z-index: 1100;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  color: #111;
+  box-shadow: 0 0 0 3px #1a73e8;
+}
+
+[data-c311-main]:focus,
+[data-c311-main] h1:focus {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
 }
 </style>

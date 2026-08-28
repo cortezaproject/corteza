@@ -9,11 +9,60 @@ jobs:
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-22.04
+    env:
+      NODE_VERSION: 22
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "${{ env.NODE_VERSION }}"
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Build and install current C311 packages
+        run: tools/ci/install-local-c311-packages.sh
+      - name: Generate JavaScript and TypeScript coverage reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .sonar/coverage
+
+          normalize_lcov() {
+            local report="$1"
+            local package_dir="$2"
+            node - "$report" "$package_dir" "$GITHUB_WORKSPACE" <<'NODE'
+          const fs = require('node:fs')
+          const path = require('node:path')
+
+          const [report, packageDir, projectDir] = process.argv.slice(2)
+          const contents = fs.readFileSync(report, 'utf8')
+          const normalized = contents.replace(/^SF:(.*)$/gm, (_match, sourceFile) => {
+            const absolute = path.resolve(packageDir, sourceFile)
+            const relative = path.relative(projectDir, absolute)
+            return `SF:${relative}`
+          })
+          fs.writeFileSync(report, normalized)
+          NODE
+          }
+
+          corepack yarn --cwd lib/js c8 --reporter=lcovonly --report-dir="$GITHUB_WORKSPACE/.sonar/coverage/lib-js" corepack yarn test:unit
+          normalize_lcov "$GITHUB_WORKSPACE/.sonar/coverage/lib-js/lcov.info" "$GITHUB_WORKSPACE/lib/js"
+          mv "$GITHUB_WORKSPACE/.sonar/coverage/lib-js/lcov.info" "$GITHUB_WORKSPACE/.sonar/coverage/lib-js.info"
+
+          corepack yarn --cwd lib/vue c8 --reporter=lcovonly --report-dir="$GITHUB_WORKSPACE/.sonar/coverage/lib-vue" corepack yarn test:unit
+          normalize_lcov "$GITHUB_WORKSPACE/.sonar/coverage/lib-vue/lcov.info" "$GITHUB_WORKSPACE/lib/vue"
+          mv "$GITHUB_WORKSPACE/.sonar/coverage/lib-vue/lcov.info" "$GITHUB_WORKSPACE/.sonar/coverage/lib-vue.info"
+
+          corepack yarn --cwd client/web/compose test:c311 --runInBand --coverage --coverageProvider=v8 --coverageReporters=lcovonly --coverageDirectory="$GITHUB_WORKSPACE/.sonar/coverage/c311"
+          normalize_lcov .sonar/coverage/c311/lcov.info "$GITHUB_WORKSPACE/client/web/compose"
+          mv .sonar/coverage/c311/lcov.info .sonar/coverage/c311.info
+
+          test -s "$GITHUB_WORKSPACE/.sonar/coverage/lib-js.info"
+          test -s "$GITHUB_WORKSPACE/.sonar/coverage/lib-vue.info"
+          test -s "$GITHUB_WORKSPACE/.sonar/coverage/c311.info"
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io

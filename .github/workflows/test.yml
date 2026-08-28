@@ -24,6 +24,57 @@ env:
   NODE_VERSION: 22
 
 jobs:
+  c311-fe01:
+    name: "C311 FE-00/FE-01 release gates"
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+      - name: "Enable Corepack"
+        run: corepack enable
+      - name: "Install Python browser test dependencies"
+        run: |
+          python3 -m pip install --require-hashes --only-binary=:all: -r tools/c311-browser/requirements.txt
+          python3 -m playwright install --with-deps chromium
+      - name: "Build and install current C311 packages"
+        run: tools/ci/install-local-c311-packages.sh
+      - name: "lib/js unit, types and build"
+        working-directory: lib/js
+        run: |
+          corepack yarn install --frozen-lockfile
+          corepack yarn test:unit
+          corepack yarn run tsc --noEmit
+          corepack yarn build
+      - name: "lib/vue unit and build"
+        run: |
+          corepack yarn --cwd lib/vue install --frozen-lockfile
+          corepack yarn --cwd lib/vue test:unit
+          corepack yarn --cwd lib/vue build
+      - name: "Compose and Admin C311 component tests"
+        run: |
+          corepack yarn --cwd client/web/compose test:c311
+          corepack yarn --cwd client/web/admin test:c311
+      - name: "FE-01 browser helper tests"
+        run: python3 -m unittest discover -s tools/c311-browser -p 'test_*.py'
+      - name: "Compose and Admin production builds"
+        run: |
+          cp client/web/compose/public/config.example.js client/web/compose/public/config.js
+          cp client/web/admin/public/config.example.js client/web/admin/public/config.js
+          corepack yarn --cwd client/web/compose build
+          corepack yarn --cwd client/web/admin build
+      - name: "FE-01 browser matrix"
+        run: tools/c311-browser/run.sh
+        env:
+          C311_ARTIFACT_DIR: ${{ runner.temp }}/c311-fe01-gate
+      - name: "Upload C311 gate evidence"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c311-fe01-gate
+          path: ${{ runner.temp }}/c311-fe01-gate
+          if-no-files-found: ignore
+
   lib-test:
     name: "Library test (${{ matrix.lib }})"
     runs-on: ubuntu-22.04

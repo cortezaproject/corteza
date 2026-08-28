@@ -4,6 +4,7 @@ import Router from 'vue-router'
 import VueNativeSock from 'vue-native-websocket'
 
 import { plugins, websocket } from '@cortezaproject/corteza-vue'
+import * as C311JS from '@cortezaproject/corteza-js'
 
 import pairs from './eventbus-pairs'
 
@@ -24,6 +25,10 @@ Vue.use(BootstrapVue, {
 Vue.use(Router)
 
 Vue.use(plugins.Auth(), { app: 'compose' })
+if (plugins.C311) {
+  const provider = plugins.createC311Provider(C311JS)
+  Vue.use(plugins.C311(provider ? { provider } : {}))
+}
 
 Vue.use(plugins.CortezaAPI('compose'))
 Vue.use(plugins.CortezaAPI('system'))

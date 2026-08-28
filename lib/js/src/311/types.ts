@@ -4,6 +4,7 @@ import type {
   ContactCategory,
   ContractCapability,
   ContractRoute,
+  ContractScope,
   DepartmentCode,
   DistrictCode,
   ErrorCode,
@@ -59,7 +60,7 @@ export interface CurrentActor {
   department_codes: DepartmentCode[]
   district_codes: DistrictCode[]
   capabilities: ContractCapability[]
-  scopes: string[]
+  scopes: ContractScope[]
   available_routes: ContractRoute[]
 }
 
@@ -68,6 +69,14 @@ export interface Session {
   actor?: CurrentActor | null
   preferred_language: Language
   expires_at?: ISODateTime | null
+}
+
+export interface C311RoleFixture {
+  session: Session
+  expired_session: Session
+  denied_route: ContractRoute
+  denied_capability: ContractCapability
+  denied_scope: ContractScope
 }
 
 export interface LocalSignIn {
@@ -321,6 +330,7 @@ export interface C311FixtureSet {
   fixture_id: 'contract-v1'
   contract_version: '1.0.0'
   session: Session
+  role_fixtures: Record<ApplicationRole, C311RoleFixture>
   requests: ServiceRequest[]
   queue: RequestQueueItem[]
   details: Record<string, StaffServiceRequestDetail>

@@ -12,8 +12,11 @@ import router from './router'
 import store from './store'
 
 import { system } from '@cortezaproject/corteza-js'
-import { corredor, i18n, mixins, websocket } from '@cortezaproject/corteza-vue'
+import * as CortezaVue from '@cortezaproject/corteza-vue'
 import { mapGetters } from 'vuex'
+
+const { corredor, i18n, mixins, websocket } = CortezaVue
+const c311I18n = CortezaVue.c311I18n
 
 const notProduction = (process.env.NODE_ENV !== 'production')
 
@@ -21,7 +24,7 @@ export default (options = {}) => {
   options = {
     el: '#app',
     name: 'admin',
-    template: '<router-view v-if="loaded && i18nLoaded && isRbacLoaded" />',
+    template: '<router-view v-if="loaded && i18nLoaded && (isRbacLoaded || isC311MockRoute)" />',
 
     mixins: [
       mixins.corredor,
@@ -36,12 +39,24 @@ export default (options = {}) => {
       ...mapGetters({
         isRbacLoaded: 'rbac/isLoaded',
       }),
+      isC311MockRoute () {
+        return window.C311Mode === 'mock'
+      },
     },
 
     async created () {
-      this.$i18n.i18next.on('initialized', () => {
+      const installC311I18n = () => {
         this.i18nLoaded = true
-      })
+        c311I18n?.installC311Translations?.(this.$i18n.i18next)
+      }
+      this.$i18n.i18next.on('initialized', installC311I18n)
+      if (this.$i18n.i18next.isInitialized) installC311I18n()
+      if (window.C311Mode === 'mock') installC311I18n()
+
+      if (this.isC311MockRoute || this.$route?.meta?.c311?.public || ['c311.unauthorized', 'c311.forbidden', 'c311.not-found', 'c311.not-found-wildcard'].includes(this.$route?.name)) {
+        this.loaded = true
+        return
+      }
 
       this.websocket()
 
@@ -65,6 +80,13 @@ export default (options = {}) => {
           // and instruct i18next to change it
           this.$i18n.i18next.changeLanguage(user.meta.preferredLanguage)
         }
+
+        const actorID = user.userID || user.id || user.handle || ''
+        const storedLocale = c311I18n?.readC311Locale?.(actorID)
+        if (storedLocale) this.$i18n.i18next.changeLanguage(storedLocale)
+        this.$i18n.i18next.on('languageChanged', locale => {
+          c311I18n?.persistC311Locale?.(locale.toLowerCase().slice(0, 2), actorID)
+        })
 
         // switch the webapp theme based on user preference
         if (user.meta.theme) {

@@ -14,6 +14,7 @@
     "lint": "vue-cli-service lint --fix",
     "cdeps": "yarn link @cortezaproject/corteza-js @cortezaproject/corteza-vue",
     "test:unit": "vue-cli-service test:unit",
+    "test:c311": "vue-cli-service test:unit --config jest.c311.config.js --runInBand",
     "test": "yarn test:unit"
   },
   "gitHooks": {

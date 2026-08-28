@@ -1,5 +1,5 @@
 import { C311ApiError } from './errors'
-import { C311_SCENARIOS, type C311Scenario } from './enums'
+import { APPLICATION_ROLES, C311_SCENARIOS, type ApplicationRole, type C311Scenario } from './enums'
 import { cloneFixtureSet, createDefaultFixtureSet } from './fixtures'
 import type {
   AnonymousStatusLookupRequest,
@@ -32,6 +32,8 @@ import type { C311Provider, C311RequestOptions, PortalAttachmentUpload, ReportEx
 export interface MockC311ProviderOptions {
   scenario?: C311Scenario
   fixtures?: C311FixtureSet
+  role?: ApplicationRole
+  sessionVariant?: 'current' | 'expired'
 }
 
 const statusByScenario: Partial<Record<C311Scenario, number>> = {
@@ -49,13 +51,20 @@ function copy<T> (value: T): T {
 export class MockC311Provider implements C311Provider {
   private readonly fixtures: C311FixtureSet
   private readonly scenario: C311Scenario
+  private readonly role?: ApplicationRole
+  private readonly sessionVariant: 'current' | 'expired'
 
   constructor (options: MockC311ProviderOptions = {}) {
     this.fixtures = cloneFixtureSet(options.fixtures || createDefaultFixtureSet())
     this.scenario = options.scenario || 'success'
+    this.role = options.role
+    this.sessionVariant = options.sessionVariant || 'current'
 
     if (!C311_SCENARIOS.includes(this.scenario)) {
       throw new Error(`Unsupported City 311 fixture scenario: ${this.scenario}`)
+    }
+    if (this.role && !APPLICATION_ROLES.includes(this.role)) {
+      throw new Error(`Unsupported City 311 fixture role: ${this.role}`)
     }
   }
 
@@ -106,12 +115,16 @@ export class MockC311Provider implements C311Provider {
 
   async getSession (): Promise<Session> {
     this.failIfNeeded()
+    if (this.role) {
+      const fixture = this.fixtures.role_fixtures[this.role]
+      return copy(this.sessionVariant === 'expired' ? fixture.expired_session : fixture.session)
+    }
     return copy(this.fixtures.session)
   }
 
   async signIn (_input: LocalSignIn): Promise<Session> {
     this.failIfNeeded(['validation'])
-    return copy(this.fixtures.session)
+    return this.getSession()
   }
 
   async signOut (): Promise<void> {
@@ -248,7 +261,7 @@ export class MockC311Provider implements C311Provider {
   }
 
   async listPortalRequests (query: RequestListQuery = {}): Promise<PageResponse<RequestSummary>> {
-    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
+    this.failIfNeeded(['forbidden', 'not-found', 'validation', 'retryable', 'version-conflict', 'terminal'])
     const items = this.scenario === 'empty' ? [] : this.fixtures.requests
     return this.page(items.map(request => this.requestSummary(request)), query)
   }
@@ -267,8 +280,11 @@ export class MockC311Provider implements C311Provider {
   }
 
   async getPublicStatus (input: AnonymousStatusLookupRequest): Promise<AnonymousStatusLookupResponse> {
+    if (this.scenario === 'not-found') return { request_detail: null }
     this.failIfNeeded()
-    const detail = this.fixtures.public_details[input.request_number]
+    const normalizedEmail = typeof input.email === 'string' ? input.email.trim().toLowerCase() : ''
+    const request = this.fixtures.requests.find(item => item.request_number === input.request_number && item.primary_requester.emails.some(email => email.toLowerCase() === normalizedEmail))
+    const detail = request ? this.fixtures.public_details[input.request_number] : undefined
     return { request_detail: detail ? copy(detail) : null }
   }
 
@@ -288,7 +304,7 @@ export class MockC311Provider implements C311Provider {
   }
 
   async listStaffRequests (query: RequestListQuery = {}): Promise<PageResponse<RequestQueueItem>> {
-    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
+    this.failIfNeeded(['forbidden', 'not-found', 'validation', 'retryable', 'version-conflict', 'terminal'])
     return this.page(this.scenario === 'empty' ? [] : this.fixtures.queue, query)
   }
 
@@ -321,7 +337,7 @@ export class MockC311Provider implements C311Provider {
     return copy(input)
   }
 
-  async updateReport (reportID: string, input: Partial<ReportDefinition>, _options: C311RequestOptions = {}): Promise<ReportDefinition> {
+  async updateReport (reportID: string, input: ReportDefinition, _options: C311RequestOptions = {}): Promise<ReportDefinition> {
     this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     const report = await this.getReport(reportID)
     return copy({ ...report, ...input, report_id: reportID })
@@ -366,7 +382,7 @@ export class MockC311Provider implements C311Provider {
     return copy(input)
   }
 
-  async updateWorkflow (workflowID: string, input: Partial<WorkflowDefinition>, _options: C311RequestOptions = {}): Promise<WorkflowDefinition> {
+  async updateWorkflow (workflowID: string, input: WorkflowDefinition, _options: C311RequestOptions = {}): Promise<WorkflowDefinition> {
     this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     const workflow = await this.getWorkflow(workflowID)
     return copy({ ...workflow, ...input, workflow_id: workflowID })

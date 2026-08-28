@@ -1,10 +1,12 @@
 import { expect } from 'chai'
+import { readFileSync } from 'node:fs'
 import { C311ApiError } from './errors'
 import { cloneFixtureSet, createDefaultFixtureSet } from './fixtures'
 import { MockC311Provider } from './mock-provider'
 import { C311FetchTransport, C311HttpProvider, type C311Provider, type C311TransportRequest } from './provider'
 import { C311_TIMEZONE, formatC311DateTime } from './time'
 import type { PortalServiceRequestCreate, ReportDefinition, ServiceRequestCreate } from './types'
+import { APPLICATION_ROLES } from './enums'
 
 async function expectError (action: () => Promise<unknown>, code: string): Promise<C311ApiError> {
   try {
@@ -42,10 +44,68 @@ describe('City 311 frontend contract', () => {
   it('keeps anonymous lookup privacy and reopen response shapes', async () => {
     const provider = new MockC311Provider()
     expect(await provider.getPublicStatus({ request_number: 'SR-2026-99999', email: 'unknown@example.test' })).to.deep.equal({ request_detail: null })
+    expect(await provider.getPublicStatus({ request_number: 'SR-2026-00001', email: 'wrong@example.test' })).to.deep.equal({ request_detail: null })
+    expect((await provider.getPublicStatus({ request_number: 'SR-2026-00001', email: 'alex@example.test' })).request_detail?.request_number).to.equal('SR-2026-00001')
+    expect((await provider.getPublicStatus({ request_number: 'SR-2026-00001', email: ' ALEX@EXAMPLE.TEST ' })).request_detail?.request_number).to.equal('SR-2026-00001')
     expect(await provider.reopenPortalRequest('request-fixture-001', 'fixture reason')).to.deep.equal({
       request_id: 'request-fixture-001',
       status: 'PENDING_APPROVAL',
     })
+  })
+
+  it('provides complete role and session-expiry fixtures for route checks', () => {
+    const fixtures = createDefaultFixtureSet()
+    const roles = Object.keys(fixtures.role_fixtures)
+    expect(roles).to.have.members(APPLICATION_ROLES)
+
+    for (const role of roles) {
+      const fixture = fixtures.role_fixtures[role as keyof typeof fixtures.role_fixtures]
+      expect(fixture.denied_route).to.be.a('string')
+      expect(fixture.denied_capability).to.be.a('string')
+      expect(fixture.denied_scope).to.be.a('string')
+      expect(fixture.expired_session.expires_at).to.equal('2026-01-15T14:00:00.000Z')
+      if (role === 'public_visitor') expect(fixture.session.authenticated).to.equal(false)
+      else {
+        expect(fixture.session.actor?.available_routes).to.not.include(fixture.denied_route)
+        expect(fixture.session.actor?.capabilities).to.not.include(fixture.denied_capability)
+        expect(fixture.session.actor?.scopes).to.not.include(fixture.denied_scope)
+        expect(fixture.session.actor?.application_roles).to.include(role)
+      }
+    }
+  })
+
+  it('selects every role and expired session without changing the fixture set', async () => {
+    for (const role of APPLICATION_ROLES) {
+      const current = await new MockC311Provider({ role }).getSession()
+      const expired = await new MockC311Provider({ role, sessionVariant: 'expired' }).getSession()
+      expect(current).to.deep.equal(createDefaultFixtureSet().role_fixtures[role].session)
+      expect(expired.expires_at).to.equal('2026-01-15T14:00:00.000Z')
+    }
+  })
+
+  it('keeps all role fixture values inside the frozen contract vocabularies', () => {
+    const contract = JSON.parse(readFileSync(new URL('../../../../server/compose/types/city311/contract.json', import.meta.url), 'utf8')) as {
+      enums: Record<string, string[]>
+    }
+    const fixtures = createDefaultFixtureSet()
+    for (const role of APPLICATION_ROLES) {
+      const fixture = fixtures.role_fixtures[role]
+      const actor = fixture.session.actor
+      const assertKnown = (kind: string, value: string) => expect(contract.enums[kind]).to.include(value)
+      assertKnown('route', fixture.denied_route)
+      assertKnown('capability', fixture.denied_capability)
+      assertKnown('oauth_scope', fixture.denied_scope)
+      if (!actor) continue
+      actor.application_roles.forEach(value => assertKnown('application_role', value))
+      actor.department_codes.forEach(value => assertKnown('department_code', value))
+      actor.district_codes.forEach(value => assertKnown('district_code', value))
+      actor.capabilities.forEach(value => assertKnown('capability', value))
+      actor.scopes.forEach(value => assertKnown('oauth_scope', value))
+      actor.available_routes.forEach(value => assertKnown('route', value))
+      expect(actor.available_routes).to.not.include(fixture.denied_route)
+      expect(actor.capabilities).to.not.include(fixture.denied_capability)
+      expect(actor.scopes).to.not.include(fixture.denied_scope)
+    }
   })
 
   it('exposes only endpoint-declared failures and models terminal operations in-band', async () => {
@@ -62,6 +122,7 @@ describe('City 311 frontend contract', () => {
       const error = await expectError(action, code)
       expect(error.retryable).to.equal(retryable)
       if (scenario === 'retryable') expect(error.retryAfter).to.equal('30')
+      if (scenario === 'version-conflict') expect(error.currentVersion).to.equal(2)
     }
 
     expect((await new MockC311Provider({ scenario: 'version-conflict' }).getSession()).authenticated).to.equal(true)
@@ -257,11 +318,33 @@ describe('City 311 frontend contract', () => {
 
     const networkError = await expectError(() => new C311FetchTransport({ fetch: async () => { throw new Error('offline') } }).request({ method: 'GET', path: '/healthz' }), 'TEMPORARILY_UNAVAILABLE')
     expect(networkError.retryable).to.equal(true)
+
+    const malformedTransport = new C311FetchTransport({
+      fetch: async () => ({
+        ok: false,
+        status: 503,
+        headers: { get: () => 'application/json', forEach: () => {} },
+        text: async () => '{invalid',
+      } as unknown as Response),
+    })
+    const malformed = await expectError(() => malformedTransport.request({ method: 'GET', path: '/healthz' }), 'OPERATION_FAILED')
+    expect(malformed.status).to.equal(503)
+    expect(malformed.retryable).to.equal(false)
+  })
+
+  it('normalizes anonymous HTTP misses to the same non-disclosing response', async () => {
+    const provider = new C311HttpProvider({
+      request: async <T> (): Promise<T> => ({ error: 'NOT_FOUND', message: 'not found' } as T),
+    })
+
+    expect(await provider.getPublicStatus({ request_number: 'SR-2026-99999', email: 'unknown@example.test' })).to.deep.equal({ request_detail: null })
   })
 
   it('formats the benchmark instant in the fixed timezone', () => {
     expect(C311_TIMEZONE).to.equal('America/New_York')
-    expect(formatC311DateTime('2026-01-15T15:00:00.000Z', 'en-US')).to.contain('10:00')
+    expect(formatC311DateTime('2026-01-15T15:00:00.000Z', 'en-US')).to.equal('01/15/2026 10:00 AM EST')
+    expect(formatC311DateTime('2026-07-15T15:00:00.000Z', 'en-US')).to.equal('07/15/2026 11:00 AM EDT')
+    expect(formatC311DateTime('2026-07-15T15:00:00.000Z', 'es')).to.equal('07/15/2026 11:00 AM EDT')
     expect(formatC311DateTime('not-a-date')).to.equal('')
   })
 

@@ -106,11 +106,30 @@ export class C311FetchTransport implements C311Transport {
     response.headers.forEach((value, key) => { responseHeaders[key] = value })
 
     const contentType = response.headers.get('content-type') || ''
-    const responseBody = response.status === 204
-      ? undefined
-      : contentType.includes('json')
-        ? await response.json()
-        : await response.text()
+    let responseBody: unknown
+    if (response.status !== 204) {
+      if (contentType.includes('json')) {
+        try {
+          if (typeof response.text === 'function') {
+            const raw = await response.text()
+            if (!raw.trim()) throw new Error('Empty JSON response')
+            responseBody = JSON.parse(raw)
+          } else if (typeof response.json === 'function') {
+            responseBody = await response.json()
+          } else {
+            throw new Error('JSON response has no parser')
+          }
+        } catch (_error) {
+          throw new C311ApiError({
+            error: 'OPERATION_FAILED',
+            message: `City 311 returned invalid JSON (${response.status})`,
+            retryable: false,
+          }, response.status, responseHeaders)
+        }
+      } else {
+        responseBody = await response.text()
+      }
+    }
 
     if (!response.ok && request.acceptedStatuses?.includes(response.status)) return responseBody as T
 
@@ -180,14 +199,14 @@ export interface C311Provider {
   listReports (query?: ListQuery): Promise<PageResponse<ReportDefinition>>
   getReport (reportID: string): Promise<ReportDefinition>
   createReport (input: ReportDefinition): Promise<ReportDefinition>
-  updateReport (reportID: string, input: Partial<ReportDefinition>, options?: C311RequestOptions): Promise<ReportDefinition>
+  updateReport (reportID: string, input: ReportDefinition, options?: C311RequestOptions): Promise<ReportDefinition>
   runReport (input: { definition: ReportDefinition }): Promise<Operation>
   exportReport (reportID: string, options?: ReportExportOptions): Promise<Operation>
 
   listWorkflows (query?: ListQuery): Promise<PageResponse<WorkflowDefinition>>
   getWorkflow (workflowID: string): Promise<WorkflowDefinition>
   createWorkflow (input: WorkflowDefinition): Promise<WorkflowDefinition>
-  updateWorkflow (workflowID: string, input: Partial<WorkflowDefinition>, options?: C311RequestOptions): Promise<WorkflowDefinition>
+  updateWorkflow (workflowID: string, input: WorkflowDefinition, options?: C311RequestOptions): Promise<WorkflowDefinition>
 }
 
 export class C311HttpProvider implements C311Provider {
@@ -298,8 +317,16 @@ export class C311HttpProvider implements C311Provider {
     return this.request({ method: 'POST', path: `/api/v1/portal/service-requests/${encodeURIComponent(requestID)}/reopen`, body: { reason }, ...this.requestOptions(options, false) })
   }
 
-  getPublicStatus (input: AnonymousStatusLookupRequest): Promise<AnonymousStatusLookupResponse> {
-    return this.request({ method: 'POST', path: '/api/v1/public/service-request-status', body: input, acceptedStatuses: [404] })
+  async getPublicStatus (input: AnonymousStatusLookupRequest): Promise<AnonymousStatusLookupResponse> {
+    const response = await this.request<AnonymousStatusLookupResponse | Record<string, unknown>>({
+      method: 'POST',
+      path: '/api/v1/public/service-request-status',
+      body: input,
+      acceptedStatuses: [404],
+    })
+    return response && Object.prototype.hasOwnProperty.call(response, 'request_detail')
+      ? response as AnonymousStatusLookupResponse
+      : { request_detail: null }
   }
 
   geocode (input: GeocodeRequest): Promise<GeocodeResponse> {
@@ -345,7 +372,7 @@ export class C311HttpProvider implements C311Provider {
     return this.request({ method: 'POST', path: '/api/v1/staff/reports', body: input })
   }
 
-  updateReport (reportID: string, input: Partial<ReportDefinition>, options: C311RequestOptions = {}): Promise<ReportDefinition> {
+  updateReport (reportID: string, input: ReportDefinition, options: C311RequestOptions = {}): Promise<ReportDefinition> {
     return this.request({ method: 'PATCH', path: `/api/v1/staff/reports/${encodeURIComponent(reportID)}`, body: input, ...this.requestOptions(options) })
   }
 
@@ -374,7 +401,7 @@ export class C311HttpProvider implements C311Provider {
     return this.request({ method: 'POST', path: '/api/v1/admin/workflows', body: input })
   }
 
-  updateWorkflow (workflowID: string, input: Partial<WorkflowDefinition>, options: C311RequestOptions = {}): Promise<WorkflowDefinition> {
+  updateWorkflow (workflowID: string, input: WorkflowDefinition, options: C311RequestOptions = {}): Promise<WorkflowDefinition> {
     return this.request({ method: 'PATCH', path: `/api/v1/admin/workflows/${encodeURIComponent(workflowID)}`, body: input, ...this.requestOptions(options) })
   }
 }
