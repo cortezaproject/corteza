@@ -480,7 +480,7 @@
                            the ruled row at the foot. -->
                       <div
                         v-else-if="toolSummary.total"
-                        class="w-fit max-w-xl rounded-border border border-surface p-4 text-sm"
+                        class="w-fit max-w-xl overflow-hidden rounded-border border border-surface text-sm"
                         data-testid="tool-summary"
                       >
                         <!-- Sized by its content rather than by the box, so a
@@ -491,7 +491,7 @@
                             <tr class="text-muted-color">
                               <!-- The subject column heads itself: every cell
                                    under it names one. -->
-                              <th class="border-b border-surface" />
+                              <th class="border-b border-surface pl-4" />
                               <!-- The glyph alone heads the column; what it
                                    counts is the sentence the dialog's own rows
                                    carry, so the two read as one notation. -->
@@ -499,7 +499,7 @@
                                 v-for="col in SUMMARY_COLUMNS"
                                 :key="col"
                                 scope="col"
-                                class="border-b border-surface pb-2 text-center font-normal"
+                                class="border-b border-surface pb-2 pt-4 text-center font-normal"
                                 :class="[columnClass(col), columnLit(col)]"
                                 :aria-label="columnLabel(col)"
                                 @mouseenter="litColumn = col"
@@ -523,7 +523,7 @@
                             >
                               <th
                                 scope="row"
-                                class="py-1 pl-2 pr-2 pt-2 text-left font-normal text-color"
+                                class="py-2 pl-4 pr-2 text-left font-normal text-color"
                               >
                                 {{ subject.label }}
                               </th>
@@ -533,7 +533,7 @@
                               <td
                                 v-for="col in SUMMARY_COLUMNS"
                                 :key="col"
-                                class="py-1 pt-2 text-center tabular-nums"
+                                class="py-2 text-center tabular-nums"
                                 :class="[
                                   columnClass(col),
                                   columnLit(col),
@@ -551,14 +551,14 @@
                             <tr class="font-medium text-color" data-testid="tool-summary-total">
                               <th
                                 scope="row"
-                                class="border-t border-surface pr-2 pt-3 text-left font-medium"
+                                class="border-t border-surface pb-4 pl-4 pr-2 pt-3 text-left font-medium"
                               >
                                 {{ $t('agent.editor.tools.summary.allTools') }}
                               </th>
                               <td
                                 v-for="col in SUMMARY_COLUMNS"
                                 :key="col"
-                                class="border-t border-surface pt-3 text-center tabular-nums"
+                                class="border-t border-surface pb-4 pt-3 text-center tabular-nums"
                                 :class="[
                                   columnClass(col),
                                   columnLit(col),
@@ -1075,8 +1075,14 @@ function columnLit(col) {
 
 // Every column the same width, so a highlight band is the same size whatever
 // number sits in it and the rule keeps half a column of air either side.
+// Every column the same width, so a highlight band is the same size whatever
+// number sits in it and the rule keeps half a column of air either side. The
+// last one carries the table's right inset and is widened by exactly that, so
+// its content still centres on the same rhythm as the rest.
 function columnClass(col) {
-  return col === RISK_MODES[0] ? 'w-16 border-l border-surface' : 'w-16'
+  const last = col === RISK_MODES[RISK_MODES.length - 1]
+  const rule = col === RISK_MODES[0] ? ' border-l border-surface' : ''
+  return (last ? 'w-20 pr-4' : 'w-16') + rule
 }
 
 function columnIcon(col) {
