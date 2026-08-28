@@ -1163,6 +1163,13 @@ func (svc accessControl) Grant(ctx context.Context, rr ...*rbac.Rule) error {
 		}
 	}
 
+	// The ceiling: a permission is passed on, never invented. Enforced here
+	// rather than at each entry point so REST, the MCP tools and anything else
+	// that writes rules carry the same one.
+	if err := rbac.EnforceGrantCeiling(ctx, rr...); err != nil {
+		return err
+	}
+
 	if err := svc.rbac.Grant(ctx, rr...); err != nil {
 		return AccessControlErrGeneric().Wrap(err)
 	}

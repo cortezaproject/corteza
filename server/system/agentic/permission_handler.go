@@ -346,42 +346,12 @@ func callerOperations(ctx context.Context, resource string) []string {
 	return out
 }
 
-// callerHolds answers the one question every write here turns on: does the
-// calling user already have this operation on this resource?
-//
-// It runs the same RBAC evaluation the server runs when the caller performs the
-// operation themselves, which is what makes the boundary structural rather than
-// a rule someone has to remember. Two entry points because one of them refuses
-// half the question:
-//
-//   - Can is the full evaluation, org tree included, and is what a concrete
-//     resource deserves. It answers false for ANY resource carrying a wildcard —
-//     service.checkValidity rejects those outright — so it cannot be the only
-//     path.
-//   - Trace evaluates a wildcard resource honestly: rules are matched with
-//     path.Match against the requested pattern, so a rule at the same or a
-//     broader scope matches and a narrower one does not. That is exactly
-//     "do you hold this at this breadth". It skips the user-group branch, so it
-//     can only under-report, which is the safe direction for a ceiling.
-//
-// Both err towards refusal. A caller wrongly refused loses a grant they could
-// have made by hand; a caller wrongly allowed escalates.
+// callerHolds is the grant ceiling, and it is the same one every permission
+// write goes through — rbac.CanPassOn, which the components' own Grant calls
+// before it writes anything. This tool asks first so the refusal can name the
+// tool that shows what is grantable, rather than arriving from two layers down.
 func callerHolds(ctx context.Context, resource, operation string) bool {
-	svc := rbac.Global()
-	if svc == nil {
-		return false
-	}
-
-	var (
-		ses = rbac.ContextToSession(ctx)
-		res = rbac.NewResource(resource)
-	)
-
-	if svc.Can(ses, operation, res) {
-		return true
-	}
-
-	return svc.Trace(ses, operation, res).Access == rbac.Allow
+	return rbac.CanPassOn(ctx, resource, operation)
 }
 
 // grant writes allow/deny rules.
