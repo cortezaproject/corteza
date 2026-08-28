@@ -56,7 +56,7 @@ under that shape. No static tool may take a numeric resource segment.
 | REST resource          | Tool segment                   | Notes                                                                                                                      |
 | ---------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | `user`                 | `system_user`                  | has `FindByAny`                                                                                                            |
-| `userGroup`            | `system_user_group`            | has `FindByAny`                                                                                                            |
+| `userGroup`            | `system_user_group`            | has `FindByAny`; there is no member removal to map — see below                                                             |
 | `role`                 | `system_role`                  | has `FindByAny`; `role.Membership` is on the §8.6 deny-list                                                                |
 | `authClient`           | `system_auth_client`           | `ExposeSecret`, `RegenerateSecret` and `Create` excluded under §8.6b — they disclose a credential, not for want of a check |
 | `application`          | `system_application`           |                                                                                                                            |
@@ -96,6 +96,14 @@ grandfathered rather than renamed.
 the webapp's theme — rather than derived from a resource that does not exist.
 Any later settings-backed family should follow the same rule and be recorded
 here, so the next author finds a precedent instead of inventing one.
+
+A `system_user_group_member_remove` is absent because the operation does not
+exist: `userGroup` has `memberAdd` and `memberList` and no removal, in the
+service, in `rest.yaml` and in the JS client. A user carries one `UserGroupID`,
+so removal would mean setting it to zero — and a group-less user has the org
+tree turn Inherit into Deny, leaving them only what a role rule explicitly
+allows. Moving a user is `member_add` on the new group. `system_role` is the
+other shape and does have `member_remove`: a user may hold any number of roles.
 
 `system_skill` follows that rule. It maps to no REST resource either: the
 skills are markdown files embedded from `system/agentic/skills/library`, read

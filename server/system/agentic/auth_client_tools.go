@@ -14,7 +14,9 @@ import (
 // that reaches a model's context is in the transcript and in the logs for good.
 // Creation is excluded for the same reason, because the service generates the
 // secret during create and returns it on the new client. See CONVENTIONS.md
-// §8.6b; the gaps are recorded in TOOLS.md.
+// §8.6b; the gaps are recorded in RESOURCES.md, which is where a deliberate
+// omission belongs — TOOLS.md is generated from the registry and can only list
+// what is there.
 //
 // This file holds declarations only. Implementations are in
 // auth_client_handler.go, in the same order.
@@ -29,8 +31,9 @@ func (h *authClientHandler) register() {
 					"configuration; omit it to list, which returns a compact form (ID, handle, name, enabled, "+
 					"isDefault, validFrom, expiresAt, deletedAt). "+
 					"No response from this tool ever includes a client secret, and there is deliberately no "+
-					"tool that reveals or regenerates one — a secret is readable only by a person through the "+
-					"admin UI, so do not offer to fetch it. "+
+					"tool that creates a client, reveals a secret or regenerates one — creating mints a working "+
+					"credential and returns it, so all three are a person's job in the admin UI. Say that rather "+
+					"than looking for another route. "+
 					"Soft-deleted clients are hidden unless you set 'includeDeleted'.",
 			),
 			mcp.WithString("authClient", mcp.Description("Auth client ID as a string, to prevent precision loss, or the client's handle. Omit to list instead.")),
