@@ -1201,7 +1201,7 @@ async function handleSubmit({ valid }) {
 
   saving.value = true
   try {
-    // Clean internal helper properties from tool allow entries before saving
+    // The UI-only keys CInputKnowledgeBase hangs on a namespace context.
     const payload = JSON.parse(
       JSON.stringify(agent.value, (key, value) => {
         if (key === '_moduleOptions' || key === '_loadingModules') return undefined
