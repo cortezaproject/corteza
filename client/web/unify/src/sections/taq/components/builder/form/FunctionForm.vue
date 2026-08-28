@@ -50,19 +50,28 @@ function getValue(argumentName) {
 }
 
 // Get aggregate values as { [target]: { value, scope?, source? } } object (for FieldValueMap)
+//
+// A multi-value field is stored as one Expr per value, all sharing the target —
+// that is what the server folds into a KVV. So a target seen more than once
+// reads back as an array, and one seen once as a plain value.
 function getAggregateValue(argumentName) {
   const exprs = props.arguments.filter(a => a.argumentName === argumentName)
   if (exprs.length === 0) return null
   const result = {}
   for (const expr of exprs) {
-    if (expr.target) {
-      if (expr.scope && expr.expr) {
-        // Reference row
-        result[expr.target] = { value: '', scope: expr.scope, source: expr.expr }
-      } else {
-        // Literal value row
-        result[expr.target] = { value: expr.value ?? expr.expr ?? '' }
-      }
+    if (!expr.target) continue
+    if (expr.scope && expr.expr) {
+      // Reference row
+      result[expr.target] = { value: '', scope: expr.scope, source: expr.expr }
+      continue
+    }
+    // Literal value row
+    const value = expr.value ?? expr.expr ?? ''
+    const seen = result[expr.target]
+    if (seen && !seen.scope) {
+      seen.value = Array.isArray(seen.value) ? [...seen.value, value] : [seen.value, value]
+    } else {
+      result[expr.target] = { value }
     }
   }
   return Object.keys(result).length > 0 ? result : null
@@ -138,14 +147,19 @@ function onUpdate(argumentName, value) {
           value: undefined,
         })
       } else {
-        // Literal value row
+        // Literal value row: one Expr per value, so a multi-value field folds
+        // into a KVV server-side. An emptied list still writes one blank Expr,
+        // which is what keeps the row on screen after a reload.
         const val = rowData && typeof rowData === 'object' ? rowData.value : rowData
-        newArgs.push({
-          argumentName,
-          target,
-          type: 'String',
-          value: val,
-        })
+        const vals = Array.isArray(val) ? (val.length ? val : ['']) : [val]
+        for (const value of vals) {
+          newArgs.push({
+            argumentName,
+            target,
+            type: 'String',
+            value,
+          })
+        }
       }
     }
   } else {
