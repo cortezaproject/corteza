@@ -123,6 +123,9 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 
 	query := toolkit.Str(args, "filter")
 	if mod, mErr := cmpService.DefaultModule.FindByID(ctx, nsID, modID); mErr == nil {
+		if err = checkSelectValues(mod, "record list", query); err != nil {
+			return nil, err
+		}
 		if query, err = resolveRefPaths(ctx, mod, query); err != nil {
 			return nil, err
 		}
@@ -196,6 +199,9 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 	}
 
 	query := toolkit.Str(args, "filter")
+	if err = checkSelectValues(mod, "record report", query); err != nil {
+		return nil, err
+	}
 	if query, err = resolveRefPaths(ctx, mod, query); err != nil {
 		return nil, err
 	}

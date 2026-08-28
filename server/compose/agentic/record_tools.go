@@ -35,6 +35,9 @@ func (h *recordHandler) register() {
 					"A Record field holds the target's ID, so filter it by ID (\"card = '510764704641581057'\") "+
 					"after looking the target up; a path like \"card.name = 'Bolt'\" is resolved for you only for "+
 					"'=' and LIKE, and any other operator on a path is an error. "+
+					"A Select field is compared by the value it stores, never by the label shown in its place "+
+					"(\"stage = 'offer'\", not \"stage = 'Offer'\") — the wrong one is refused, with the legal "+
+					"values listed. "+
 					"Escape an apostrophe inside a literal with a BACKSLASH — \"name = 'Urza\\'s Saga'\". Doubling "+
 					"it the way SQL does is not an escape here and quietly matches nothing.")),
 			mcp.WithString("limit", mcp.Description("Maximum records to return, default 50, capped at 200.")),

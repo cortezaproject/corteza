@@ -934,6 +934,8 @@ func foldBlockOptionAliases(options map[string]any) {
 // Every key of these two names means the same thing wherever it appears, so
 // the rule is the name, not the location.
 func resolveBlockRefs(ctx context.Context, nsID uint64, blocks cmpTypes.PageBlocks) error {
+	load := blockModuleLoader(ctx, nsID)
+
 	for i := range blocks {
 		b := &blocks[i]
 		if b.Options == nil {
@@ -945,8 +947,36 @@ func resolveBlockRefs(ctx context.Context, nsID uint64, blocks cmpTypes.PageBloc
 		if err := resolveRefsIn(ctx, nsID, b.Title, b.Options); err != nil {
 			return err
 		}
+
+		// After the refs, so every moduleID beside a filter is numeric.
+		subject := fmt.Sprintf("block %q (%s)", b.Title, b.Kind)
+		if err := checkBlockFilters(load, subject, b.Options); err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+// blockModuleLoader resolves a module once per ID, since a page's blocks
+// usually filter the same handful.
+func blockModuleLoader(ctx context.Context, nsID uint64) moduleLoader {
+	seen := map[uint64]*cmpTypes.Module{}
+
+	return func(id uint64) *cmpTypes.Module {
+		if id == 0 {
+			return nil
+		}
+		if mod, ok := seen[id]; ok {
+			return mod
+		}
+
+		mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, id)
+		if err != nil {
+			mod = nil
+		}
+		seen[id] = mod
+		return mod
+	}
 }
 
 // resolveRefsIn rewrites every moduleID and chartID under options, at any

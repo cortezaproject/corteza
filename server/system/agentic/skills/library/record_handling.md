@@ -41,3 +41,7 @@ If the namespace or module is not in that section:
 - AND/OR: `status = 'open' AND assignee = 'john'`
 - Contains: `name LIKE '%john%'`
 - String literals use **single quotes**. Variable references use no quotes.
+- A Select field is compared by its stored **value**, never by the label a
+  person sees: `stage = 'offer'`, not `stage = 'Offer'`. The two differ by
+  design, and the wrong one is refused with the legal values listed.
+  `compose_module_lookup` shows every option.

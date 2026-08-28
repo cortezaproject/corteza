@@ -413,6 +413,10 @@ func checkChartModules(ctx context.Context, namespaceID uint64, reports []*cmpTy
 				i+1, r.ModuleID, mod.NamespaceID, namespaceID, "module does not exist",
 			)
 		}
+
+		if err = checkSelectValues(mod, fmt.Sprintf("report %d", i+1), r.Filter); err != nil {
+			return err
+		}
 	}
 
 	return nil
