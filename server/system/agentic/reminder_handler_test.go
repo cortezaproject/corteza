@@ -144,3 +144,48 @@ func TestOptTime(t *testing.T) {
 		assert.Contains(t, err.Error(), "RFC3339")
 	})
 }
+
+func TestReminderPayload(t *testing.T) {
+	t.Run("absent is absent", func(t *testing.T) {
+		out, present, err := reminderPayload(map[string]any{})
+		require.NoError(t, err)
+		assert.False(t, present)
+		assert.Empty(t, out)
+	})
+
+	// The parameter is declared a string and described as a JSON object, so an
+	// object is what a caller sends; reading it as a string stored nothing and
+	// reported success.
+	t.Run("an object is the contents, not nothing", func(t *testing.T) {
+		out, present, err := reminderPayload(map[string]any{"payload": map[string]any{"note": "hello"}})
+		require.NoError(t, err)
+		assert.True(t, present)
+		assert.JSONEq(t, `{"note":"hello"}`, string(out))
+	})
+
+	t.Run("the JSON text of one is the same contents", func(t *testing.T) {
+		out, present, err := reminderPayload(map[string]any{"payload": `{"note":"hello"}`})
+		require.NoError(t, err)
+		assert.True(t, present)
+		assert.JSONEq(t, `{"note":"hello"}`, string(out))
+	})
+
+	t.Run("present and empty clears it", func(t *testing.T) {
+		out, present, err := reminderPayload(map[string]any{"payload": "  "})
+		require.NoError(t, err)
+		assert.True(t, present)
+		assert.Empty(t, string(out))
+	})
+
+	t.Run("text that is not JSON is refused rather than stored", func(t *testing.T) {
+		_, _, err := reminderPayload(map[string]any{"payload": "not json"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not valid JSON")
+	})
+
+	t.Run("a scalar is not a payload", func(t *testing.T) {
+		_, _, err := reminderPayload(map[string]any{"payload": 42.0})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "float64")
+	})
+}

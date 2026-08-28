@@ -2,7 +2,9 @@ package agentic
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
@@ -119,8 +121,12 @@ func (h *reminderHandler) create(ctx context.Context, req mcp.CallToolRequest) (
 	if rm.RemindAt, err = optTime(args, "remindAt"); err != nil {
 		return nil, err
 	}
-	if payload := toolkit.Str(args, "payload"); payload != "" {
-		rm.Payload = types.JSONText(payload)
+	payload, _, err := reminderPayload(args)
+	if err != nil {
+		return nil, err
+	}
+	if len(payload) > 0 {
+		rm.Payload = payload
 	}
 
 	rm, err = sysService.DefaultReminder.Create(ctx, rm)
@@ -150,9 +156,10 @@ func (h *reminderHandler) update(ctx context.Context, req mcp.CallToolRequest) (
 	if v, ok := args["resource"]; ok {
 		rm.Resource, _ = v.(string)
 	}
-	if v, ok := args["payload"]; ok {
-		s, _ := v.(string)
-		rm.Payload = types.JSONText(s)
+	if payload, present, pErr := reminderPayload(args); pErr != nil {
+		return nil, pErr
+	} else if present {
+		rm.Payload = payload
 	}
 	if v, ok := args["remindAt"]; ok {
 		if s, _ := v.(string); s == "" {
@@ -234,6 +241,51 @@ func reminderID(req mcp.CallToolRequest) (uint64, error) {
 		return 0, err
 	}
 	return toolkit.ReqID(args, "reminderID")
+}
+
+// reminderPayload reads the reminder's contents, whether the caller sent them
+// as a JSON object or as the JSON text of one.
+//
+// The parameter is declared a string and described as "JSON object", so an
+// object is what a caller reaches for — and reading it with Str answered "" for
+// anything that was not already a string. The reminder then stored an empty
+// payload, the create reported success, and a reminder whose whole content was
+// that object came back holding nothing.
+//
+// Invalid JSON is refused rather than stored: the column is JSON, and text that
+// is not fails on the way back out, where nothing can say what put it there.
+func reminderPayload(args map[string]any) (out types.JSONText, present bool, err error) {
+	raw, ok := args["payload"]
+	if !ok || raw == nil {
+		return nil, false, nil
+	}
+
+	var buf []byte
+
+	switch v := raw.(type) {
+	case string:
+		// Present and empty clears it, which is how every other optional
+		// argument here spells "remove this".
+		if strings.TrimSpace(v) == "" {
+			return types.JSONText(""), true, nil
+		}
+		buf = []byte(v)
+	case map[string]any, []any:
+		if buf, err = json.Marshal(v); err != nil {
+			return nil, false, fmt.Errorf("payload cannot be encoded: %w", err)
+		}
+	default:
+		return nil, false, fmt.Errorf(
+			"payload is a %T; send a JSON object with the reminder's contents, or the JSON text of one", raw)
+	}
+
+	if !json.Valid(buf) {
+		return nil, false, fmt.Errorf(
+			"payload is not valid JSON: %s. Send a JSON object with the reminder's contents, or the JSON text of one",
+			string(buf))
+	}
+
+	return types.JSONText(buf), true, nil
 }
 
 // optTime parses an optional RFC3339 argument. Absent or empty yields nil
