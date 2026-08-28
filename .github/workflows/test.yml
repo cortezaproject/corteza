@@ -40,11 +40,12 @@ jobs:
       - name: "Build and install current C311 packages"
         run: tools/ci/install-local-c311-packages.sh
       - name: "lib/js unit, types and build"
+        working-directory: lib/js
         run: |
-          corepack yarn --cwd lib/js install --frozen-lockfile
-          corepack yarn --cwd lib/js test:unit
-          corepack yarn --cwd lib/js exec tsc --noEmit
-          corepack yarn --cwd lib/js build
+          corepack yarn install --frozen-lockfile
+          corepack yarn test:unit
+          corepack yarn run tsc --noEmit
+          corepack yarn build
       - name: "lib/vue unit and build"
         run: |
           corepack yarn --cwd lib/vue install --frozen-lockfile
