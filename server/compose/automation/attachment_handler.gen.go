@@ -10,11 +10,12 @@ package automation
 
 import (
 	"context"
+	"io"
+
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
-	"io"
 )
 
 var _ wfexec.ExecResponse
@@ -33,6 +34,7 @@ func (h attachmentHandler) register() {
 		h.Delete(),
 		h.OpenOriginal(),
 		h.OpenPreview(),
+		h.GetBase64(),
 	)
 }
 
@@ -488,6 +490,152 @@ func (h attachmentHandler) OpenPreview() *atypes.Function {
 				if tval, err = h.reg.Type("Reader").Cast(results.Content); err != nil {
 					return
 				} else if err = expr.Assign(out, "content", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+type (
+	attachmentGetBase64Args struct {
+		hasAttachment        bool
+		Attachment           interface{}
+		attachmentID         uint64
+		attachmentAttachment *types.Attachment
+	}
+
+	attachmentGetBase64Results struct {
+		Content   string
+		Name      string
+		Extension string
+		MimeType  string
+	}
+)
+
+func (a attachmentGetBase64Args) GetAttachment() (bool, uint64, *types.Attachment) {
+	return a.hasAttachment, a.attachmentID, a.attachmentAttachment
+}
+
+// GetBase64 function Get attachment as base64 string with metadata
+//
+// expects implementation of getBase64 function:
+//
+//	func (h attachmentHandler) getBase64(ctx context.Context, args *attachmentGetBase64Args) (results *attachmentGetBase64Results, err error) {
+//	   return
+//	}
+func (h attachmentHandler) GetBase64() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "attachmentGetBase64",
+		Kind:   "function",
+		Labels: map[string]string{"attachment": "step,workflow", "base64-attachment": "step"},
+		Meta: &atypes.FunctionMeta{
+			Short:       "Attachment lookup base64 string with metadata",
+			Description: "Reads attachment content and returns it as a base64 encoded string with filename, extension, and mimeType",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "attachment",
+				Types: []string{"ID", "Attachment"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+			{
+				Name:  "content",
+				Types: []string{"String"},
+			},
+			{
+				Name:  "name",
+				Types: []string{"String"},
+			},
+			{
+				Name:  "extension",
+				Types: []string{"String"},
+			},
+			{
+				Name:  "mimeType",
+				Types: []string{"String"},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &attachmentGetBase64Args{
+					hasAttachment: in.Has("attachment"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Attachment argument
+			if args.hasAttachment {
+				aux := expr.Must(expr.Select(in, "attachment"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.attachmentID = aux.Get().(uint64)
+				case h.reg.Type("Attachment").Type():
+					args.attachmentAttachment = aux.Get().(*types.Attachment)
+				}
+			}
+
+			var results *attachmentGetBase64Results
+			if results, err = h.getBase64(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Content (string) to String
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("String").Cast(results.Content); err != nil {
+					return
+				} else if err = expr.Assign(out, "content", tval); err != nil {
+					return
+				}
+			}
+			{
+				// converting results.Name (string) to String
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("String").Cast(results.Name); err != nil {
+					return
+				} else if err = expr.Assign(out, "name", tval); err != nil {
+					return
+				}
+			}
+			{
+				// converting results.Extension (string) to String
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("String").Cast(results.Extension); err != nil {
+					return
+				} else if err = expr.Assign(out, "extension", tval); err != nil {
+					return
+				}
+			}
+			{
+				// converting results.MimeType (string) to String
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("String").Cast(results.MimeType); err != nil {
+					return
+				} else if err = expr.Assign(out, "mimeType", tval); err != nil {
 					return
 				}
 			}
