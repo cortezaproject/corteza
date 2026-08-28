@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
+	"github.com/crusttech/human/server/compose/service/values"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/filter"
@@ -155,7 +156,7 @@ func (h *moduleHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 	if err != nil {
 		return nil, toolkit.Errf("module creation", err)
 	}
-	return toolkit.JSONResultWith(mod, moduleLinks(ctx, mod))
+	return moduleWriteResult(ctx, mod)
 }
 
 func (h *moduleHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -215,7 +216,45 @@ func (h *moduleHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 	if err != nil {
 		return nil, toolkit.Errf("module update", err)
 	}
-	return toolkit.JSONResultWith(mod, moduleLinks(ctx, mod))
+	return moduleWriteResult(ctx, mod)
+}
+
+// moduleWriteResult echoes the stored module and, beside it, whatever its field
+// expressions cannot do.
+//
+// The store accepts an expression it will never be able to evaluate, and the
+// failure lands on the next compose_record_create — worded as if the record
+// were at fault, in a later call and often a later session. Reporting here is
+// the same contract automation_taq_create keeps for an invalid graph: the write
+// succeeds, and 'issues' says what is wrong.
+func moduleWriteResult(ctx context.Context, mod *cmpTypes.Module) (*mcp.CallToolResult, error) {
+	extra := moduleExpressionExtras(ctx, mod)
+	for k, v := range moduleLinks(ctx, mod) {
+		extra[k] = v
+	}
+
+	return toolkit.JSONResultWithAny(mod, extra)
+}
+
+// moduleExpressionExtras is empty for a module whose expressions all work —
+// absence is the clean result, the same way automation_taq_create reports a
+// valid graph.
+func moduleExpressionExtras(ctx context.Context, mod *cmpTypes.Module) map[string]any {
+	extra := make(map[string]any)
+
+	issues := values.ExpressionIssues(ctx, mod)
+	if len(issues) == 0 {
+		return extra
+	}
+
+	extra["issues"] = issues
+	extra["note"] = "The module is stored. Every expression listed under 'issues' with severity " +
+		"'error' fails on every record save until it is fixed with compose_module_update. " +
+		"A value expression reads the record's fields by their bare names (and 'new'/'old' for " +
+		"whole records); a validator reads 'value', 'oldValue' and 'values'. String literals need " +
+		"double quotes."
+
+	return extra
 }
 
 func (h *moduleHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

@@ -48,22 +48,17 @@ func makeInvalidSanitizerExprErr(field *types.ModuleField, expr string, err erro
 	}
 }
 
-// Expression evaluates expression in ModuleField.Expressions.Value and
-// assigns results to the record on that field
-func Expression(ctx context.Context, m *types.Module, r *types.Record, old *types.Record, rve *types.RecordValueErrorSet) {
-	var (
-		exprParser = expr.Parser()
-
-		scope = make(map[string]interface{})
-
-		reserved = map[string]bool{
-			"new": true,
-			"old": true,
-		}
-	)
-
+// ValueExprScope is what a field value expression is evaluated against: every
+// field of the module under its own name, plus `new` and `old` as whole record
+// dictionaries. Nothing else resolves — `record` and a bare `values` are not
+// names this scope carries.
+//
+// The dry run in ExpressionIssues goes through here too, so a check that passes
+// at module save and an evaluation that runs at record save cannot disagree
+// about what is in scope.
+func ValueExprScope(m *types.Module, r *types.Record, old *types.Record) map[string]interface{} {
 	// base scope with field=value(s) from new record
-	scope = r.Values.Dict(m.Fields)
+	scope := r.Values.Dict(m.Fields)
 
 	// new record
 	r.SetModule(m)
@@ -78,6 +73,23 @@ func Expression(ctx context.Context, m *types.Module, r *types.Record, old *type
 	}
 	old.SetModule(m)
 	scope["old"] = old.Dict()
+
+	return scope
+}
+
+// Expression evaluates expression in ModuleField.Expressions.Value and
+// assigns results to the record on that field
+func Expression(ctx context.Context, m *types.Module, r *types.Record, old *types.Record, rve *types.RecordValueErrorSet) {
+	var (
+		exprParser = expr.Parser()
+
+		scope = ValueExprScope(m, r, old)
+
+		reserved = map[string]bool{
+			"new": true,
+			"old": true,
+		}
+	)
 
 fields:
 	for _, f := range m.Fields {
