@@ -156,7 +156,7 @@ func (h *moduleHandler) create(ctx context.Context, req mcp.CallToolRequest) (*m
 	if err != nil {
 		return nil, toolkit.Errf("module creation", err)
 	}
-	return moduleWriteResult(ctx, mod)
+	return moduleWriteResult(ctx, mod, args)
 }
 
 func (h *moduleHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -216,7 +216,7 @@ func (h *moduleHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 	if err != nil {
 		return nil, toolkit.Errf("module update", err)
 	}
-	return moduleWriteResult(ctx, mod)
+	return moduleWriteResult(ctx, mod, args)
 }
 
 // moduleWriteResult echoes the stored module and, beside it, whatever its field
@@ -227,13 +227,27 @@ func (h *moduleHandler) update(ctx context.Context, req mcp.CallToolRequest) (*m
 // were at fault, in a later call and often a later session. Reporting here is
 // the same contract automation_taq_create keeps for an invalid graph: the write
 // succeeds, and 'issues' says what is wrong.
-func moduleWriteResult(ctx context.Context, mod *cmpTypes.Module) (*mcp.CallToolResult, error) {
+func moduleWriteResult(ctx context.Context, mod *cmpTypes.Module, args map[string]any) (*mcp.CallToolResult, error) {
 	extra := moduleExpressionExtras(ctx, mod)
 	for k, v := range moduleLinks(ctx, mod) {
 		extra[k] = v
 	}
 
-	return toolkit.JSONResultWithAny(mod, extra)
+	// Summary by default, the same projection the lookup serves. A caller that
+	// has just written a module is confirming what it asked for; the storage
+	// configuration it never sent is thousands of tokens of answer to a question
+	// nobody asked. detail=full is for the case that needs the field IDs.
+	if strings.EqualFold(toolkit.Str(args, "detail"), "full") {
+		return toolkit.JSONResultWithAny(mod, extra)
+	}
+
+	// The lookup's note explains the omission to a reader; a writer needs to
+	// know the write is complete regardless of what it can see here.
+	out := moduleSummary(mod)
+	out["note"] = "The whole module is stored. Field storage detail (fieldID, timestamps, " +
+		"DAL config) is omitted from this response only; pass detail=\"full\" if you need the field IDs."
+
+	return toolkit.JSONResultWithAny(out, extra)
 }
 
 // moduleExpressionExtras is empty for a module whose expressions all work —

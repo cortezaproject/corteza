@@ -37,6 +37,17 @@ var fieldsParamDoc = fmt.Sprintf(
 	strings.Join(cmpTypes.ModuleFieldKinds, ", "),
 )
 
+// writeDetailDoc is the same knob compose_module_lookup carries, on the two
+// tools that write. A module echoed whole is a few thousand tokens of storage
+// configuration per call — every field's DAL encoding strategy, privacy block
+// and revision flag — and a caller that has just written the module wants
+// confirmation of what it asked for, not the storage it did not.
+const writeDetailDoc = `How much of the stored module to echo back. "summary" (the default) ` +
+	`confirms what was written — handle, name, and each field's name, kind, label, ` +
+	`required/multi, select options and value expression. "full" adds every field's ID, ` +
+	`timestamps and DAL storage config, which is thousands of tokens and is only useful when ` +
+	`you need the field IDs. Issues with a field expression are reported either way.`
+
 // The four expression slots do not share a scope and two of them are not
 // predicates at all, so writing one from the shape of another produces a module
 // that stores clean and misbehaves at record save. Everything here is stated
@@ -116,6 +127,7 @@ func (h *moduleHandler) register() {
 			mcp.WithString("handle", mcp.Required(), mcp.Description("URL-friendly identifier (lowercase letters, digits, and underscores only)")),
 			mcp.WithString("fields", mcp.Description(fieldsParamDoc)),
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. Supports: recordDeDup (duplicate detection), recordRevisions (audit trail), privacy (data sensitivity). Rules live under a "rules" array — a bare rule object is accepted and silently stored as {}. Example: {"recordDeDup":{"rules":[{"name":"unique-email","strict":true,"constraints":[{"attribute":"email","modifier":"ignore-case|case-sensitive|fuzzy-match|sounds-like","multiValue":"one-of|equal"}]}]},"recordRevisions":{"enabled":true},"privacy":{"usageDisclosure":"text","sensitivityLevelID":"123"}}`)),
+			mcp.WithString("detail", mcp.Description(writeDetailDoc)),
 			moduleKeywords,
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
@@ -142,6 +154,7 @@ func (h *moduleHandler) register() {
 			mcp.WithString("fields", mcp.Description("JSON array of fields to add or update. Same format as compose_module_create. Existing fields not listed are preserved. "+expressionsDoc)),
 			mcp.WithString("removeFields", mcp.Description("JSON array of field names to remove, e.g. [\"fieldA\",\"fieldB\"]")),
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. Replaces the existing config. Supports: recordDeDup (duplicate detection), recordRevisions (audit trail), privacy (data sensitivity). Example: {"recordDeDup":{"rules":[{"name":"unique-email","strict":true,"constraints":[{"attribute":"email","modifier":"ignore-case"}]}]},"recordRevisions":{"enabled":true},"privacy":{"usageDisclosure":"Used for customer contact only"}}`)),
+			mcp.WithString("detail", mcp.Description(writeDetailDoc)),
 			moduleKeywords,
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
