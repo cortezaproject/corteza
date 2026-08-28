@@ -30,9 +30,36 @@ var fieldsParamDoc = fmt.Sprintf(
 		`(precision rounds what is STORED; display comes from format, so precision alone drops the `+
 		`decimals it kept), `+
 		`DateTime→{"onlyDate":false,"onlyTime":false}, Bool→{"trueLabel":"Yes","falseLabel":"No"}, `+
-		`Geometry→{"center":[46.05,14.51],"zoom":7}.`,
+		`Geometry→{"center":[46.05,14.51],"zoom":7}. `+
+		`"defaultValue" fills the field when a record is created without it; the "name" key is `+
+		`optional and is stored empty, because the field already says which field it is for. `+
+		expressionsDoc,
 	strings.Join(cmpTypes.ModuleFieldKinds, ", "),
 )
+
+// The four expression slots do not share a scope and two of them are not
+// predicates at all, so writing one from the shape of another produces a module
+// that stores clean and misbehaves at record save. Everything here is stated
+// because a caller with only these tools has nowhere else to read it.
+const expressionsDoc = `EXPRESSIONS. Each slot gets a different scope. ` +
+	`String literals need DOUBLE quotes — a single-quoted string is a syntax error. ` +
+	`"value" (the field value expression) sees the record's own fields by their BARE names ` +
+	`(stage != "hired" && stage != "rejected"), plus "new" and "old" as whole records ` +
+	`(new.values.stage, new.recordID, old.values.stage; on a create every "old" field is null). ` +
+	`There is no "record" and no bare "values" — record.values.stage fails every save with ` +
+	`'unknown parameter record.values'. A value expression OVERWRITES whatever the caller sent ` +
+	`for that field, so do not send it. "isRequired" on such a field means the expression must ` +
+	`produce a value, not that a caller must supply one. ` +
+	`"validators":[{"test":"…","error":"…"}] — test sees "value" (the value being saved, as a ` +
+	`string), "oldValue" and "values.<field>". READ THIS ONE TWICE: test names the condition ` +
+	`under which the value is REJECTED. test "value >= 0 && value <= 5" REFUSES 3 and stores 7 — ` +
+	`the exact opposite of what it reads like, while showing an error message asserting the ` +
+	`range. Write the rule you want as its rejection: "value < 0 || value > 5". ` +
+	`"sanitizers" and "formatters" are transforms, not tests: each sees only "value" and its ` +
+	`RESULT REPLACES the value — trim(value), toUpper(value). A sanitizer runs before ` +
+	`validation and is stored; a formatter runs on the way out. ` +
+	`The write result reports what cannot work under "issues"; no "issues" key is the clean ` +
+	`result.`
 
 // Declarations only. Implementations are in module_handler.go, in this order.
 
@@ -99,7 +126,7 @@ func (h *moduleHandler) register() {
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("name", mcp.Description("New display name for the module")),
 			mcp.WithString("handle", mcp.Description("New handle for the module. Use snake_case (lowercase letters, digits, underscores); a hyphen is the subtraction operator wherever an identifier is parsed.")),
-			mcp.WithString("fields", mcp.Description("JSON array of fields to add or update. Same format as compose_module_create. Existing fields not listed are preserved.")),
+			mcp.WithString("fields", mcp.Description("JSON array of fields to add or update. Same format as compose_module_create. Existing fields not listed are preserved. "+expressionsDoc)),
 			mcp.WithString("removeFields", mcp.Description("JSON array of field names to remove, e.g. [\"fieldA\",\"fieldB\"]")),
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. Replaces the existing config. Supports: recordDeDup (duplicate detection), recordRevisions (audit trail), privacy (data sensitivity). Example: {"recordDeDup":{"rules":[{"name":"unique-email","strict":true,"constraints":[{"attribute":"email","modifier":"ignore-case"}]}]},"recordRevisions":{"enabled":true},"privacy":{"usageDisclosure":"Used for customer contact only"}}`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),

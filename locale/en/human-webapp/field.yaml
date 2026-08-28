@@ -317,14 +317,15 @@ translate:
   label: Translate field
 unselectAll: Unselect all
 validators:
-  description: Set of expressions and error pairs that test validity of the input value
+  # vue-i18n reads a bare | as the plural separator, so the operator is a literal
+  description: "Each expression names the condition under which the value is rejected, not the rule the value has to satisfy. To allow 0 to 5, write value < 0 {'||'} value > 5. The message beside it is shown when the expression comes out true."
   disableBuiltIn: Disable built-in validators
   error:
-    placeholder: Text displayed when expression is true
-    tooltip: Warning text
+    placeholder: Message shown when the expression beside it is true
+    tooltip: Message shown when the value is rejected
   expression:
-    placeholder: value == ""
-    tooltip: Expression
+    placeholder: "value < 0 {'||'} value > 5"
+    tooltip: Condition under which the value is rejected
   label: Value validation
 valueExpr:
   description: Insert a formula or expression that calculates numeric values or combines and manipulates text values
