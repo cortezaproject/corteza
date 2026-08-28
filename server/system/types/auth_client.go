@@ -88,13 +88,17 @@ func (set AuthClientSet) FindByHandle(handle string) *AuthClient {
 	return nil
 }
 
+// Verify reports whether the client may be used to obtain a token right now.
+//
+// A window is a window: the client is usable from ValidFrom until ExpiresAt,
+// and outside that it is not.
 func (r *AuthClient) Verify() error {
 	switch {
 	case r == nil || !r.Enabled:
 		return fmt.Errorf("disabled")
-	case r.ExpiresAt != nil && r.ExpiresAt.After(time.Now()):
+	case r.ExpiresAt != nil && r.ExpiresAt.Before(time.Now()):
 		return fmt.Errorf("expired")
-	case r.ValidFrom != nil && r.ValidFrom.Before(time.Now()):
+	case r.ValidFrom != nil && r.ValidFrom.After(time.Now()):
 		return fmt.Errorf("not yet valid")
 	}
 
