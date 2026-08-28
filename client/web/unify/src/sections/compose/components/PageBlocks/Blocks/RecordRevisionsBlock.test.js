@@ -88,6 +88,25 @@ describe('RecordRevisionsBlock', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
+  it('says there is no record rather than offering an inert read', async () => {
+    const fetch = vi.fn(() => Promise.resolve([]))
+    const w = mountBlock(fetch, { record: null })
+    await flushPromises()
+
+    expect(w.text()).toContain('block.recordRevisions.viewer.errors.no-record')
+    expect(w.text()).not.toContain('block.recordRevisions.viewer.show-revisions')
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('treats an unsaved record as having no history yet', async () => {
+    const fetch = vi.fn(() => Promise.resolve([]))
+    const w = mountBlock(fetch, { record: { recordID: '0', revision: 0 } })
+    await flushPromises()
+
+    expect(w.text()).toContain('block.recordRevisions.viewer.errors.no-record')
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
   it('labels a change with the module field label and carries its definition', async () => {
     const fetch = vi.fn(() =>
       Promise.resolve([

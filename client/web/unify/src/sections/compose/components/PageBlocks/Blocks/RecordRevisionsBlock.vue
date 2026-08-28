@@ -17,6 +17,14 @@
         {{ $t('block.recordRevisions.viewer.errors.disabled-on-module') }}
       </div>
 
+      <!-- No record to have a history: a non-record page, or the builder -->
+      <div
+        v-else-if="!hasRecord"
+        class="flex items-center justify-center h-full p-3 text-muted-color italic"
+      >
+        {{ $t('block.recordRevisions.viewer.errors.no-record') }}
+      </div>
+
       <!-- Loading -->
       <div v-else-if="loading" class="flex items-center justify-center h-full">
         <ProgressSpinner style="width: 28px; height: 28px" />
@@ -187,6 +195,10 @@ const options = computed(() => props.block.options || {})
 const preloadRevisions = computed(() => options.value.preload)
 const canSearchRevisions = computed(() => props.record?.canSearchRevisions !== false)
 
+// A record that was never saved has no history to read, and neither has a page
+// that carries no record at all.
+const hasRecord = computed(() => !!props.record?.recordID && props.record.recordID !== '0')
+
 // The module the page is built on: it holds the field definitions the changes
 // are written against, and the switch that decides whether revisions exist.
 const pageModule = computed(() => {
@@ -254,7 +266,7 @@ function onRowClick({ data }) {
 }
 
 async function loadRevisions() {
-  if (!$ComposeAPI || !props.record?.recordID || props.record.recordID === '0') {
+  if (!$ComposeAPI || !hasRecord.value) {
     return
   }
 
