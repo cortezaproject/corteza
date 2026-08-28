@@ -186,20 +186,26 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		return h.lookupByIDs(ctx, nsID, modID, ids)
 	}
 
+	// One module load for the four things that need it: the Select check, the
+	// reference paths in the filter, the sort columns and the reference labels.
+	mod, _ := cmpService.DefaultModule.FindByID(ctx, nsID, modID)
+
 	query := toolkit.Str(args, "filter")
-	if mod, mErr := cmpService.DefaultModule.FindByID(ctx, nsID, modID); mErr == nil {
-		if err = checkSelectValues(mod, "record list", query); err != nil {
-			return nil, err
-		}
-		if query, err = resolveRefPaths(ctx, mod, query); err != nil {
-			return nil, err
-		}
+	if err = checkSelectValues(mod, "record list", query); err != nil {
+		return nil, err
+	}
+	if query, err = resolveRefPaths(ctx, mod, query); err != nil {
+		return nil, err
 	}
 
 	f := cmpTypes.RecordFilter{
 		NamespaceID: nsID,
 		ModuleID:    modID,
 		Query:       query,
+	}
+
+	if err = applyRecordSort(&f, mod, toolkit.Str(args, "sort")); err != nil {
+		return nil, err
 	}
 
 	// Records are returned in full rather than as a slim projection: unlike a
@@ -225,10 +231,8 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		"records":        set,
 		"nextPageCursor": out.NextPage,
 	}
-	if mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID); err == nil {
-		if refs := refLabels(ctx, mod, set); refs != nil {
-			res["refs"] = refs
-		}
+	if refs := refLabels(ctx, mod, set); refs != nil {
+		res["refs"] = refs
 	}
 
 	return toolkit.JSONResult(res)
@@ -330,6 +334,63 @@ func reportError(ctx context.Context, nsID, modID uint64, err error) error {
 // — which reads so naturally that a model writes it twice before giving up.
 // The store's own answer, "unknown attribute", says which name failed and
 // nothing about what would have worked.
+// recordSortColumns are the columns a record has beside its module's fields.
+// 'recordID' is taken as a synonym for 'ID' — the rest of this surface calls it
+// recordID and the store does not.
+var recordSortColumns = []string{
+	"ID", "moduleID", "namespaceID", "revision", "ownedBy",
+	"createdAt", "createdBy", "updatedAt", "updatedBy", "deletedAt", "deletedBy",
+}
+
+// applyRecordSort puts the caller's ordering on the filter.
+//
+// Ordering is the store's job: without it a caller after the ten newest rows
+// reads every page and orders them itself, which the result ceiling stops it
+// doing on any module big enough to want ordering.
+//
+// A bare column is checked against the module before the query runs, because
+// the store answers an unknown one with the same "unknown attribute" a filter
+// produces — sending a caller whose sort was wrong to look at a filter that is
+// fine. An expression carrying a modifier is left to the store, which is the
+// only thing that knows what the modifier accepts.
+func applyRecordSort(f *cmpTypes.RecordFilter, mod *cmpTypes.Module, expr string) error {
+	if strings.TrimSpace(expr) == "" {
+		return nil
+	}
+
+	if err := f.Sort.Set(expr); err != nil {
+		return fmt.Errorf("invalid sort %q: %w", expr, err)
+	}
+
+	known := make(map[string]struct{}, len(recordSortColumns))
+	for _, c := range recordSortColumns {
+		known[c] = struct{}{}
+	}
+	if mod != nil {
+		for _, fld := range mod.Fields {
+			known[fld.Name] = struct{}{}
+		}
+	}
+
+	for _, e := range f.Sort {
+		if strings.EqualFold(e.Column, "recordID") {
+			e.SetColumns("ID")
+		}
+
+		if mod == nil || e.Modifier() != "" {
+			continue
+		}
+
+		if _, ok := known[e.Column]; !ok {
+			return fmt.Errorf(
+				"cannot sort by %q: this module has no such field. Fields: %s. Record columns: %s",
+				e.Column, moduleFieldNamesOf(mod), strings.Join(recordSortColumns, ", "))
+		}
+	}
+
+	return nil
+}
+
 func fieldNameError(ctx context.Context, subject string, nsID, modID uint64, err error) error {
 	names := moduleFieldNames(ctx, nsID, modID)
 	if names == "" || !strings.Contains(err.Error(), "unknown attribute") {
@@ -349,6 +410,14 @@ func moduleFieldNames(ctx context.Context, nsID, modID uint64) string {
 
 	mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID)
 	if err != nil || mod == nil {
+		return ""
+	}
+
+	return moduleFieldNamesOf(mod)
+}
+
+func moduleFieldNamesOf(mod *cmpTypes.Module) string {
+	if mod == nil {
 		return ""
 	}
 

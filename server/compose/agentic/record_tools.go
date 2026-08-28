@@ -40,6 +40,12 @@ func (h *recordHandler) register() {
 					"values listed. "+
 					"Escape an apostrophe inside a literal with a BACKSLASH — \"name = 'Urza\\'s Saga'\". Doubling "+
 					"it the way SQL does is not an escape here and quietly matches nothing.")),
+			mcp.WithString("sort", mcp.Description(
+				"Order the records, e.g. \"created_at DESC\" or \"stage, amount DESC\". Names a field on this "+
+					"module, or one of recordID, createdAt, updatedAt, ownedBy — not a dotted path through a "+
+					"Record reference. Ordering happens in the database, so use it with 'limit' to ask for a "+
+					"top-N directly instead of paging the whole module and ordering the rows yourself. "+
+					"A 'pageCursor' carries the sort that produced it: pass the same expression or none.")),
 			mcp.WithString("limit", mcp.Description("Maximum records to return, default 50, capped at 200.")),
 			mcp.WithString("pageCursor", mcp.Description("Cursor from a previous response, to fetch the next page.")),
 			hmcp.InGroup(hmcp.GroupUsage),
