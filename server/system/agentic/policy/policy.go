@@ -377,6 +377,12 @@ var resourceScopeExempt = map[string]bool{
 	"system_chatbot_undelete":       true,
 	"system_chatbot_regenerate_key": true,
 
+	// An LLM provider is one instance-wide connection to a model vendor. There
+	// is no namespace or module for checkAllow to narrow on, and the only
+	// service method behind the tool is Search, which checks
+	// CanSearchLlmProviders itself.
+	"system_llm_provider_lookup": true,
+
 	// TAQ authoring. Classified with lookup rather than with exec for the same
 	// reason undelete is: it changes what an automation is, not which one runs.
 	// A TAQ carries no compose namespace or module dimension for checkAllow to

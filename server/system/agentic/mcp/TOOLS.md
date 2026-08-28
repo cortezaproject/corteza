@@ -15,7 +15,7 @@ rather than to Human, and are added to the MCP server directly
 (`pkg/mcpkit/server.go`, `registerMetaTools`). A `tools/list` returns them
 too, so a live listing is two longer than this table.
 
-## Registered tools (119)
+## Registered tools (120)
 
 | Tool | Group | Risk | Surface |
 |---|---|---|---|
@@ -98,6 +98,7 @@ too, so a live listing is two longer than this table.
 | `system_chatbot_regenerate_key` | configuring | write | both |
 | `system_chatbot_undelete` | configuring | write | both |
 | `system_chatbot_update` | configuring | write | both |
+| `system_llm_provider_lookup` | configuring | read | both |
 | `system_permission_grant` | configuring | write | both |
 | `system_permission_lookup` | configuring | read | both |
 | `system_permission_revoke` | configuring | destructive | both |
@@ -151,9 +152,9 @@ Present in the table above, but not on every instance.
 
 | Dimension | Value | Tools |
 |---|---|---|
-| group | configuring | 97 |
+| group | configuring | 98 |
 | group | configuring, usage | 4 |
 | group | usage | 18 |
 | risk | destructive | 19 |
-| risk | read | 31 |
+| risk | read | 32 |
 | risk | write | 69 |

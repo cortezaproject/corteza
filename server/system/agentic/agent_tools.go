@@ -28,7 +28,7 @@ const (
 	agentExecutionDoc = `JSON object: which model runs it and how far it may go. ` +
 		`{"model":{"llmProviderID":"<id>","model":"claude-sonnet-5","temperature":0.2},"limits":{"maxIterations":10,"timeout":"5m","softLimitRatio":0.8,"contextWindow":200000,"outputTokens":8192}}. ` +
 		`'timeout' is a Go duration string. 'contextWindow' is NOT the model's window: it is a cumulative token budget for the whole conversation, checked after each iteration and across turns, and 'softLimitRatio' is the fraction of it at which the agent is told to wrap up. ` +
-		`Omitting 'llmProviderID' picks the instance's provider when there is exactly one, and fails naming the candidates when there are several. ` +
+		`Omitting 'llmProviderID' is resolved when the agent RUNS, not when it is written: the instance's sole active provider is used, and where there are several the run fails naming them. So an agent created without one reads back with an empty 'model' object and is not necessarily broken — system_llm_provider_lookup says which case this instance is in, and is where an ID and a model name come from. ` +
 		`Sending a 'temperature' makes the server call the provider to check it, which also validates 'llmProviderID' and the model name — an unrecognised model fails with the provider's own error. Omit temperature and none of that is checked: the model name is stored as given.`
 
 	agentAccessDoc = `JSON object: what the agent may reach. ` +
@@ -80,8 +80,9 @@ func (h *agentHandler) register() {
 				"Create an AI agent. "+agentSectionDoc+" "+
 					"A new agent is 'active' unless you say otherwise, and with no tools in 'access' it "+
 					"answers from its prompt alone, reaching nothing — grant it something in the same "+
-					"call. Name a model in 'execution.model' unless this instance has exactly one LLM "+
-					"provider, which is then used. "+
+					"call. Name a provider and a model in 'execution.model' — system_llm_provider_lookup lists "+
+					"both — unless this instance has exactly one LLM provider, which is resolved at run "+
+					"time and leaves 'execution.model' empty until then. "+
 					"To let people talk to it in a widget, create a chatbot with a conversation scenario "+
 					"pointing at this agent — system_chatbot_create.",
 			),

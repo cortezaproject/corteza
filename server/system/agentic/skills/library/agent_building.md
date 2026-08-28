@@ -8,6 +8,7 @@ triggers:
   - system_chatbot_create
   - system_chatbot_update
   - system_chatbot_lookup
+  - system_llm_provider_lookup
 ---
 
 # Agents and chatbots
@@ -45,8 +46,18 @@ namespace and turns on the platform context. It is **ignored when you also send
 `access`**, and it grants no tool on its own. Sending both leaves
 `injectSystemContext` false, which is usually not what was meant.
 
-Name a model in `execution.model` unless the instance has exactly one LLM
-provider, which is then used.
+## The model is resolved when the agent runs
+
+`system_llm_provider_lookup` lists the providers this instance has and, with
+`models` set, the model names a provider advertises. Both go in
+`execution.model`.
+
+Leaving `llmProviderID` out is not an error and not a default written at
+create: it is resolved on each run. One active provider and that one is used;
+several and the run fails naming them. So an agent read back with an empty
+`execution.model` is normal on a single-provider instance and a failure waiting
+to happen on any other — which is why the provider list is worth reading before
+deciding to omit it.
 
 ## Three things decide whether the chatbot answers
 
