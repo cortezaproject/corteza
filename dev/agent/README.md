@@ -147,6 +147,11 @@ DOM as it is; use a visibility assertion when visibility is the question.
 
 - **Trailing slash matters** on collection endpoints: `/system/users/` works,
   `/system/users` is a 404 (chi routing).
+- **`DOMAIN_WEBAPP` is where MCP tool results say to go.** `server/pkg/weburl`
+  builds every `url`/`editUrl` a tool result carries from it. Here the webapp is
+  vite's port, not the API's, so `server/.env` needs `DOMAIN_WEBAPP=localhost:5173`
+  on the primary (`worktree.sh new` writes the slot's own vite port). Without
+  it the links come back pointing at the API, which does not serve the webapp.
 - **Errors come back as HTTP 200** with `{"error":{"message":…}}` — `api.sh`
   detects this and exits non-zero.
 - **Automation `input` takes only typed envelopes.** `ngAutomationExec`,
