@@ -214,6 +214,102 @@ type (
 		DeletedBy    uint64                          `db:"deleted_by"`
 	}
 
+	// auxCity311ActorProfile is an auxiliary structure used for transporting to/from RDBMS store
+	auxCity311ActorProfile struct {
+		ID               uint64                                `db:"id"`
+		ApplicationRoles composeType.City311ApplicationRoleSet `db:"application_roles"`
+		Department       composeType.DepartmentCode            `db:"department"`
+		Districts        composeType.City311DistrictCodeSet    `db:"districts"`
+		CreatedAt        time.Time                             `db:"created_at"`
+		UpdatedAt        time.Time                             `db:"updated_at"`
+	}
+
+	// auxCity311AuditEvent is an auxiliary structure used for transporting to/from RDBMS store
+	auxCity311AuditEvent struct {
+		ID            uint64                     `db:"id"`
+		RequestID     uint64                     `db:"request_id"`
+		EventType     string                     `db:"event_type"`
+		ActorType     composeType.AuditActorType `db:"actor_type"`
+		ActorID       uint64                     `db:"actor_id"`
+		SourceChannel composeType.SourceChannel  `db:"source_channel"`
+		Before        composeType.City311JSON    `db:"before"`
+		After         composeType.City311JSON    `db:"after"`
+		CreatedAt     time.Time                  `db:"created_at"`
+	}
+
+	// auxCity311Constituent is an auxiliary structure used for transporting to/from RDBMS store
+	auxCity311Constituent struct {
+		ID               uint64                     `db:"id"`
+		ConstituentID    string                     `db:"constituent_id"`
+		Profile          composeType.City311JSON    `db:"profile"`
+		OwningDepartment composeType.DepartmentCode `db:"owning_department"`
+		CouncilDistrict  composeType.DistrictCode   `db:"council_district"`
+		CreatedAt        time.Time                  `db:"created_at"`
+		UpdatedAt        time.Time                  `db:"updated_at"`
+	}
+
+	// auxCity311IdempotencyRecord is an auxiliary structure used for transporting to/from RDBMS store
+	auxCity311IdempotencyRecord struct {
+		ID             uint64                  `db:"id"`
+		Operation      string                  `db:"operation"`
+		KeyHash        string                  `db:"key_hash"`
+		RequestHash    string                  `db:"request_hash"`
+		ResponseStatus int                     `db:"response_status"`
+		ResponseBody   composeType.City311JSON `db:"response_body"`
+		RequestID      uint64                  `db:"request_id"`
+		CreatedAt      time.Time               `db:"created_at"`
+		ExpiresAt      time.Time               `db:"expires_at"`
+	}
+
+	// auxCity311PublicHistoryItem is an auxiliary structure used for transporting to/from RDBMS store
+	auxCity311PublicHistoryItem struct {
+		ID                    uint64                     `db:"id"`
+		RequestID             uint64                     `db:"request_id"`
+		Action                string                     `db:"action"`
+		ResponsibleDepartment composeType.DepartmentCode `db:"responsible_department"`
+		OccurredAt            time.Time                  `db:"occurred_at"`
+	}
+
+	// auxCity311RequestAttachment is an auxiliary structure used for transporting to/from RDBMS store
+	auxCity311RequestAttachment struct {
+		ID        uint64    `db:"id"`
+		RequestID uint64    `db:"request_id"`
+		Filename  string    `db:"filename"`
+		MediaType string    `db:"media_type"`
+		Size      uint64    `db:"size"`
+		Content   []byte    `db:"content"`
+		CreatedAt time.Time `db:"created_at"`
+	}
+
+	// auxCity311RequestSequence is an auxiliary structure used for transporting to/from RDBMS store
+	auxCity311RequestSequence struct {
+		ID         uint64 `db:"id"`
+		NextNumber uint64 `db:"next_number"`
+	}
+
+	// auxCity311ServiceRequest is an auxiliary structure used for transporting to/from RDBMS store
+	auxCity311ServiceRequest struct {
+		ID                uint64                           `db:"id"`
+		RequestNumber     string                           `db:"request_number"`
+		Summary           string                           `db:"summary"`
+		Description       string                           `db:"description"`
+		ServiceType       composeType.ServiceType          `db:"service_type"`
+		OwningDepartment  composeType.DepartmentCode       `db:"owning_department"`
+		CouncilDistrict   composeType.DistrictCode         `db:"council_district"`
+		SourceChannel     composeType.SourceChannel        `db:"source_channel"`
+		OriginClass       composeType.OriginClass          `db:"origin_class"`
+		Status            composeType.ServiceRequestStatus `db:"status"`
+		PrimaryRequester  composeType.City311JSON          `db:"primary_requester"`
+		Location          composeType.City311JSON          `db:"location"`
+		CustomFields      composeType.City311JSON          `db:"custom_fields"`
+		PrimaryAssigneeID uint64                           `db:"primary_assignee_id"`
+		CollaboratorIDs   composeType.City311Uint64Set     `db:"collaborator_ids"`
+		DuplicateGroupID  string                           `db:"duplicate_group_id"`
+		Version           int                              `db:"version"`
+		CreatedAt         time.Time                        `db:"created_at"`
+		UpdatedAt         time.Time                        `db:"updated_at"`
+	}
+
 	// auxComposeAttachment is an auxiliary structure used for transporting to/from RDBMS store
 	auxComposeAttachment struct {
 		ID          uint64                     `db:"id"`
@@ -1387,6 +1483,382 @@ func (aux *auxAutomationWorkflow) scan(row scanner) error {
 		&aux.CreatedBy,
 		&aux.UpdatedBy,
 		&aux.DeletedBy,
+	)
+}
+
+// encodes City311ActorProfile to auxCity311ActorProfile
+//
+// This function is auto-generated
+func (aux *auxCity311ActorProfile) encode(res *composeType.City311ActorProfile) (_ error) {
+	aux.ID = res.ID
+	aux.ApplicationRoles = res.ApplicationRoles
+	aux.Department = res.Department
+	aux.Districts = res.Districts
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	return
+}
+
+// decodes City311ActorProfile from auxCity311ActorProfile
+//
+// This function is auto-generated
+func (aux auxCity311ActorProfile) decode() (res *composeType.City311ActorProfile, _ error) {
+	res = new(composeType.City311ActorProfile)
+	res.ID = aux.ID
+	res.ApplicationRoles = aux.ApplicationRoles
+	res.Department = aux.Department
+	res.Districts = aux.Districts
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	return
+}
+
+// scans row and fills auxCity311ActorProfile fields
+//
+// This function is auto-generated
+func (aux *auxCity311ActorProfile) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.ApplicationRoles,
+		&aux.Department,
+		&aux.Districts,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+	)
+}
+
+// encodes City311AuditEvent to auxCity311AuditEvent
+//
+// This function is auto-generated
+func (aux *auxCity311AuditEvent) encode(res *composeType.City311AuditEvent) (_ error) {
+	aux.ID = res.ID
+	aux.RequestID = res.RequestID
+	aux.EventType = res.EventType
+	aux.ActorType = res.ActorType
+	aux.ActorID = res.ActorID
+	aux.SourceChannel = res.SourceChannel
+	aux.Before = res.Before
+	aux.After = res.After
+	aux.CreatedAt = res.CreatedAt
+	return
+}
+
+// decodes City311AuditEvent from auxCity311AuditEvent
+//
+// This function is auto-generated
+func (aux auxCity311AuditEvent) decode() (res *composeType.City311AuditEvent, _ error) {
+	res = new(composeType.City311AuditEvent)
+	res.ID = aux.ID
+	res.RequestID = aux.RequestID
+	res.EventType = aux.EventType
+	res.ActorType = aux.ActorType
+	res.ActorID = aux.ActorID
+	res.SourceChannel = aux.SourceChannel
+	res.Before = aux.Before
+	res.After = aux.After
+	res.CreatedAt = aux.CreatedAt
+	return
+}
+
+// scans row and fills auxCity311AuditEvent fields
+//
+// This function is auto-generated
+func (aux *auxCity311AuditEvent) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.RequestID,
+		&aux.EventType,
+		&aux.ActorType,
+		&aux.ActorID,
+		&aux.SourceChannel,
+		&aux.Before,
+		&aux.After,
+		&aux.CreatedAt,
+	)
+}
+
+// encodes City311Constituent to auxCity311Constituent
+//
+// This function is auto-generated
+func (aux *auxCity311Constituent) encode(res *composeType.City311Constituent) (_ error) {
+	aux.ID = res.ID
+	aux.ConstituentID = res.ConstituentID
+	aux.Profile = res.Profile
+	aux.OwningDepartment = res.OwningDepartment
+	aux.CouncilDistrict = res.CouncilDistrict
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	return
+}
+
+// decodes City311Constituent from auxCity311Constituent
+//
+// This function is auto-generated
+func (aux auxCity311Constituent) decode() (res *composeType.City311Constituent, _ error) {
+	res = new(composeType.City311Constituent)
+	res.ID = aux.ID
+	res.ConstituentID = aux.ConstituentID
+	res.Profile = aux.Profile
+	res.OwningDepartment = aux.OwningDepartment
+	res.CouncilDistrict = aux.CouncilDistrict
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	return
+}
+
+// scans row and fills auxCity311Constituent fields
+//
+// This function is auto-generated
+func (aux *auxCity311Constituent) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.ConstituentID,
+		&aux.Profile,
+		&aux.OwningDepartment,
+		&aux.CouncilDistrict,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+	)
+}
+
+// encodes City311IdempotencyRecord to auxCity311IdempotencyRecord
+//
+// This function is auto-generated
+func (aux *auxCity311IdempotencyRecord) encode(res *composeType.City311IdempotencyRecord) (_ error) {
+	aux.ID = res.ID
+	aux.Operation = res.Operation
+	aux.KeyHash = res.KeyHash
+	aux.RequestHash = res.RequestHash
+	aux.ResponseStatus = res.ResponseStatus
+	aux.ResponseBody = res.ResponseBody
+	aux.RequestID = res.RequestID
+	aux.CreatedAt = res.CreatedAt
+	aux.ExpiresAt = res.ExpiresAt
+	return
+}
+
+// decodes City311IdempotencyRecord from auxCity311IdempotencyRecord
+//
+// This function is auto-generated
+func (aux auxCity311IdempotencyRecord) decode() (res *composeType.City311IdempotencyRecord, _ error) {
+	res = new(composeType.City311IdempotencyRecord)
+	res.ID = aux.ID
+	res.Operation = aux.Operation
+	res.KeyHash = aux.KeyHash
+	res.RequestHash = aux.RequestHash
+	res.ResponseStatus = aux.ResponseStatus
+	res.ResponseBody = aux.ResponseBody
+	res.RequestID = aux.RequestID
+	res.CreatedAt = aux.CreatedAt
+	res.ExpiresAt = aux.ExpiresAt
+	return
+}
+
+// scans row and fills auxCity311IdempotencyRecord fields
+//
+// This function is auto-generated
+func (aux *auxCity311IdempotencyRecord) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Operation,
+		&aux.KeyHash,
+		&aux.RequestHash,
+		&aux.ResponseStatus,
+		&aux.ResponseBody,
+		&aux.RequestID,
+		&aux.CreatedAt,
+		&aux.ExpiresAt,
+	)
+}
+
+// encodes City311PublicHistoryItem to auxCity311PublicHistoryItem
+//
+// This function is auto-generated
+func (aux *auxCity311PublicHistoryItem) encode(res *composeType.City311PublicHistoryItem) (_ error) {
+	aux.ID = res.ID
+	aux.RequestID = res.RequestID
+	aux.Action = res.Action
+	aux.ResponsibleDepartment = res.ResponsibleDepartment
+	aux.OccurredAt = res.OccurredAt
+	return
+}
+
+// decodes City311PublicHistoryItem from auxCity311PublicHistoryItem
+//
+// This function is auto-generated
+func (aux auxCity311PublicHistoryItem) decode() (res *composeType.City311PublicHistoryItem, _ error) {
+	res = new(composeType.City311PublicHistoryItem)
+	res.ID = aux.ID
+	res.RequestID = aux.RequestID
+	res.Action = aux.Action
+	res.ResponsibleDepartment = aux.ResponsibleDepartment
+	res.OccurredAt = aux.OccurredAt
+	return
+}
+
+// scans row and fills auxCity311PublicHistoryItem fields
+//
+// This function is auto-generated
+func (aux *auxCity311PublicHistoryItem) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.RequestID,
+		&aux.Action,
+		&aux.ResponsibleDepartment,
+		&aux.OccurredAt,
+	)
+}
+
+// encodes City311RequestAttachment to auxCity311RequestAttachment
+//
+// This function is auto-generated
+func (aux *auxCity311RequestAttachment) encode(res *composeType.City311RequestAttachment) (_ error) {
+	aux.ID = res.ID
+	aux.RequestID = res.RequestID
+	aux.Filename = res.Filename
+	aux.MediaType = res.MediaType
+	aux.Size = res.Size
+	aux.Content = res.Content
+	aux.CreatedAt = res.CreatedAt
+	return
+}
+
+// decodes City311RequestAttachment from auxCity311RequestAttachment
+//
+// This function is auto-generated
+func (aux auxCity311RequestAttachment) decode() (res *composeType.City311RequestAttachment, _ error) {
+	res = new(composeType.City311RequestAttachment)
+	res.ID = aux.ID
+	res.RequestID = aux.RequestID
+	res.Filename = aux.Filename
+	res.MediaType = aux.MediaType
+	res.Size = aux.Size
+	res.Content = aux.Content
+	res.CreatedAt = aux.CreatedAt
+	return
+}
+
+// scans row and fills auxCity311RequestAttachment fields
+//
+// This function is auto-generated
+func (aux *auxCity311RequestAttachment) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.RequestID,
+		&aux.Filename,
+		&aux.MediaType,
+		&aux.Size,
+		&aux.Content,
+		&aux.CreatedAt,
+	)
+}
+
+// encodes City311RequestSequence to auxCity311RequestSequence
+//
+// This function is auto-generated
+func (aux *auxCity311RequestSequence) encode(res *composeType.City311RequestSequence) (_ error) {
+	aux.ID = res.ID
+	aux.NextNumber = res.NextNumber
+	return
+}
+
+// decodes City311RequestSequence from auxCity311RequestSequence
+//
+// This function is auto-generated
+func (aux auxCity311RequestSequence) decode() (res *composeType.City311RequestSequence, _ error) {
+	res = new(composeType.City311RequestSequence)
+	res.ID = aux.ID
+	res.NextNumber = aux.NextNumber
+	return
+}
+
+// scans row and fills auxCity311RequestSequence fields
+//
+// This function is auto-generated
+func (aux *auxCity311RequestSequence) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.NextNumber,
+	)
+}
+
+// encodes City311ServiceRequest to auxCity311ServiceRequest
+//
+// This function is auto-generated
+func (aux *auxCity311ServiceRequest) encode(res *composeType.City311ServiceRequest) (_ error) {
+	aux.ID = res.ID
+	aux.RequestNumber = res.RequestNumber
+	aux.Summary = res.Summary
+	aux.Description = res.Description
+	aux.ServiceType = res.ServiceType
+	aux.OwningDepartment = res.OwningDepartment
+	aux.CouncilDistrict = res.CouncilDistrict
+	aux.SourceChannel = res.SourceChannel
+	aux.OriginClass = res.OriginClass
+	aux.Status = res.Status
+	aux.PrimaryRequester = res.PrimaryRequester
+	aux.Location = res.Location
+	aux.CustomFields = res.CustomFields
+	aux.PrimaryAssigneeID = res.PrimaryAssigneeID
+	aux.CollaboratorIDs = res.CollaboratorIDs
+	aux.DuplicateGroupID = res.DuplicateGroupID
+	aux.Version = res.Version
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	return
+}
+
+// decodes City311ServiceRequest from auxCity311ServiceRequest
+//
+// This function is auto-generated
+func (aux auxCity311ServiceRequest) decode() (res *composeType.City311ServiceRequest, _ error) {
+	res = new(composeType.City311ServiceRequest)
+	res.ID = aux.ID
+	res.RequestNumber = aux.RequestNumber
+	res.Summary = aux.Summary
+	res.Description = aux.Description
+	res.ServiceType = aux.ServiceType
+	res.OwningDepartment = aux.OwningDepartment
+	res.CouncilDistrict = aux.CouncilDistrict
+	res.SourceChannel = aux.SourceChannel
+	res.OriginClass = aux.OriginClass
+	res.Status = aux.Status
+	res.PrimaryRequester = aux.PrimaryRequester
+	res.Location = aux.Location
+	res.CustomFields = aux.CustomFields
+	res.PrimaryAssigneeID = aux.PrimaryAssigneeID
+	res.CollaboratorIDs = aux.CollaboratorIDs
+	res.DuplicateGroupID = aux.DuplicateGroupID
+	res.Version = aux.Version
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	return
+}
+
+// scans row and fills auxCity311ServiceRequest fields
+//
+// This function is auto-generated
+func (aux *auxCity311ServiceRequest) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.RequestNumber,
+		&aux.Summary,
+		&aux.Description,
+		&aux.ServiceType,
+		&aux.OwningDepartment,
+		&aux.CouncilDistrict,
+		&aux.SourceChannel,
+		&aux.OriginClass,
+		&aux.Status,
+		&aux.PrimaryRequester,
+		&aux.Location,
+		&aux.CustomFields,
+		&aux.PrimaryAssigneeID,
+		&aux.CollaboratorIDs,
+		&aux.DuplicateGroupID,
+		&aux.Version,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
 	)
 }
 

@@ -50,6 +50,30 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("automationWorkflow", func(t *testing.T) {
 		testAutomationWorkflows(t, s)
 	})
+	t.Run("city311ActorProfile", func(t *testing.T) {
+		testCity311ActorProfiles(t, s)
+	})
+	t.Run("city311AuditEvent", func(t *testing.T) {
+		testCity311AuditEvents(t, s)
+	})
+	t.Run("city311Constituent", func(t *testing.T) {
+		testCity311Constituents(t, s)
+	})
+	t.Run("city311IdempotencyRecord", func(t *testing.T) {
+		testCity311IdempotencyRecords(t, s)
+	})
+	t.Run("city311PublicHistoryItem", func(t *testing.T) {
+		testCity311PublicHistoryItems(t, s)
+	})
+	t.Run("city311RequestAttachment", func(t *testing.T) {
+		testCity311RequestAttachments(t, s)
+	})
+	t.Run("city311RequestSequence", func(t *testing.T) {
+		testCity311RequestSequences(t, s)
+	})
+	t.Run("city311ServiceRequest", func(t *testing.T) {
+		testCity311ServiceRequests(t, s)
+	})
 	t.Run("composeAttachment", func(t *testing.T) {
 		testComposeAttachments(t, s)
 	})

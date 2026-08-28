@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"path"
 	"regexp"
@@ -9,6 +10,8 @@ import (
 	"github.com/cortezaproject/corteza/server/assets"
 	automationRest "github.com/cortezaproject/corteza/server/automation/rest"
 	composeRest "github.com/cortezaproject/corteza/server/compose/rest"
+	city311Rest "github.com/cortezaproject/corteza/server/compose/rest/city311"
+	city311Contract "github.com/cortezaproject/corteza/server/compose/types/city311"
 	discoveryRest "github.com/cortezaproject/corteza/server/discovery/rest"
 	"github.com/cortezaproject/corteza/server/docs"
 	federationRest "github.com/cortezaproject/corteza/server/federation/rest"
@@ -25,6 +28,8 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	var (
 		ho = app.Opt.HTTPServer
 	)
+
+	r.Get("/healthz", app.healthz)
 
 	func() {
 		// asset serving has some overlap with auth assets, web-console and webapp serving
@@ -87,6 +92,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			r.Route("/system", systemRest.MountRoutes())
 			r.Route("/automation", automationRest.MountRoutes())
 			r.Route("/compose", composeRest.MountRoutes())
+			r.Route("/v1", city311Rest.MountRoutes())
 			r.Route("/websocket", app.WsServer.MountRoutes)
 
 			if app.Opt.Discovery.Enabled {
@@ -157,4 +163,17 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	func() {
 		r.Handle("/.well-known/openid-configuration", app.AuthService.WellKnownOpenIDConfiguration())
 	}()
+}
+
+func (app *CortezaApp) healthz(w http.ResponseWriter, request *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if app.Store == nil || app.Store.Healthcheck(request.Context()) != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_ = json.NewEncoder(w).Encode(city311Contract.APIError{
+			Error: city311Contract.ErrorTemporarilyUnavailable, Message: "A required database connection or migration is unavailable.", Retryable: true,
+		})
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok", "database": "ok"})
 }

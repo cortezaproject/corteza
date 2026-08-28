@@ -8,6 +8,7 @@ import (
 
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	"github.com/cortezaproject/corteza/server/compose/automation"
+	city311Service "github.com/cortezaproject/corteza/server/compose/service/city311"
 	"github.com/cortezaproject/corteza/server/compose/types"
 	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
@@ -196,6 +197,10 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultNotification = Notification(c.UserFinder)
 	DefaultAttachment = Attachment(DefaultObjectStore, dal.Service())
 	DefaultDataPrivacy = DataPrivacy()
+
+	if err = city311Service.Initialize(ctx, DefaultStore); err != nil {
+		return fmt.Errorf("could not initialize City 311 services: %w", err)
+	}
 
 	RegisterIteratorProviders()
 
