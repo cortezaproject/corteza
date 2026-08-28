@@ -3,9 +3,9 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { reactive, ref } from 'vue'
 
-// A page's translations are one set covering the page, its blocks and every
-// layout. The topbar opens it at the top; a layout row opens the same dialog
-// aimed at its own row, which is the only caller `highlight` has.
+// The layout list's second column reads back the rule the public views apply:
+// layouts are tried in weight order and the first whose condition and roles
+// both pass is the one shown (composables/usePageVisibility.ts).
 
 const route = reactive({
   name: 'admin.pages.edit',
@@ -26,14 +26,12 @@ vi.mock('@/sections/compose/composables/useExpressionScope', () => ({
   useExpressionScope: () => ({ scope: [], exprScope: [] }),
 }))
 
-let translationsOn = true
-
 vi.mock('@/sections/compose/composables/useResourceTranslations', () => ({
   useResourceTranslations: () => ({
-    showTranslatorButton: ref(translationsOn),
+    showTranslatorButton: ref(false),
     currentLanguage: ref('en'),
-    resourceTranslationsEnabled: ref(translationsOn),
-    canManageResourceTranslations: ref(translationsOn),
+    resourceTranslationsEnabled: ref(false),
+    canManageResourceTranslations: ref(false),
   }),
 }))
 
@@ -116,31 +114,9 @@ const FormListStub = {
   </div>`,
 }
 
-// Stands in for the one PageTranslator in the topbar. The row button reaches it
-// by ref and asks it to open, so the stub only has to record the ask.
-const opened = []
-const PageTranslatorStub = {
-  name: 'PageTranslator',
-  props: ['page', 'namespace', 'layouts', 'highlight', 'disabled'],
-  methods: {
-    open(highlight) {
-      opened.push(highlight)
-    },
-  },
-  template: '<div class="page-translator" />',
-}
-
-const ButtonStub = {
-  name: 'Button',
-  props: ['icon', 'label', 'severity', 'size', 'text', 'rounded', 'outlined', 'disabled'],
-  emits: ['click'],
-  template: '<button :data-icon="icon" @click="$emit(\'click\', $event)"><slot /></button>',
-}
-
-const passthrough = name => [name, { name, template: '<div><slot /></div>' }]
-
 const GLOBAL_COMPONENTS = Object.fromEntries(
   [
+    'Button',
     'ButtonGroup',
     'CEditorActions',
     'CFormGroup',
@@ -162,19 +138,28 @@ const GLOBAL_COMPONENTS = Object.fromEntries(
     'CExpressionHint',
     'InputText',
     'CInputModuleField',
+    'PageTranslator',
   ].map(name => [name, true]),
 )
 
-const layoutWith = (pageLayoutID = 'L1') => [
+const passthrough = name => [name, { name, template: '<div><slot /></div>' }]
+
+const layoutWith = visibility => [
   {
-    pageLayoutID,
+    pageLayoutID: 'L1',
     pageID: 'P1',
     namespaceID: 'N1',
     meta: { title: 'Account', description: '' },
-    config: { useTitle: false, visibility: { expression: '', roles: [] } },
+    config: { useTitle: false, visibility },
     blocks: [],
   },
 ]
+
+// `$t` here has to carry its arguments through: the roles line is the only
+// place the resolved names reach the DOM.
+const t = (key, args) => (args ? `${key}:${args.join(',')}` : key)
+
+let roleList
 
 async function mountEdit() {
   const wrapper = mount(Edit, {
@@ -185,26 +170,25 @@ async function mountEdit() {
         teleport: true,
         Teleport: true,
         ...GLOBAL_COMPONENTS,
-        ...Object.fromEntries([passthrough('Panel'), passthrough('InputGroup')]),
-        InputGroupAddon: { name: 'InputGroupAddon', template: '<div><slot /></div>' },
+        ...Object.fromEntries([
+          passthrough('Panel'),
+          passthrough('InputGroup'),
+          passthrough('InputGroupAddon'),
+        ]),
         Form: {
           name: 'Form',
           props: ['resolver', 'initialValues'],
           template: '<div><slot /></div>',
         },
-        Button: ButtonStub,
         CFormList: FormListStub,
-        PageTranslator: PageTranslatorStub,
       },
-      // The topbar tools live in a Teleport; without this the PageTranslator
-      // the row button reaches by ref never mounts.
       renderStubDefaultSlot: true,
       directives: { tooltip: {}, focus: {} },
-      mocks: { $t: k => k },
+      mocks: { $t: t },
       provide: {
         $toast: { toastSuccess: vi.fn(), toastDanger: vi.fn(), toastErrorHandler: () => vi.fn() },
         $ComposeAPI: { iconList: () => Promise.resolve({ set: [] }), baseURL: '' },
-        $SystemAPI: {},
+        $SystemAPI: { roleList },
         $Settings: { get: () => undefined },
         $Auth: { user: { userID: 'U1', roles: [] } },
         $eventBus: null,
@@ -212,56 +196,51 @@ async function mountEdit() {
     },
   })
   await flushPromises()
+  await flushPromises()
   return wrapper
 }
 
-const translateButtons = w => w.findAll('.layout-row [data-icon="pi pi-language"]')
-// The row's cells are the grid's columns in order: title, applies-when, actions.
-const cells = w => w.findAll('.layout-row > div')
+// The applies-when cell is the row's second column.
+const summary = w => w.findAll('.layout-row > div')[1].text()
 
 beforeEach(() => {
-  translationsOn = true
-  opened.length = 0
   page = { pageID: 'P1', namespaceID: 'N1', title: 'Account', handle: 'account', blocks: [] }
-  layouts = layoutWith()
+  roleList = vi.fn(() => Promise.resolve({ set: [{ roleID: 'R1', name: 'Manager' }] }))
 })
 
-describe('layout row translate button', () => {
-  it('offers one per saved layout', async () => {
+describe('layout applies-when column', () => {
+  it('reads Always for a layout nothing restricts', async () => {
+    layouts = layoutWith({ expression: '', roles: [] })
     const w = await mountEdit()
-    expect(translateButtons(w)).toHaveLength(1)
+    expect(summary(w)).toBe('page.page-layout.appliesWhen.always')
+    expect(roleList).not.toHaveBeenCalled()
   })
 
-  it('withholds it while resource translations are off', async () => {
-    translationsOn = false
+  it('shows the condition expression', async () => {
+    layouts = layoutWith({ expression: 'screen.width < 1024', roles: [] })
     const w = await mountEdit()
-    expect(translateButtons(w)).toHaveLength(0)
+    expect(summary(w)).toContain('screen.width < 1024')
+    expect(summary(w)).not.toContain('appliesWhen.always')
   })
 
-  it('withholds it from a layout that has never been saved', async () => {
-    layouts = layoutWith('0')
+  it('names the roles it is restricted to', async () => {
+    layouts = layoutWith({ expression: '', roles: ['R1'] })
     const w = await mountEdit()
-    expect(translateButtons(w)).toHaveLength(0)
+    expect(roleList).toHaveBeenCalledWith({ roleID: ['R1'], limit: 1 })
+    expect(summary(w)).toContain('Manager')
   })
 
-  it("opens the page's translator on that layout's own title row", async () => {
+  it('falls back to the id when the name never arrives', async () => {
+    roleList = vi.fn(() => Promise.reject(new Error('nope')))
+    layouts = layoutWith({ expression: '', roles: ['R9'] })
     const w = await mountEdit()
-    await translateButtons(w)[0].trigger('click')
-    expect(opened).toEqual([{ resource: 'compose:page-layout/N1/P1/L1', key: 'meta.title' }])
+    expect(summary(w)).toContain('R9')
   })
 
-  it('sits in the title cell, since meta.title is what it translates', async () => {
-    const [title, , actions] = cells(await mountEdit())
-    expect(title.find('[data-icon="pi pi-language"]').exists()).toBe(true)
-    expect(actions.find('[data-icon="pi pi-language"]').exists()).toBe(false)
-  })
-
-  it("leaves configure, build and delete as the row's own actions", async () => {
-    const [, , actions] = cells(await mountEdit())
-    expect(actions.findAll('button').map(b => b.attributes('data-icon'))).toEqual([
-      'pi pi-cog',
-      'pi pi-wrench',
-      'pi pi-trash',
-    ])
+  it('shows the condition and the roles together', async () => {
+    layouts = layoutWith({ expression: 'isEdit', roles: ['R1'] })
+    const w = await mountEdit()
+    expect(summary(w)).toContain('isEdit')
+    expect(summary(w)).toContain('Manager')
   })
 })

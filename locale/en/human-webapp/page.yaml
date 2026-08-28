@@ -91,6 +91,10 @@ noPages: No pages
 notVisible: Hidden
 page-layout:
   add: Add layout
+  appliesWhen:
+    always: Always
+    label: Applies when
+    roles: 'Roles: {0}'
   condition:
     description:
       non-record-page: 'You can use {0}, {1} inside the expression, for example: {2} or {3}. Evaluated when the page opens.'
@@ -100,6 +104,8 @@ page-layout:
   configure: Configure layout - "{title}"
   general: General
   handle: Handle
+  handleDescription: Optional. Unique identifier for this layout (alphanumerics, dash,
+    underscore, dot)
   layouts: Layouts
   recordToolbar:
     actions:
@@ -151,9 +157,10 @@ page-layout:
   title: Title
   titleExpressionPlaceholder: Custom title
   tooltip:
+    appliesWhen: When this layout is used. Layouts are tried from the top down, and the
+      first one whose condition and roles both pass is the one that is shown.
     builder: Open layout in builder
     configure: Configure layout
-    handle: Optional. Unique identifier for this layout (alphanumerics, dash, underscore, dot)
     performance:
       condition: Using visibility conditions will impact performance
       requiredFields: Using required fields will impact performance

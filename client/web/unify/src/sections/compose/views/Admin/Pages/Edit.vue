@@ -152,39 +152,54 @@
                 tooltip: $t('page.page-layout.tooltip.title'),
               },
               {
-                label: $t('page.page-layout.handle'),
+                label: $t('page.page-layout.appliesWhen.label'),
                 width: '1fr',
-                tooltip: $t('page.page-layout.tooltip.handle'),
+                tooltip: $t('page.page-layout.tooltip.appliesWhen'),
               },
-              { width: '2.5rem' },
+              { width: '7rem' },
             ]"
           >
             <template #row="{ item, index }">
-              <div class="flex flex-col gap-1">
+              <div class="flex flex-col gap-1 min-w-0">
                 <!-- With useTitle on this string is the page's own title, read as
                      a `${}` template — so it is authored the way the config
                      dialog authors it. focusin, not a component event: the hint
                      under the list inserts into whichever row was last edited,
-                     and CodeMirror has no focus event of its own. -->
-                <div v-if="item.config?.useTitle" @focusin="activeLayoutRow = index">
+                     and CodeMirror has no focus event of its own. The translator
+                     addon sits here because `meta.title` is what it translates. -->
+                <InputGroup @focusin="onLayoutTitleFocus(item, index)">
                   <CInputExpression
+                    v-if="item.config?.useTitle"
                     :ref="el => (layoutRowInputs[index] = el)"
                     v-model="item.meta.title"
                     dialect="interpolation"
                     :scope="scope"
                     :min-lines="1"
+                    size="small"
                     :invalid="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
                     @update:model-value="item._updated = true"
                   />
-                </div>
-                <InputText
-                  v-else
-                  v-model="item.meta.title"
-                  class="w-full"
-                  size="small"
-                  :invalid="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
-                  @input="item._updated = true"
-                />
+                  <InputText
+                    v-else
+                    v-model="item.meta.title"
+                    class="w-full"
+                    size="small"
+                    :invalid="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
+                    @input="item._updated = true"
+                  />
+                  <InputGroupAddon
+                    v-if="showTranslatorButton && item.pageLayoutID && item.pageLayoutID !== NoID"
+                  >
+                    <Button
+                      v-tooltip.top="$t('page.page-layout.tooltip.translate')"
+                      icon="pi pi-language"
+                      severity="secondary"
+                      size="small"
+                      class="w-full border-none"
+                      @click="openLayoutTranslation(item)"
+                    />
+                  </InputGroupAddon>
+                </InputGroup>
                 <Message
                   v-if="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
                   severity="error"
@@ -195,55 +210,58 @@
                 </Message>
               </div>
 
-              <InputGroup>
-                <InputText
-                  v-model="item.handle"
-                  class="w-full"
-                  size="small"
-                  @input="item._updated = true"
-                />
-                <InputGroupAddon
-                  v-if="showTranslatorButton && item.pageLayoutID && item.pageLayoutID !== NoID"
-                >
-                  <Button
-                    v-tooltip.top="$t('page.page-layout.tooltip.translate')"
-                    icon="pi pi-language"
-                    severity="secondary"
-                    size="small"
-                    class="w-full border-none"
-                    @click="openLayoutTranslation(item)"
-                  />
-                </InputGroupAddon>
-                <InputGroupAddon>
-                  <Button
-                    v-tooltip.top="$t('page.page-layout.tooltip.configure')"
-                    icon="pi pi-cog"
-                    severity="secondary"
-                    size="small"
-                    class="w-full border-none"
-                    @click="openLayoutConfig(item)"
-                  />
-                </InputGroupAddon>
-                <InputGroupAddon>
-                  <Button
-                    v-tooltip.top="$t('page.page-layout.tooltip.builder')"
-                    icon="pi pi-wrench"
-                    severity="secondary"
-                    size="small"
-                    class="w-full border-none"
-                    :disabled="item.pageLayoutID === NoID"
-                    @click="goToLayoutBuilder(item)"
-                  />
-                </InputGroupAddon>
-              </InputGroup>
+              <!-- Layouts are matched in weight order and the first whose
+                   condition and roles both pass is the one shown, so this is
+                   the rule read back. The handle is edited in the config
+                   dialog. -->
+              <div class="flex flex-col gap-0.5 text-sm min-w-0">
+                <span v-if="!layoutIsConditional(item)" class="text-muted-color">
+                  {{ $t('page.page-layout.appliesWhen.always') }}
+                </span>
+                <template v-else>
+                  <span
+                    v-if="item.config?.visibility?.expression"
+                    v-tooltip.top="item.config.visibility.expression"
+                    class="font-mono text-xs truncate"
+                  >
+                    ƒ {{ item.config.visibility.expression }}
+                  </span>
+                  <span
+                    v-if="item.config?.visibility?.roles?.length"
+                    v-tooltip.top="layoutRoleLabel(item)"
+                    class="truncate"
+                  >
+                    {{ $t('page.page-layout.appliesWhen.roles', [layoutRoleLabel(item)]) }}
+                  </span>
+                </template>
+              </div>
 
-              <Button
-                icon="pi pi-trash"
-                severity="danger"
-                text
-                size="small"
-                @click="removeLayout(index)"
-              />
+              <div class="flex items-center justify-end gap-1">
+                <Button
+                  v-tooltip.top="$t('page.page-layout.tooltip.configure')"
+                  icon="pi pi-cog"
+                  severity="secondary"
+                  text
+                  size="small"
+                  @click="openLayoutConfig(item)"
+                />
+                <Button
+                  v-tooltip.top="$t('page.page-layout.tooltip.builder')"
+                  icon="pi pi-wrench"
+                  severity="secondary"
+                  text
+                  size="small"
+                  :disabled="item.pageLayoutID === NoID"
+                  @click="goToLayoutBuilder(item)"
+                />
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  text
+                  size="small"
+                  @click="removeLayout(index)"
+                />
+              </div>
             </template>
           </CFormList>
 
@@ -325,7 +343,10 @@
           </template>
           <InputText v-else v-model="configLayout.meta.title" />
         </CFormGroup>
-        <CFormGroup :label="$t('page.page-layout.handle')">
+        <CFormGroup
+          :label="$t('page.page-layout.handle')"
+          :description="$t('page.page-layout.handleDescription')"
+        >
           <InputText v-model="configLayout.handle" />
         </CFormGroup>
       </div>
@@ -767,6 +788,7 @@ const { t } = useI18n()
 const { showTranslatorButton } = useResourceTranslations()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
+const $SystemAPI = inject('$SystemAPI')
 const pageStore = usePageStore()
 const pageLayoutStore = usePageLayoutStore()
 
@@ -851,6 +873,53 @@ const layoutRowInputs = ref([])
 const activeLayoutRow = ref(0)
 // The hint only earns its space once some layout titles the page itself.
 const anyLayoutUsesTitle = computed(() => layouts.value.some(l => l.config?.useTitle))
+
+// Only a row holding an expression input can take a hint chip, so a plain title
+// input passing through must not become the one the hint aims at.
+function onLayoutTitleFocus(layout, index) {
+  if (layout.config?.useTitle) activeLayoutRow.value = index
+}
+
+// ─── Layout visibility summary ──────────────────────────────────────────────
+
+// Role names for the ids layouts restrict themselves to. Decoration: a name
+// that never arrives leaves the id, and the row still reads.
+const roleNameByID = ref({})
+
+const layoutRoleIDs = computed(() => [
+  ...new Set(layouts.value.flatMap(l => l.config?.visibility?.roles || [])),
+])
+
+watch(
+  layoutRoleIDs,
+  async ids => {
+    const missing = ids.filter(id => id && id !== NoID && !(id in roleNameByID.value))
+    if (!missing.length || !$SystemAPI?.roleList) return
+
+    try {
+      const { set = [] } = await $SystemAPI.roleList({ roleID: missing, limit: missing.length })
+      const resolved = { ...roleNameByID.value }
+      set.forEach(r => {
+        resolved[r.roleID] = r.name || r.handle || r.roleID
+      })
+      roleNameByID.value = resolved
+    } catch {
+      // Names are decoration; the ids stand in for them.
+    }
+  },
+  { immediate: true },
+)
+
+function layoutIsConditional(layout) {
+  const { expression, roles } = layout.config?.visibility || {}
+  return !!(expression?.trim() || roles?.length)
+}
+
+function layoutRoleLabel(layout) {
+  return (layout.config?.visibility?.roles || [])
+    .map(roleID => roleNameByID.value[roleID] || roleID)
+    .join(', ')
+}
 const { scope, exprScope } = useExpressionScope({
   page: computed(() => page.value),
   hasRecord: isRecordPage,

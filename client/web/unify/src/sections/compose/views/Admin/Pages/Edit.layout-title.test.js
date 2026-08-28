@@ -175,6 +175,8 @@ async function mountEdit() {
           template: '<div><slot /></div>',
         },
         Panel: { name: 'Panel', props: ['header', 'toggleable'], template: '<div><slot /></div>' },
+        InputGroup: { name: 'InputGroup', template: '<div><slot /></div>' },
+        InputGroupAddon: { name: 'InputGroupAddon', template: '<div><slot /></div>' },
         CFormList: FormListStub,
         CInputExpression: ExpressionStub,
         CExpressionHint: HintStub,
@@ -218,7 +220,7 @@ describe('layout list title input', () => {
     await mountEdit()
 
     expect(rowInputs(wrapper)).toHaveLength(1)
-    expect(rowPlain(wrapper).length).toBeLessThan(2) // the handle input only
+    expect(rowPlain(wrapper)).toHaveLength(0) // the row has no other input
 
     const expr = wrapper.findAllComponents(ExpressionStub)[0]
     expect(expr.props('dialect')).toBe('interpolation')
