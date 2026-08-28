@@ -196,28 +196,32 @@ export function confineTo(grants, namespaceID) {
   return { tools, cleared }
 }
 
-// The two modes a granted tool can be in. Blocked is not among them: an agent
-// that may not use a tool and one that was never given it come to the same
-// thing, and neither is something the agent has.
+// The two modes a granted tool can be in, and the order they are read in.
+// Blocked is not among them: an agent that may not use a tool and one that was
+// never given it come to the same thing, and neither is something the agent
+// has.
 export const SUMMARY_MODES = ['always', 'ask']
 
-// What an agent's grants amount to, grouped by permission: how much of it runs
-// unattended, and over which subjects.
+// What an agent's grants amount to: one row per subject carrying both counts,
+// and the same two counts summed over the whole agent.
 //
-// The total is summed from the sections themselves. Tallying the whole tool
-// list instead counted the tools no section holds — a skill is attached to the
-// tool that triggers it rather than chosen, so it has no section — and the
+// A subject appears once. The counts are the row, so how much of a subject runs
+// unattended is read across it, and which subject an agent is heaviest in is
+// read down the column.
+//
+// The total is summed from the subjects themselves. Tallying the whole tool
+// list instead counted the tools no subject holds — a skill is attached to the
+// tool that triggers it rather than chosen, so it has no subject — and the
 // headline came out above the rows beneath it.
 export function summaryOf(tools, named, families, label) {
-  const sections = sectionsOf(tools, named, families, label)
+  const subjects = sectionsOf(tools, named, families, label).map(s => {
+    const counts = Object.fromEntries(s.counts.map(c => [c.mode, c.n]))
+    return { key: s.key, label: s.label, always: counts.always || 0, ask: counts.ask || 0 }
+  })
 
-  const groups = SUMMARY_MODES.map(mode => {
-    const held = sections
-      .map(s => ({ key: s.key, label: s.label, n: s.counts.find(c => c.mode === mode)?.n || 0 }))
-      .filter(s => s.n)
+  const totals = Object.fromEntries(
+    SUMMARY_MODES.map(mode => [mode, subjects.reduce((sum, s) => sum + s[mode], 0)]),
+  )
 
-    return { mode, n: held.reduce((sum, s) => sum + s.n, 0), sections: held }
-  }).filter(group => group.n)
-
-  return { total: groups.reduce((sum, group) => sum + group.n, 0), groups }
+  return { total: SUMMARY_MODES.reduce((sum, mode) => sum + totals[mode], 0), totals, subjects }
 }

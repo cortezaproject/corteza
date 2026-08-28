@@ -247,7 +247,7 @@ describe('summaryOf', () => {
     { name: 'system_skill_lookup', groups: ['usage'], risk: 'read' },
   ]
 
-  it('groups by permission and names the subjects inside each', () => {
+  it('gives each subject one row carrying both counts', () => {
     const { named, families } = splitGrants([
       { name: 'compose_record_lookup' },
       { name: 'compose_record_create' },
@@ -256,44 +256,60 @@ describe('summaryOf', () => {
 
     expect(summaryOf(tools, named, families, label)).toEqual({
       total: 3,
-      groups: [
-        { mode: 'always', n: 1, sections: [{ key: 'records', label: 'records', n: 1 }] },
-        {
-          mode: 'ask',
-          n: 2,
-          sections: [
-            { key: 'records', label: 'records', n: 1 },
-            { key: 'people', label: 'people', n: 1 },
-          ],
-        },
+      totals: { always: 1, ask: 2 },
+      subjects: [
+        { key: 'records', label: 'records', always: 1, ask: 1 },
+        { key: 'people', label: 'people', always: 0, ask: 1 },
       ],
     })
   })
 
-  // The total is the sum of the rows under it. Counted over the whole tool list
-  // instead, a granted skill — which no section holds — put the headline one
-  // above what it was heading.
-  it('counts what the rows show and nothing else', () => {
+  // A subject appears once however many permissions its tools sit in: reading
+  // the split is reading across the row, not diffing two lists.
+  it('names a subject once even when its tools sit in both columns', () => {
+    const { named, families } = splitGrants([
+      { name: 'compose_record_lookup' },
+      { name: 'compose_record_create' },
+    ])
+
+    const { subjects } = summaryOf(tools, named, families, label)
+    expect(subjects.map(s => s.key)).toEqual(['records'])
+    expect(subjects[0]).toEqual({ key: 'records', label: 'records', always: 1, ask: 1 })
+  })
+
+  // The foot of the table is the sum of the rows above it. Counted over the
+  // whole tool list instead, a granted skill — which no subject holds — put the
+  // headline one above what it was heading.
+  it('totals what the rows show and nothing else', () => {
     const { named, families } = splitGrants([
       { name: 'compose_record_lookup' },
       { name: 'system_skill_lookup' },
     ])
 
     const summary = summaryOf(tools, named, families, label)
-    const shown = summary.groups.flatMap(g => g.sections).reduce((n, s) => n + s.n, 0)
+    const shown = summary.subjects.reduce((n, s) => n + s.always + s.ask, 0)
 
     expect(summary.total).toBe(shown)
     expect(summary.total).toBe(1)
-    expect(summary.groups.flatMap(g => g.sections.map(s => s.key))).toEqual(['records'])
+    expect(summary.totals).toEqual({ always: 1, ask: 0 })
+    expect(summary.subjects.map(s => s.key)).toEqual(['records'])
   })
 
-  it('leaves out a mode nothing sits in', () => {
-    const { named, families } = splitGrants([{ name: 'compose_record_lookup' }])
-    expect(summaryOf(tools, named, families, label).groups.map(g => g.mode)).toEqual(['always'])
+  // A column a subject has nothing in is a zero the row still carries, so the
+  // readout can draw a dash there rather than leave the cell out of line.
+  it('carries a zero for a column the subject has nothing in', () => {
+    const { named, families } = splitGrants([{ name: 'system_user_create' }])
+    expect(summaryOf(tools, named, families, label).subjects).toEqual([
+      { key: 'people', label: 'people', always: 0, ask: 1 },
+    ])
   })
 
   it('is empty for an agent holding nothing', () => {
     const { named, families } = splitGrants([])
-    expect(summaryOf(tools, named, families, label)).toEqual({ total: 0, groups: [] })
+    expect(summaryOf(tools, named, families, label)).toEqual({
+      total: 0,
+      totals: { always: 0, ask: 0 },
+      subjects: [],
+    })
   })
 })

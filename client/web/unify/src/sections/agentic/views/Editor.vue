@@ -472,38 +472,87 @@
                       <!-- A readout, bounded the way the pickers below it are.
                            Loose text under a button, between two framed
                            controls, read as something that had come adrift. The
-                           fill says it is read rather than typed into. -->
+                           fill says it is read rather than typed into.
 
-                      <!-- How much of this agent runs unattended, and over
-                           which subjects. Grouped by permission rather than by
-                           subject: two columns of bare glyphs made the reader
-                           hover to learn what they counted, and the question
-                           the panel is here to answer is the split itself. -->
+                           A cross-tab of subject against permission: what the
+                           agent may reach, and how much of each subject it runs
+                           unattended. A subject is one row, so its split is read
+                           across it and the whole agent's is the ruled row at
+                           the foot. -->
                       <div
                         v-else-if="toolSummary.total"
-                        class="max-w-lg rounded-border border border-surface bg-emphasis p-3 text-sm flex flex-col gap-3"
+                        class="max-w-lg rounded-border border border-surface bg-emphasis p-3 text-sm flex flex-col gap-2"
+                        data-testid="tool-summary"
                       >
                         <span class="text-color">
                           {{ $t('agent.editor.tools.summary.chosen', { n: toolSummary.total }) }}
                         </span>
 
-                        <div
-                          v-for="group in toolSummary.groups"
-                          :key="group.mode"
-                          class="flex items-start gap-2"
-                          :data-testid="`tool-summary-${group.mode}`"
-                        >
-                          <i
-                            :class="[modeIcon(group.mode), modeColour(group.mode)]"
-                            class="text-xs w-3 shrink-0 mt-1"
-                          />
-                          <div class="min-w-0">
-                            <div class="text-color">
-                              {{ $t(`agent.editor.tools.summary.${group.mode}`, { n: group.n }) }}
-                            </div>
-                            <div class="text-muted-color">{{ sectionList(group) }}</div>
-                          </div>
-                        </div>
+                        <!-- Sized by its content rather than by the box, so
+                             a count sits beside the subject it belongs to
+                             however few rows there are. -->
+                        <table class="self-start">
+                          <thead>
+                            <tr class="text-muted-color">
+                              <!-- The subject column heads itself: every cell
+                                   under it names one. -->
+                              <th />
+                              <th
+                                v-for="mode in SUMMARY_MODES"
+                                :key="mode"
+                                scope="col"
+                                class="pb-1 pl-8 text-right font-normal whitespace-nowrap"
+                              >
+                                <i
+                                  :class="[modeIcon(mode), modeColour(mode)]"
+                                  class="text-xs mr-1"
+                                />
+                                {{ $t(`agent.editor.tools.summary.column.${mode}`) }}
+                              </th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            <tr
+                              v-for="subject in toolSummary.subjects"
+                              :key="subject.key"
+                              :data-testid="`tool-summary-${subject.key}`"
+                            >
+                              <th scope="row" class="py-0.5 text-left font-normal text-color">
+                                {{ subject.label }}
+                              </th>
+                              <!-- A subject with nothing in one column has no
+                                   count there, and a dash says so without
+                                   putting a number in the eye's way. -->
+                              <td
+                                v-for="mode in SUMMARY_MODES"
+                                :key="mode"
+                                class="py-0.5 pl-8 text-right tabular-nums"
+                                :class="subject[mode] ? 'text-color' : 'text-muted-color'"
+                              >
+                                {{ subject[mode] || '—' }}
+                              </td>
+                            </tr>
+                          </tbody>
+
+                          <tfoot>
+                            <tr class="font-medium text-color" data-testid="tool-summary-total">
+                              <th
+                                scope="row"
+                                class="border-t border-surface pt-1.5 text-left font-medium"
+                              >
+                                {{ $t('agent.editor.tools.summary.allTools') }}
+                              </th>
+                              <td
+                                v-for="mode in SUMMARY_MODES"
+                                :key="mode"
+                                class="border-t border-surface pt-1.5 pl-8 text-right tabular-nums"
+                              >
+                                {{ toolSummary.totals[mode] }}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        </table>
                       </div>
 
                       <div
@@ -801,7 +850,14 @@ import AiChat from '../components/AiChat.vue'
 import AiTrace from '../components/AiTrace.vue'
 import AgentToolDialog from '../components/AgentToolDialog.vue'
 import { useEditorSplit } from '../composables/useEditorSplit'
-import { MODE_COLOURS, MODE_ICONS, confineTo, splitGrants, summaryOf } from '../toolAccess'
+import {
+  MODE_COLOURS,
+  MODE_ICONS,
+  SUMMARY_MODES,
+  confineTo,
+  splitGrants,
+  summaryOf,
+} from '../toolAccess'
 
 const {
   CInputLLM,
@@ -969,12 +1025,6 @@ watch(
   },
   { immediate: true },
 )
-
-// Built as one string rather than a v-for: inline elements repeated by v-for
-// render with no space between them, and the fix for that produces two.
-function sectionList(group) {
-  return group.sections.map(s => `${s.label} ${s.n}`).join(' · ')
-}
 
 function modeIcon(mode) {
   return MODE_ICONS[mode] || MODE_ICONS.custom
