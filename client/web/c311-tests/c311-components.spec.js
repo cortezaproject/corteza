@@ -295,12 +295,16 @@ describe('C311 shared components', () => {
 
     await wrapper.vm.submit()
     expect(wrapper.vm.formErrors[0].code).toBe('REQUIRED')
-    wrapper.vm.form.summary = 'Pothole'
+    wrapper.vm.form = {
+      service_type: 'GENERAL_INQUIRY', summary: 'Pothole', description: 'A sufficiently long description.',
+      requester: { display_name: 'Anonymous', email: 'anon@example.test', phone: '' }, location: { address: '', latitude: null, longitude: null }, attachment_tokens: [], custom_fields: {}, consent: true,
+    }
     await wrapper.vm.submit()
-    expect(provider.submitPortalRequest).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Pothole' }))
+    expect(provider.submitPortalRequest.mock.calls[0][0]).toEqual(expect.objectContaining({ summary: 'Pothole' }))
     expect(wrapper.vm.statusMessage).toContain('SR-2026-00002')
 
-    provider.listPortalRequests.mockRejectedValueOnce({ status: 503, retryable: true })
+    wrapper.vm.$route.name = 'c311.status'
+    provider.listPortalRequests.mockRejectedValue({ status: 503, retryable: true })
     await wrapper.vm.load()
     expect(wrapper.vm.state).toBe('retryable-error')
   })
@@ -361,6 +365,8 @@ describe('C311 shared components', () => {
 
     const staff = adminRoutes.find(route => route.name === 'c311.staff')
     expect(staff.meta.c311).toEqual(expect.objectContaining({ requiresAuth: true, route: 'staff_request_queue', capabilities: ['staff_request_queue'], scopes: ['service_requests.write'] }))
+    const staffSubmit = adminRoutes.find(route => route.name === 'c311.staff.submit')
+    expect(staffSubmit.meta.c311).toEqual(expect.objectContaining({ requiresAuth: true, route: 'staff_service_request_create', capabilities: ['staff_service_request_create'], scopes: ['service_requests.write'] }))
     expect(adminRoutes.find(route => route.name === 'c311.unauthorized').path).toBe('/c311/401')
     expect(adminRoutes.find(route => route.name === 'c311.forbidden').path).toBe('/c311/403')
     expect(adminRoutes.find(route => route.name === 'c311.not-found').path).toBe('/c311/404')
@@ -686,6 +692,182 @@ describe('C311 shared components', () => {
     await wrapper.vm.load()
     expect(wrapper.vm.state).toBe('retryable-error')
     expect(wrapper.vm.navItems.map(item => item.route)).toEqual(expect.arrayContaining(['/c311/account', '/c311/requests', '/c311/logout/callback']))
+  })
+
+  it('renders the complete FE-03 form and sends only contract fields', async () => {
+    const provider = {
+      submitPortalRequest: jest.fn().mockResolvedValue({ request_number: 'SR-2026-00041', status: 'SUBMITTED', version: 1 }),
+      getProfile: jest.fn().mockResolvedValue({ constituent_id: 'constituent-1', display_name: 'Alex Example', emails: ['alex@example.test'], phone_numbers: [] }),
+    }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.submit', query: {} }, $C311: { provider, session: { authenticated: true, actor: { actor_id: 'actor-1' } } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.load()
+    expect(wrapper.find('#c311-service-type').exists()).toBe(true)
+    expect(wrapper.find('#c311-requester-name').exists()).toBe(true)
+    expect(wrapper.find('#c311-requester-email').exists()).toBe(true)
+    expect(wrapper.find('#c311-requester-phone').exists()).toBe(true)
+    expect(wrapper.find('#c311-location-address').exists()).toBe(true)
+    expect(wrapper.find('#c311-attachment-token').exists()).toBe(true)
+    expect(wrapper.find('#c311-custom-fields').exists()).toBe(true)
+    expect(wrapper.find('#c311-consent').exists()).toBe(true)
+    expect(wrapper.vm.form.requester.display_name).toBe('Alex Example')
+    wrapper.vm.form = {
+      service_type: 'GENERAL_INQUIRY', summary: 'Need help', description: 'Please help with this city service.',
+      requester: { display_name: 'Changed Name', email: 'changed@example.test', phone: '+15550100' },
+      location: { address: '', latitude: null, longitude: null }, attachment_tokens: ['upload-00031'], custom_fields: { ward: 'NORTH' }, consent: true,
+    }
+    await wrapper.vm.submit()
+    const [input, options] = provider.submitPortalRequest.mock.calls[0]
+    expect(input).toEqual(expect.objectContaining({ service_type: 'GENERAL_INQUIRY', requester: { display_name: 'Changed Name', email: 'changed@example.test', phone: '+15550100' }, attachment_tokens: ['upload-00031'], custom_fields: { ward: 'NORTH' } }))
+    expect(input).not.toHaveProperty('consent')
+    expect(input).not.toHaveProperty('source_channel')
+    expect(options.idempotencyKey).toBeTruthy()
+    expect(wrapper.vm.submissionResult.status).toBe('SUBMITTED')
+    expect(wrapper.vm.submissionResult.request_number).toBe('SR-2026-00041')
+  })
+
+  it('validates conditional location and consent while preserving valid input', async () => {
+    const provider = { submitPortalRequest: jest.fn() }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.submit', query: {} }, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    wrapper.vm.form.summary = 'Keep this summary'
+    wrapper.vm.form.description = 'Keep this valid description.'
+    wrapper.vm.form.requester = { display_name: 'Anonymous', email: 'anon@example.test', phone: '' }
+    wrapper.vm.form.service_type = 'POTHOLE'
+    await wrapper.vm.submit()
+    expect(provider.submitPortalRequest).not.toHaveBeenCalled()
+    expect(wrapper.vm.form.summary).toBe('Keep this summary')
+    expect(wrapper.vm.formErrors.map(error => error.field)).toEqual(expect.arrayContaining(['location.address', 'consent']))
+    expect(wrapper.vm.state).toBe('validation-error')
+
+    wrapper.vm.form.service_type = 'GENERAL_INQUIRY'
+    wrapper.vm.form.consent = true
+    wrapper.vm.form.location.latitude = 'not-a-number'
+    wrapper.vm.form.description = 'Description with <b>markup</b>.'
+    await wrapper.vm.submit()
+    expect(provider.submitPortalRequest).not.toHaveBeenCalled()
+    expect(wrapper.vm.formErrors.map(error => error.field)).toEqual(expect.arrayContaining(['description', 'location.latitude']))
+  })
+
+  it('reuses one idempotency key for double submit and maps server field errors', async () => {
+    let resolveSubmit
+    const provider = {
+      submitPortalRequest: jest.fn().mockImplementation(() => new Promise(resolve => { resolveSubmit = resolve })),
+    }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.submit', query: {} }, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    wrapper.vm.form = {
+      service_type: 'GENERAL_INQUIRY', summary: 'Need help', description: 'Please help with this city service.',
+      requester: { display_name: 'Anonymous', email: 'anon@example.test', phone: '' }, location: { address: '', latitude: null, longitude: null }, attachment_tokens: [], custom_fields: {}, consent: true,
+    }
+    const first = wrapper.vm.submit()
+    const second = wrapper.vm.submit()
+    expect(provider.submitPortalRequest).toHaveBeenCalledTimes(1)
+    const firstKey = provider.submitPortalRequest.mock.calls[0][1].idempotencyKey
+    expect(firstKey).toBeTruthy()
+    resolveSubmit({ request_number: 'SR-2026-00042', status: 'SUBMITTED', version: 1 })
+    await Promise.all([first, second])
+
+    provider.submitPortalRequest.mockRejectedValueOnce({ status: 422, error: 'VALIDATION_ERROR', errors: [{ field: '/requester/email', code: 'INVALID_FORMAT', message: 'Invalid email' }] })
+    wrapper.vm.form.requester.email = 'valid@example.test'
+    await wrapper.vm.submit()
+    expect(wrapper.vm.formErrors[0].field).toBe('/requester/email')
+    expect(wrapper.vm.form.requester.display_name).toBe('Anonymous')
+    expect(provider.submitPortalRequest.mock.calls[1][1].idempotencyKey).not.toBe(firstKey)
+  })
+
+  it('uses the staff assist operation only on the staff route', async () => {
+    const provider = { createStaffServiceRequest: jest.fn().mockResolvedValue({ request: { request_number: 'SR-2026-00043', status: 'SUBMITTED' } }) }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.staff.submit', query: {} }, $C311: { provider, session: { authenticated: true, actor: { actor_id: 'staff-1', capabilities: ['staff_service_request_create'], scopes: ['service_requests.write'] } }, can: () => true, hasScope: () => true } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    wrapper.vm.form = {
+      service_type: 'GENERAL_INQUIRY', summary: 'Staff request', description: 'Staff member is helping submit this request.',
+      requester: { display_name: 'Resident', email: 'resident@example.test', phone: '' }, location: { address: '', latitude: null, longitude: null }, attachment_tokens: [], custom_fields: {}, consent: true,
+    }
+    await wrapper.vm.submit()
+    expect(provider.createStaffServiceRequest).toHaveBeenCalledWith(expect.objectContaining({ constituent: expect.any(Object), request: expect.objectContaining({ summary: 'Staff request' }) }))
+    expect(provider.createStaffServiceRequest.mock.calls[0][0].request).not.toHaveProperty('source_channel')
+  })
+
+  it('keeps user input and exposes reload/reapply actions for draft version conflicts', async () => {
+    const provider = {
+      updateDraft: jest.fn().mockRejectedValue({ status: 409, error: 'VERSION_CONFLICT', current_version: 2, message: 'The record changed before your update.' }),
+      getDraft: jest.fn().mockResolvedValue({ request_id: 'draft-fixture-001', version: 2, summary: 'Server summary', description: 'Server description', service_type: 'GENERAL_INQUIRY', primary_requester: { display_name: 'Server Resident', emails: ['server@example.test'], phone_numbers: [] }, custom_fields: {} }),
+    }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.submit', query: {} }, $C311: { provider, session: { authenticated: true, actor: { actor_id: 'actor-1' } } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    wrapper.vm.draftID = 'draft-fixture-001'
+    wrapper.vm.draftVersion = 1
+    wrapper.vm.form.summary = 'Keep user summary'
+    wrapper.vm.form.description = 'Keep this user description.'
+    wrapper.vm.form.requester = { display_name: 'User Resident', email: 'user@example.test', phone: '' }
+    wrapper.vm.form.consent = true
+    await wrapper.vm.saveDraft()
+    expect(wrapper.vm.versionConflict.current_version).toBe(2)
+    expect(wrapper.vm.form.summary).toBe('Keep user summary')
+    await wrapper.vm.reapplyDraft()
+    expect(wrapper.vm.form.summary).toBe('Keep user summary')
+    expect(wrapper.vm.versionConflict).toBe(null)
+
+    wrapper.vm.versionConflict = { current_version: 2 }
+    wrapper.vm.conflictDraft = { form: { summary: 'Keep user summary' }, customFieldsText: '{}' }
+    await wrapper.vm.reloadDraft()
+    expect(provider.getDraft).toHaveBeenCalledWith('draft-fixture-001')
+    expect(wrapper.vm.form.summary).toBe('Server summary')
+    expect(wrapper.vm.draftVersion).toBe(2)
+  })
+
+  it('reloads the correct data when the shared portal route changes', async () => {
+    const route = Vue.observable({ name: 'c311.submit', path: '/c311/submit', query: {} })
+    const provider = {
+      listPortalRequests: jest.fn().mockResolvedValue({ items: [{ request_id: 'status-1', request_number: 'SR-2026-00001' }] }),
+      getProfile: jest.fn(),
+    }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: route, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    wrapper.vm.submissionResult = { request_number: 'SR-2026-00009', status: 'SUBMITTED' }
+    route.name = 'c311.status'
+    route.path = '/c311/status'
+    await Vue.nextTick()
+    await Vue.nextTick()
+    expect(provider.listPortalRequests).toHaveBeenCalled()
+    expect(wrapper.vm.showRequestList).toBe(true)
+    expect(wrapper.vm.submissionResult).toBe(null)
+    expect(wrapper.vm.items).toHaveLength(1)
+  })
+
+  it('uploads an attachment through the provider and submits only its opaque token', async () => {
+    const provider = {
+      uploadPortalAttachment: jest.fn().mockResolvedValue({ attachment_token: 'opaque-upload-token' }),
+      submitPortalRequest: jest.fn().mockResolvedValue({ request_number: 'SR-2026-00050', status: 'SUBMITTED', version: 1 }),
+    }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.submit', query: {} }, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    const file = new File(['fixture'], 'fixture.txt', { type: 'text/plain' })
+    const input = wrapper.find('#c311-attachment-file').element
+    Object.defineProperty(input, 'files', { value: [file] })
+    await wrapper.find('#c311-attachment-file').trigger('change')
+    await Vue.nextTick()
+    expect(provider.uploadPortalAttachment).toHaveBeenCalledWith(expect.objectContaining({ filename: 'fixture.txt', media_type: 'text/plain', file }))
+    expect(wrapper.vm.form.attachment_tokens).toEqual(['opaque-upload-token'])
+    wrapper.vm.form = { service_type: 'GENERAL_INQUIRY', summary: 'Need help', description: 'Please help with this city service.', requester: { display_name: 'Resident', email: 'resident@example.test', phone: '' }, location: { address: '', latitude: null, longitude: null }, attachment_tokens: ['opaque-upload-token'], custom_fields: {}, consent: true }
+    await wrapper.vm.submit()
+    expect(provider.submitPortalRequest.mock.calls[0][0].attachment_tokens).toEqual(['opaque-upload-token'])
+    expect(provider.submitPortalRequest.mock.calls[0][0]).not.toHaveProperty('attachment_contents')
   })
 
 })

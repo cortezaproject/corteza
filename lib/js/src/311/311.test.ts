@@ -540,4 +540,117 @@ describe('City 311 frontend contract', () => {
     expect(page.items).to.deep.equal([])
     expect(page.total_count).to.equal(0)
   })
+
+  it('maps FE-03 submit, draft, and staff-assist operations to contract paths and headers', async () => {
+    const requests: C311TransportRequest[] = []
+    const provider = new C311HttpProvider({
+      request: async <T> (request: C311TransportRequest): Promise<T> => {
+        requests.push(request)
+        if (request.path === '/api/v1/staff/service-requests') return { request: { request_id: 'staff-request' } } as T
+        if (request.path.includes('/submit')) return { request_id: 'draft-request', request_number: 'SR-2026-00004', status: 'SUBMITTED', version: 2, created_at: '2026-01-15T15:00:00.000Z', links: { self: '/api/v1/service-requests/draft-request' } } as T
+        if (request.method === 'DELETE') return undefined as T
+        return { request_id: 'draft-request', status: 'DRAFT', version: 2 } as T
+      },
+    })
+    const portalInput = {
+      summary: 'Pothole near library',
+      description: 'The road surface is damaged near the library entrance.',
+      service_type: 'POTHOLE' as const,
+      requester: { display_name: 'Alex Example', email: 'alex@example.test' },
+      location: { address: '100 Example Street', latitude: 42.9001, longitude: -88.8801 },
+      attachment_tokens: ['upload-00031'],
+      custom_fields: { ward: 'NORTH' },
+    }
+    await provider.submitPortalRequest(portalInput, { idempotencyKey: 'fe03-submit-1' })
+    await provider.createDraft(portalInput)
+    await provider.getDraft('draft-request')
+    await provider.updateDraft('draft-request', { summary: 'Updated summary' }, { expectedVersion: 2 })
+    await provider.deleteDraft('draft-request', { expectedVersion: 2 })
+    await provider.submitDraft('draft-request', { expectedVersion: 2 })
+    await provider.createStaffServiceRequest({
+      constituent: { constituent_id: 'constituent-fixture-001' },
+      request: portalInput,
+    })
+
+    expect(requests.find(request => request.path === '/api/v1/portal/service-requests')?.headers).to.deep.equal({ 'Idempotency-Key': 'fe03-submit-1' })
+    expect(requests.find(request => request.path === '/api/v1/portal/service-request-drafts/draft-request' && request.method === 'PATCH')?.headers).to.deep.equal({ 'If-Match': '"2"' })
+    expect(requests.find(request => request.path === '/api/v1/portal/service-request-drafts/draft-request' && request.method === 'DELETE')?.headers).to.deep.equal({ 'If-Match': '"2"' })
+    expect(requests.find(request => request.path.endsWith('/draft-request/submit'))?.headers).to.deep.equal({ 'If-Match': '"2"' })
+    expect(requests.find(request => request.path === '/api/v1/staff/service-requests')?.body).to.deep.equal({ constituent: { constituent_id: 'constituent-fixture-001' }, request: portalInput })
+  })
+
+  it('persists mock drafts, increments versions, and deduplicates logical portal submissions', async () => {
+    const provider = new MockC311Provider({ role: 'constituent' })
+    const input = {
+      summary: 'Pothole near library',
+      description: 'The road surface is damaged near the library entrance.',
+      service_type: 'POTHOLE' as const,
+      requester: { display_name: 'Alex Example', email: 'alex@example.test' },
+      location: { address: '100 Example Street', latitude: 42.9001, longitude: -88.8801 },
+    }
+    const first = await provider.submitPortalRequest(input, { idempotencyKey: 'fe03-submit-1' })
+    const replay = await provider.submitPortalRequest(input, { idempotencyKey: 'fe03-submit-1' })
+    expect(replay).to.deep.equal(first)
+    expect(provider.getWriteCount('portal_service_request_submit')).to.equal(1)
+    await expectError(() => provider.submitPortalRequest({ ...input, summary: 'Different summary' }, { idempotencyKey: 'fe03-submit-1' }), 'IDEMPOTENCY_CONFLICT')
+
+    const created = await provider.createDraft(input)
+    expect(created.status).to.equal('DRAFT')
+    const loaded = await provider.getDraft(created.request_id)
+    expect(loaded.summary).to.equal(input.summary)
+    const updated = await provider.updateDraft(created.request_id, { summary: 'Changed draft' }, { expectedVersion: created.version })
+    expect(updated.summary).to.equal('Changed draft')
+    expect(updated.version).to.equal(created.version + 1)
+    await expectError(() => provider.updateDraft(created.request_id, { summary: 'Stale update' }, { expectedVersion: created.version }), 'VERSION_CONFLICT')
+    await provider.deleteDraft(created.request_id, { expectedVersion: updated.version })
+    await expectError(() => provider.getDraft(created.request_id), 'NOT_FOUND')
+  })
+
+  it('models attachment staging, one-time token use, and expected-version failures', async () => {
+    const provider = new MockC311Provider({ role: 'public_visitor' })
+    const attachment = await provider.uploadPortalAttachment({ file: 'opaque-fixture-bytes', filename: 'fixture.txt', media_type: 'text/plain' })
+    expect(attachment.attachment_token).to.match(/^attachment-token-fixture-/)
+    expect(provider.getWriteCount('portal_attachment_upload')).to.equal(1)
+    const input: PortalServiceRequestCreate = {
+      summary: 'Fixture attachment request',
+      description: 'This request validates one-time attachment staging.',
+      service_type: 'GENERAL_INQUIRY',
+      requester: { display_name: 'Fixture Resident', email: 'resident@example.test' },
+      attachment_tokens: [attachment.attachment_token],
+    }
+    const first = await provider.submitPortalRequest(input, { idempotencyKey: 'attachment-submit-1' })
+    expect(first.status).to.equal('SUBMITTED')
+    expect(await provider.submitPortalRequest(input, { idempotencyKey: 'attachment-submit-1' })).to.deep.equal(first)
+    await expectError(() => provider.submitPortalRequest(input, { idempotencyKey: 'attachment-submit-2' }), 'IDEMPOTENCY_CONFLICT')
+    const missingVersion = await expectError(() => new MockC311Provider({ scenario: 'expected-version-required', role: 'constituent' }).updateDraft('draft-fixture-001', { summary: 'x' }), 'EXPECTED_VERSION_REQUIRED')
+    expect(missingVersion.status).to.equal(428)
+  })
+
+  it('exposes explicit idempotency and retryable attachment scenarios', async () => {
+    const conflict = await expectError(() => new MockC311Provider({ scenario: 'idempotency-conflict' }).submitPortalRequest({
+      summary: 'Fixture request',
+      description: 'This request is long enough for the fixture.',
+      service_type: 'GENERAL_INQUIRY',
+      requester: { display_name: 'Fixture Resident', email: 'resident@example.test' },
+    }, { idempotencyKey: 'fixture-key' }), 'IDEMPOTENCY_CONFLICT')
+    expect(conflict.status).to.equal(409)
+    const retryable = await expectError(() => new MockC311Provider({ scenario: 'retryable' }).uploadPortalAttachment({ file: 'fixture', filename: 'fixture.txt', media_type: 'text/plain' }), 'TEMPORARILY_UNAVAILABLE')
+    expect(retryable.status).to.equal(503)
+    expect(retryable.retryable).to.equal(true)
+  })
+
+  it('exposes retryable and terminal portal submission failures', async () => {
+    const input = {
+      service_type: 'GENERAL_INQUIRY' as const,
+      summary: 'A valid summary',
+      description: 'A valid description for a portal request.',
+      requester: { display_name: 'Fixture Resident', email: 'resident@example.test' },
+    }
+    const retryable = await expectError(() => new MockC311Provider({ scenario: 'retryable' }).submitPortalRequest(input), 'TEMPORARILY_UNAVAILABLE')
+    expect(retryable.status).to.equal(503)
+    expect(retryable.retryable).to.equal(true)
+    const terminal = await expectError(() => new MockC311Provider({ scenario: 'terminal' }).submitPortalRequest(input), 'OPERATION_FAILED')
+    expect(terminal.status).to.equal(500)
+    expect(terminal.retryable).to.equal(false)
+  })
 })

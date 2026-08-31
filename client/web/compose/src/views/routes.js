@@ -46,6 +46,12 @@ export default [
     meta: { c311: { public: true } },
   },
   {
+    name: 'c311.staff.submit',
+    path: '/c311/staff/submit',
+    component: () => import('./C311/Portal.vue'),
+    meta: { c311: { requiresAuth: true, route: 'staff_service_request_create', capabilities: ['staff_service_request_create'], scopes: ['service_requests.write'] } },
+  },
+  {
     name: 'c311.status',
     path: '/c311/status',
     component: () => import('./C311/Portal.vue'),
