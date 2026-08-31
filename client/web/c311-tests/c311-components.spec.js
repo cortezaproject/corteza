@@ -230,6 +230,20 @@ describe('C311 shared components', () => {
     expect(wrapper.vm.c311ReadDirtyDraft()).toEqual({ summary: 'keep', nested: { description: 'keep' } })
   })
 
+  it('persists non-sensitive portal drafts in local storage for browser restart recovery', () => {
+    const Guard = Vue.extend({
+      mixins: [mixins.c311DirtyGuard],
+      template: '<input />',
+    })
+    const wrapper = mount(Guard, { attachTo: document.body })
+    wrapper.vm.c311DirtyStorageKey = 'c311.portal.submit'
+    wrapper.vm.c311MarkDirty(true)
+    wrapper.vm.c311SaveDirtyDraft({ summary: 'keep after restart', password: 'drop', nested: { access_token: 'drop', description: 'keep' } })
+    sessionStorage.clear()
+    expect(JSON.parse(localStorage.getItem('c311.portal.submit'))).toEqual({ summary: 'keep after restart', nested: { description: 'keep' } })
+    expect(wrapper.vm.c311ReadDirtyDraft()).toEqual({ summary: 'keep after restart', nested: { description: 'keep' } })
+  })
+
   it('protects dirty navigation and reloads server state only after confirmation', async () => {
     const Guard = Vue.extend({
       mixins: [mixins.c311DirtyGuard],
@@ -848,6 +862,84 @@ describe('C311 shared components', () => {
     expect(wrapper.vm.items).toHaveLength(1)
   })
 
+  it('gates each portal draft action by its matching capability', async () => {
+    const session = capabilities => ({ authenticated: true, actor: { actor_id: 'actor-1', capabilities } })
+    const mountPortal = capabilities => mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.submit', query: {} }, $C311: { provider: {}, session: session(capabilities) } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+
+    const createOnly = mountPortal(['portal_draft_create'])
+    await Vue.nextTick()
+    expect(createOnly.find('[data-c311-action="save-draft"]').exists()).toBe(true)
+    createOnly.vm.draftID = 'draft-1'
+    await Vue.nextTick()
+    expect(createOnly.find('[data-c311-action="save-draft"]').exists()).toBe(false)
+    expect(createOnly.find('[data-c311-action="delete-draft"]').exists()).toBe(false)
+    expect(createOnly.find('[data-c311-draft-submit-denied]').exists()).toBe(true)
+
+    const updateDeleteSubmit = mountPortal(['portal_draft_update', 'portal_draft_delete', 'portal_draft_submit'])
+    updateDeleteSubmit.vm.draftID = 'draft-1'
+    await Vue.nextTick()
+    expect(updateDeleteSubmit.find('[data-c311-action="save-draft"]').exists()).toBe(true)
+    expect(updateDeleteSubmit.find('[data-c311-action="delete-draft"]').exists()).toBe(true)
+    expect(updateDeleteSubmit.find('[data-c311-draft-submit-denied]').exists()).toBe(false)
+
+    const noDraftCapabilities = mountPortal([])
+    await Vue.nextTick()
+    expect(noDraftCapabilities.find('[data-c311-action="save-draft"]').exists()).toBe(false)
+  })
+
+  it('ignores a stale portal list failure after navigating to a new route', async () => {
+    let rejectList
+    const provider = {
+      listPortalRequests: jest.fn().mockImplementation(() => new Promise((_resolve, reject) => { rejectList = reject })),
+    }
+    const route = Vue.observable({ name: 'c311.status', path: '/c311/status', query: {} })
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: route, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await Vue.nextTick()
+    route.name = 'c311.submit'
+    route.path = '/c311/submit'
+    await Vue.nextTick()
+    await Vue.nextTick()
+    rejectList({ status: 503, retryable: true })
+    await Vue.nextTick()
+    await Vue.nextTick()
+    expect(wrapper.vm.showRequestList).toBe(false)
+    expect(wrapper.vm.dataError).toBe(null)
+    expect(wrapper.vm.state).toBe('populated')
+  })
+
+  it('ignores a stale submit failure after navigating away from the form', async () => {
+    let rejectSubmit
+    const provider = {
+      submitPortalRequest: jest.fn().mockImplementation(() => new Promise((_resolve, reject) => { rejectSubmit = reject })),
+    }
+    const route = Vue.observable({ name: 'c311.submit', path: '/c311/submit', query: {} })
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: route, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    wrapper.vm.form = {
+      service_type: 'GENERAL_INQUIRY', summary: 'Valid summary', description: 'A valid description for this request.',
+      requester: { display_name: 'Resident', email: 'resident@example.test', phone: '' }, location: { address: '', latitude: null, longitude: null }, attachment_tokens: [], custom_fields: {}, consent: true,
+    }
+    const submit = wrapper.vm.submit()
+    await Vue.nextTick()
+    route.name = 'c311.status'
+    route.path = '/c311/status'
+    await Vue.nextTick()
+    await Vue.nextTick()
+    rejectSubmit({ status: 503, retryable: true })
+    await submit
+    await Vue.nextTick()
+    expect(wrapper.vm.showRequestList).toBe(true)
+    expect(wrapper.vm.dataError).toBe(null)
+  })
+
   it('uploads an attachment through the provider and submits only its opaque token', async () => {
     const provider = {
       uploadPortalAttachment: jest.fn().mockResolvedValue({ attachment_token: 'opaque-upload-token' }),
@@ -868,6 +960,33 @@ describe('C311 shared components', () => {
     await wrapper.vm.submit()
     expect(provider.submitPortalRequest.mock.calls[0][0].attachment_tokens).toEqual(['opaque-upload-token'])
     expect(provider.submitPortalRequest.mock.calls[0][0]).not.toHaveProperty('attachment_contents')
+  })
+
+  it('allows an attachment upload to be retried after a retryable failure', async () => {
+    const provider = {
+      uploadPortalAttachment: jest.fn()
+        .mockRejectedValueOnce({ status: 503, error: 'TEMPORARILY_UNAVAILABLE', retryable: true })
+        .mockResolvedValueOnce({ attachment_token: 'opaque-retry-token' }),
+    }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.submit', query: {} }, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    const file = new File(['fixture'], 'fixture.txt', { type: 'text/plain' })
+    const input = wrapper.find('#c311-attachment-file').element
+    Object.defineProperty(input, 'files', { configurable: true, value: [file] })
+    await wrapper.find('#c311-attachment-file').trigger('change')
+    await Vue.nextTick()
+    await Vue.nextTick()
+    expect(provider.uploadPortalAttachment).toHaveBeenCalledTimes(1)
+    expect(wrapper.vm.state).toBe('retryable-error')
+
+    Object.defineProperty(input, 'files', { configurable: true, value: [file] })
+    await wrapper.find('#c311-attachment-file').trigger('change')
+    await Vue.nextTick()
+    await Vue.nextTick()
+    expect(provider.uploadPortalAttachment).toHaveBeenCalledTimes(2)
+    expect(wrapper.vm.form.attachment_tokens).toEqual(['opaque-retry-token'])
   })
 
 })

@@ -83,6 +83,29 @@ describe('City 311 frontend contract', () => {
     }
   })
 
+  it('enforces draft capabilities and session expiry in the mock provider', async () => {
+    const agent = new MockC311Provider({ role: 'service_agent' })
+    const draftInput = { summary: 'Fixture draft' }
+    const deniedOperations = [
+      () => agent.createDraft(draftInput),
+      () => agent.getDraft('draft-fixture-001'),
+      () => agent.updateDraft('draft-fixture-001', draftInput, { expectedVersion: 1 }),
+      () => agent.deleteDraft('draft-fixture-001', { expectedVersion: 1 }),
+      () => agent.submitDraft('draft-fixture-001', { expectedVersion: 1 }),
+    ]
+    for (const operation of deniedOperations) {
+      const error = await expectError(operation, 'FORBIDDEN')
+      expect(error.status).to.equal(403)
+    }
+
+    const expired = new MockC311Provider({ role: 'constituent', sessionVariant: 'expired' })
+    const error = await expectError(() => expired.createDraft(draftInput), 'UNAUTHENTICATED')
+    expect(error.status).to.equal(401)
+
+    const constituent = new MockC311Provider({ role: 'constituent' })
+    expect((await constituent.createDraft(draftInput)).status).to.equal('DRAFT')
+  })
+
   it('keeps all role fixture values inside the frozen contract vocabularies', () => {
     const contract = JSON.parse(readFileSync(new URL('../../../../server/compose/types/city311/contract.json', import.meta.url), 'utf8')) as {
       enums: Record<string, string[]>

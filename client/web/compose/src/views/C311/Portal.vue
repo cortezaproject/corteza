@@ -110,19 +110,22 @@
           <label class="form-check-label" for="c311-consent">{{ t('field.consent', 'I confirm that the information provided is accurate.') }}</label>
         </div>
 
-        <button v-if="!isStaffAssistRoute" class="btn btn-primary" type="submit" data-c311-action="submit-request" :disabled="submitting">
+        <button v-if="!isStaffAssistRoute && canSubmitCurrentRequest" class="btn btn-primary" type="submit" data-c311-action="submit-request" :disabled="submitting">
           <span v-if="submitting" class="spinner-border spinner-border-sm mr-1" aria-hidden="true" />
           {{ t('action.submit', 'Submit request') }}
         </button>
+        <p v-else-if="!isStaffAssistRoute && draftID" class="text-muted small" role="note" data-c311-draft-submit-denied>{{ t('action.draftSubmitDenied', 'You do not have permission to submit this draft.') }}</p>
         <c311-capability-action v-else capability="staff_service_request_create" scope="service_requests.write" :busy="submitting" :explain-when-denied="true" :denied-label="t('action.denied', 'This action is unavailable for your role.')" data-c311-action="submit-staff-request" type="submit">
           {{ t('action.submit', 'Submit request') }}
         </c311-capability-action>
       </form>
 
-      <div v-if="isAuthenticated && !isStaffAssistRoute" class="mt-3 d-flex flex-wrap gap-2">
-        <button class="btn btn-outline-primary" type="button" data-c311-action="save-draft" :disabled="draftSaving" @click="saveDraft">{{ draftSaving ? t('status.saving', 'Saving...') : t('action.saveDraft', 'Save draft') }}</button>
-        <button v-if="draftID" class="btn btn-outline-danger" type="button" data-c311-action="delete-draft" :disabled="draftSaving" @click="deleteDraft">{{ t('action.deleteDraft', 'Delete draft') }}</button>
+      <div v-if="isAuthenticated && !isStaffAssistRoute && (canCreateDraft || canUpdateDraft || canDeleteDraft)" class="mt-3 d-flex flex-wrap gap-2">
+        <button v-if="!draftID && canCreateDraft" class="btn btn-outline-primary" type="button" data-c311-action="save-draft" :disabled="draftSaving" @click="saveDraft">{{ draftSaving ? t('status.saving', 'Saving...') : t('action.saveDraft', 'Save draft') }}</button>
+        <button v-if="draftID && canUpdateDraft" class="btn btn-outline-primary" type="button" data-c311-action="save-draft" :disabled="draftSaving" @click="saveDraft">{{ draftSaving ? t('status.saving', 'Saving...') : t('action.saveDraft', 'Save draft') }}</button>
+        <button v-if="draftID && canDeleteDraft" class="btn btn-outline-danger" type="button" data-c311-action="delete-draft" :disabled="draftSaving" @click="deleteDraft">{{ t('action.deleteDraft', 'Delete draft') }}</button>
       </div>
+      <p v-else-if="isAuthenticated && !isStaffAssistRoute && draftID" class="text-muted small mt-3" role="note" data-c311-draft-actions-denied>{{ t('action.draftActionsDenied', 'You do not have permission to change this draft.') }}</p>
 
       <p v-if="successMessage" class="alert alert-success mt-3" role="status" data-c311-submit-success>{{ successMessage }}</p>
       <div v-if="submissionResult" class="alert alert-success" data-c311-submission-result>
@@ -217,6 +220,15 @@ export default {
     isStaffAssistRoute () { return this.$route?.name === 'c311.staff.submit' },
     isRequestFormRoute () { return this.isSubmitRoute || this.isStaffAssistRoute },
     showRequestList () { return this.$route?.name === 'c311.status' },
+    canCapability () { return capability => {
+      if (typeof this.$C311?.can === 'function') return this.$C311.can(capability)
+      const capabilities = this.$C311?.session?.actor?.capabilities
+      return !Array.isArray(capabilities) || capabilities.includes(capability)
+    } },
+    canCreateDraft () { return this.isAuthenticated && this.canCapability('portal_draft_create') },
+    canUpdateDraft () { return !!this.draftID && this.canCapability('portal_draft_update') },
+    canDeleteDraft () { return !!this.draftID && this.canCapability('portal_draft_delete') },
+    canSubmitCurrentRequest () { return !this.draftID || this.canCapability('portal_draft_submit') },
     shellTitle () { return this.isStaffAssistRoute ? this.t('portal.submit.staffTitle', 'Submit a request for a resident') : this.isRequestFormRoute ? this.t('portal.submit.title', 'Submit a service request') : this.t('portal.title', 'City 311') },
     navItems () {
       const items = [
@@ -353,6 +365,7 @@ export default {
         if (generation !== this.loadGeneration) return
         this.items = page?.items || []; this.state = this.items.length ? 'populated' : 'empty'; this.statusMessage = this.items.length ? this.t('status.requestsLoaded', 'Requests loaded.') : this.t('status.noRequests', 'No requests found.')
       } catch (error) {
+        if (generation !== this.loadGeneration) return
         this.dataError = error; this.state = c311StateForError?.(error) || (error?.retryable ? 'retryable-error' : 'terminal-error'); this.statusMessage = this.t('status.requestListUnavailable', 'Request list unavailable.')
       }
     },
@@ -419,9 +432,12 @@ export default {
     },
     async reloadDraft () {
       if (!this.draftID || !this.provider?.getDraft || this.draftSaving) return
+      const generation = this.loadGeneration
       this.draftSaving = true
       try {
-        this.hydrateRemoteDraft(await this.provider.getDraft(this.draftID))
+        const draft = await this.provider.getDraft(this.draftID)
+        if (generation !== this.loadGeneration) return
+        this.hydrateRemoteDraft(draft)
         this.versionConflict = null
         this.conflictDraft = null
         this.formErrors = []
@@ -429,9 +445,10 @@ export default {
         this.successMessage = this.t('status.draftReloaded', 'Server draft reloaded.')
         this.c311MarkDirty?.(false)
       } catch (error) {
+        if (generation !== this.loadGeneration) return
         this.setError(error)
       } finally {
-        this.draftSaving = false
+        if (generation === this.loadGeneration) this.draftSaving = false
       }
     },
     reapplyDraft () {
@@ -448,8 +465,13 @@ export default {
     async submit () {
       if (this.submitting) return
       this.formErrors = []; this.dataError = null; this.successMessage = ''
+      if (this.draftID && !this.canSubmitCurrentRequest) {
+        this.setError({ status: 403, error: 'FORBIDDEN', message: this.t('error.draftSubmitDenied', 'You do not have permission to submit this draft.') })
+        return
+      }
       const errors = this.validate()
       if (errors.length) { this.formErrors = errors; this.state = 'validation-error'; return }
+      const generation = this.loadGeneration
       this.submitting = true
       try {
         const request = this.payload(); let response
@@ -463,6 +485,7 @@ export default {
           if (!this.idempotencyKey || this.idempotencyFingerprint !== fingerprint) { this.idempotencyKey = this.nextIdempotencyKey(); this.idempotencyFingerprint = fingerprint }
           response = await this.provider?.submitPortalRequest?.(request, { idempotencyKey: this.idempotencyKey })
         }
+        if (generation !== this.loadGeneration) return
         if (!response) throw new Error(this.t('error.providerUnavailable', 'The request provider is unavailable.'))
         this.submissionResult = { request_number: response.request_number, status: response.status || 'SUBMITTED', version: response.version }
         this.state = 'populated'
@@ -473,13 +496,20 @@ export default {
           this.draftID = ''; this.draftVersion = null
           if (this.$router?.replace && this.$route?.query?.draft_id) { const query = { ...this.$route.query }; delete query.draft_id; await this.$router.replace({ query }) }
         }
-      } catch (error) { this.setError(error) } finally { this.submitting = false }
+      } catch (error) {
+        if (generation !== this.loadGeneration) return
+        this.setError(error)
+      } finally {
+        if (generation === this.loadGeneration) this.submitting = false
+      }
     },
     async saveDraft () {
-      if (!this.isAuthenticated || this.draftSaving) return
+      if (!this.isAuthenticated || this.draftSaving || (!this.draftID && !this.canCreateDraft) || (this.draftID && !this.canUpdateDraft)) return
+      const generation = this.loadGeneration
       this.formErrors = []; this.dataError = null; this.draftSaving = true
       try {
         const payload = this.draftPayload(); const response = this.draftID ? await this.provider?.updateDraft?.(this.draftID, payload, { expectedVersion: this.draftVersion }) : await this.provider?.createDraft?.(payload)
+        if (generation !== this.loadGeneration) return
         this.hydrateRemoteDraft(response); this.c311MarkDirty?.(false); this.successMessage = this.t('status.draftSaved', 'Draft saved.'); this.versionConflict = null; this.conflictDraft = null
         if (this.$router?.replace && this.$route?.query && this.$route.query.draft_id !== this.draftID) {
           this.suppressRouteReload = true
@@ -489,15 +519,28 @@ export default {
             this.suppressRouteReload = false
           }
         }
-      } catch (error) { this.setError(error) } finally { this.draftSaving = false }
+      } catch (error) {
+        if (generation !== this.loadGeneration) return
+        this.setError(error)
+      } finally {
+        if (generation === this.loadGeneration) this.draftSaving = false
+      }
     },
     async deleteDraft () {
-      if (!this.draftID || this.draftSaving) return
+      if (!this.draftID || this.draftSaving || !this.canDeleteDraft) return
+      const generation = this.loadGeneration
       this.draftSaving = true
       try {
-        await this.provider?.deleteDraft?.(this.draftID, { expectedVersion: this.draftVersion }); this.draftID = ''; this.draftVersion = null; this.c311ClearDirtyDraft?.(); this.successMessage = this.t('status.draftDeleted', 'Draft deleted.')
+        await this.provider?.deleteDraft?.(this.draftID, { expectedVersion: this.draftVersion })
+        if (generation !== this.loadGeneration) return
+        this.draftID = ''; this.draftVersion = null; this.c311ClearDirtyDraft?.(); this.successMessage = this.t('status.draftDeleted', 'Draft deleted.')
         if (this.$router?.replace && this.$route?.query?.draft_id) { const query = { ...this.$route.query }; delete query.draft_id; await this.$router.replace({ query }) }
-      } catch (error) { this.setError(error) } finally { this.draftSaving = false }
+      } catch (error) {
+        if (generation !== this.loadGeneration) return
+        this.setError(error)
+      } finally {
+        if (generation === this.loadGeneration) this.draftSaving = false
+      }
     },
     async uploadAttachment (event) {
       const file = event?.target?.files?.[0]
@@ -510,17 +553,20 @@ export default {
         return
       }
       if (this.form.attachment_tokens.length >= 5 || !this.provider?.uploadPortalAttachment) return
+      const generation = this.loadGeneration
       this.attachmentUploading = true
       this.formErrors = []
       try {
         const attachment = await this.provider.uploadPortalAttachment({ file, filename: file.name, media_type: file.type })
+        if (generation !== this.loadGeneration) return
         if (attachment?.attachment_token && !this.form.attachment_tokens.includes(attachment.attachment_token)) this.form.attachment_tokens.push(attachment.attachment_token)
         this.statusMessage = this.t('status.attachmentUploaded', 'Attachment uploaded.')
         this.markDirty()
       } catch (error) {
+        if (generation !== this.loadGeneration) return
         this.setError(error)
       } finally {
-        this.attachmentUploading = false
+        if (generation === this.loadGeneration) this.attachmentUploading = false
         event.target.value = ''
       }
     },

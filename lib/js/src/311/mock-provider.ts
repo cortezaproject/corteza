@@ -1,5 +1,5 @@
 import { C311ApiError } from './errors'
-import { APPLICATION_ROLES, CONTACT_CATEGORIES, C311_SCENARIOS, LANGUAGES, PHONE_LABELS, type ApplicationRole, type C311Scenario, type HelpKey, type IdentityProvider, type Language, type PublicContentKey } from './enums'
+import { APPLICATION_ROLES, CONTACT_CATEGORIES, C311_SCENARIOS, LANGUAGES, PHONE_LABELS, type ApplicationRole, type C311Scenario, type ContractCapability, type HelpKey, type IdentityProvider, type Language, type PublicContentKey } from './enums'
 import { cloneFixtureSet, createDefaultFixtureSet } from './fixtures'
 import type {
   AccountRegistration,
@@ -190,6 +190,8 @@ export class MockC311Provider implements C311Provider {
     } catch (_error) {
       // Browser storage is optional in non-browser unit tests.
     }
+  }
+
   getWriteCount (operation: string): number {
     return this.writeCounts[operation] || 0
   }
@@ -252,6 +254,16 @@ export class MockC311Provider implements C311Provider {
     throw new C311ApiError(payload, statusByScenario[scenario], payload.retryable ? { 'Retry-After': '30' } : undefined)
   }
 
+  private requireCapability (capability: ContractCapability): void {
+    const expiresAt = this.currentSession.expires_at
+    if (!this.currentSession.authenticated || (expiresAt && Date.parse(expiresAt) <= Date.now())) {
+      throw new C311ApiError({ error: 'UNAUTHENTICATED', message: 'Authentication is required.', retryable: false }, 401)
+    }
+    if (!this.currentSession.actor?.capabilities?.includes(capability)) {
+      throw new C311ApiError({ error: 'FORBIDDEN', message: 'You are not allowed to perform this operation.', retryable: false }, 403)
+    }
+  }
+
   private page<T> (items: T[], query: ListQuery = {}): PageResponse<T> {
     const { page_token: _pageToken, page_size: _pageSize, filters = {}, sort, ...filterFields } = query as RequestListQuery
     const appliedFilters = Object.entries(filterFields).reduce<Record<string, unknown>>((out, [key, value]) => {
@@ -272,6 +284,12 @@ export class MockC311Provider implements C311Provider {
     const request = this.fixtures.requests.find(item => item.request_id === requestID)
     if (!request) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
     return request
+  }
+
+  private draft (requestID: string): ServiceRequest {
+    const draft = this.draftRecords[requestID]
+    if (!draft) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
+    return draft
   }
 
   private requestSummary (request: ServiceRequest): RequestSummary {
@@ -539,6 +557,7 @@ export class MockC311Provider implements C311Provider {
   }
 
   async createDraft (input: DraftWrite, _options: C311RequestOptions = {}): Promise<ServiceRequest> {
+    this.requireCapability('portal_draft_create')
     this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     const requestID = input.request_id || `draft-fixture-created-${Object.keys(this.draftRecords).length + 1}`
     const payload = { ...copy(input), request_id: requestID }
@@ -551,16 +570,16 @@ export class MockC311Provider implements C311Provider {
   }
 
   async getDraft (requestID: string): Promise<ServiceRequest> {
+    this.requireCapability('portal_draft_get')
     this.failIfNeeded(['forbidden', 'not-found', 'validation'])
-    const draft = this.draftRecords[requestID]
-    if (!draft) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
-    return copy(draft)
+    return copy(this.draft(requestID))
   }
 
   async updateDraft (requestID: string, input: DraftWrite, options: C311RequestOptions = {}): Promise<ServiceRequest> {
+    this.requireCapability('portal_draft_update')
     this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     if (this.scenario === 'expected-version-required' && options.expectedVersion === undefined) this.failScenario('expected-version-required')
-    const current = await this.getDraft(requestID)
+    const current = this.draft(requestID)
     if (options.expectedVersion !== undefined && options.expectedVersion !== current.version) {
       throw new C311ApiError({ error: 'VERSION_CONFLICT', message: 'The record changed before your update.', retryable: false, current_version: current.version }, 409)
     }
@@ -574,9 +593,10 @@ export class MockC311Provider implements C311Provider {
   }
 
   async deleteDraft (requestID: string, options: C311RequestOptions = {}): Promise<void> {
+    this.requireCapability('portal_draft_delete')
     this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     if (this.scenario === 'expected-version-required' && options.expectedVersion === undefined) this.failScenario('expected-version-required')
-    const current = await this.getDraft(requestID)
+    const current = this.draft(requestID)
     if (options.expectedVersion !== undefined && options.expectedVersion !== current.version) {
       throw new C311ApiError({ error: 'VERSION_CONFLICT', message: 'The record changed before your update.', retryable: false, current_version: current.version }, 409)
     }
@@ -587,9 +607,10 @@ export class MockC311Provider implements C311Provider {
   }
 
   async submitDraft (requestID: string, options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {
+    this.requireCapability('portal_draft_submit')
     this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
     if (this.scenario === 'expected-version-required' && options.expectedVersion === undefined) this.failScenario('expected-version-required')
-    const current = await this.getDraft(requestID)
+    const current = this.draft(requestID)
     if (options.expectedVersion !== undefined && options.expectedVersion !== current.version) {
       throw new C311ApiError({ error: 'VERSION_CONFLICT', message: 'The record changed before your update.', retryable: false, current_version: current.version }, 409)
     }

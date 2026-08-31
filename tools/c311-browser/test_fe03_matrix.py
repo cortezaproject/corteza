@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from fe03_matrix import ADMIN_URL, ARTIFACT_DIR_ENV, COMPOSE_URL, KNOWN_DEV_RESOURCE_FAILURES, STAFF_SUBMIT_ACTION, SUBMIT_ACTION, VIEWPORTS, artifact_directory
+from fe03_matrix import ADMIN_URL, ARTIFACT_DIR_ENV, COMPOSE_URL, GENERIC_CONNECTION_ERROR, KNOWN_DEV_CONSOLE_ERRORS, KNOWN_DEV_LOCALE_FAILURES, KNOWN_DEV_RESOURCE_FAILURES, KNOWN_DEV_WEBSOCKET_URL, STAFF_SUBMIT_ACTION, SUBMIT_ACTION, VIEWPORTS, artifact_directory, finalize_diagnostics
 
 
 class Fe03MatrixTests(unittest.TestCase):
@@ -21,9 +21,26 @@ class Fe03MatrixTests(unittest.TestCase):
         self.assertIn("C311Mode = 'mock'", source)
         self.assertNotIn("source_channel", source)
         self.assertIn("unexpected_responses", source)
+        self.assertIn("unexpected_console_errors", source)
         self.assertIn("urlparse", source)
         self.assertEqual(KNOWN_DEV_RESOURCE_FAILURES, {"/code-snippets.js", "/custom.css"})
+        self.assertIn("Failed to load resource: the server responded with a status of 500 (Internal Server Error)", KNOWN_DEV_CONSOLE_ERRORS)
+        self.assertEqual(GENERIC_CONNECTION_ERROR, "Failed to load resource: net::ERR_CONNECTION_CLOSED")
+        self.assertTrue(KNOWN_DEV_WEBSOCKET_URL.startswith("wss://"))
+        self.assertIn("parsed.path == \"/ws\"", source)
+        self.assertEqual(KNOWN_DEV_LOCALE_FAILURES, {
+            "/system/locale/en-US/corteza-webapp-compose",
+            "/system/locale/en-US/corteza-webapp-admin",
+            "/system/locale/en-US+en/corteza-webapp-compose",
+            "/system/locale/en-US+en/corteza-webapp-admin",
+            "/system/locale/en/corteza-webapp-compose",
+            "/system/locale/en/corteza-webapp-admin",
+            "/system/locale/en+en-US/corteza-webapp-compose",
+            "/system/locale/en+en-US/corteza-webapp-admin",
+        })
         self.assertIn("set_input_files", source)
+        self.assertIn("check_capability_controls", source)
+        self.assertIn("check_restart_recovery", source)
 
     def test_configured_artifact_directory_is_private(self) -> None:
         with tempfile.TemporaryDirectory(prefix="c311-fe03-test-") as parent:
@@ -31,6 +48,17 @@ class Fe03MatrixTests(unittest.TestCase):
             with patch.dict(os.environ, {ARTIFACT_DIR_ENV: str(configured)}):
                 directory = artifact_directory()
             self.assertEqual(stat.S_IMODE(directory.stat().st_mode), 0o700)
+
+    def test_unmatched_generic_connection_error_is_not_whitelisted(self) -> None:
+        result = {
+            "console_errors": [GENERIC_CONNECTION_ERROR],
+            "unexpected_console_errors": [],
+            "failed_requests": [],
+            "websocket_urls": [],
+            "pending_console_errors": [GENERIC_CONNECTION_ERROR],
+        }
+        finalize_diagnostics(result)
+        self.assertEqual(result["unexpected_console_errors"], [GENERIC_CONNECTION_ERROR])
 
 
 if __name__ == "__main__":

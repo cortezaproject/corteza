@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Browser, Page, sync_playwright
 
 
 VIEWPORTS = ((1440, 900), (768, 900), (390, 844))
@@ -22,6 +22,24 @@ MAIN = "[data-c311-main]"
 SUBMIT_ACTION = '[data-c311-action="submit-request"]'
 STAFF_SUBMIT_ACTION = '[data-c311-action="submit-staff-request"]'
 KNOWN_DEV_RESOURCE_FAILURES = {"/code-snippets.js", "/custom.css"}
+KNOWN_DEV_WEBSOCKET_URL = "wss://api.cortezaproject.your-domain.tld/websocket"
+KNOWN_DEV_LOCALE_FAILURES = {
+    "/system/locale/en-US/corteza-webapp-compose",
+    "/system/locale/en-US/corteza-webapp-admin",
+    "/system/locale/en-US+en/corteza-webapp-compose",
+    "/system/locale/en-US+en/corteza-webapp-admin",
+    "/system/locale/en/corteza-webapp-compose",
+    "/system/locale/en/corteza-webapp-admin",
+    "/system/locale/en+en-US/corteza-webapp-compose",
+    "/system/locale/en+en-US/corteza-webapp-admin",
+}
+# These are emitted by the shared development shell in the local test services.
+# HTTP responses remain checked separately against the exact resource allow-list.
+KNOWN_DEV_CONSOLE_ERRORS = {
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "WebSocket connection to 'wss://api.cortezaproject.your-domain.tld/websocket' failed: Error in connection establishment: net::ERR_CONNECTION_CLOSED",
+}
+GENERIC_CONNECTION_ERROR = "Failed to load resource: net::ERR_CONNECTION_CLOSED"
 
 
 def check(condition: bool, message: str) -> None:
@@ -65,7 +83,7 @@ def assert_page(page: Page, label: str, width: int) -> None:
 
 
 def diagnostics(page: Page, base_urls: str | tuple[str, ...]) -> dict[str, list]:
-    result = {"console_errors": [], "page_errors": [], "writes": [], "responses": [], "unexpected_responses": []}
+    result = {"console_errors": [], "unexpected_console_errors": [], "page_errors": [], "writes": [], "responses": [], "unexpected_responses": [], "failed_requests": [], "pending_console_errors": []}
     if isinstance(base_urls, str):
         base_urls = (base_urls,)
     allowed_origins = {(urlparse(url).scheme, urlparse(url).netloc) for url in base_urls}
@@ -73,6 +91,10 @@ def diagnostics(page: Page, base_urls: str | tuple[str, ...]) -> dict[str, list]
     def record_console(message) -> None:
         if message.type == "error":
             result["console_errors"].append(message.text)
+            if message.text == GENERIC_CONNECTION_ERROR:
+                result["pending_console_errors"].append(message.text)
+            elif message.text not in KNOWN_DEV_CONSOLE_ERRORS:
+                result["unexpected_console_errors"].append(message.text)
 
     def record_response(response) -> None:
         if response.status < 400:
@@ -92,9 +114,46 @@ def diagnostics(page: Page, base_urls: str | tuple[str, ...]) -> dict[str, list]
 
     page.on("console", record_console)
     page.on("pageerror", lambda error: result["page_errors"].append(str(error)))
+    def record_websocket(websocket) -> None:
+        result["websocket_urls"].append(websocket.url)
+        parsed = urlparse(websocket.url)
+        known_hmr = parsed.scheme == "ws" and parsed.path == "/ws" and ("http", parsed.netloc) in allowed_origins
+        if websocket.url != KNOWN_DEV_WEBSOCKET_URL and not known_hmr:
+            result["unexpected_console_errors"].append(f"unexpected websocket: {websocket.url}")
+    result["websocket_urls"] = []
+    page.on("websocket", record_websocket)
+    def record_request_failed(request) -> None:
+        entry = {"method": request.method, "url": request.url, "failure": request.failure}
+        result["failed_requests"].append(entry)
+        parsed = urlparse(request.url)
+        known_local_asset = (
+            (parsed.scheme, parsed.netloc) in allowed_origins
+            and not parsed.query
+            and not parsed.fragment
+            and parsed.path in KNOWN_DEV_RESOURCE_FAILURES
+        )
+        known_locale = (
+            (parsed.scheme, parsed.netloc) == ("https", "api.cortezaproject.your-domain.tld")
+            and not parsed.query
+            and not parsed.fragment
+            and parsed.path in KNOWN_DEV_LOCALE_FAILURES
+        )
+        known_hmr = parsed.scheme == "ws" and parsed.path == "/ws" and ("http", parsed.netloc) in allowed_origins
+        if request.url != KNOWN_DEV_WEBSOCKET_URL and not known_hmr and not known_local_asset and not known_locale:
+            result["unexpected_console_errors"].append(f"request failed: {request.url}")
+    page.on("requestfailed", record_request_failed)
     page.on("request", lambda request: result["writes"].append({"method": request.method, "url": request.url}) if request.method not in {"GET", "HEAD", "OPTIONS"} else None)
     page.on("response", record_response)
     return result
+
+
+def finalize_diagnostics(result: dict[str, list]) -> None:
+    known_websocket_failures = sum(1 for url in result["websocket_urls"] if url == KNOWN_DEV_WEBSOCKET_URL or (urlparse(url).scheme == "ws" and urlparse(url).path == "/ws"))
+    for message in result.pop("pending_console_errors", []):
+        if known_websocket_failures:
+            known_websocket_failures -= 1
+        else:
+            result["unexpected_console_errors"].append(message)
 
 
 def fill_valid_form(page: Page) -> None:
@@ -172,6 +231,37 @@ def check_submission_and_draft(page: Page, base_url: str) -> None:
     check(page.locator("#c311-summary").input_value() == "Saved draft summary", "remote draft was not restored")
 
 
+def check_capability_controls(page: Page, base_url: str) -> None:
+    open_page(page, base_url, "/c311/submit", role="public_visitor")
+    check(page.locator('[data-c311-action="save-draft"]').count() == 0, "draft save action exposed to anonymous users")
+    open_page(page, base_url, "/c311/submit", role="service_agent")
+    check(page.locator('[data-c311-action="save-draft"]').count() == 0, "draft save action exposed without capability")
+    open_page(page, base_url, "/c311/submit", role="constituent")
+    check(page.locator('[data-c311-action="save-draft"]').count() == 1, "draft save action missing for constituent")
+
+
+def check_restart_recovery(browser: Browser, base_url: str, viewport: tuple[int, int]) -> None:
+    width, height = viewport
+    context = browser.new_context(viewport={"width": width, "height": height})
+    try:
+        page = context.new_page()
+        open_page(page, base_url, "/c311/submit")
+        page.locator("#c311-summary").fill("Restart draft summary")
+        page.locator("#c311-description").fill("A non-sensitive draft restored after a browser restart.")
+        check(page.evaluate("window.localStorage.getItem('c311.portal.submit') !== null"), "portal draft was not persisted")
+        storage_state = context.storage_state()
+    finally:
+        context.close()
+
+    restored_context = browser.new_context(viewport={"width": width, "height": height}, storage_state=storage_state)
+    try:
+        restored_page = restored_context.new_page()
+        open_page(restored_page, base_url, "/c311/submit")
+        check(restored_page.locator("#c311-summary").input_value() == "Restart draft summary", "portal draft was not restored after restart")
+    finally:
+        restored_context.close()
+
+
 def check_provider_errors(page: Page, base_url: str) -> None:
     for scenario in ("validation", "forbidden", "retryable", "terminal", "idempotency-conflict"):
         open_page(page, base_url, "/c311/submit", scenario=scenario)
@@ -181,11 +271,18 @@ def check_provider_errors(page: Page, base_url: str) -> None:
         check(page.locator('[data-c311-error-summary]').count() == 1, f"{scenario} error summary missing")
 
     open_page(page, base_url, "/c311/submit?draft_id=draft-fixture-001", scenario="version-conflict", role="constituent")
+    page.locator("#c311-summary").fill("Local conflict change")
     page.locator("#c311-consent").check()
     page.locator(SUBMIT_ACTION).click()
     page.locator('[data-c311-version-conflict]').wait_for(state="visible")
     check(page.locator('[data-c311-action="reload-draft"]').count() == 1, "version reload action missing")
     check(page.locator('[data-c311-action="reapply-draft"]').count() == 1, "version reapply action missing")
+    page.locator('[data-c311-action="reapply-draft"]').click()
+    check(page.locator("#c311-summary").input_value() == "Local conflict change", "reapply did not preserve local draft")
+    page.locator(SUBMIT_ACTION).click()
+    page.locator('[data-c311-version-conflict]').wait_for(state="visible")
+    page.locator('[data-c311-action="reload-draft"]').click()
+    check(page.locator("#c311-summary").input_value() == "Saved draft", "reload did not restore server draft")
 
 
 def check_access_and_admin(page: Page, base_url: str, admin_url: str) -> None:
@@ -225,14 +322,19 @@ def run() -> dict:
                         check_help_and_navigation(page)
                         check_modal(page, base_url)
                         check_submission_and_draft(page, base_url)
+                        check_capability_controls(page, base_url)
                         check_provider_errors(page, base_url)
+                        if width == 390:
+                            check_restart_recovery(browser, base_url, (width, height))
                     else:
                         open_page(page, base_url, "/c311/staff/submit", role="service_agent")
                         assert_page(page, label, width)
                         check_access_and_admin(page, COMPOSE_URL, base_url)
                     screenshot = artifacts / f"fe03-{app}-{width}x{height}.png"
                     page.screenshot(path=str(screenshot), full_page=True)
+                    finalize_diagnostics(diagnostics_result)
                     check(not diagnostics_result["page_errors"], f"{label} has uncaught page errors: {diagnostics_result['page_errors']}")
+                    check(not diagnostics_result["unexpected_console_errors"], f"{label} has unexpected console errors: {diagnostics_result['unexpected_console_errors']}")
                     check(not diagnostics_result["unexpected_responses"], f"{label} has unexpected HTTP failures: {diagnostics_result['unexpected_responses']}")
                     check(not diagnostics_result["writes"], f"{label} issued real network writes in mock mode: {diagnostics_result['writes']}")
                     results["checks"].append({"label": label, "status": "passed", "screenshot": str(screenshot), "diagnostics": diagnostics_result})
