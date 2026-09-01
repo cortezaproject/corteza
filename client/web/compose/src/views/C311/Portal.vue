@@ -97,6 +97,7 @@
             </li>
           </ul>
           <small v-if="attachmentUploading" class="form-text text-info" role="status">{{ t('status.uploadingAttachment', 'Uploading attachment...') }}</small>
+          <p v-if="attachmentRecoveryMessage" class="alert alert-warning" role="status" data-c311-attachment-recovery>{{ attachmentRecoveryMessage }}</p>
           <small class="form-text text-muted">{{ t('portal.submit.attachmentHelp', 'Only the returned attachment token is sent with your request.') }}</small>
         </fieldset>
 
@@ -197,6 +198,7 @@ export default {
     idempotencySerial: 0,
     attachmentTokenInput: '',
     attachmentUploading: false,
+    attachmentRecoveryMessage: '',
     loadGeneration: 0,
     routeSignature: '',
     suppressRouteReload: false,
@@ -304,6 +306,7 @@ export default {
       this.idempotencyFingerprint = ''
       this.attachmentTokenInput = ''
       this.attachmentUploading = false
+      this.attachmentRecoveryMessage = ''
       this.profile = null
       this.versionConflict = null
       this.conflictDraft = null
@@ -313,10 +316,28 @@ export default {
       this.configureRouteDraft()
     },
     markDirty () { this.c311MarkDirty?.(true) },
-    draftStorageValue () { return clone({ service_type: this.form.service_type, summary: this.form.summary, description: this.form.description, requester: this.form.requester, location: this.form.location, attachment_tokens: this.form.attachment_tokens, custom_fields: this.form.custom_fields, consent: this.form.consent }) },
+    draftStorageValue () {
+      return clone({
+        service_type: this.form.service_type,
+        summary: this.form.summary,
+        description: this.form.description,
+        requester: this.form.requester,
+        location: this.form.location,
+        ...(this.form.attachment_tokens.length ? { attachment_count: this.form.attachment_tokens.length } : {}),
+        custom_fields: this.form.custom_fields,
+        consent: this.form.consent,
+      })
+    },
     restoreLocalDraft (draft) {
-      this.form = { ...this.form, ...draft, requester: { ...this.form.requester, ...(draft.requester || {}) }, location: { ...this.form.location, ...(draft.location || {}) }, attachment_tokens: Array.isArray(draft.attachment_tokens) ? draft.attachment_tokens.slice(0, 5) : this.form.attachment_tokens, custom_fields: draft.custom_fields && typeof draft.custom_fields === 'object' ? draft.custom_fields : {} }
+      const source = draft && typeof draft === 'object' ? draft : {}
+      const attachmentCount = Number(source.attachment_count) || (Array.isArray(source.attachment_tokens) ? source.attachment_tokens.length : 0)
+      const safeDraft = Object.keys(source).reduce((result, key) => {
+        if (key !== 'attachment_count' && key !== 'attachment_tokens') result[key] = source[key]
+        return result
+      }, {})
+      this.form = { ...this.form, ...safeDraft, requester: { ...this.form.requester, ...(source.requester || {}) }, location: { ...this.form.location, ...(source.location || {}) }, attachment_tokens: [], custom_fields: source.custom_fields && typeof source.custom_fields === 'object' ? source.custom_fields : {} }
       this.customFieldsText = JSON.stringify(this.form.custom_fields, null, 2)
+      this.attachmentRecoveryMessage = attachmentCount > 0 ? this.t('status.attachmentNeedsReupload', 'Previously selected attachments need to be uploaded again after this refresh.') : ''
     },
     hydrateRemoteDraft (draft) {
       const requester = draft?.primary_requester
@@ -346,6 +367,7 @@ export default {
     },
     async loadRequestForm (generation) {
       this.state = 'populated'
+      if (this.isStaffAssistRoute) return
       if (!await this.loadProfile(generation) || !this.isCurrentLoad(generation)) return
       await this.loadRemoteDraft(generation)
     },
@@ -642,6 +664,7 @@ export default {
         if (generation !== this.loadGeneration) return
         if (attachment?.attachment_token && !this.form.attachment_tokens.includes(attachment.attachment_token)) this.form.attachment_tokens.push(attachment.attachment_token)
         this.statusMessage = this.t('status.attachmentUploaded', 'Attachment uploaded.')
+        this.attachmentRecoveryMessage = ''
         this.markDirty()
       } catch (error) {
         if (generation !== this.loadGeneration) return
@@ -654,7 +677,7 @@ export default {
     addAttachmentToken () {
       const token = this.attachmentTokenInput.trim(); if (!token) return
       if (this.form.attachment_tokens.length >= 5) { this.formErrors = [{ field: 'attachment_tokens', code: 'TOO_MANY_ITEMS', message: this.t('error.attachmentsMax', 'You can add up to five attachments.') }]; return }
-      if (!this.form.attachment_tokens.includes(token)) this.form.attachment_tokens.push(token); this.attachmentTokenInput = ''; this.markDirty()
+      if (!this.form.attachment_tokens.includes(token)) this.form.attachment_tokens.push(token); this.attachmentTokenInput = ''; this.attachmentRecoveryMessage = ''; this.markDirty()
     },
     removeAttachmentToken (token) { this.form.attachment_tokens = this.form.attachment_tokens.filter(item => item !== token); this.markDirty() },
     onCustomFieldsInput () {

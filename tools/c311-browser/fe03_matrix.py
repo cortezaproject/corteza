@@ -27,6 +27,7 @@ CONSENT_FIELD = "#c311-consent"
 SAVE_DRAFT_ACTION = '[data-c311-action="save-draft"]'
 ERROR_SUMMARY = "[data-c311-error-summary]"
 SUBMISSION_RESULT = "[data-c311-submission-result]"
+ATTACHMENT_RECOVERY = "[data-c311-attachment-recovery]"
 SUBMIT_ACTION = '[data-c311-action="submit-request"]'
 STAFF_SUBMIT_ACTION = '[data-c311-action="submit-staff-request"]'
 KNOWN_DEV_RESOURCE_FAILURES = {"/code-snippets.js", "/custom.css"}
@@ -289,7 +290,12 @@ def check_restart_recovery(browser: Browser, base_url: str, viewport: tuple[int,
         open_page(page, base_url, SUBMIT_PATH)
         page.locator(SUMMARY_FIELD).fill("Restart draft summary")
         page.locator(DESCRIPTION_FIELD).fill("A non-sensitive draft restored after a browser restart.")
+        page.set_input_files("#c311-attachment-file", {"name": "fixture.txt", "mimeType": "text/plain", "buffer": b"fixture"})
+        page.locator('[data-c311-attachment-list]').wait_for(state="visible")
         check(page.evaluate("window.localStorage.getItem('c311.portal.submit') !== null"), "portal draft was not persisted")
+        stored = page.evaluate("JSON.parse(window.localStorage.getItem('c311.portal.submit'))")
+        check("attachment_tokens" not in stored, "local draft persisted attachment tokens")
+        check(stored.get("attachment_count") == 1, "local draft did not preserve attachment recovery metadata")
         storage_state = context.storage_state()
     finally:
         context.close()
@@ -299,6 +305,8 @@ def check_restart_recovery(browser: Browser, base_url: str, viewport: tuple[int,
         restored_page = restored_context.new_page()
         open_page(restored_page, base_url, SUBMIT_PATH)
         check(restored_page.locator(SUMMARY_FIELD).input_value() == "Restart draft summary", "portal draft was not restored after restart")
+        check(restored_page.locator('[data-c311-attachment-list]').count() == 0, "attachment token was restored from local draft")
+        check(restored_page.locator(ATTACHMENT_RECOVERY).is_visible(), "attachment re-upload warning missing after restart")
     finally:
         restored_context.close()
 
@@ -335,6 +343,9 @@ def check_access_and_admin(page: Page, base_url: str, admin_url: str) -> None:
         page.goto(f"{base_url}{path}", wait_until="domcontentloaded")
         check(page.get_by_role("heading", name=heading).count() == 1, f"{path} status page missing")
 
+    open_page(page, admin_url, STAFF_SUBMIT_PATH, scenario="forbidden", role="service_agent")
+    check(page.locator("#c311-summary").is_visible(), "staff form did not load when constituent profile was forbidden")
+    check(page.locator(ERROR_SUMMARY).count() == 0 or not page.locator(ERROR_SUMMARY).is_visible(), "staff profile failure blocked the staff form")
     open_page(page, admin_url, STAFF_SUBMIT_PATH, role="service_agent")
     fill_valid_form(page)
     page.locator(STAFF_SUBMIT_ACTION).click()

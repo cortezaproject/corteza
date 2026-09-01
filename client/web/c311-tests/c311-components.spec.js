@@ -244,6 +244,31 @@ describe('C311 shared components', () => {
     expect(wrapper.vm.c311ReadDirtyDraft()).toEqual({ summary: 'keep after restart', nested: { description: 'keep' } })
   })
 
+  it('restores request fields without attachment tokens and warns that uploads must be repeated', () => {
+    const provider = {}
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.submit', query: {} }, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    wrapper.vm.form = {
+      service_type: 'GENERAL_INQUIRY', summary: 'Saved summary', description: 'Saved description for restart.',
+      requester: { display_name: 'Saved Resident', email: 'saved@example.test', phone: '' }, location: { address: '1 Main St', latitude: 40, longitude: -73 }, attachment_tokens: ['opaque-token'], custom_fields: { ward: 'NORTH' }, consent: true,
+    }
+    const stored = wrapper.vm.draftStorageValue()
+    expect(stored).not.toHaveProperty('attachment_tokens')
+    expect(stored.attachment_count).toBe(1)
+    expect(JSON.stringify(stored)).not.toContain('opaque-token')
+
+    wrapper.vm.form = { service_type: 'GENERAL_INQUIRY', summary: '', description: '', requester: { display_name: '', email: '', phone: '' }, location: { address: '', latitude: null, longitude: null }, attachment_tokens: [], custom_fields: {}, consent: false }
+    wrapper.vm.restoreLocalDraft(stored)
+    expect(wrapper.vm.form.summary).toBe('Saved summary')
+    expect(wrapper.vm.form.location.address).toBe('1 Main St')
+    expect(wrapper.vm.form.custom_fields).toEqual({ ward: 'NORTH' })
+    expect(wrapper.vm.form.consent).toBe(true)
+    expect(wrapper.vm.form.attachment_tokens).toEqual([])
+    expect(wrapper.vm.attachmentRecoveryMessage).toContain('uploaded again')
+  })
+
   it('protects dirty navigation and reloads server state only after confirmation', async () => {
     const Guard = Vue.extend({
       mixins: [mixins.c311DirtyGuard],
@@ -809,6 +834,19 @@ describe('C311 shared components', () => {
     await wrapper.vm.submit()
     expect(provider.createStaffServiceRequest).toHaveBeenCalledWith(expect.objectContaining({ constituent: expect.any(Object), request: expect.objectContaining({ summary: 'Staff request' }) }))
     expect(provider.createStaffServiceRequest.mock.calls[0][0].request).not.toHaveProperty('source_channel')
+  })
+
+  it('does not load constituent profile on the staff assist route', async () => {
+    const provider = { getProfile: jest.fn().mockRejectedValue({ status: 403, error: 'FORBIDDEN' }) }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.staff.submit', query: {} }, $C311: { provider, session: { authenticated: true, actor: { actor_id: 'staff-1', capabilities: ['staff_service_request_create'], scopes: ['service_requests.write'] } } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.load()
+    expect(provider.getProfile).not.toHaveBeenCalled()
+    expect(wrapper.vm.state).toBe('populated')
+    expect(wrapper.vm.dataError).toBe(null)
+    expect(wrapper.find('#c311-requester-name').exists()).toBe(true)
   })
 
   it('keeps user input and exposes reload/reapply actions for draft version conflicts', async () => {

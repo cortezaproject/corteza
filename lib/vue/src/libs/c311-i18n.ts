@@ -312,6 +312,7 @@ const FE02_ENGLISH_MESSAGES: Record<string, string> = {
   'error.attachmentInvalid': 'Choose a supported attachment up to 10 MB.',
   'status.uploadingAttachment': 'Uploading attachment...',
   'status.attachmentUploaded': 'Attachment uploaded.',
+  'status.attachmentNeedsReupload': 'Previously selected attachments need to be uploaded again after this refresh.',
 }
 C311_LOCALES.forEach(locale => {
   C311_MESSAGES[locale] = { ...FE02_ENGLISH_MESSAGES, ...C311_MESSAGES[locale] }

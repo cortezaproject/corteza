@@ -39,8 +39,11 @@ class Fe03MatrixTests(unittest.TestCase):
             "/system/locale/en+en-US/corteza-webapp-admin",
         })
         self.assertIn("set_input_files", source)
+        self.assertIn("attachment_count", source)
+        self.assertIn("data-c311-attachment-recovery", source)
         self.assertIn("check_capability_controls", source)
         self.assertIn("check_restart_recovery", source)
+        self.assertIn('scenario="forbidden"', source)
 
     def test_configured_artifact_directory_is_private(self) -> None:
         with tempfile.TemporaryDirectory(prefix="c311-fe03-test-") as parent:
