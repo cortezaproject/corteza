@@ -62,7 +62,7 @@
           <legend>{{ t('portal.submit.location', 'Location') }}</legend>
           <div class="form-group">
             <label for="c311-location-address">{{ t('field.address', 'Address') }}</label>
-            <input id="c311-location-address" v-model.trim="form.location.address" class="form-control" autocomplete="street-address" :aria-invalid="hasError('location.address') ? 'true' : 'false'" @input="markDirty">
+            <input id="c311-location-address" v-model.trim="form.location.address" class="form-control" autocomplete="address-line1" :aria-invalid="hasError('location.address') ? 'true' : 'false'" @input="markDirty">
           </div>
           <div class="c311-request-grid">
             <div class="form-group">
@@ -171,7 +171,7 @@ function clone (value) {
 
 function stableSerialize (value) {
   if (Array.isArray(value)) return `[${value.map(stableSerialize).join(',')}]`
-  if (value && typeof value === 'object') return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableSerialize(value[key])}`).join(',')}}`
+  if (value && typeof value === 'object') return `{${Object.keys(value).sort((left, right) => left.localeCompare(right)).map(key => `${JSON.stringify(key)}:${stableSerialize(value[key])}`).join(',')}}`
   return JSON.stringify(value)
 }
 
@@ -194,6 +194,7 @@ export default {
     submissionResult: null,
     idempotencyKey: '',
     idempotencyFingerprint: '',
+    idempotencySerial: 0,
     attachmentTokenInput: '',
     attachmentUploading: false,
     loadGeneration: 0,
@@ -220,11 +221,13 @@ export default {
     isStaffAssistRoute () { return this.$route?.name === 'c311.staff.submit' },
     isRequestFormRoute () { return this.isSubmitRoute || this.isStaffAssistRoute },
     showRequestList () { return this.$route?.name === 'c311.status' },
-    canCapability () { return capability => {
-      if (typeof this.$C311?.can === 'function') return this.$C311.can(capability)
-      const capabilities = this.$C311?.session?.actor?.capabilities
-      return !Array.isArray(capabilities) || capabilities.includes(capability)
-    } },
+    canCapability () {
+      return capability => {
+        if (typeof this.$C311?.can === 'function') return this.$C311.can(capability)
+        const capabilities = this.$C311?.session?.actor?.capabilities
+        return !Array.isArray(capabilities) || capabilities.includes(capability)
+      }
+    },
     canCreateDraft () { return this.isAuthenticated && this.canCapability('portal_draft_create') },
     canUpdateDraft () { return !!this.draftID && this.canCapability('portal_draft_update') },
     canDeleteDraft () { return !!this.draftID && this.canCapability('portal_draft_delete') },
@@ -323,54 +326,73 @@ export default {
       this.draftID = draft?.request_id || this.draftID
       this.draftVersion = typeof draft?.version === 'number' ? draft.version : this.draftVersion
     },
+    isCurrentLoad (generation) { return generation === this.loadGeneration },
     async load () {
       const generation = ++this.loadGeneration
-      const routeName = this.$route?.name
-      const requestFormRoute = routeName === 'c311.submit' || routeName === 'c311.staff.submit'
-      const requestListRoute = routeName === 'c311.status'
       this.state = 'loading'; this.dataError = null; this.formErrors = []; this.successMessage = ''; this.submissionResult = null
-      if (requestFormRoute) {
-        this.state = 'populated'
-        if (this.isAuthenticated && this.provider?.getProfile) {
-          try {
-            const profile = await this.provider.getProfile()
-            if (generation !== this.loadGeneration) return
-            this.profile = profile
-            if (!this.form.requester.display_name && this.profile) {
-              this.form.requester.display_name = this.profile.display_name || ''
-              this.form.requester.email = this.profile.emails?.[0] || ''
-              this.form.requester.phone = this.profile.phone_numbers?.[0]?.value || ''
-            }
-          } catch (error) {
-            if (generation !== this.loadGeneration) return
-            this.dataError = error; this.state = c311StateForError?.(error) || (error?.retryable ? 'retryable-error' : 'terminal-error'); return
-          }
-        }
-        const remoteDraftID = this.$route?.query?.draft_id
-        if (remoteDraftID && this.isAuthenticated && this.provider?.getDraft) {
-          try {
-            const draft = await this.provider.getDraft(remoteDraftID)
-            if (generation !== this.loadGeneration) return
-            this.hydrateRemoteDraft(draft)
-          } catch (error) {
-            if (generation !== this.loadGeneration) return
-            this.dataError = error; this.state = c311StateForError?.(error) || (error?.retryable ? 'retryable-error' : 'terminal-error')
-          }
-        }
+      if (this.isRequestFormRoute) {
+        await this.loadRequestForm(generation)
         return
       }
-      if (!requestListRoute) { this.state = 'populated'; return }
+      if (this.showRequestList) {
+        await this.loadRequestList(generation)
+        return
+      }
+      if (this.isCurrentLoad(generation)) this.state = 'populated'
+    },
+    setDataError (error) {
+      this.dataError = error
+      this.state = c311StateForError?.(error) || (error?.retryable ? 'retryable-error' : 'terminal-error')
+    },
+    async loadRequestForm (generation) {
+      this.state = 'populated'
+      if (!await this.loadProfile(generation) || !this.isCurrentLoad(generation)) return
+      await this.loadRemoteDraft(generation)
+    },
+    async loadProfile (generation) {
+      if (!this.isAuthenticated || !this.provider?.getProfile) return true
       try {
-        const page = await this.provider?.listPortalRequests?.()
-        if (generation !== this.loadGeneration) return
-        this.items = page?.items || []; this.state = this.items.length ? 'populated' : 'empty'; this.statusMessage = this.items.length ? this.t('status.requestsLoaded', 'Requests loaded.') : this.t('status.noRequests', 'No requests found.')
+        const profile = await this.provider.getProfile()
+        if (!this.isCurrentLoad(generation)) return false
+        this.profile = profile
+        if (!this.form.requester.display_name && this.profile) {
+          this.form.requester.display_name = this.profile.display_name || ''
+          this.form.requester.email = this.profile.emails?.[0] || ''
+          this.form.requester.phone = this.profile.phone_numbers?.[0]?.value || ''
+        }
+        return true
       } catch (error) {
-        if (generation !== this.loadGeneration) return
-        this.dataError = error; this.state = c311StateForError?.(error) || (error?.retryable ? 'retryable-error' : 'terminal-error'); this.statusMessage = this.t('status.requestListUnavailable', 'Request list unavailable.')
+        if (!this.isCurrentLoad(generation)) return false
+        this.setDataError(error)
+        return false
       }
     },
-    validate () {
-      const errors = []; const add = (field, code, message) => errors.push({ field, code, message })
+    async loadRemoteDraft (generation) {
+      const remoteDraftID = this.$route?.query?.draft_id
+      if (!remoteDraftID || !this.isAuthenticated || !this.provider?.getDraft) return
+      try {
+        const draft = await this.provider.getDraft(remoteDraftID)
+        if (this.isCurrentLoad(generation)) this.hydrateRemoteDraft(draft)
+      } catch (error) {
+        if (this.isCurrentLoad(generation)) this.setDataError(error)
+      }
+    },
+    async loadRequestList (generation) {
+      try {
+        const page = await this.provider?.listPortalRequests?.()
+        if (!this.isCurrentLoad(generation)) return
+        this.items = page?.items || []
+        this.state = this.items.length ? 'populated' : 'empty'
+        this.statusMessage = this.items.length ? this.t('status.requestsLoaded', 'Requests loaded.') : this.t('status.noRequests', 'No requests found.')
+      } catch (error) {
+        if (!this.isCurrentLoad(generation)) return
+        this.setDataError(error)
+        this.statusMessage = this.t('status.requestListUnavailable', 'Request list unavailable.')
+      }
+    },
+    addValidationError (errors, field, code, message) { errors.push({ field, code, message }) },
+    validateBasics (errors) {
+      const add = (field, code, message) => this.addValidationError(errors, field, code, message)
       if (!serviceTypes.includes(this.form.service_type)) add('service_type', 'INVALID_VALUE', this.t('error.serviceType', 'Choose a valid service type.'))
       if (!this.form.summary) add('summary', 'REQUIRED', this.t('error.summaryRequired', 'Summary is required.'))
       else if (this.form.summary.length < 5) add('summary', 'TOO_SHORT', this.t('error.summaryShort', 'Summary must be at least 5 characters.'))
@@ -378,31 +400,53 @@ export default {
       if (!this.form.description) add('description', 'REQUIRED', this.t('error.descriptionRequired', 'Description is required.'))
       else if (this.form.description.length < 10) add('description', 'TOO_SHORT', this.t('error.descriptionShort', 'Description must be at least 10 characters.'))
       else if (this.form.description.length > 5000) add('description', 'TOO_LONG', this.t('error.descriptionLong', 'Description must be 5000 characters or fewer.'))
-      else if (/<\/?[a-z][^>]*>/i.test(this.form.description)) add('description', 'INVALID_FORMAT', this.t('error.descriptionPlainText', 'Description must be plain text.'))
-      if (!this.form.requester.display_name) add('requester.display_name', 'REQUIRED', this.t('error.requesterName', 'Requester name is required.'))
-      else if (this.form.requester.display_name.length > 120) add('requester.display_name', 'TOO_LONG', this.t('error.requesterNameLong', 'Requester name must be 120 characters or fewer.'))
-      if (!this.form.requester.email || !/^.+@.+\..+$/.test(this.form.requester.email)) add('requester.email', 'INVALID_FORMAT', this.t('error.email', 'Enter a valid email address.'))
-      if (this.form.requester.phone && !/^\+[1-9]\d{1,14}$/.test(this.form.requester.phone)) add('requester.phone', 'INVALID_FORMAT', this.t('error.phone', 'Enter a phone number in international format.'))
+      else if (this.form.description.includes('<') && this.form.description.includes('>')) add('description', 'INVALID_FORMAT', this.t('error.descriptionPlainText', 'Description must be plain text.'))
+    },
+    validateRequester (errors) {
+      const add = (field, code, message) => this.addValidationError(errors, field, code, message)
+      const requester = this.form.requester
+      if (!requester.display_name) add('requester.display_name', 'REQUIRED', this.t('error.requesterName', 'Requester name is required.'))
+      else if (requester.display_name.length > 120) add('requester.display_name', 'TOO_LONG', this.t('error.requesterNameLong', 'Requester name must be 120 characters or fewer.'))
+      if (!requester.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(requester.email)) add('requester.email', 'INVALID_FORMAT', this.t('error.email', 'Enter a valid email address.'))
+      if (requester.phone && !/^\+[1-9]\d{1,14}$/.test(requester.phone)) add('requester.phone', 'INVALID_FORMAT', this.t('error.phone', 'Enter a phone number in international format.'))
+    },
+    validateLocation (errors) {
+      const add = (field, code, message) => this.addValidationError(errors, field, code, message)
       const rule = serviceTypeRules[this.form.service_type]
-      if (rule?.location_required && !this.form.location.address) add('location.address', 'LOCATION_REQUIRED', this.t('error.locationRequired', 'A location is required for this service type.'))
-      if (rule?.confirmed_coordinates_required && (this.form.location.latitude === null || this.form.location.latitude === '' || this.form.location.longitude === null || this.form.location.longitude === '')) add('location.latitude', 'COORDINATES_REQUIRED', this.t('error.coordinatesRequired', 'Latitude and longitude are required for this service type.'))
-      const hasLatitude = this.form.location.latitude !== null && this.form.location.latitude !== ''
-      const hasLongitude = this.form.location.longitude !== null && this.form.location.longitude !== ''
-      const latitude = Number(this.form.location.latitude)
-      const longitude = Number(this.form.location.longitude)
-      if (hasLatitude && !Number.isFinite(latitude)) add('location.latitude', 'INVALID_FORMAT', this.t('error.latitudeFormat', 'Latitude must be a number.'))
-      else if (hasLatitude && (latitude < -90 || latitude > 90)) add('location.latitude', 'OUT_OF_RANGE', this.t('error.latitudeRange', 'Latitude must be between -90 and 90.'))
-      if (hasLongitude && !Number.isFinite(longitude)) add('location.longitude', 'INVALID_FORMAT', this.t('error.longitudeFormat', 'Longitude must be a number.'))
-      else if (hasLongitude && (longitude < -180 || longitude > 180)) add('location.longitude', 'OUT_OF_RANGE', this.t('error.longitudeRange', 'Longitude must be between -180 and 180.'))
-      if (this.form.attachment_tokens.length > 5) add('attachment_tokens', 'TOO_MANY_ITEMS', this.t('error.attachmentsMax', 'You can add up to five attachments.'))
-      if (!this.form.consent) add('consent', 'REQUIRED', this.t('error.consentRequired', 'Please confirm the information is accurate.'))
+      const location = this.form.location
+      if (rule?.location_required && !location.address) add('location.address', 'LOCATION_REQUIRED', this.t('error.locationRequired', 'A location is required for this service type.'))
+      const missingCoordinates = location.latitude === null || location.latitude === '' || location.longitude === null || location.longitude === ''
+      if (rule?.confirmed_coordinates_required && missingCoordinates) add('location.latitude', 'COORDINATES_REQUIRED', this.t('error.coordinatesRequired', 'Latitude and longitude are required for this service type.'))
+      this.validateCoordinate(errors, 'latitude', location.latitude, -90, 90, add)
+      this.validateCoordinate(errors, 'longitude', location.longitude, -180, 180, add)
+    },
+    validateCoordinate (errors, field, value, minimum, maximum, add) {
+      if (value === null || value === '') return
+      const coordinate = Number(value)
+      const label = field.charAt(0).toUpperCase() + field.slice(1)
+      if (!Number.isFinite(coordinate)) add(`location.${field}`, 'INVALID_FORMAT', this.t(`error.${field}Format`, `${label} must be a number.`))
+      else if (coordinate < minimum || coordinate > maximum) add(`location.${field}`, 'OUT_OF_RANGE', this.t(`error.${field}Range`, `${label} must be between ${minimum} and ${maximum}.`))
+    },
+    validateAttachments (errors) {
+      if (this.form.attachment_tokens.length > 5) this.addValidationError(errors, 'attachment_tokens', 'TOO_MANY_ITEMS', this.t('error.attachmentsMax', 'You can add up to five attachments.'))
+      if (!this.form.consent) this.addValidationError(errors, 'consent', 'REQUIRED', this.t('error.consentRequired', 'Please confirm the information is accurate.'))
+    },
+    validateCustomFields (errors) {
       try {
-        const customFields = this.customFieldsText.trim() === '{}' && Object.keys(this.form.custom_fields).length
-          ? this.form.custom_fields
-          : JSON.parse(this.customFieldsText || '{}')
+        const customFields = this.customFieldsText.trim() === '{}' && Object.keys(this.form.custom_fields).length ? this.form.custom_fields : JSON.parse(this.customFieldsText || '{}')
         if (!customFields || typeof customFields !== 'object' || Array.isArray(customFields)) throw new Error('invalid')
         this.form.custom_fields = customFields
-      } catch (_error) { add('custom_fields', 'INVALID_FORMAT', this.t('error.customFields', 'Custom fields must be a JSON object.')) }
+      } catch (_error) {
+        this.addValidationError(errors, 'custom_fields', 'INVALID_FORMAT', this.t('error.customFields', 'Custom fields must be a JSON object.'))
+      }
+    },
+    validate () {
+      const errors = []
+      this.validateBasics(errors)
+      this.validateRequester(errors)
+      this.validateLocation(errors)
+      this.validateAttachments(errors)
+      this.validateCustomFields(errors)
       return errors
     },
     payload () {
@@ -418,7 +462,16 @@ export default {
       return payload
     },
     fingerprint (value) { return stableSerialize(value) },
-    nextIdempotencyKey () { if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID(); return `c311-submit-${Date.now()}-${Math.random().toString(36).slice(2)}` },
+    nextIdempotencyKey () {
+      this.idempotencySerial += 1
+      if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+      if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+        const bytes = new Uint8Array(16)
+        crypto.getRandomValues(bytes)
+        return `c311-submit-${Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')}`
+      }
+      return `c311-submit-${Date.now()}-${this.idempotencySerial}`
+    },
     setError (error) {
       this.dataError = error
       this.state = c311StateForError?.(error) || (error?.retryable ? 'retryable-error' : 'terminal-error')
@@ -462,45 +515,73 @@ export default {
       this.successMessage = ''
       this.c311MarkDirty?.(true)
     },
+    clearSubmissionState () {
+      this.formErrors = []
+      this.dataError = null
+      this.successMessage = ''
+    },
+    validateSubmissionPermission () {
+      if (!this.draftID || this.canSubmitCurrentRequest) return true
+      this.setError({ status: 403, error: 'FORBIDDEN', message: this.t('error.draftSubmitDenied', 'You do not have permission to submit this draft.') })
+      return false
+    },
+    async submitStaffRequest (request) {
+      const constituent = this.profile?.constituent_id ? { constituent_id: this.profile.constituent_id } : { display_name: request.requester.display_name, email: request.requester.email }
+      const detail = await this.provider?.createStaffServiceRequest?.({ constituent, request })
+      return detail?.request || detail
+    },
+    async submitPortalRequest (request) {
+      const fingerprint = this.fingerprint(request)
+      if (!this.idempotencyKey || this.idempotencyFingerprint !== fingerprint) {
+        this.idempotencyKey = this.nextIdempotencyKey()
+        this.idempotencyFingerprint = fingerprint
+      }
+      return this.provider?.submitPortalRequest?.(request, { idempotencyKey: this.idempotencyKey })
+    },
+    async submitRequest () {
+      const request = this.payload()
+      if (this.isStaffAssistRoute) return this.submitStaffRequest(request)
+      if (this.draftID) return this.provider?.submitDraft?.(this.draftID, { expectedVersion: this.draftVersion })
+      return this.submitPortalRequest(request)
+    },
+    async applySubmissionSuccess (response) {
+      if (!response) throw new Error(this.t('error.providerUnavailable', 'The request provider is unavailable.'))
+      this.submissionResult = { request_number: response.request_number, status: response.status || 'SUBMITTED', version: response.version }
+      this.state = 'populated'
+      this.successMessage = this.t('status.submitted', `Request ${response.request_number} submitted.`).replace('{{number}}', response.request_number)
+      this.statusMessage = this.successMessage
+      this.c311ClearDirtyDraft?.()
+      this.versionConflict = null
+      this.conflictDraft = null
+      if (this.draftID) {
+        this.draftID = ''; this.draftVersion = null
+        if (this.$router?.replace && this.$route?.query?.draft_id) {
+          const query = { ...this.$route.query }
+          delete query.draft_id
+          await this.$router.replace({ query })
+        }
+      }
+    },
     async submit () {
       if (this.submitting) return
-      this.formErrors = []; this.dataError = null; this.successMessage = ''
-      if (this.draftID && !this.canSubmitCurrentRequest) {
-        this.setError({ status: 403, error: 'FORBIDDEN', message: this.t('error.draftSubmitDenied', 'You do not have permission to submit this draft.') })
+      this.clearSubmissionState()
+      if (!this.validateSubmissionPermission()) return
+      const errors = this.validate()
+      if (errors.length) {
+        this.formErrors = errors
+        this.state = 'validation-error'
         return
       }
-      const errors = this.validate()
-      if (errors.length) { this.formErrors = errors; this.state = 'validation-error'; return }
       const generation = this.loadGeneration
       this.submitting = true
       try {
-        const request = this.payload(); let response
-        if (this.isStaffAssistRoute) {
-          const constituent = this.profile?.constituent_id ? { constituent_id: this.profile.constituent_id } : { display_name: request.requester.display_name, email: request.requester.email }
-          const detail = await this.provider?.createStaffServiceRequest?.({ constituent, request }); response = detail?.request || detail
-        } else if (this.draftID) {
-          response = await this.provider?.submitDraft?.(this.draftID, { expectedVersion: this.draftVersion })
-        } else {
-          const fingerprint = this.fingerprint(request)
-          if (!this.idempotencyKey || this.idempotencyFingerprint !== fingerprint) { this.idempotencyKey = this.nextIdempotencyKey(); this.idempotencyFingerprint = fingerprint }
-          response = await this.provider?.submitPortalRequest?.(request, { idempotencyKey: this.idempotencyKey })
-        }
-        if (generation !== this.loadGeneration) return
-        if (!response) throw new Error(this.t('error.providerUnavailable', 'The request provider is unavailable.'))
-        this.submissionResult = { request_number: response.request_number, status: response.status || 'SUBMITTED', version: response.version }
-        this.state = 'populated'
-        this.successMessage = this.t('status.submitted', `Request ${response.request_number} submitted.`).replace('{{number}}', response.request_number); this.statusMessage = this.successMessage; this.c311ClearDirtyDraft?.()
-        this.versionConflict = null
-        this.conflictDraft = null
-        if (this.draftID) {
-          this.draftID = ''; this.draftVersion = null
-          if (this.$router?.replace && this.$route?.query?.draft_id) { const query = { ...this.$route.query }; delete query.draft_id; await this.$router.replace({ query }) }
-        }
+        const response = await this.submitRequest()
+        if (!this.isCurrentLoad(generation)) return
+        await this.applySubmissionSuccess(response)
       } catch (error) {
-        if (generation !== this.loadGeneration) return
-        this.setError(error)
+        if (this.isCurrentLoad(generation)) this.setError(error)
       } finally {
-        if (generation === this.loadGeneration) this.submitting = false
+        if (this.isCurrentLoad(generation)) this.submitting = false
       }
     },
     async saveDraft () {

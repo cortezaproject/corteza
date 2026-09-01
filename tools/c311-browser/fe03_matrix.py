@@ -19,6 +19,14 @@ ARTIFACT_DIR_ENV = "C311_ARTIFACT_DIR"
 COMPOSE_URL = os.environ.get("C311_COMPOSE_URL", "http://127.0.0.1:18082").rstrip("/")
 ADMIN_URL = os.environ.get("C311_ADMIN_URL", "http://127.0.0.1:18083").rstrip("/")
 MAIN = "[data-c311-main]"
+SUBMIT_PATH = "/c311/submit"
+STAFF_SUBMIT_PATH = "/c311/staff/submit"
+SUMMARY_FIELD = "#c311-summary"
+DESCRIPTION_FIELD = "#c311-description"
+CONSENT_FIELD = "#c311-consent"
+SAVE_DRAFT_ACTION = '[data-c311-action="save-draft"]'
+ERROR_SUMMARY = "[data-c311-error-summary]"
+SUBMISSION_RESULT = "[data-c311-submission-result]"
 SUBMIT_ACTION = '[data-c311-action="submit-request"]'
 STAFF_SUBMIT_ACTION = '[data-c311-action="submit-staff-request"]'
 KNOWN_DEV_RESOURCE_FAILURES = {"/code-snippets.js", "/custom.css"}
@@ -82,68 +90,101 @@ def assert_page(page: Page, label: str, width: int) -> None:
     check(overflow <= 1, f"{label} overflows at {width}px: {overflow}")
 
 
+SAFE_REQUEST_METHODS = {"GET", "HEAD", "OPTIONS"}
+
+
+def new_diagnostics() -> dict[str, list]:
+    return {
+        "console_errors": [],
+        "unexpected_console_errors": [],
+        "page_errors": [],
+        "writes": [],
+        "responses": [],
+        "unexpected_responses": [],
+        "failed_requests": [],
+        "pending_console_errors": [],
+        "websocket_urls": [],
+    }
+
+
+def allowed_origins(base_urls: str | tuple[str, ...]) -> set[tuple[str, str]]:
+    urls = (base_urls,) if isinstance(base_urls, str) else base_urls
+    return {(urlparse(url).scheme, urlparse(url).netloc) for url in urls}
+
+
+def known_hmr(parsed, origins: set[tuple[str, str]]) -> bool:
+    return parsed.scheme == "ws" and parsed.path == "/ws" and ("http", parsed.netloc) in origins
+
+
+def known_local_asset(parsed_url, origins: set[tuple[str, str]]) -> bool:
+    return (
+        (parsed_url.scheme, parsed_url.netloc) in origins
+        and not parsed_url.query
+        and not parsed_url.fragment
+        and parsed_url.path in KNOWN_DEV_RESOURCE_FAILURES
+    )
+
+
+def known_locale(parsed_url) -> bool:
+    return (
+        (parsed_url.scheme, parsed_url.netloc) == ("https", "api.cortezaproject.your-domain.tld")
+        and not parsed_url.query
+        and not parsed_url.fragment
+        and parsed_url.path in KNOWN_DEV_LOCALE_FAILURES
+    )
+
+
+def record_console(result: dict[str, list], message) -> None:
+    if message.type != "error":
+        return
+    result["console_errors"].append(message.text)
+    if message.text == GENERIC_CONNECTION_ERROR:
+        result["pending_console_errors"].append(message.text)
+    elif message.text not in KNOWN_DEV_CONSOLE_ERRORS:
+        result["unexpected_console_errors"].append(message.text)
+
+
+def record_response(result: dict[str, list], origins: set[tuple[str, str]], response) -> None:
+    if response.status < 400:
+        return
+    entry = {"status": response.status, "method": response.request.method, "url": response.url}
+    result["responses"].append(entry)
+    parsed_url = urlparse(response.url)
+    allowed = known_local_asset(parsed_url, origins) and response.status == 500
+    if not allowed:
+        result["unexpected_responses"].append(entry)
+
+
+def record_websocket(result: dict[str, list], origins: set[tuple[str, str]], websocket) -> None:
+    result["websocket_urls"].append(websocket.url)
+    parsed_url = urlparse(websocket.url)
+    if websocket.url != KNOWN_DEV_WEBSOCKET_URL and not known_hmr(parsed_url, origins):
+        result["unexpected_console_errors"].append(f"unexpected websocket: {websocket.url}")
+
+
+def record_request_failed(result: dict[str, list], origins: set[tuple[str, str]], request) -> None:
+    entry = {"method": request.method, "url": request.url, "failure": request.failure}
+    result["failed_requests"].append(entry)
+    parsed_url = urlparse(request.url)
+    is_known = request.url == KNOWN_DEV_WEBSOCKET_URL or known_hmr(parsed_url, origins) or known_local_asset(parsed_url, origins) or known_locale(parsed_url)
+    if not is_known:
+        result["unexpected_console_errors"].append(f"request failed: {request.url}")
+
+
+def record_write(result: dict[str, list], request) -> None:
+    if request.method not in SAFE_REQUEST_METHODS:
+        result["writes"].append({"method": request.method, "url": request.url})
+
+
 def diagnostics(page: Page, base_urls: str | tuple[str, ...]) -> dict[str, list]:
-    result = {"console_errors": [], "unexpected_console_errors": [], "page_errors": [], "writes": [], "responses": [], "unexpected_responses": [], "failed_requests": [], "pending_console_errors": []}
-    if isinstance(base_urls, str):
-        base_urls = (base_urls,)
-    allowed_origins = {(urlparse(url).scheme, urlparse(url).netloc) for url in base_urls}
-
-    def record_console(message) -> None:
-        if message.type == "error":
-            result["console_errors"].append(message.text)
-            if message.text == GENERIC_CONNECTION_ERROR:
-                result["pending_console_errors"].append(message.text)
-            elif message.text not in KNOWN_DEV_CONSOLE_ERRORS:
-                result["unexpected_console_errors"].append(message.text)
-
-    def record_response(response) -> None:
-        if response.status < 400:
-            return
-        entry = {"status": response.status, "method": response.request.method, "url": response.url}
-        result["responses"].append(entry)
-        parsed = urlparse(response.url)
-        allowed = (
-            (parsed.scheme, parsed.netloc) in allowed_origins
-            and not parsed.query
-            and not parsed.fragment
-            and parsed.path in KNOWN_DEV_RESOURCE_FAILURES
-            and response.status == 500
-        )
-        if not allowed:
-            result["unexpected_responses"].append(entry)
-
-    page.on("console", record_console)
+    result = new_diagnostics()
+    origins = allowed_origins(base_urls)
+    page.on("console", lambda message: record_console(result, message))
     page.on("pageerror", lambda error: result["page_errors"].append(str(error)))
-    def record_websocket(websocket) -> None:
-        result["websocket_urls"].append(websocket.url)
-        parsed = urlparse(websocket.url)
-        known_hmr = parsed.scheme == "ws" and parsed.path == "/ws" and ("http", parsed.netloc) in allowed_origins
-        if websocket.url != KNOWN_DEV_WEBSOCKET_URL and not known_hmr:
-            result["unexpected_console_errors"].append(f"unexpected websocket: {websocket.url}")
-    result["websocket_urls"] = []
-    page.on("websocket", record_websocket)
-    def record_request_failed(request) -> None:
-        entry = {"method": request.method, "url": request.url, "failure": request.failure}
-        result["failed_requests"].append(entry)
-        parsed = urlparse(request.url)
-        known_local_asset = (
-            (parsed.scheme, parsed.netloc) in allowed_origins
-            and not parsed.query
-            and not parsed.fragment
-            and parsed.path in KNOWN_DEV_RESOURCE_FAILURES
-        )
-        known_locale = (
-            (parsed.scheme, parsed.netloc) == ("https", "api.cortezaproject.your-domain.tld")
-            and not parsed.query
-            and not parsed.fragment
-            and parsed.path in KNOWN_DEV_LOCALE_FAILURES
-        )
-        known_hmr = parsed.scheme == "ws" and parsed.path == "/ws" and ("http", parsed.netloc) in allowed_origins
-        if request.url != KNOWN_DEV_WEBSOCKET_URL and not known_hmr and not known_local_asset and not known_locale:
-            result["unexpected_console_errors"].append(f"request failed: {request.url}")
-    page.on("requestfailed", record_request_failed)
-    page.on("request", lambda request: result["writes"].append({"method": request.method, "url": request.url}) if request.method not in {"GET", "HEAD", "OPTIONS"} else None)
-    page.on("response", record_response)
+    page.on("websocket", lambda websocket: record_websocket(result, origins, websocket))
+    page.on("requestfailed", lambda request: record_request_failed(result, origins, request))
+    page.on("request", lambda request: record_write(result, request))
+    page.on("response", lambda response: record_response(result, origins, response))
     return result
 
 
@@ -158,12 +199,12 @@ def finalize_diagnostics(result: dict[str, list]) -> None:
 
 def fill_valid_form(page: Page) -> None:
     page.locator("#c311-service-type").select_option("GENERAL_INQUIRY")
-    page.locator("#c311-summary").fill("Need help with a city service")
-    page.locator("#c311-description").fill("The resident needs help with this city service request.")
+    page.locator(SUMMARY_FIELD).fill("Need help with a city service")
+    page.locator(DESCRIPTION_FIELD).fill("The resident needs help with this city service request.")
     page.locator("#c311-requester-name").fill("Fixture Resident")
     page.locator("#c311-requester-email").fill("resident@example.test")
     page.locator("#c311-requester-phone").fill("")
-    page.locator("#c311-consent").check()
+    page.locator(CONSENT_FIELD).check()
 
 
 def check_help_and_navigation(page: Page) -> None:
@@ -176,11 +217,11 @@ def check_help_and_navigation(page: Page) -> None:
     check(page.locator('[data-c311-page="help"]').get_attribute("data-c311-content-key") == "HELP", "help kept stale content")
     check("Describe the issue" in page.locator('[data-c311-page="help"]').inner_text(), "contextual help missing")
     page.locator('[data-c311-route="/c311/submit"]').click()
-    page.wait_for_url("**/c311/submit")
-    page.locator("#c311-summary").fill("Draft kept")
-    page.locator("#c311-description").fill("A non-sensitive draft description")
+    page.wait_for_url(f"**{SUBMIT_PATH}")
+    page.locator(SUMMARY_FIELD).fill("Draft kept")
+    page.locator(DESCRIPTION_FIELD).fill("A non-sensitive draft description")
     page.locator('[data-c311-route="/c311/status"]').click()
-    check(page.url.endswith("/c311/submit"), "dirty cancel did not preserve form")
+    check(page.url.endswith(SUBMIT_PATH), "dirty cancel did not preserve form")
     page.once("dialog", lambda dialog: dialog.accept())
     page.locator('[data-c311-route="/c311/status"]').click()
     page.wait_for_url("**/c311/status")
@@ -202,42 +243,42 @@ def check_modal(page: Page, base_url: str) -> None:
 
 
 def check_submission_and_draft(page: Page, base_url: str) -> None:
-    open_page(page, base_url, "/c311/submit")
+    open_page(page, base_url, SUBMIT_PATH)
     page.locator(SUBMIT_ACTION).click()
-    page.locator('[data-c311-error-summary]').wait_for(state="visible")
-    check(page.evaluate("document.activeElement && document.activeElement.matches('[data-c311-error-summary]')"), "validation summary did not receive focus")
+    page.locator(ERROR_SUMMARY).wait_for(state="visible")
+    check(page.evaluate(f"document.activeElement && document.activeElement.matches('{ERROR_SUMMARY}')"), "validation summary did not receive focus")
 
     fill_valid_form(page)
     page.set_input_files("#c311-attachment-file", {"name": "fixture.txt", "mimeType": "text/plain", "buffer": b"fixture"})
     page.locator('[data-c311-attachment-list]').wait_for(state="visible")
     page.locator(SUBMIT_ACTION).click()
-    page.locator("[data-c311-submission-result]").wait_for(state="visible")
-    submitted = page.locator("[data-c311-submission-result]").inner_text()
+    page.locator(SUBMISSION_RESULT).wait_for(state="visible")
+    submitted = page.locator(SUBMISSION_RESULT).inner_text()
     check("SR-2026-00002" in submitted and "SUBMITTED" in submitted, "submission result missing request number/status")
     page.locator(SUBMIT_ACTION).click()
-    page.locator("[data-c311-submission-result]").wait_for(state="visible")
-    check(page.locator("[data-c311-submission-result]").inner_text() == submitted, "equivalent replay changed the result")
+    page.locator(SUBMISSION_RESULT).wait_for(state="visible")
+    check(page.locator(SUBMISSION_RESULT).inner_text() == submitted, "equivalent replay changed the result")
 
-    open_page(page, base_url, "/c311/submit", role="constituent")
-    page.locator("#c311-summary").fill("Saved draft summary")
-    page.locator("#c311-description").fill("A saved draft description that is long enough.")
+    open_page(page, base_url, SUBMIT_PATH, role="constituent")
+    page.locator(SUMMARY_FIELD).fill("Saved draft summary")
+    page.locator(DESCRIPTION_FIELD).fill("A saved draft description that is long enough.")
     page.locator("#c311-requester-name").fill("Saved Resident")
     page.locator("#c311-requester-email").fill("saved@example.test")
-    page.locator("#c311-consent").check()
-    page.locator('[data-c311-action="save-draft"]').click()
+    page.locator(CONSENT_FIELD).check()
+    page.locator(SAVE_DRAFT_ACTION).click()
     page.locator('[data-c311-submit-success]').wait_for(state="visible")
     check("draft_id=" in page.url, "remote draft id was not added to route")
     page.reload(wait_until="domcontentloaded")
-    check(page.locator("#c311-summary").input_value() == "Saved draft summary", "remote draft was not restored")
+    check(page.locator(SUMMARY_FIELD).input_value() == "Saved draft summary", "remote draft was not restored")
 
 
 def check_capability_controls(page: Page, base_url: str) -> None:
-    open_page(page, base_url, "/c311/submit", role="public_visitor")
-    check(page.locator('[data-c311-action="save-draft"]').count() == 0, "draft save action exposed to anonymous users")
-    open_page(page, base_url, "/c311/submit", role="service_agent")
-    check(page.locator('[data-c311-action="save-draft"]').count() == 0, "draft save action exposed without capability")
-    open_page(page, base_url, "/c311/submit", role="constituent")
-    check(page.locator('[data-c311-action="save-draft"]').count() == 1, "draft save action missing for constituent")
+    open_page(page, base_url, SUBMIT_PATH, role="public_visitor")
+    check(page.locator(SAVE_DRAFT_ACTION).count() == 0, "draft save action exposed to anonymous users")
+    open_page(page, base_url, SUBMIT_PATH, role="service_agent")
+    check(page.locator(SAVE_DRAFT_ACTION).count() == 0, "draft save action exposed without capability")
+    open_page(page, base_url, SUBMIT_PATH, role="constituent")
+    check(page.locator(SAVE_DRAFT_ACTION).count() == 1, "draft save action missing for constituent")
 
 
 def check_restart_recovery(browser: Browser, base_url: str, viewport: tuple[int, int]) -> None:
@@ -245,9 +286,9 @@ def check_restart_recovery(browser: Browser, base_url: str, viewport: tuple[int,
     context = browser.new_context(viewport={"width": width, "height": height})
     try:
         page = context.new_page()
-        open_page(page, base_url, "/c311/submit")
-        page.locator("#c311-summary").fill("Restart draft summary")
-        page.locator("#c311-description").fill("A non-sensitive draft restored after a browser restart.")
+        open_page(page, base_url, SUBMIT_PATH)
+        page.locator(SUMMARY_FIELD).fill("Restart draft summary")
+        page.locator(DESCRIPTION_FIELD).fill("A non-sensitive draft restored after a browser restart.")
         check(page.evaluate("window.localStorage.getItem('c311.portal.submit') !== null"), "portal draft was not persisted")
         storage_state = context.storage_state()
     finally:
@@ -256,33 +297,33 @@ def check_restart_recovery(browser: Browser, base_url: str, viewport: tuple[int,
     restored_context = browser.new_context(viewport={"width": width, "height": height}, storage_state=storage_state)
     try:
         restored_page = restored_context.new_page()
-        open_page(restored_page, base_url, "/c311/submit")
-        check(restored_page.locator("#c311-summary").input_value() == "Restart draft summary", "portal draft was not restored after restart")
+        open_page(restored_page, base_url, SUBMIT_PATH)
+        check(restored_page.locator(SUMMARY_FIELD).input_value() == "Restart draft summary", "portal draft was not restored after restart")
     finally:
         restored_context.close()
 
 
 def check_provider_errors(page: Page, base_url: str) -> None:
     for scenario in ("validation", "forbidden", "retryable", "terminal", "idempotency-conflict"):
-        open_page(page, base_url, "/c311/submit", scenario=scenario)
+        open_page(page, base_url, SUBMIT_PATH, scenario=scenario)
         fill_valid_form(page)
         page.locator(SUBMIT_ACTION).click()
-        page.locator('[data-c311-error-summary]').wait_for(state="visible")
-        check(page.locator('[data-c311-error-summary]').count() == 1, f"{scenario} error summary missing")
+        page.locator(ERROR_SUMMARY).wait_for(state="visible")
+        check(page.locator(ERROR_SUMMARY).count() == 1, f"{scenario} error summary missing")
 
-    open_page(page, base_url, "/c311/submit?draft_id=draft-fixture-001", scenario="version-conflict", role="constituent")
-    page.locator("#c311-summary").fill("Local conflict change")
-    page.locator("#c311-consent").check()
+    open_page(page, base_url, f"{SUBMIT_PATH}?draft_id=draft-fixture-001", scenario="version-conflict", role="constituent")
+    page.locator(SUMMARY_FIELD).fill("Local conflict change")
+    page.locator(CONSENT_FIELD).check()
     page.locator(SUBMIT_ACTION).click()
     page.locator('[data-c311-version-conflict]').wait_for(state="visible")
     check(page.locator('[data-c311-action="reload-draft"]').count() == 1, "version reload action missing")
     check(page.locator('[data-c311-action="reapply-draft"]').count() == 1, "version reapply action missing")
     page.locator('[data-c311-action="reapply-draft"]').click()
-    check(page.locator("#c311-summary").input_value() == "Local conflict change", "reapply did not preserve local draft")
+    check(page.locator(SUMMARY_FIELD).input_value() == "Local conflict change", "reapply did not preserve local draft")
     page.locator(SUBMIT_ACTION).click()
     page.locator('[data-c311-version-conflict]').wait_for(state="visible")
     page.locator('[data-c311-action="reload-draft"]').click()
-    check(page.locator("#c311-summary").input_value() == "Saved draft", "reload did not restore server draft")
+    check(page.locator(SUMMARY_FIELD).input_value() == "Saved draft", "reload did not restore server draft")
 
 
 def check_access_and_admin(page: Page, base_url: str, admin_url: str) -> None:
@@ -294,12 +335,12 @@ def check_access_and_admin(page: Page, base_url: str, admin_url: str) -> None:
         page.goto(f"{base_url}{path}", wait_until="domcontentloaded")
         check(page.get_by_role("heading", name=heading).count() == 1, f"{path} status page missing")
 
-    open_page(page, admin_url, "/c311/staff/submit", role="service_agent")
+    open_page(page, admin_url, STAFF_SUBMIT_PATH, role="service_agent")
     fill_valid_form(page)
     page.locator(STAFF_SUBMIT_ACTION).click()
-    page.locator("[data-c311-submission-result]").wait_for(state="visible")
-    check("SUBMITTED" in page.locator("[data-c311-submission-result]").inner_text(), "staff assist submission did not complete")
-    open_page(page, admin_url, "/c311/staff/submit", role="constituent")
+    page.locator(SUBMISSION_RESULT).wait_for(state="visible")
+    check("SUBMITTED" in page.locator(SUBMISSION_RESULT).inner_text(), "staff assist submission did not complete")
+    open_page(page, admin_url, STAFF_SUBMIT_PATH, role="constituent")
     check(page.url.endswith("/c311/403") or page.get_by_role("heading", name="Access denied").count() == 1, "staff capability denial missing")
 
 
@@ -327,7 +368,7 @@ def run() -> dict:
                         if width == 390:
                             check_restart_recovery(browser, base_url, (width, height))
                     else:
-                        open_page(page, base_url, "/c311/staff/submit", role="service_agent")
+                        open_page(page, base_url, STAFF_SUBMIT_PATH, role="service_agent")
                         assert_page(page, label, width)
                         check_access_and_admin(page, COMPOSE_URL, base_url)
                     screenshot = artifacts / f"fe03-{app}-{width}x{height}.png"

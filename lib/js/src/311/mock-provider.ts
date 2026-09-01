@@ -202,7 +202,7 @@ export class MockC311Provider implements C311Provider {
 
   private fingerprint (value: unknown): string {
     if (Array.isArray(value)) return `[${value.map(item => this.fingerprint(item)).join(',')}]`
-    if (value && typeof value === 'object') return `{${Object.keys(value as Record<string, unknown>).sort().map(key => `${JSON.stringify(key)}:${this.fingerprint((value as Record<string, unknown>)[key])}`).join(',')}}`
+    if (value && typeof value === 'object') return `{${Object.keys(value as Record<string, unknown>).sort((left, right) => left.localeCompare(right)).map(key => `${JSON.stringify(key)}:${this.fingerprint((value as Record<string, unknown>)[key])}`).join(',')}}`
     return JSON.stringify(value)
   }
 
