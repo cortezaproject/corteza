@@ -209,6 +209,72 @@ describe('City 311 frontend contract', () => {
     })
   })
 
+  it('uses the frozen account maintenance endpoints and payloads', async () => {
+    const requests: C311TransportRequest[] = []
+    const session = createDefaultFixtureSet().session
+    const provider = new C311HttpProvider({
+      request: async <T> (request: C311TransportRequest): Promise<T> => {
+        requests.push(request)
+        if (request.path === '/api/v1/account/login-identifier') return session as T
+        if (request.path === '/api/v1/account/link/confirm') return session as T
+        return undefined as T
+      },
+    })
+
+    expect(await provider.changeLoginIdentifier({ current_password: 'Current-password-1!', login_identifier: 'alex.new' })).to.deep.equal(session)
+    expect(await provider.changePassword({ current_password: 'Current-password-1!', new_password: 'New-password-2!' })).to.equal(undefined)
+    expect(await provider.confirmAccountLink()).to.deep.equal(session)
+    expect(requests).to.deep.equal([
+      { method: 'POST', path: '/api/v1/account/login-identifier', body: { current_password: 'Current-password-1!', login_identifier: 'alex.new' } },
+      { method: 'POST', path: '/api/v1/account/password', body: { current_password: 'Current-password-1!', new_password: 'New-password-2!' } },
+      { method: 'POST', path: '/api/v1/account/link/confirm', body: {} },
+    ])
+  })
+
+  it('keeps the current session and submitted values unchanged when account maintenance fails', async () => {
+    const conflict = new MockC311Provider({ role: 'constituent', scenario: 'version-conflict' })
+    const before = await conflict.getSession()
+    await expectError(() => conflict.changeLoginIdentifier({ current_password: 'Current-password-1!', login_identifier: 'alex.conflict' }), 'VERSION_CONFLICT')
+    expect(await conflict.getSession()).to.deep.equal(before)
+
+    const invalid = new MockC311Provider({ role: 'constituent', scenario: 'validation' })
+    await expectError(() => invalid.changePassword({ current_password: 'wrong', new_password: 'short' }), 'VALIDATION_ERROR')
+    expect(await invalid.getSession()).to.deep.equal(await new MockC311Provider({ role: 'constituent' }).getSession())
+
+    const profile = new MockC311Provider({ role: 'constituent' })
+    await expectError(() => profile.updateProfile({ display_name: 'Updated' }), 'EXPECTED_VERSION_REQUIRED')
+  })
+
+  it('uses one-time opaque reset tokens and identical forgot-password responses', async () => {
+    const privacyProvider = new MockC311Provider()
+    const known = await privacyProvider.requestPasswordReset({ email: 'alex@example.test' })
+    const unknown = await privacyProvider.requestPasswordReset({ email: 'unknown@example.test' })
+    expect(unknown).to.deep.equal(known)
+
+    const provider = new MockC311Provider()
+    await provider.requestPasswordReset({ email: 'alex@example.test' })
+    await provider.requestPasswordReset({ email: 'alex@example.test' })
+    await expectError(() => provider.confirmPasswordReset({ token: 'reset-token-fixture-001', password: 'New-password-2!' }), 'INVALID_RESET_TOKEN')
+    expect(await provider.confirmPasswordReset({ token: 'reset-token-fixture-002', password: 'New-password-2!' })).to.include({ message: 'Your password has been reset.' })
+    await expectError(() => provider.confirmPasswordReset({ token: 'reset-token-fixture-002', password: 'New-password-2!' }), 'INVALID_RESET_TOKEN')
+  })
+
+  it('exposes and completes an explicit link confirmation operation', async () => {
+    const provider = new MockC311Provider({ scenario: 'link-confirmation-required' })
+    await provider.startFederatedSignIn('oidc')
+    const pending = await provider.completeFederatedSignIn('oidc', { code: 'fixture-code' })
+    expect(pending.outcome).to.equal('link_confirmation_required')
+    const confirmed = await provider.confirmAccountLink()
+    expect(confirmed.authenticated).to.equal(true)
+  })
+
+  it('keeps the account session unchanged when a pending federated link is cancelled', async () => {
+    const provider = new MockC311Provider({ scenario: 'account-link-cancelled' })
+    const before = await provider.getSession()
+    await expectError(() => provider.startFederatedSignIn('saml'), 'FORBIDDEN')
+    expect(await provider.getSession()).to.deep.equal(before)
+  })
+
   it('nests request filters under the contract filters parameter', async () => {
     const requests: C311TransportRequest[] = []
     const provider = new C311HttpProvider({
@@ -354,5 +420,124 @@ describe('City 311 frontend contract', () => {
     clone.requests[0].summary = 'changed in test'
 
     expect(fixtures.requests[0].summary).to.equal('Pothole on Example Street')
+  })
+
+  it('maps public identity operations to the frozen contract paths', async () => {
+    const requests: C311TransportRequest[] = []
+    const provider: any = new C311HttpProvider({
+      request: async <T> (request: C311TransportRequest): Promise<T> => {
+        requests.push(request)
+        if (request.path === '/api/v1/public/branding') return { organisation_name: 'City 311' } as T
+        if (request.path.includes('/content/')) return { content_key: 'HOME', body: '<p>Welcome</p>' } as T
+        if (request.path.includes('/help/')) return { help_key: 'public.request.submit', language: 'EN', body: '<p>Help</p>', version: 1, updated_at: '2026-01-15T15:00:00.000Z' } as T
+        if (request.path === '/api/v1/account/profile') return createDefaultFixtureSet().requests[0].primary_requester as T
+        if (request.method === 'POST' && request.path === '/api/v1/session') return createDefaultFixtureSet().session as T
+        return { accepted: true, message: 'accepted' } as T
+      },
+    })
+
+    await provider.registerAccount({ display_name: 'Example', email: 'example@example.test', login_identifier: 'example', password: 'ValidPassword1!', preferred_language: 'EN' })
+    await provider.requestPasswordReset({ email: 'example@example.test' })
+    await provider.confirmPasswordReset({ token: 'ephemeral-token', password: 'ValidPassword1!' })
+    await provider.startFederatedSignIn('oidc')
+    await provider.completeFederatedSignIn('saml', { code: 'ephemeral-code', state: 'ephemeral-state' })
+    await provider.getBranding()
+    await provider.getPublicContent('HOME')
+    await provider.getPublicHelp('public.request.submit', 'EN')
+    await provider.getProfile()
+    await provider.updateProfile({ display_name: 'Updated' }, { expectedVersion: 1 })
+    await provider.updateLanguage('ES')
+    await provider.changeLoginIdentifier({ current_password: 'Current-password-1!', login_identifier: 'updated.login' })
+    await provider.changePassword({ current_password: 'Current-password-1!', new_password: 'New-password-2!' })
+
+    expect(requests.map(request => `${request.method} ${request.path}`)).to.include.members([
+      'POST /api/v1/accounts',
+      'POST /api/v1/auth/password-reset/request',
+      'POST /api/v1/auth/password-reset/confirm',
+      'GET /api/v1/auth/oidc/start',
+      'GET /api/v1/auth/saml/callback',
+      'GET /api/v1/public/branding',
+      'GET /api/v1/public/content/HOME',
+      'GET /api/v1/public/help/public.request.submit',
+      'GET /api/v1/account/profile',
+      'PATCH /api/v1/account/profile',
+      'PATCH /api/v1/preferences/language',
+      'POST /api/v1/account/login-identifier',
+      'POST /api/v1/account/password',
+    ])
+    expect(requests.find(request => request.path === '/api/v1/account/login-identifier')?.body).to.deep.equal({ current_password: 'Current-password-1!', login_identifier: 'updated.login' })
+    expect(requests.find(request => request.path === '/api/v1/account/password')?.body).to.deep.equal({ current_password: 'Current-password-1!', new_password: 'New-password-2!' })
+    expect(requests.find(request => request.path === '/api/v1/auth/saml/callback')?.query).to.deep.equal({ code: 'ephemeral-code', state: 'ephemeral-state' })
+  })
+
+  it('validates password policy without persisting credentials', () => {
+    const fixture = createDefaultFixtureSet()
+    expect(fixture).to.not.have.property('password')
+    expect(fixture).to.not.have.property('reset_token')
+    const provider: any = new MockC311Provider({ scenario: 'registration-validation' })
+    return expectError(() => provider.registerAccount({ display_name: '', email: 'bad', login_identifier: 'x', password: 'short', preferred_language: 'EN' }), 'VALIDATION_ERROR')
+  })
+
+  it('models identity and public-content fixture scenarios with contract errors', async () => {
+    const cases: Array<[string, string, number]> = [
+      ['invalid-credentials', 'UNAUTHENTICATED', 401],
+      ['expired-reset-token', 'EXPIRED_RESET_TOKEN', 422],
+      ['invalid-reset-token', 'INVALID_RESET_TOKEN', 422],
+      ['oidc-failure', 'TEMPORARILY_UNAVAILABLE', 503],
+      ['saml-failure', 'FORBIDDEN', 403],
+      ['identity-claims-failure', 'UNAUTHENTICATED', 401],
+      ['branding-failure', 'TEMPORARILY_UNAVAILABLE', 503],
+      ['content-loading-failure', 'TEMPORARILY_UNAVAILABLE', 503],
+      ['help-loading-failure', 'TEMPORARILY_UNAVAILABLE', 503],
+      ['account-loading', 'TEMPORARILY_UNAVAILABLE', 503],
+    ]
+    for (const [scenario, code, status] of cases) {
+      const provider: any = new MockC311Provider({ scenario: scenario as any })
+      const action = scenario === 'invalid-credentials'
+        ? () => provider.signIn({ login_identifier: 'fixture', password: 'not-a-secret' })
+        : scenario === 'expired-reset-token' || scenario === 'invalid-reset-token'
+          ? () => provider.confirmPasswordReset({ token: 'ephemeral-token', password: 'ValidPassword1!' })
+          : scenario === 'oidc-failure' || scenario === 'saml-failure'
+            ? () => provider.startFederatedSignIn(scenario === 'oidc-failure' ? 'oidc' : 'saml')
+            : scenario === 'identity-claims-failure'
+              ? () => provider.completeFederatedSignIn('oidc', { code: 'fixture-code' })
+            : scenario === 'branding-failure'
+              ? () => provider.getBranding()
+              : scenario === 'help-loading-failure'
+                ? () => provider.getPublicHelp('public.request.submit', 'EN')
+                : scenario === 'account-loading'
+                  ? () => provider.getProfile()
+                  : () => provider.getPublicContent('HOME')
+      const error = await expectError(action, code)
+      expect(error.status).to.equal(status)
+    }
+  })
+
+  it('rejects public SAML callbacks in the mock provider', async () => {
+    await expectError(() => new MockC311Provider().completeFederatedSignIn('saml'), 'FORBIDDEN')
+  })
+
+  it('keeps accounts and the current session unchanged when identity claims fail', async () => {
+    const provider: any = new MockC311Provider({ scenario: 'identity-claims-failure', role: 'constituent' })
+    const accountsBefore = JSON.parse(JSON.stringify(provider.fixtures.role_fixtures))
+    const sessionBefore = await provider.getSession()
+
+    await expectError(() => provider.completeFederatedSignIn('oidc', { code: 'fixture-code' }), 'UNAUTHENTICATED')
+
+    expect(provider.fixtures.role_fixtures).to.deep.equal(accountsBefore)
+    expect(await provider.getSession()).to.deep.equal(sessionBefore)
+  })
+
+  it('maps a cancelled federated callback to the generic unauthenticated result', async () => {
+    const provider = new MockC311Provider()
+    const error = await expectError(() => provider.completeFederatedSignIn('oidc', { error: 'access_denied' }), 'UNAUTHENTICATED')
+    expect(error.status).to.equal(401)
+    expect(error.message).to.equal('Federated sign-in was cancelled.')
+  })
+
+  it('supports an empty authenticated request catalogue fixture', async () => {
+    const page = await new MockC311Provider({ scenario: 'empty-my-requests', role: 'constituent' }).listPortalRequests()
+    expect(page.items).to.deep.equal([])
+    expect(page.total_count).to.equal(0)
   })
 })

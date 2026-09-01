@@ -9,6 +9,8 @@ import type {
   DistrictCode,
   ErrorCode,
   Language,
+  PublicContentKey,
+  HelpKey,
   OperationStatus,
   OriginClass,
   PhoneLabel,
@@ -50,6 +52,8 @@ export interface Constituent {
   preferred_language: Language
   email_opt_out: boolean
   custom_fields?: Record<string, unknown>
+  version?: number
+  updated_at?: ISODateTime
 }
 
 export interface CurrentActor {
@@ -82,6 +86,103 @@ export interface C311RoleFixture {
 export interface LocalSignIn {
   login_identifier: string
   password: string
+}
+
+export interface AccountRegistration {
+  display_name: string
+  email: string
+  login_identifier: string
+  password: string
+  preferred_language: Language
+}
+
+export interface AccountRegistrationAcknowledgement {
+  accepted: true
+}
+
+export interface PasswordResetRequest {
+  email: string
+}
+
+export interface PasswordResetConfirm {
+  token: string
+  password: string
+}
+
+export interface PasswordResetResponse {
+  message: string
+}
+
+export interface LoginIdentifierChange {
+  current_password: string
+  login_identifier: string
+}
+
+export interface PasswordChange {
+  current_password: string
+  new_password: string
+}
+
+export interface FederatedRedirect {
+  authorization_url: string
+}
+
+export interface PendingAccountLink {
+  expires_at: ISODateTime
+  provider_label?: string
+}
+
+export type FederatedSignInResult = {
+  outcome: 'authenticated'
+  session: Session
+} | {
+  outcome: 'link_confirmation_required'
+  pending_link: PendingAccountLink
+}
+
+export interface Branding {
+  organisation_name: string
+  primary_colour: string
+  accent_colour: string
+  font_family: string
+  published: boolean
+  version: number
+  updated_at: ISODateTime
+  login_header?: string
+  public_header?: string
+  public_footer?: string
+  logo_url?: string | null
+  favicon_url?: string | null
+  portal_wallpaper_url?: string | null
+}
+
+export interface ContentObject {
+  content_key: PublicContentKey
+  body: string
+  state: 'DRAFT' | 'PUBLISHED'
+  published: boolean
+  version: number
+  updated_at: ISODateTime
+}
+
+export interface HelpContent {
+  help_key: HelpKey
+  language: Language
+  body: string
+  version: number
+  updated_at: ISODateTime
+}
+
+export interface LanguagePreference {
+  language: Language
+}
+
+export interface ProfileUpdate {
+  display_name?: string
+  phone_numbers?: PhoneNumber[]
+  addresses?: Address[]
+  preferred_language?: Language
+  primary_category?: ContactCategory
 }
 
 export interface RequesterInput {
@@ -341,6 +442,9 @@ export interface C311FixtureSet {
   workflows: WorkflowDefinition[]
   geocodes: Record<string, GeocodeResponse>
   errors: Record<string, C311ErrorPayload>
+  branding?: Branding
+  public_content?: Record<PublicContentKey, ContentObject>
+  public_help?: Record<HelpKey, HelpContent>
 }
 
 export interface ValidationFailure {

@@ -34,6 +34,7 @@ describe('C311 shared frontend helpers', () => {
     expect(hasC311Scope(session, 'service_requests.write')).to.equal(true)
     expect(hasC311Route(session, 'staff_request_queue')).to.equal(true)
     expect(canAccessC311Route(session, { requiresAuth: true, route: 'staff_request_queue', capabilities: ['staff_request_queue'], scopes: ['service_requests.write'] })).to.equal(true)
+    expect(canAccessC311Route({ authenticated: true, actor: { capabilities: ['portal_my_requests'], scopes: ['service_requests.write'], available_routes: [] } }, { public: true, requiresAuth: true, route: 'portal_my_requests', capabilities: ['portal_my_requests'], scopes: ['service_requests.write'] })).to.equal(false)
     expect(canAccessC311Route(session, { requiresAuth: true, capabilities: ['admin_branding_get'] })).to.equal(false)
     expect(canAccessC311Route(session, { requiresAuth: true, route: 'report_catalogue' })).to.equal(false)
     expect(canAccessC311Route(session, { requiresAuth: true, scopes: ['workflow.execute'] })).to.equal(false)

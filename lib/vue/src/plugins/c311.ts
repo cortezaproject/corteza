@@ -43,6 +43,7 @@ export function createC311Provider (api: C311ProviderConstructors): C311Provider
 export class C311Runtime {
   provider: C311Provider
   session: C311Session | null = null
+  pendingFederated: { expires_at: string, provider_label?: string } | null = null
   loading = false
   error: unknown = null
 

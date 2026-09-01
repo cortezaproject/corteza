@@ -5,6 +5,7 @@ import { mount } from '@vue/test-utils'
 import { components, mixins, c311I18n } from './c311-components'
 import { formatC311DateTime as mockFormatC311DateTime } from './time-test-helper'
 import Portal from '../compose/src/views/C311/Portal.vue'
+import PublicPortal from '../compose/src/views/C311/PublicPortal.vue'
 import Staff from '../admin/src/views/C311/Staff.vue'
 import composeRoutes from '../compose/src/views/routes'
 import adminRoutes from '../admin/src/views/routes'
@@ -39,6 +40,10 @@ jest.mock('@cortezaproject/corteza-vue', () => ({
       if (error?.status === 503 || error?.retryable) return 'retryable-error'
       return 'terminal-error'
     },
+  },
+  c311Identity: {
+    validatePassword: value => value === 'ValidPassword1!' ? [] : ['too-short'],
+    resetTokenFromLocation: () => 'ephemeral-token',
   },
 }))
 
@@ -300,6 +305,19 @@ describe('C311 shared components', () => {
     expect(wrapper.vm.state).toBe('retryable-error')
   })
 
+  it('uses the provider for federated entry and keeps the mock browser on the portal', async () => {
+    const provider = { startFederatedSignIn: jest.fn().mockResolvedValue({ authorization_url: 'https://identity.example.test/oidc/authorize' }) }
+    window.C311Mode = 'mock'
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: { name: 'c311.sign-in', query: {} }, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-data-state': DataStateStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.federated('oidc')
+    expect(provider.startFederatedSignIn).toHaveBeenCalledWith('oidc')
+    expect(wrapper.vm.federatedMessage).toContain('Redirecting')
+    window.C311Mode = undefined
+  })
+
   it('covers staff queue empty, populated, and terminal provider states', async () => {
     const provider = { listStaffRequests: jest.fn().mockResolvedValue({ items: [] }) }
     const wrapper = mount(Staff, {
@@ -346,5 +364,328 @@ describe('C311 shared components', () => {
     expect(adminRoutes.find(route => route.name === 'c311.unauthorized').path).toBe('/c311/401')
     expect(adminRoutes.find(route => route.name === 'c311.forbidden').path).toBe('/c311/403')
     expect(adminRoutes.find(route => route.name === 'c311.not-found').path).toBe('/c311/404')
+    expect(composeRoutes.find(route => route.name === 'c311.security-notice')).toBeUndefined()
   })
+
+  it('renders anonymous public identity navigation and protects private entries', async () => {
+    const provider = {
+      getBranding: jest.fn().mockResolvedValue({ organisation_name: 'Fixture City' }),
+      getPublicContent: jest.fn().mockResolvedValue({ body: '<p>Welcome</p>' }),
+      getPublicHelp: jest.fn().mockResolvedValue({ body: '<p>Help</p>' }),
+    }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: { name: 'c311.portal', query: {} }, $C311: { provider, session: { authenticated: false } } },
+      stubs: {
+        'c311-app-shell': AppShellStub,
+        'c311-data-state': DataStateStub,
+        'c311-error-summary': ChildStub,
+        'c311-help-drawer': ChildStub,
+        'c311-language-selector': ChildStub,
+        'c311-main-nav': { props: ['items'], template: '<nav><a v-for="item in items" :key="item.route" :href="item.route" :data-c311-route="item.route">{{ item.label }}</a></nav>' },
+        'c311-responsive-data': ChildStub,
+        'router-link': RouterLinkStub,
+      },
+    })
+    await wrapper.vm.load()
+    expect(wrapper.vm.state).toBe('populated')
+    expect(wrapper.vm.navItems.map(item => item.route)).toEqual(expect.arrayContaining(['/c311/sign-in', '/c311/register']))
+    expect(wrapper.vm.navItems.map(item => item.route)).not.toContain('/c311/account')
+    expect(wrapper.find('[data-c311-page="home"]').exists()).toBe(true)
+    expect(provider.getPublicContent).toHaveBeenCalledWith('HOME')
+  })
+
+  it('loads public HELP content and contextual help independently', async () => {
+    const provider = {
+      getBranding: jest.fn().mockResolvedValue({ organisation_name: 'Fixture City' }),
+      getPublicContent: jest.fn().mockResolvedValue({ content_key: 'HELP', body: '<p>Published help</p>' }),
+      getPublicHelp: jest.fn().mockResolvedValue({ body: '<p>Context help</p>' }),
+    }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: { name: 'c311.help', query: {} }, $C311: { provider, session: { authenticated: false } } },
+      stubs: {
+        'c311-app-shell': AppShellStub,
+        'c311-data-state': DataStateStub,
+        'c311-error-summary': ChildStub,
+        'c311-help-drawer': ChildStub,
+        'c311-language-selector': ChildStub,
+        'c311-main-nav': ChildStub,
+        'c311-responsive-data': ChildStub,
+        'router-link': RouterLinkStub,
+      },
+    })
+    await wrapper.vm.load()
+    expect(provider.getPublicContent).toHaveBeenCalledWith('HELP')
+    expect(provider.getPublicHelp).toHaveBeenCalledWith('public.request.submit', 'EN')
+    expect(wrapper.vm.contentBody).toContain('Published help')
+    expect(wrapper.vm.helpBody).toContain('Context help')
+    expect(wrapper.vm.contentState).toBe('populated')
+    expect(wrapper.vm.helpState).toBe('populated')
+  })
+
+  it('renders safe branding fields and keeps HELP content when contextual help fails', async () => {
+    const provider = {
+      getBranding: jest.fn().mockResolvedValue({ organisation_name: 'Fixture City', public_header: 'City services', public_footer: 'Support', primary_colour: '#155eef', accent_colour: 'red; background:url(javascript:bad)', font_family: 'Inter, system-ui', logo_url: 'javascript:bad' }),
+      getPublicContent: jest.fn().mockResolvedValue({ content_key: 'HELP', body: '<p>Published help</p>' }),
+      getPublicHelp: jest.fn().mockRejectedValue({ status: 503, retryable: true, message: 'context unavailable' }),
+    }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: { name: 'c311.help', query: {} }, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.load()
+    expect(wrapper.vm.contentState).toBe('populated')
+    expect(wrapper.vm.helpState).toBe('retryable-error')
+    expect(wrapper.vm.contentBody).toContain('Published help')
+    expect(wrapper.vm.safeLogoUrl).toBe('')
+    expect(wrapper.vm.brandStyle).toEqual(expect.objectContaining({ '--c311-primary-color': '#155eef', fontFamily: 'Inter, system-ui' }))
+    expect(wrapper.vm.brandStyle).not.toHaveProperty('--c311-accent-color')
+    expect(wrapper.find('[data-c311-branding]').text()).toContain('City services')
+    expect(wrapper.find('[data-c311-branding-footer]').text()).toContain('Support')
+  })
+
+  it('keeps account maintenance input and session unchanged on conflict', async () => {
+    const session = { authenticated: true, actor: { actor_id: 'actor-1' } }
+    const provider = {
+      getProfile: jest.fn().mockResolvedValue({ display_name: 'Alex', preferred_language: 'EN', version: 3 }),
+      changeLoginIdentifier: jest.fn().mockRejectedValue({ status: 409, error: 'VERSION_CONFLICT', current_version: 4 }),
+      changePassword: jest.fn(),
+    }
+    const router = { push: jest.fn() }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: { name: 'c311.account', query: {} }, $router: router, $C311: { provider, session } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-data-state': DataStateStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.load()
+    wrapper.vm.forms.account.login_identifier = 'alex.new'
+    wrapper.vm.forms.account.current_password = 'Current-password-1!'
+    await wrapper.vm.changeLoginIdentifier()
+    expect(provider.changeLoginIdentifier).toHaveBeenCalledWith({ current_password: 'Current-password-1!', login_identifier: 'alex.new' })
+    expect(wrapper.vm.forms.account.login_identifier).toBe('alex.new')
+    expect(wrapper.vm.$C311.session).toBe(session)
+    expect(wrapper.vm.successMessage).toBe('')
+    expect(wrapper.vm.formErrors.length).toBeGreaterThan(0)
+  })
+
+  it('reloads content and profile when the reused portal route changes', async () => {
+    const route = { name: 'c311.portal', query: {} }
+    const provider = {
+      getBranding: jest.fn().mockResolvedValue({ organisation_name: 'Fixture City' }),
+      getPublicContent: jest.fn().mockImplementation(contentKey => Promise.resolve({ content_key: contentKey, body: `<p>${contentKey}</p>` })),
+      getPublicHelp: jest.fn().mockResolvedValue({ body: '<p>Context help</p>' }),
+      listPortalRequests: jest.fn().mockResolvedValue({ items: [{ request_id: 'request-1' }] }),
+      getProfile: jest.fn().mockResolvedValue({ display_name: 'Alex Example', preferred_language: 'EN', login_identifier: 'alex' }),
+    }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: route, $C311: { provider, session: { authenticated: true, actor: { actor_id: 'actor-1' } } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-data-state': DataStateStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+
+    await wrapper.vm.load()
+    expect(wrapper.vm.contentBody).toContain('HOME')
+    expect(wrapper.vm.contentKey).toBe('HOME')
+
+    route.name = 'c311.services'
+    await wrapper.vm.$options.watch.$route.handler.call(wrapper.vm, route, { name: 'c311.portal' })
+    expect(provider.getPublicContent).toHaveBeenLastCalledWith('SERVICE_CATALOGUE')
+    expect(wrapper.vm.contentBody).toContain('SERVICE_CATALOGUE')
+    expect(wrapper.vm.contentKey).toBe('SERVICE_CATALOGUE')
+
+    route.name = 'c311.help'
+    await wrapper.vm.$options.watch.$route.handler.call(wrapper.vm, route, { name: 'c311.services' })
+    expect(provider.getPublicContent).toHaveBeenLastCalledWith('HELP')
+    expect(provider.getPublicHelp).toHaveBeenCalledWith('public.request.submit', 'EN')
+    expect(wrapper.vm.contentBody).toContain('HELP')
+    expect(wrapper.vm.helpBody).toContain('Context help')
+    expect(wrapper.vm.contentKey).toBe('HELP')
+
+    route.name = 'c311.requests'
+    await wrapper.vm.$options.watch.$route.handler.call(wrapper.vm, route, { name: 'c311.help' })
+    expect(provider.listPortalRequests).toHaveBeenCalled()
+    expect(wrapper.vm.items).toHaveLength(1)
+
+    route.name = 'c311.account'
+    await wrapper.vm.$options.watch.$route.handler.call(wrapper.vm, route, { name: 'c311.requests' })
+    expect(provider.getProfile).toHaveBeenCalled()
+    expect(wrapper.vm.forms.account.display_name).toBe('Alex Example')
+    expect(wrapper.vm.contentBody).toBe('')
+    expect(wrapper.vm.contentKey).toBe('')
+    expect(wrapper.vm.items).toEqual([])
+  })
+
+  it('clears stale state before reset and callback routes', async () => {
+    const route = { name: 'c311.services', query: {} }
+    const provider = {
+      getBranding: jest.fn().mockResolvedValue({ organisation_name: 'Fixture City' }),
+      getPublicContent: jest.fn().mockResolvedValue({ body: '<p>SERVICE_CATALOGUE</p>' }),
+      getPublicHelp: jest.fn().mockResolvedValue({ body: '<p>Context help</p>' }),
+      completeFederatedSignIn: jest.fn().mockResolvedValue({ authenticated: true, actor: { actor_id: 'actor-1' } }),
+    }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: route, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-data-state': DataStateStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.load()
+    expect(wrapper.vm.contentBody).toContain('SERVICE_CATALOGUE')
+
+    route.name = 'c311.reset-password'
+    await wrapper.vm.$options.watch.$route.handler.call(wrapper.vm, route, { name: 'c311.services' })
+    expect(wrapper.vm.contentBody).toBe('')
+    expect(wrapper.vm.helpBody).toBe('')
+    expect(wrapper.vm.dataError).toBe(null)
+    expect(wrapper.vm.successMessage).toBe('')
+
+    route.name = 'c311.auth.callback'
+    route.query = { provider: 'oidc', code: 'opaque-code' }
+    await wrapper.vm.$options.watch.$route.handler.call(wrapper.vm, route, { name: 'c311.reset-password' })
+    expect(provider.completeFederatedSignIn).toHaveBeenCalledWith('oidc', { provider: 'oidc', code: 'opaque-code' })
+    expect(wrapper.vm.contentBody).toBe('')
+  })
+
+  it('signs out immediately on SPA navigation and removes authenticated navigation', async () => {
+    const route = { name: 'c311.requests', query: {} }
+    const session = { authenticated: true, actor: { actor_id: 'actor-1', capabilities: ['profile_get'] } }
+    const provider = {
+      listPortalRequests: jest.fn().mockResolvedValue({ items: [] }),
+      signOut: jest.fn().mockResolvedValue(undefined),
+    }
+    const runtime = { provider, session, clearSession: jest.fn(() => { runtime.session = null }) }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: route, $C311: runtime },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-data-state': DataStateStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.load()
+
+    route.name = 'c311.logout.callback'
+    await wrapper.vm.$options.watch.$route.handler.call(wrapper.vm, route, { name: 'c311.requests' })
+    expect(provider.signOut).toHaveBeenCalledTimes(1)
+    expect(runtime.clearSession).toHaveBeenCalledTimes(1)
+    expect(wrapper.vm.navItems.map(item => item.route)).not.toEqual(expect.arrayContaining(['/c311/account', '/c311/requests']))
+    expect(wrapper.vm.successMessage).toContain('signed out')
+  })
+
+  it.each([
+    [['profile_get'], false, false],
+    [['profile_get', 'login_identifier_change'], true, false],
+    [['profile_get', 'password_change'], false, true],
+    [[], false, false],
+  ])('only renders account maintenance actions for capabilities %j', async (capabilities, canChangeLogin, canChangePassword) => {
+    const provider = { getProfile: jest.fn().mockResolvedValue({ display_name: 'Alex', preferred_language: 'EN', login_identifier: 'alex' }) }
+    const route = { name: 'c311.account', query: {} }
+    const runtime = {
+      provider,
+      session: { authenticated: true, actor: { actor_id: 'actor-1', capabilities } },
+      can: capability => capabilities.includes(capability),
+    }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: route, $C311: runtime },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-data-state': DataStateStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.load()
+    expect(wrapper.find('[data-c311-action="change-login-identifier"]').exists()).toBe(canChangeLogin)
+    expect(wrapper.find('[data-c311-action="change-password"]').exists()).toBe(canChangePassword)
+  })
+
+  it('updates the current session after successful login-identifier and password changes', async () => {
+    const session = { authenticated: true, actor: { actor_id: 'actor-1' } }
+    const nextSession = { authenticated: true, actor: { actor_id: 'actor-1', login_identifier: 'alex.new' } }
+    const provider = {
+      getProfile: jest.fn().mockResolvedValue({ display_name: 'Alex', login_identifier: 'alex', preferred_language: 'EN', version: 1 }),
+      changeLoginIdentifier: jest.fn().mockResolvedValue(nextSession),
+      changePassword: jest.fn().mockResolvedValue(undefined),
+    }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: { name: 'c311.account', query: {} }, $C311: { provider, session }, $router: { push: jest.fn() } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-data-state': DataStateStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.load()
+    wrapper.vm.forms.account.login_identifier = 'alex.new'
+    wrapper.vm.forms.account.current_password = 'Current-password-1!'
+    await wrapper.vm.changeLoginIdentifier()
+    expect(wrapper.vm.$C311.session).toBe(nextSession)
+    wrapper.vm.forms.account.new_password = 'ValidPassword1!'
+    await wrapper.vm.changePassword()
+    expect(provider.changePassword).toHaveBeenCalledWith({ current_password: 'Current-password-1!', new_password: 'ValidPassword1!' })
+    expect(wrapper.vm.forms.account.new_password).toBe('')
+  })
+
+  it('routes callback pending-link confirmation through server state', async () => {
+    const provider = {
+      startFederatedSignIn: jest.fn().mockResolvedValue({ authorization_url: 'https://identity.example.test/oidc/authorize' }),
+      completeFederatedSignIn: jest.fn().mockResolvedValue({ outcome: 'link_confirmation_required', pending_link: { expires_at: '2099-01-15T16:00:00.000Z' } }),
+      confirmAccountLink: jest.fn().mockResolvedValue({ authenticated: true, actor: null, preferred_language: 'EN', expires_at: null }),
+    }
+    const router = { push: jest.fn() }
+    const runtime = { provider, session: { authenticated: false }, pendingFederated: null }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: { name: 'c311.sign-in', query: {} }, $router: router, $C311: runtime },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-data-state': DataStateStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.federated('oidc')
+    wrapper.vm.$route.query = { provider: 'oidc', code: 'fixture' }
+    await wrapper.vm.completeFederated()
+    expect(router.push).toHaveBeenCalledWith({ name: 'c311.auth.link.confirm' })
+    expect(runtime.pendingFederated).toEqual({ expires_at: '2099-01-15T16:00:00.000Z' })
+    window.C311Mode = 'mock'
+    await wrapper.vm.confirmAccountLink()
+    window.C311Mode = undefined
+    expect(provider.confirmAccountLink).toHaveBeenCalledWith()
+    expect(wrapper.vm.linkState).toBe('success')
+    expect(runtime.pendingFederated).toBe(null)
+    expect(router.push).not.toHaveBeenCalledWith(expect.objectContaining({ query: expect.anything() }))
+  })
+
+  it('cancels pending account linking through the provider before returning to sign-in', async () => {
+    const provider = {}
+    const router = { push: jest.fn() }
+    const runtime = { provider, session: { authenticated: false }, pendingFederated: { expires_at: '2099-01-15T16:00:00.000Z' } }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: { name: 'c311.auth.link.confirm', query: {} }, $router: router, $C311: runtime },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-data-state': DataStateStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.cancelAccountLink()
+    expect(runtime.pendingFederated).toBe(null)
+    expect(router.push).toHaveBeenCalledWith({ name: 'c311.sign-in' })
+  })
+
+  it('validates registration and reset forms, binds provider errors, and keeps token out of the URL', async () => {
+    const provider = {
+      registerAccount: jest.fn().mockRejectedValue({ status: 422, errors: [{ field: '/email', code: 'INVALID_FORMAT', message: 'Invalid email' }] }),
+      confirmPasswordReset: jest.fn().mockResolvedValue({ message: 'Reset complete' }),
+    }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: { name: 'c311.register', query: {} }, $C311: { provider, session: { authenticated: false } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-data-state': DataStateStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.register()
+    expect(wrapper.vm.formErrors.map(error => error.field)).toEqual(expect.arrayContaining(['display_name', 'email', 'login_identifier', 'password']))
+    for (const login_identifier of ['ab', 'a'.repeat(65), 'Bad Name']) {
+      wrapper.vm.forms.register = { display_name: 'Example', email: 'example@example.test', login_identifier, password: 'ValidPassword1!', preferred_language: 'EN' }
+      provider.registerAccount.mockClear()
+      await wrapper.vm.register()
+      expect(wrapper.vm.formErrors).toEqual(expect.arrayContaining([expect.objectContaining({ field: 'login_identifier', code: 'INVALID_FORMAT' })]))
+      expect(provider.registerAccount).not.toHaveBeenCalled()
+    }
+    wrapper.vm.forms.register = { display_name: 'Example', email: 'example@example.test', login_identifier: 'example', password: 'ValidPassword1!', preferred_language: 'EN' }
+    await wrapper.vm.register()
+    expect(provider.registerAccount).toHaveBeenCalledWith(expect.objectContaining({ email: 'example@example.test' }))
+    await wrapper.setData({ resetToken: 'ephemeral-token', forms: { ...wrapper.vm.forms, reset: { password: 'ValidPassword1!' } } })
+    await wrapper.vm.resetPassword()
+    expect(provider.confirmPasswordReset).toHaveBeenCalledWith({ token: 'ephemeral-token', password: 'ValidPassword1!' })
+    expect(wrapper.vm.successMessage).toContain('Reset complete')
+  })
+
+  it('maps public content failures to retryable state and supports authenticated requests', async () => {
+    const provider = {
+      getBranding: jest.fn().mockRejectedValue({ status: 503, retryable: true }),
+      listPortalRequests: jest.fn().mockResolvedValue({ items: [] }),
+    }
+    const wrapper = mount(PublicPortal, {
+      mocks: { ...mocks, $route: { name: 'c311.requests', query: {} }, $C311: { provider, session: { authenticated: true, actor: { actor_id: 'actor-1' } } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    await wrapper.vm.load()
+    expect(wrapper.vm.state).toBe('retryable-error')
+    expect(wrapper.vm.navItems.map(item => item.route)).toEqual(expect.arrayContaining(['/c311/account', '/c311/requests', '/c311/logout/callback']))
+  })
+
 })

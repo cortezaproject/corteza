@@ -12,6 +12,7 @@ import * as c311Router from './libs/c311-router'
 import * as c311I18n from './libs/c311-i18n'
 import i18n from './i18n'
 import * as c311 from './libs/c311'
+import * as c311Identity from './libs/c311-identity'
 
 export {
   plugins,
@@ -28,4 +29,5 @@ export {
   c311I18n,
   i18n,
   c311,
+  c311Identity,
 }

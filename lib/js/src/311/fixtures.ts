@@ -1,5 +1,5 @@
-import { APPLICATION_ROLES, CONTRACT_VERSION, type ApplicationRole } from './enums'
-import type { C311FixtureSet, C311RoleFixture, Constituent, CurrentActor, PublicHistoryItem, RequestQueueItem, ServiceRequest, Session, StaffServiceRequestDetail } from './types'
+import { APPLICATION_ROLES, CONTRACT_VERSION, type ApplicationRole, type HelpKey, type PublicContentKey } from './enums'
+import type { Branding, C311FixtureSet, C311RoleFixture, Constituent, ContentObject, CurrentActor, HelpContent, PublicHistoryItem, RequestQueueItem, ServiceRequest, Session, StaffServiceRequestDetail } from './types'
 
 export const BENCHMARK_NOW = '2026-01-15T15:00:00.000Z'
 export const BENCHMARK_TIMEZONE = 'America/New_York'
@@ -22,6 +22,8 @@ const constituent: Constituent = {
   primary_category: 'RESIDENT',
   preferred_language: 'EN',
   email_opt_out: false,
+  version: 1,
+  updated_at: BENCHMARK_NOW,
 }
 
 const request: ServiceRequest = {
@@ -87,6 +89,41 @@ const detail: StaffServiceRequestDetail = {
   history,
   audit: [],
   external_work_order: null,
+}
+
+const branding: Branding = {
+  organisation_name: 'City 311',
+  primary_colour: '#155eef',
+  accent_colour: '#12b76a',
+  font_family: 'system-ui',
+  published: true,
+  version: 1,
+  updated_at: BENCHMARK_NOW,
+  login_header: 'Sign in to City 311',
+  public_header: 'City services in one place',
+  public_footer: 'City 311 support',
+  logo_url: null,
+  favicon_url: null,
+  portal_wallpaper_url: null,
+}
+
+const publicContent: Record<PublicContentKey, ContentObject> = {
+  HOME: { content_key: 'HOME', body: '<p>Report an issue or find a city service.</p>', state: 'PUBLISHED', published: true, version: 1, updated_at: BENCHMARK_NOW },
+  SERVICE_CATALOGUE: { content_key: 'SERVICE_CATALOGUE', body: '<p>Browse available city services.</p>', state: 'PUBLISHED', published: true, version: 1, updated_at: BENCHMARK_NOW },
+  HELP: { content_key: 'HELP', body: '<p>Find answers and contact support.</p>', state: 'PUBLISHED', published: true, version: 1, updated_at: BENCHMARK_NOW },
+  FOOTER: { content_key: 'FOOTER', body: '<p>City 311</p>', state: 'PUBLISHED', published: true, version: 1, updated_at: BENCHMARK_NOW },
+  TERMS: { content_key: 'TERMS', body: '<p>Terms of service.</p>', state: 'PUBLISHED', published: true, version: 1, updated_at: BENCHMARK_NOW },
+}
+
+const publicHelp: Record<HelpKey, HelpContent> = {
+  'admin.branding.publish': { help_key: 'admin.branding.publish', language: 'EN', body: '<p>Publish approved branding.</p>', version: 1, updated_at: BENCHMARK_NOW },
+  'admin.workflow.author': { help_key: 'admin.workflow.author', language: 'EN', body: '<p>Author an approved workflow.</p>', version: 1, updated_at: BENCHMARK_NOW },
+  'public.request.lookup': { help_key: 'public.request.lookup', language: 'EN', body: '<p>Use your request number and email.</p>', version: 1, updated_at: BENCHMARK_NOW },
+  'public.request.submit': { help_key: 'public.request.submit', language: 'EN', body: '<p>Describe the issue and submit it to the city.</p>', version: 1, updated_at: BENCHMARK_NOW },
+  'staff.report.create': { help_key: 'staff.report.create', language: 'EN', body: '<p>Create reports from permitted records.</p>', version: 1, updated_at: BENCHMARK_NOW },
+  'staff.request.bulk-update': { help_key: 'staff.request.bulk-update', language: 'EN', body: '<p>Update selected requests.</p>', version: 1, updated_at: BENCHMARK_NOW },
+  'staff.request.reassign': { help_key: 'staff.request.reassign', language: 'EN', body: '<p>Reassign a request.</p>', version: 1, updated_at: BENCHMARK_NOW },
+  'staff.request.triage': { help_key: 'staff.request.triage', language: 'EN', body: '<p>Review and classify a request.</p>', version: 1, updated_at: BENCHMARK_NOW },
 }
 
 type RoleDefinition = {
@@ -344,7 +381,23 @@ export function createDefaultFixtureSet (): C311FixtureSet {
         retryable: false,
         current_version: 2,
       },
+      'invalid-credentials': { error: 'UNAUTHENTICATED', message: 'The sign-in details are not valid.', retryable: false },
+      'registration-validation': { error: 'VALIDATION_ERROR', message: 'Check the registration details.', retryable: false, errors: [{ field: '/email', code: 'INVALID_FORMAT' }] },
+      'expired-reset-token': { error: 'EXPIRED_RESET_TOKEN', message: 'This reset link has expired.', retryable: false },
+      'invalid-reset-token': { error: 'INVALID_RESET_TOKEN', message: 'This reset link is invalid.', retryable: false },
+      'oidc-failure': { error: 'TEMPORARILY_UNAVAILABLE', message: 'OIDC sign-in is temporarily unavailable.', retryable: true },
+      'saml-failure': { error: 'TEMPORARILY_UNAVAILABLE', message: 'SAML sign-in is temporarily unavailable.', retryable: true },
+      'federated-logout-failure': { error: 'OPERATION_FAILED', message: 'Federated sign-out could not be completed.', retryable: false },
+      'account-link-conflict': { error: 'VERSION_CONFLICT', message: 'The account link changed before confirmation.', retryable: false, current_version: 2 },
+      'identity-claims-failure': { error: 'UNAUTHENTICATED', message: 'The identity claims could not be verified.', retryable: false },
+      'branding-failure': { error: 'TEMPORARILY_UNAVAILABLE', message: 'Branding is temporarily unavailable.', retryable: true },
+      'content-loading-failure': { error: 'TEMPORARILY_UNAVAILABLE', message: 'Public content is temporarily unavailable.', retryable: true },
+      'help-loading-failure': { error: 'TEMPORARILY_UNAVAILABLE', message: 'Help content is temporarily unavailable.', retryable: true },
+      'account-loading': { error: 'TEMPORARILY_UNAVAILABLE', message: 'Account data is temporarily unavailable.', retryable: true },
     },
+    branding,
+    public_content: publicContent,
+    public_help: publicHelp,
   }
 }
 

@@ -135,11 +135,30 @@ export default {
     isSubmitRoute () {
       return this.$route && this.$route.name === 'c311.submit'
     },
+    isAuthenticated () {
+      return !!this.$C311?.session?.authenticated
+    },
     navItems () {
-      return [
+      const items = [
+        { route: '/c311', label: this.t('navigation.home', 'Home') },
+        { route: '/c311/services', label: this.t('navigation.services', 'Services') },
+        { route: '/c311/help', label: this.t('navigation.help', 'Help') },
         { route: '/c311/submit', label: this.t('navigation.submit', 'Submit a request') },
         { route: '/c311/status', label: this.t('navigation.status', 'Check status') },
       ]
+      if (this.isAuthenticated) {
+        items.push(
+          { route: '/c311/requests', label: this.t('navigation.requests', 'My requests') },
+          { route: '/c311/account', label: this.t('navigation.account', 'Account') },
+          { route: '/c311/logout/callback', label: this.t('navigation.signOut', 'Sign out') },
+        )
+      } else {
+        items.push(
+          { route: '/c311/sign-in', label: this.t('navigation.signIn', 'Sign in') },
+          { route: '/c311/register', label: this.t('navigation.register', 'Register') },
+        )
+      }
+      return items
     },
     translatedColumns () {
       return this.columns.map(column => ({ ...column, label: this.t(column.labelKey, column.labelKey) }))

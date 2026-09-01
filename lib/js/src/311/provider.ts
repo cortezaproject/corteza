@@ -1,19 +1,33 @@
 import { C311ApiError, type C311FieldError } from './errors'
-import type { ErrorCode } from './enums'
+import type { ErrorCode, HelpKey, IdentityProvider, Language, PublicContentKey } from './enums'
 import type {
   AnonymousStatusLookupRequest,
   AnonymousStatusLookupResponse,
+  AccountRegistration,
+  AccountRegistrationAcknowledgement,
   BinaryAttachment,
+  Branding,
   C311EndpointResponse,
+  ContentObject,
   DraftWrite,
   GeocodeRequest,
   GeocodeResponse,
+  FederatedRedirect,
+  HelpContent,
+  LanguagePreference,
+  LoginIdentifierChange,
   ListQuery,
   LocalSignIn,
   Operation,
   PageResponse,
   PortalAttachment,
   PortalServiceRequestCreate,
+  PasswordResetConfirm,
+  PasswordResetRequest,
+  PasswordResetResponse,
+  PasswordChange,
+  ProfileUpdate,
+  Constituent,
   PublicServiceRequestDetail,
   ReportDefinition,
   RequestListQuery,
@@ -24,6 +38,7 @@ import type {
   ServiceRequestCreate,
   ServiceRequestResponse,
   Session,
+  FederatedSignInResult,
   StaffServiceRequestDetail,
   WorkflowDefinition,
 } from './types'
@@ -175,6 +190,20 @@ export interface C311Provider {
   getSession (): Promise<Session>
   signIn (input: LocalSignIn): Promise<Session>
   signOut (): Promise<void>
+  registerAccount (input: AccountRegistration): Promise<AccountRegistrationAcknowledgement>
+  requestPasswordReset (input: PasswordResetRequest): Promise<PasswordResetResponse>
+  confirmPasswordReset (input: PasswordResetConfirm): Promise<PasswordResetResponse>
+  changeLoginIdentifier (input: LoginIdentifierChange): Promise<Session>
+  changePassword (input: PasswordChange): Promise<void>
+  startFederatedSignIn (provider: IdentityProvider): Promise<FederatedRedirect>
+  confirmAccountLink (): Promise<Session>
+  completeFederatedSignIn (provider: IdentityProvider, query?: Record<string, string>): Promise<FederatedSignInResult>
+  getBranding (): Promise<Branding>
+  getPublicContent (contentKey: PublicContentKey): Promise<ContentObject>
+  getPublicHelp (helpKey: HelpKey, language?: Language): Promise<HelpContent>
+  getProfile (): Promise<Constituent>
+  updateProfile (input: ProfileUpdate, options?: C311RequestOptions): Promise<Constituent>
+  updateLanguage (language: Language): Promise<LanguagePreference>
   getOperation (operationID: string): Promise<Operation>
 
   uploadPortalAttachment (input: PortalAttachmentUpload): Promise<PortalAttachment>
@@ -259,6 +288,62 @@ export class C311HttpProvider implements C311Provider {
 
   signOut (): Promise<void> {
     return this.request({ method: 'DELETE', path: '/api/v1/session' })
+  }
+
+  registerAccount (input: AccountRegistration): Promise<AccountRegistrationAcknowledgement> {
+    return this.request({ method: 'POST', path: '/api/v1/accounts', body: input })
+  }
+
+  requestPasswordReset (input: PasswordResetRequest): Promise<PasswordResetResponse> {
+    return this.request({ method: 'POST', path: '/api/v1/auth/password-reset/request', body: input })
+  }
+
+  confirmPasswordReset (input: PasswordResetConfirm): Promise<PasswordResetResponse> {
+    return this.request({ method: 'POST', path: '/api/v1/auth/password-reset/confirm', body: input })
+  }
+
+  changeLoginIdentifier (input: LoginIdentifierChange): Promise<Session> {
+    return this.request({ method: 'POST', path: '/api/v1/account/login-identifier', body: input })
+  }
+
+  changePassword (input: PasswordChange): Promise<void> {
+    return this.request({ method: 'POST', path: '/api/v1/account/password', body: input })
+  }
+
+  startFederatedSignIn (provider: IdentityProvider): Promise<FederatedRedirect> {
+    return this.request({ method: 'GET', path: `/api/v1/auth/${encodeURIComponent(provider)}/start` })
+  }
+
+  confirmAccountLink (): Promise<Session> {
+    return this.request({ method: 'POST', path: '/api/v1/account/link/confirm', body: {} })
+  }
+
+  completeFederatedSignIn (provider: IdentityProvider, query: Record<string, string> = {}): Promise<FederatedSignInResult> {
+    return this.request({ method: 'GET', path: `/api/v1/auth/${encodeURIComponent(provider)}/callback`, query })
+  }
+
+  getBranding (): Promise<Branding> {
+    return this.request({ method: 'GET', path: '/api/v1/public/branding' })
+  }
+
+  getPublicContent (contentKey: PublicContentKey): Promise<ContentObject> {
+    return this.request({ method: 'GET', path: `/api/v1/public/content/${encodeURIComponent(contentKey)}` })
+  }
+
+  getPublicHelp (helpKey: HelpKey, language?: Language): Promise<HelpContent> {
+    return this.request({ method: 'GET', path: `/api/v1/public/help/${encodeURIComponent(helpKey)}`, query: language ? { language } : undefined })
+  }
+
+  getProfile (): Promise<Constituent> {
+    return this.request({ method: 'GET', path: '/api/v1/account/profile' })
+  }
+
+  updateProfile (input: ProfileUpdate, options: C311RequestOptions = {}): Promise<Constituent> {
+    return this.request({ method: 'PATCH', path: '/api/v1/account/profile', body: input, ...this.requestOptions(options) })
+  }
+
+  updateLanguage (language: Language): Promise<LanguagePreference> {
+    return this.request({ method: 'PATCH', path: '/api/v1/preferences/language', body: { language } })
   }
 
   getOperation (operationID: string): Promise<Operation> {

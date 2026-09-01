@@ -67,12 +67,23 @@ jobs:
         run: tools/c311-browser/run.sh
         env:
           C311_ARTIFACT_DIR: ${{ runner.temp }}/c311-fe01-gate
+      - name: "FE-02 public identity browser matrix"
+        run: tools/c311-browser/run-fe02.sh
+        env:
+          C311_ARTIFACT_DIR: ${{ runner.temp }}/c311-fe02-gate
       - name: "Upload C311 gate evidence"
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: c311-fe01-gate
           path: ${{ runner.temp }}/c311-fe01-gate
+          if-no-files-found: ignore
+      - name: "Upload FE-02 gate evidence"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c311-fe02-gate
+          path: ${{ runner.temp }}/c311-fe02-gate
           if-no-files-found: ignore
 
   lib-test:

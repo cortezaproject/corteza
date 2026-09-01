@@ -1,6 +1,7 @@
 <template>
   <div
     v-if="errors.length"
+    id="c311-error-summary"
     ref="summary"
     class="alert alert-danger"
     role="alert"
@@ -37,6 +38,10 @@ export default {
       type: Boolean,
       default: true,
     },
+    fieldTargets: {
+      type: Object,
+      default: () => ({}),
+    },
   },
   watch: {
     errors: {
@@ -49,6 +54,9 @@ export default {
   },
   methods: {
     fieldID (field) {
+      const key = this.normalizeField(field)
+      if (this.fieldTargets[field]) return this.fieldTargets[field]
+      if (this.fieldTargets[key]) return this.fieldTargets[key]
       const normalized = String(field || '')
         .replace(/^#/, '')
         .replace(/^\//, '')
@@ -61,6 +69,9 @@ export default {
       const candidates = [this.fieldID(field), raw, raw.split('-').pop()]
       const element = candidates.map(id => document.getElementById(id)).find(Boolean)
       if (element) element.focus()
+    },
+    normalizeField (field) {
+      return String(field || '').replace(/^#/, '').replace(/^\//, '')
     },
   },
 }

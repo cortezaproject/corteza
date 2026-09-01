@@ -44,6 +44,24 @@ export type ReminderAction = typeof REMINDER_ACTIONS[number]
 export const LANGUAGES = ['EN', 'ES', 'VI'] as const
 export type Language = typeof LANGUAGES[number]
 
+export const IDENTITY_PROVIDERS = ['oidc', 'saml'] as const
+export type IdentityProvider = typeof IDENTITY_PROVIDERS[number]
+
+export const PUBLIC_CONTENT_KEYS = ['HOME', 'SERVICE_CATALOGUE', 'HELP', 'FOOTER', 'TERMS'] as const
+export type PublicContentKey = typeof PUBLIC_CONTENT_KEYS[number]
+
+export const HELP_KEYS = [
+  'admin.branding.publish',
+  'admin.workflow.author',
+  'public.request.lookup',
+  'public.request.submit',
+  'staff.report.create',
+  'staff.request.bulk-update',
+  'staff.request.reassign',
+  'staff.request.triage',
+] as const
+export type HelpKey = typeof HELP_KEYS[number]
+
 export const CUSTOM_FIELD_TYPES = [
   'TEXT',
   'INTEGER',
@@ -171,6 +189,28 @@ export const C311_SCENARIOS = [
   'retryable',
   'terminal',
   'version-conflict',
+  'public-anonymous',
+  'invalid-credentials',
+  'registration-validation',
+  'expired-reset-token',
+  'invalid-reset-token',
+  'oidc-failure',
+  'saml-failure',
+  'account-link-conflict',
+  'link-confirmation-required',
+  'account-link-success',
+  'account-link-cancelled',
+  'identity-claims-failure',
+  'federated-logout-failure',
+  'branding-failure',
+  'content-loading-failure',
+  'help-loading-failure',
+  'empty-catalogue',
+  'empty-my-requests',
+  'successful-login',
+  'successful-registration',
+  'successful-reset',
+  'account-loading',
 ] as const
 export type C311Scenario = typeof C311_SCENARIOS[number]
 

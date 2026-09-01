@@ -62,7 +62,7 @@ export function hasC311Route (session: C311Session | null | undefined, route: st
 
 export function canAccessC311Route (session: C311Session | null | undefined, meta: C311RouteMeta['c311'] = {}): boolean {
   if (meta.requiresAuth && !session?.authenticated) return false
-  if (meta.route && !meta.public && !hasC311Route(session, meta.route)) return false
+  if (meta.route && (!meta.public || meta.requiresAuth) && !hasC311Route(session, meta.route)) return false
   if (meta.capabilities?.some(capability => !hasC311Capability(session, capability))) return false
   if (meta.scopes?.some(scope => !hasC311Scope(session, scope))) return false
   return true
