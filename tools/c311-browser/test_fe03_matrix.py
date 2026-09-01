@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from fe03_matrix import ADMIN_URL, ARTIFACT_DIR_ENV, COMPOSE_URL, GENERIC_CONNECTION_ERROR, GENERIC_NAME_RESOLUTION_ERROR, KNOWN_DEV_CONSOLE_ERRORS, KNOWN_DEV_LOCALE_FAILURES, KNOWN_DEV_RESOURCE_FAILURES, KNOWN_DEV_WEBSOCKET_URL, STAFF_SUBMIT_ACTION, SUBMIT_ACTION, VIEWPORTS, artifact_directory, finalize_diagnostics
+from fe03_matrix import ADMIN_URL, ARTIFACT_DIR_ENV, COMPOSE_URL, GENERIC_CONNECTION_ERROR, GENERIC_NAME_RESOLUTION_ERROR, KNOWN_DEV_CONSOLE_ERRORS, KNOWN_DEV_LOCALE_FAILURES, KNOWN_DEV_RESOURCE_FAILURES, KNOWN_DEV_WEBSOCKET_URL, STAFF_SUBMIT_ACTION, SUBMIT_ACTION, VIEWPORTS, artifact_directory, finalize_diagnostics, record_console
 
 
 class Fe03MatrixTests(unittest.TestCase):
@@ -88,6 +88,23 @@ class Fe03MatrixTests(unittest.TestCase):
         }
         finalize_diagnostics(result)
         self.assertEqual(result["unexpected_console_errors"], [GENERIC_NAME_RESOLUTION_ERROR])
+
+    def test_late_console_event_after_finalize_is_safe(self) -> None:
+        result = {
+            "console_errors": [],
+            "unexpected_console_errors": [],
+            "pending_console_errors": [],
+            "failed_requests": [],
+            "websocket_urls": [],
+        }
+        finalize_diagnostics(result)
+
+        class Message:
+            type = "error"
+            text = GENERIC_CONNECTION_ERROR
+
+        record_console(result, Message())
+        self.assertEqual(result["pending_console_errors"], [GENERIC_CONNECTION_ERROR])
 
 
 if __name__ == "__main__":

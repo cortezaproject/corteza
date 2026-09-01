@@ -142,7 +142,9 @@ def record_console(result: dict[str, list], message) -> None:
         return
     result["console_errors"].append(message.text)
     if message.text in {GENERIC_CONNECTION_ERROR, GENERIC_NAME_RESOLUTION_ERROR}:
-        result["pending_console_errors"].append(message.text)
+        # Playwright may deliver a late console event while the context closes.
+        # Keep diagnostics callbacks safe after finalization has run.
+        result.setdefault("pending_console_errors", []).append(message.text)
     elif message.text not in KNOWN_DEV_CONSOLE_ERRORS:
         result["unexpected_console_errors"].append(message.text)
 
