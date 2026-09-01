@@ -3,8 +3,10 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-compose_port="${C311_COMPOSE_PORT:-18082}"
-admin_port="${C311_ADMIN_PORT:-18083}"
+# Keep FE-03 isolated from the FE-01/FE-02 browser helpers, which use
+# 18081/18082 and may leave a development-server child process behind.
+compose_port="${C311_COMPOSE_PORT:-18084}"
+admin_port="${C311_ADMIN_PORT:-18085}"
 artifact_dir="${C311_ARTIFACT_DIR:-$(mktemp -d \
   "${TMPDIR:-/tmp}/c311-fe03.XXXXXX")}"
 

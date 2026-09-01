@@ -16,6 +16,8 @@ class Fe03MatrixTests(unittest.TestCase):
         self.assertEqual(VIEWPORTS, ((1440, 900), (768, 900), (390, 844)))
         self.assertTrue(COMPOSE_URL.startswith("http"))
         self.assertTrue(ADMIN_URL.startswith("http"))
+        self.assertNotEqual(COMPOSE_URL.rsplit(":", 1)[-1], "18082")
+        self.assertNotEqual(ADMIN_URL.rsplit(":", 1)[-1], "18082")
         for selector in ("#c311-service-type", "#c311-requester-email", "#c311-attachment-file", "#c311-consent", '[data-c311-action="save-draft"]', SUBMIT_ACTION, STAFF_SUBMIT_ACTION, "[data-c311-submission-result]"):
             self.assertIn(selector, source)
         self.assertIn("C311Mode = 'mock'", source)

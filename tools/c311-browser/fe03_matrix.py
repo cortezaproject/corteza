@@ -16,8 +16,8 @@ from playwright.sync_api import Browser, Page, sync_playwright
 
 VIEWPORTS = ((1440, 900), (768, 900), (390, 844))
 ARTIFACT_DIR_ENV = "C311_ARTIFACT_DIR"
-COMPOSE_URL = os.environ.get("C311_COMPOSE_URL", "http://127.0.0.1:18082").rstrip("/")
-ADMIN_URL = os.environ.get("C311_ADMIN_URL", "http://127.0.0.1:18083").rstrip("/")
+COMPOSE_URL = os.environ.get("C311_COMPOSE_URL", "http://127.0.0.1:18084").rstrip("/")
+ADMIN_URL = os.environ.get("C311_ADMIN_URL", "http://127.0.0.1:18085").rstrip("/")
 MAIN = "[data-c311-main]"
 SUBMIT_PATH = "/c311/submit"
 STAFF_SUBMIT_PATH = "/c311/staff/submit"
