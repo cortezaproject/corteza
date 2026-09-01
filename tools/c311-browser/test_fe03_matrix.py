@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from fe03_matrix import ADMIN_URL, ARTIFACT_DIR_ENV, COMPOSE_URL, GENERIC_CONNECTION_ERROR, KNOWN_DEV_CONSOLE_ERRORS, KNOWN_DEV_LOCALE_FAILURES, KNOWN_DEV_RESOURCE_FAILURES, KNOWN_DEV_WEBSOCKET_URL, STAFF_SUBMIT_ACTION, SUBMIT_ACTION, VIEWPORTS, artifact_directory, finalize_diagnostics
+from fe03_matrix import ADMIN_URL, ARTIFACT_DIR_ENV, COMPOSE_URL, GENERIC_CONNECTION_ERROR, GENERIC_NAME_RESOLUTION_ERROR, KNOWN_DEV_CONSOLE_ERRORS, KNOWN_DEV_LOCALE_FAILURES, KNOWN_DEV_RESOURCE_FAILURES, KNOWN_DEV_WEBSOCKET_URL, STAFF_SUBMIT_ACTION, SUBMIT_ACTION, VIEWPORTS, artifact_directory, finalize_diagnostics
 
 
 class Fe03MatrixTests(unittest.TestCase):
@@ -27,7 +27,9 @@ class Fe03MatrixTests(unittest.TestCase):
         self.assertIn("urlparse", source)
         self.assertEqual(KNOWN_DEV_RESOURCE_FAILURES, {"/code-snippets.js", "/custom.css"})
         self.assertIn("Failed to load resource: the server responded with a status of 500 (Internal Server Error)", KNOWN_DEV_CONSOLE_ERRORS)
+        self.assertIn("WebSocket connection to 'wss://api.cortezaproject.your-domain.tld/websocket' failed: Error in connection establishment: net::ERR_NAME_NOT_RESOLVED", KNOWN_DEV_CONSOLE_ERRORS)
         self.assertEqual(GENERIC_CONNECTION_ERROR, "Failed to load resource: net::ERR_CONNECTION_CLOSED")
+        self.assertEqual(GENERIC_NAME_RESOLUTION_ERROR, "Failed to load resource: net::ERR_NAME_NOT_RESOLVED")
         self.assertTrue(KNOWN_DEV_WEBSOCKET_URL.startswith("wss://"))
         self.assertIn("parsed.path == \"/ws\"", source)
         self.assertEqual(KNOWN_DEV_LOCALE_FAILURES, {
@@ -64,6 +66,28 @@ class Fe03MatrixTests(unittest.TestCase):
         }
         finalize_diagnostics(result)
         self.assertEqual(result["unexpected_console_errors"], [GENERIC_CONNECTION_ERROR])
+
+    def test_known_locale_dns_console_error_is_whitelisted_by_exact_request(self) -> None:
+        result = {
+            "console_errors": [GENERIC_NAME_RESOLUTION_ERROR],
+            "unexpected_console_errors": [],
+            "failed_requests": [{"url": "https://api.cortezaproject.your-domain.tld/system/locale/en-US/corteza-webapp-compose"}],
+            "websocket_urls": [],
+            "pending_console_errors": [GENERIC_NAME_RESOLUTION_ERROR],
+        }
+        finalize_diagnostics(result)
+        self.assertEqual(result["unexpected_console_errors"], [])
+
+    def test_unmatched_generic_name_resolution_error_is_not_whitelisted(self) -> None:
+        result = {
+            "console_errors": [GENERIC_NAME_RESOLUTION_ERROR],
+            "unexpected_console_errors": [],
+            "failed_requests": [],
+            "websocket_urls": [],
+            "pending_console_errors": [GENERIC_NAME_RESOLUTION_ERROR],
+        }
+        finalize_diagnostics(result)
+        self.assertEqual(result["unexpected_console_errors"], [GENERIC_NAME_RESOLUTION_ERROR])
 
 
 if __name__ == "__main__":

@@ -47,8 +47,10 @@ KNOWN_DEV_LOCALE_FAILURES = {
 KNOWN_DEV_CONSOLE_ERRORS = {
     "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
     "WebSocket connection to 'wss://api.cortezaproject.your-domain.tld/websocket' failed: Error in connection establishment: net::ERR_CONNECTION_CLOSED",
+    "WebSocket connection to 'wss://api.cortezaproject.your-domain.tld/websocket' failed: Error in connection establishment: net::ERR_NAME_NOT_RESOLVED",
 }
 GENERIC_CONNECTION_ERROR = "Failed to load resource: net::ERR_CONNECTION_CLOSED"
+GENERIC_NAME_RESOLUTION_ERROR = "Failed to load resource: net::ERR_NAME_NOT_RESOLVED"
 
 
 def check(condition: bool, message: str) -> None:
@@ -139,7 +141,7 @@ def record_console(result: dict[str, list], message) -> None:
     if message.type != "error":
         return
     result["console_errors"].append(message.text)
-    if message.text == GENERIC_CONNECTION_ERROR:
+    if message.text in {GENERIC_CONNECTION_ERROR, GENERIC_NAME_RESOLUTION_ERROR}:
         result["pending_console_errors"].append(message.text)
     elif message.text not in KNOWN_DEV_CONSOLE_ERRORS:
         result["unexpected_console_errors"].append(message.text)
@@ -190,10 +192,15 @@ def diagnostics(page: Page, base_urls: str | tuple[str, ...]) -> dict[str, list]
 
 
 def finalize_diagnostics(result: dict[str, list]) -> None:
-    known_websocket_failures = sum(1 for url in result["websocket_urls"] if url == KNOWN_DEV_WEBSOCKET_URL or (urlparse(url).scheme == "ws" and urlparse(url).path == "/ws"))
+    known_external_failures = sum(
+        1
+        for url in result["websocket_urls"]
+        if url == KNOWN_DEV_WEBSOCKET_URL or (urlparse(url).scheme == "ws" and urlparse(url).path == "/ws")
+    )
+    known_external_failures += sum(1 for request in result["failed_requests"] if known_locale(urlparse(request["url"])))
     for message in result.pop("pending_console_errors", []):
-        if known_websocket_failures:
-            known_websocket_failures -= 1
+        if known_external_failures:
+            known_external_failures -= 1
         else:
             result["unexpected_console_errors"].append(message)
 
