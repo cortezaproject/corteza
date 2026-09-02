@@ -160,8 +160,8 @@ def check_portal_errors(page: Page, base_url: str, label: str) -> None:
     page.locator('[data-c311-action="submit-request"]').click()
     page.locator("[data-c311-error-summary]").wait_for(state="visible")
     check(page.evaluate("document.activeElement.matches('[data-c311-error-summary]')"), f"{label} validation summary did not receive focus")
-    page.locator("[data-c311-error-summary] a").click()
-    check(page.evaluate("document.activeElement.id") == SUMMARY_SELECTOR.removeprefix("#"), f"{label} invalid field did not receive focus")
+    page.locator('[data-c311-error-summary] a[href="#c311-description"]').click()
+    check(page.evaluate("document.activeElement.id") == "c311-description", f"{label} invalid field did not receive focus")
 
 
 def check_access_boundaries(page: Page, base_url: str, label: str) -> None:

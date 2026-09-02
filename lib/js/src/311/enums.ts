@@ -88,6 +88,13 @@ export type ContactCategory = typeof CONTACT_CATEGORIES[number]
 export const SERVICE_TYPES = ['TREE_MAINTENANCE', 'POTHOLE', 'MISSED_TRASH', 'GENERAL_INQUIRY'] as const
 export type ServiceType = typeof SERVICE_TYPES[number]
 
+export const SERVICE_TYPE_RULES: Record<ServiceType, { department: string; location_required: boolean; confirmed_coordinates_required: boolean }> = {
+  GENERAL_INQUIRY: { department: 'GENERAL_SERVICES', location_required: false, confirmed_coordinates_required: false },
+  MISSED_TRASH: { department: 'SANITATION', location_required: true, confirmed_coordinates_required: true },
+  POTHOLE: { department: 'STREETS', location_required: true, confirmed_coordinates_required: true },
+  TREE_MAINTENANCE: { department: 'PUBLIC_WORKS', location_required: true, confirmed_coordinates_required: true },
+}
+
 export const DEPARTMENT_CODES = ['PUBLIC_WORKS', 'STREETS', 'SANITATION', 'GENERAL_SERVICES'] as const
 export type DepartmentCode = typeof DEPARTMENT_CODES[number]
 
@@ -189,6 +196,8 @@ export const C311_SCENARIOS = [
   'retryable',
   'terminal',
   'version-conflict',
+  'idempotency-conflict',
+  'expected-version-required',
   'public-anonymous',
   'invalid-credentials',
   'registration-validation',

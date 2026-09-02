@@ -1,5 +1,5 @@
 import { C311ApiError } from './errors'
-import { APPLICATION_ROLES, CONTACT_CATEGORIES, C311_SCENARIOS, LANGUAGES, PHONE_LABELS, type ApplicationRole, type C311Scenario, type HelpKey, type IdentityProvider, type Language, type PublicContentKey } from './enums'
+import { APPLICATION_ROLES, CONTACT_CATEGORIES, C311_SCENARIOS, LANGUAGES, PHONE_LABELS, type ApplicationRole, type C311Scenario, type ContractCapability, type HelpKey, type IdentityProvider, type Language, type PublicContentKey } from './enums'
 import { cloneFixtureSet, createDefaultFixtureSet } from './fixtures'
 import type {
   AccountRegistration,
@@ -40,6 +40,7 @@ import type {
   FederatedSignInResult,
   Constituent,
   StaffServiceRequestDetail,
+  StaffServiceRequestCreate,
   WorkflowDefinition,
 } from './types'
 import type { C311Provider, C311RequestOptions, PortalAttachmentUpload, ReportExportOptions, RequestTransition } from './provider'
@@ -56,7 +57,10 @@ const statusByScenario: Partial<Record<C311Scenario, number>> = {
   'not-found': 404,
   validation: 422,
   retryable: 503,
+  terminal: 500,
   'version-conflict': 409,
+  'idempotency-conflict': 409,
+  'expected-version-required': 428,
   'invalid-credentials': 401,
   'registration-validation': 422,
   'expired-reset-token': 422,
@@ -96,6 +100,13 @@ export class MockC311Provider implements C311Provider {
   private readonly role?: ApplicationRole
   private readonly sessionVariant: 'current' | 'expired'
   private currentSession: Session
+  private readonly draftRecords: Record<string, ServiceRequest> = {}
+  private readonly draftPayloads: Record<string, DraftWrite> = {}
+  private readonly idempotentResponses = new Map<string, { fingerprint: string; response: ServiceRequestResponse }>()
+  private readonly uploadedAttachmentTokens = new Set<string>()
+  private readonly consumedAttachmentTokens = new Set<string>()
+  private attachmentSerial = 0
+  private readonly writeCounts: Record<string, number> = {}
   private resetTokenSerial = 0
   private activeResetToken: string | null = null
   private resetTokenUsed = false
@@ -121,6 +132,23 @@ export class MockC311Provider implements C311Provider {
       : copy(this.fixtures.session)
     this.profile = copy(this.fixtures.requests[0].primary_requester)
     this.restorePendingAccountLink()
+    Object.entries(this.fixtures.drafts).forEach(([requestID, draft]) => {
+      const payload = 'primary_requester' in draft ? {
+        request_id: requestID,
+        summary: draft.summary,
+        description: draft.description,
+        service_type: draft.service_type,
+        requester: {
+          display_name: draft.primary_requester.display_name,
+          email: draft.primary_requester.emails[0] || '',
+          ...(draft.primary_requester.phone_numbers[0]?.value ? { phone: draft.primary_requester.phone_numbers[0].value } : {}),
+        },
+        ...(draft.location?.address?.line1 ? { location: { address: draft.location.address.line1, latitude: draft.location.latitude, longitude: draft.location.longitude } } : {}),
+        custom_fields: draft.custom_fields,
+      } : { ...draft, request_id: requestID }
+      this.draftPayloads[requestID] = copy(payload)
+      this.draftRecords[requestID] = this.makeDraftRecord(requestID, payload, 'version' in draft && typeof draft.version === 'number' ? draft.version : 1)
+    })
   }
 
   private pendingAccountLinkStorageKey (): string {
@@ -164,6 +192,51 @@ export class MockC311Provider implements C311Provider {
     }
   }
 
+  getWriteCount (operation: string): number {
+    return this.writeCounts[operation] || 0
+  }
+
+  private countWrite (operation: string): void {
+    this.writeCounts[operation] = (this.writeCounts[operation] || 0) + 1
+  }
+
+  private fingerprint (value: unknown): string {
+    if (Array.isArray(value)) return `[${value.map(item => this.fingerprint(item)).join(',')}]`
+    if (value && typeof value === 'object') return `{${Object.keys(value as Record<string, unknown>).sort((left, right) => left.localeCompare(right)).map(key => `${JSON.stringify(key)}:${this.fingerprint((value as Record<string, unknown>)[key])}`).join(',')}}`
+    return JSON.stringify(value)
+  }
+
+  private makeDraftRecord (requestID: string, input: DraftWrite, version = 1): ServiceRequest {
+    const base = this.fixtures.requests[0]
+    const hasRequester = !!input.requester
+    const requester = input.requester || {
+      display_name: base.primary_requester.display_name,
+      email: base.primary_requester.emails[0] || '',
+    }
+    const primaryRequester = copy({
+      ...base.primary_requester,
+      display_name: requester.display_name,
+      emails: [requester.email],
+      phone_numbers: requester.phone ? [{ label: 'MOBILE' as const, value: requester.phone }] : hasRequester ? [] : base.primary_requester.phone_numbers,
+    })
+    const location = input.location && base.location
+      ? { ...base.location, address: { ...base.location.address, line1: input.location.address }, latitude: input.location.latitude, longitude: input.location.longitude }
+      : undefined
+    return copy({
+      ...base,
+      request_id: requestID,
+      request_number: undefined,
+      status: 'DRAFT',
+      summary: input.summary || base.summary,
+      description: input.description || base.description,
+      service_type: input.service_type || base.service_type,
+      primary_requester: primaryRequester,
+      location,
+      custom_fields: input.custom_fields,
+      version,
+    })
+  }
+
   private failIfNeeded (supported: readonly C311Scenario[] = []): void {
     if (this.scenario === 'success' || this.scenario === 'empty') return
     if (!supported.includes(this.scenario)) return
@@ -179,6 +252,16 @@ export class MockC311Provider implements C311Provider {
     const payload = this.fixtures.errors[scenario]
     if (!payload) return
     throw new C311ApiError(payload, statusByScenario[scenario], payload.retryable ? { 'Retry-After': '30' } : undefined)
+  }
+
+  private requireCapability (capability: ContractCapability): void {
+    const expiresAt = this.currentSession.expires_at
+    if (!this.currentSession.authenticated || (expiresAt && Date.parse(expiresAt) <= Date.now())) {
+      throw new C311ApiError({ error: 'UNAUTHENTICATED', message: 'Authentication is required.', retryable: false }, 401)
+    }
+    if (!this.currentSession.actor?.capabilities?.includes(capability)) {
+      throw new C311ApiError({ error: 'FORBIDDEN', message: 'You are not allowed to perform this operation.', retryable: false }, 403)
+    }
   }
 
   private page<T> (items: T[], query: ListQuery = {}): PageResponse<T> {
@@ -201,6 +284,12 @@ export class MockC311Provider implements C311Provider {
     const request = this.fixtures.requests.find(item => item.request_id === requestID)
     if (!request) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
     return request
+  }
+
+  private draft (requestID: string): ServiceRequest {
+    const draft = this.draftRecords[requestID]
+    if (!draft) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
+    return draft
   }
 
   private requestSummary (request: ServiceRequest): RequestSummary {
@@ -384,11 +473,15 @@ export class MockC311Provider implements C311Provider {
   }
 
   async uploadPortalAttachment (_input: PortalAttachmentUpload): Promise<PortalAttachment> {
-    this.failIfNeeded(['validation'])
+    this.failIfNeeded(['validation', 'retryable', 'terminal'])
+    this.attachmentSerial += 1
+    const attachmentToken = `attachment-token-fixture-${String(this.attachmentSerial).padStart(3, '0')}`
+    this.uploadedAttachmentTokens.add(attachmentToken)
+    this.countWrite('portal_attachment_upload')
     return {
-      attachment_token: 'attachment-token-fixture-001',
-      filename: 'fixture.txt',
-      media_type: 'text/plain',
+      attachment_token: attachmentToken,
+      filename: _input.filename,
+      media_type: _input.media_type,
       size: 17,
       expires_at: '2026-01-15T16:00:00.000Z',
     }
@@ -403,77 +496,129 @@ export class MockC311Provider implements C311Provider {
 
   async createServiceRequest (_input: ServiceRequestCreate, _options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {
     this.failIfNeeded(['forbidden', 'validation', 'version-conflict'])
+    this.countWrite('service_request_create')
     return {
       request_id: 'request-fixture-created',
       request_number: 'SR-2026-00002',
-      status: 'SUBMITTED',
+      status: 'SUBMITTED' as const,
       version: 1,
       created_at: '2026-01-15T15:00:00.000Z',
       links: { self: '/api/v1/service-requests/request-fixture-created' },
     }
   }
 
-  async submitPortalRequest (_input: PortalServiceRequestCreate, _options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {
-    this.failIfNeeded(['validation'])
-    return {
+  async submitPortalRequest (input: PortalServiceRequestCreate, options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {
+    if (this.scenario === 'idempotency-conflict') this.failScenario('idempotency-conflict')
+    this.failIfNeeded(['forbidden', 'validation', 'retryable', 'terminal'])
+    const key = options.idempotencyKey
+    const fingerprint = this.fingerprint(input)
+    if (key) {
+      const previous = this.idempotentResponses.get(key)
+      if (previous && previous.fingerprint !== fingerprint) {
+        throw new C311ApiError({ error: 'IDEMPOTENCY_CONFLICT', message: 'The idempotency key has already been used with different content.', retryable: false }, 409)
+      }
+      if (previous) return copy(previous.response)
+    }
+    for (const token of input.attachment_tokens || []) {
+      if (this.consumedAttachmentTokens.has(token)) this.failScenario('idempotency-conflict')
+    }
+    this.countWrite('portal_service_request_submit')
+    const response = {
       request_id: 'request-fixture-submitted',
       request_number: 'SR-2026-00002',
-      status: 'SUBMITTED',
+      status: 'SUBMITTED' as const,
       version: 1,
       created_at: '2026-01-15T15:00:00.000Z',
       links: { self: '/api/v1/portal/service-requests/request-fixture-submitted' },
     }
+    if (key) this.idempotentResponses.set(key, { fingerprint, response })
+    for (const token of input.attachment_tokens || []) {
+      if (this.uploadedAttachmentTokens.has(token)) this.consumedAttachmentTokens.add(token)
+    }
+    return copy(response)
+  }
+
+  async createStaffServiceRequest (input: StaffServiceRequestCreate): Promise<StaffServiceRequestDetail> {
+    this.requireCapability('staff_service_request_create')
+    this.failIfNeeded(['forbidden', 'not-found', 'validation'])
+    this.countWrite('staff_service_request_create')
+    const request = this.makeDraftRecord('staff-request-fixture-created', input.request, 1)
+    request.status = 'SUBMITTED'
+    request.request_number = 'SR-2026-00003'
+    return copy({
+      request,
+      available_actions: [],
+      primary_assignee_id: null,
+      collaborator_ids: [],
+      reminders: [],
+      history: [],
+      audit: [],
+      external_work_order: null,
+    })
   }
 
   async createDraft (input: DraftWrite, _options: C311RequestOptions = {}): Promise<ServiceRequest> {
+    this.requireCapability('portal_draft_create')
     this.failIfNeeded(['forbidden', 'not-found', 'validation'])
-    const base = this.fixtures.requests[0]
-    return copy({
-      ...base,
-      request_id: input.request_id || 'draft-fixture-created',
-      status: 'DRAFT',
-      summary: input.summary || base.summary,
-      description: input.description || base.description,
-      service_type: input.service_type || base.service_type,
-    })
+    const requestID = input.request_id || `draft-fixture-created-${Object.keys(this.draftRecords).length + 1}`
+    const payload = { ...copy(input), request_id: requestID }
+    const draft = this.makeDraftRecord(requestID, payload, 1)
+    this.draftPayloads[requestID] = payload
+    this.draftRecords[requestID] = draft
+    this.fixtures.drafts[requestID] = copy(payload)
+    this.countWrite('portal_draft_create')
+    return copy(draft)
   }
 
   async getDraft (requestID: string): Promise<ServiceRequest> {
+    this.requireCapability('portal_draft_get')
     this.failIfNeeded(['forbidden', 'not-found', 'validation'])
-    const draft = this.fixtures.drafts[requestID]
-    if (!draft) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
-    const base = this.fixtures.requests[0]
-    return copy({
-      ...base,
-      request_id: requestID,
-      status: 'DRAFT',
-      summary: 'summary' in draft && typeof draft.summary === 'string' ? draft.summary : base.summary,
-      description: 'description' in draft && typeof draft.description === 'string' ? draft.description : base.description,
-      service_type: 'service_type' in draft && draft.service_type ? draft.service_type : base.service_type,
-    })
+    return copy(this.draft(requestID))
   }
 
-  async updateDraft (requestID: string, input: DraftWrite, _options: C311RequestOptions = {}): Promise<ServiceRequest> {
+  async updateDraft (requestID: string, input: DraftWrite, options: C311RequestOptions = {}): Promise<ServiceRequest> {
+    this.requireCapability('portal_draft_update')
     this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
-    const current = await this.getDraft(requestID)
-    return copy({
-      ...current,
-      request_id: requestID,
-      status: 'DRAFT',
-      summary: input.summary || current.summary,
-      description: input.description || current.description,
-      service_type: input.service_type || current.service_type,
-    })
+    if (this.scenario === 'expected-version-required' && options.expectedVersion === undefined) this.failScenario('expected-version-required')
+    const current = this.draft(requestID)
+    if (options.expectedVersion !== undefined && options.expectedVersion !== current.version) {
+      throw new C311ApiError({ error: 'VERSION_CONFLICT', message: 'The record changed before your update.', retryable: false, current_version: current.version }, 409)
+    }
+    const payload = { ...this.draftPayloads[requestID], ...copy(input), request_id: requestID }
+    const updated = this.makeDraftRecord(requestID, payload, current.version + 1)
+    this.draftPayloads[requestID] = payload
+    this.draftRecords[requestID] = updated
+    this.fixtures.drafts[requestID] = copy(payload)
+    this.countWrite('portal_draft_update')
+    return copy(updated)
   }
 
-  async deleteDraft (requestID: string, _options: C311RequestOptions = {}): Promise<void> {
+  async deleteDraft (requestID: string, options: C311RequestOptions = {}): Promise<void> {
+    this.requireCapability('portal_draft_delete')
     this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
-    if (!this.fixtures.drafts[requestID]) throw new C311ApiError(this.fixtures.errors['not-found'], 404)
+    if (this.scenario === 'expected-version-required' && options.expectedVersion === undefined) this.failScenario('expected-version-required')
+    const current = this.draft(requestID)
+    if (options.expectedVersion !== undefined && options.expectedVersion !== current.version) {
+      throw new C311ApiError({ error: 'VERSION_CONFLICT', message: 'The record changed before your update.', retryable: false, current_version: current.version }, 409)
+    }
+    delete this.draftRecords[requestID]
+    delete this.draftPayloads[requestID]
+    delete this.fixtures.drafts[requestID]
+    this.countWrite('portal_draft_delete')
   }
 
-  async submitDraft (requestID: string, _options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {
+  async submitDraft (requestID: string, options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {
+    this.requireCapability('portal_draft_submit')
     this.failIfNeeded(['forbidden', 'not-found', 'validation', 'version-conflict'])
-    await this.getDraft(requestID)
+    if (this.scenario === 'expected-version-required' && options.expectedVersion === undefined) this.failScenario('expected-version-required')
+    const current = this.draft(requestID)
+    if (options.expectedVersion !== undefined && options.expectedVersion !== current.version) {
+      throw new C311ApiError({ error: 'VERSION_CONFLICT', message: 'The record changed before your update.', retryable: false, current_version: current.version }, 409)
+    }
+    this.countWrite('portal_draft_submit')
+    delete this.draftRecords[requestID]
+    delete this.draftPayloads[requestID]
+    delete this.fixtures.drafts[requestID]
     return {
       request_id: requestID,
       request_number: 'SR-2026-00003',

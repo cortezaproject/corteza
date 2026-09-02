@@ -243,6 +243,20 @@ export interface PortalServiceRequestCreate {
   custom_fields?: Record<string, unknown>
 }
 
+export interface ConstituentReference {
+  constituent_id: string
+}
+
+export interface ConstituentCreate {
+  display_name: string
+  email: string
+}
+
+export interface StaffServiceRequestCreate {
+  constituent: ConstituentReference | ConstituentCreate
+  request: PortalServiceRequestCreate
+}
+
 export interface ServiceRequest {
   request_id: string
   request_number?: string

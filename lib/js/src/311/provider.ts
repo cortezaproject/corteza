@@ -40,6 +40,7 @@ import type {
   Session,
   FederatedSignInResult,
   StaffServiceRequestDetail,
+  StaffServiceRequestCreate,
   WorkflowDefinition,
 } from './types'
 
@@ -210,6 +211,7 @@ export interface C311Provider {
   downloadAttachment (attachmentID: string): Promise<BinaryAttachment>
   createServiceRequest (input: ServiceRequestCreate, options?: C311RequestOptions): Promise<ServiceRequestResponse>
   submitPortalRequest (input: PortalServiceRequestCreate, options?: C311RequestOptions): Promise<ServiceRequestResponse>
+  createStaffServiceRequest (input: StaffServiceRequestCreate): Promise<StaffServiceRequestDetail>
   createDraft (input: DraftWrite, options?: C311RequestOptions): Promise<ServiceRequest>
   getDraft (requestID: string): Promise<ServiceRequest>
   updateDraft (requestID: string, input: DraftWrite, options?: C311RequestOptions): Promise<ServiceRequest>
@@ -364,6 +366,10 @@ export class C311HttpProvider implements C311Provider {
 
   submitPortalRequest (input: PortalServiceRequestCreate, options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {
     return this.request({ method: 'POST', path: '/api/v1/portal/service-requests', body: input, ...this.requestOptions(options, false) })
+  }
+
+  createStaffServiceRequest (input: StaffServiceRequestCreate): Promise<StaffServiceRequestDetail> {
+    return this.request({ method: 'POST', path: '/api/v1/staff/service-requests', body: input })
   }
 
   createServiceRequest (input: ServiceRequestCreate, options: C311RequestOptions = {}): Promise<ServiceRequestResponse> {

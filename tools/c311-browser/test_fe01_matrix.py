@@ -14,6 +14,11 @@ from fe01_matrix import ARTIFACT_DIR_ENV, artifact_directory
 
 
 class ArtifactDirectoryTests(unittest.TestCase):
+    def test_error_summary_targets_a_stable_field(self) -> None:
+        source = Path(__file__).with_name("fe01_matrix.py").read_text(encoding="utf-8")
+        self.assertIn('[data-c311-error-summary] a[href="#c311-description"]', source)
+        self.assertNotIn('[data-c311-error-summary] a").click()', source)
+
     def test_browser_dependencies_are_pinned_and_hashed(self) -> None:
         requirements = Path(__file__).with_name("requirements.txt").read_text(encoding="utf-8")
         package_lines = [

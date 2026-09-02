@@ -119,6 +119,12 @@ export default [
     meta: { c311: { requiresAuth: true, route: 'staff_request_queue', capabilities: ['staff_request_queue'], scopes: ['service_requests.write'] } },
   },
   {
+    name: 'c311.staff.submit',
+    path: '/c311/staff/submit',
+    component: () => import('./C311/RequestCreate.vue'),
+    meta: { c311: { requiresAuth: true, route: 'staff_service_request_create', capabilities: ['staff_service_request_create'], scopes: ['service_requests.write'] } },
+  },
+  {
     name: 'c311.test.interaction',
     path: '/c311/test/modal',
     component: components.C311InteractionHarness,
