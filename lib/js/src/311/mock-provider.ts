@@ -539,6 +539,7 @@ export class MockC311Provider implements C311Provider {
   }
 
   async createStaffServiceRequest (input: StaffServiceRequestCreate): Promise<StaffServiceRequestDetail> {
+    this.requireCapability('staff_service_request_create')
     this.failIfNeeded(['forbidden', 'not-found', 'validation'])
     this.countWrite('staff_service_request_create')
     const request = this.makeDraftRecord('staff-request-fixture-created', input.request, 1)

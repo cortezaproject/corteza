@@ -5,7 +5,7 @@ import { cloneFixtureSet, createDefaultFixtureSet } from './fixtures'
 import { MockC311Provider } from './mock-provider'
 import { C311FetchTransport, C311HttpProvider, type C311Provider, type C311TransportRequest } from './provider'
 import { C311_TIMEZONE, formatC311DateTime } from './time'
-import type { PortalServiceRequestCreate, ReportDefinition, ServiceRequestCreate } from './types'
+import type { PortalServiceRequestCreate, ReportDefinition, ServiceRequestCreate, StaffServiceRequestCreate } from './types'
 import { APPLICATION_ROLES } from './enums'
 
 async function expectError (action: () => Promise<unknown>, code: string): Promise<C311ApiError> {
@@ -104,6 +104,38 @@ describe('City 311 frontend contract', () => {
 
     const constituent = new MockC311Provider({ role: 'constituent' })
     expect((await constituent.createDraft(draftInput)).status).to.equal('DRAFT')
+  })
+
+  it('enforces staff-assist capability and session state before writing', async () => {
+    const input: StaffServiceRequestCreate = {
+      constituent: { constituent_id: 'constituent-fixture-001' },
+      request: {
+        service_type: 'GENERAL_INQUIRY',
+        summary: 'Staff-assisted request',
+        description: 'A valid staff-assisted request fixture.',
+        requester: { display_name: 'Fixture Resident', email: 'resident@example.test' },
+      },
+    }
+
+    const anonymous = new MockC311Provider({ role: 'public_visitor' })
+    const unauthenticated = await expectError(() => anonymous.createStaffServiceRequest(input), 'UNAUTHENTICATED')
+    expect(unauthenticated.status).to.equal(401)
+    expect(anonymous.getWriteCount('staff_service_request_create')).to.equal(0)
+
+    const constituent = new MockC311Provider({ role: 'constituent' })
+    const forbidden = await expectError(() => constituent.createStaffServiceRequest(input), 'FORBIDDEN')
+    expect(forbidden.status).to.equal(403)
+    expect(constituent.getWriteCount('staff_service_request_create')).to.equal(0)
+
+    const expired = new MockC311Provider({ role: 'service_agent', sessionVariant: 'expired' })
+    const expiredSession = await expectError(() => expired.createStaffServiceRequest(input), 'UNAUTHENTICATED')
+    expect(expiredSession.status).to.equal(401)
+    expect(expired.getWriteCount('staff_service_request_create')).to.equal(0)
+
+    const agent = new MockC311Provider({ role: 'service_agent' })
+    const detail = await agent.createStaffServiceRequest(input)
+    expect(detail.request.status).to.equal('SUBMITTED')
+    expect(agent.getWriteCount('staff_service_request_create')).to.equal(1)
   })
 
   it('keeps all role fixture values inside the frozen contract vocabularies', () => {

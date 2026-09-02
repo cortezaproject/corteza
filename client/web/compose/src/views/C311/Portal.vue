@@ -111,12 +111,12 @@
           <label class="form-check-label" for="c311-consent">{{ t('field.consent', 'I confirm that the information provided is accurate.') }}</label>
         </div>
 
-        <button v-if="!isStaffAssistRoute && canSubmitCurrentRequest" class="btn btn-primary" type="submit" data-c311-action="submit-request" :disabled="submitting">
+        <button v-if="!submissionResult && !isStaffAssistRoute && canSubmitCurrentRequest" class="btn btn-primary" type="submit" data-c311-action="submit-request" :disabled="submitting">
           <span v-if="submitting" class="spinner-border spinner-border-sm mr-1" aria-hidden="true" />
           {{ t('action.submit', 'Submit request') }}
         </button>
-        <p v-else-if="!isStaffAssistRoute && draftID" class="text-muted small" role="note" data-c311-draft-submit-denied>{{ t('action.draftSubmitDenied', 'You do not have permission to submit this draft.') }}</p>
-        <c311-capability-action v-else capability="staff_service_request_create" scope="service_requests.write" :busy="submitting" :explain-when-denied="true" :denied-label="t('action.denied', 'This action is unavailable for your role.')" data-c311-action="submit-staff-request" type="submit">
+        <p v-else-if="!submissionResult && !isStaffAssistRoute && draftID" class="text-muted small" role="note" data-c311-draft-submit-denied>{{ t('action.draftSubmitDenied', 'You do not have permission to submit this draft.') }}</p>
+        <c311-capability-action v-else-if="!submissionResult" capability="staff_service_request_create" scope="service_requests.write" :busy="submitting" :explain-when-denied="true" :denied-label="t('action.denied', 'This action is unavailable for your role.')" data-c311-action="submit-staff-request" type="submit">
           {{ t('action.submit', 'Submit request') }}
         </c311-capability-action>
       </form>
@@ -585,7 +585,7 @@ export default {
       }
     },
     async submit () {
-      if (this.submitting) return
+      if (this.submitting || this.submissionResult) return
       this.clearSubmissionState()
       if (!this.validateSubmissionPermission()) return
       const errors = this.validate()

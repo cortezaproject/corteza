@@ -265,9 +265,7 @@ def check_submission_and_draft(page: Page, base_url: str) -> None:
     page.locator(SUBMISSION_RESULT).wait_for(state="visible")
     submitted = page.locator(SUBMISSION_RESULT).inner_text()
     check("SR-2026-00002" in submitted and "SUBMITTED" in submitted, "submission result missing request number/status")
-    page.locator(SUBMIT_ACTION).click()
-    page.locator(SUBMISSION_RESULT).wait_for(state="visible")
-    check(page.locator(SUBMISSION_RESULT).inner_text() == submitted, "equivalent replay changed the result")
+    check(page.locator(SUBMIT_ACTION).count() == 0, "portal submit action remained available after success")
 
     open_page(page, base_url, SUBMIT_PATH, role="constituent")
     page.locator(SUMMARY_FIELD).fill("Saved draft summary")
@@ -280,6 +278,9 @@ def check_submission_and_draft(page: Page, base_url: str) -> None:
     check("draft_id=" in page.url, "remote draft id was not added to route")
     page.reload(wait_until="domcontentloaded")
     check(page.locator(SUMMARY_FIELD).input_value() == "Saved draft summary", "remote draft was not restored")
+    page.locator(SUBMIT_ACTION).click()
+    page.locator(SUBMISSION_RESULT).wait_for(state="visible")
+    check(page.locator(SUBMIT_ACTION).count() == 0, "draft submit action remained available after success")
 
 
 def check_capability_controls(page: Page, base_url: str) -> None:
@@ -360,6 +361,7 @@ def check_access_and_admin(page: Page, base_url: str, admin_url: str) -> None:
     page.locator(STAFF_SUBMIT_ACTION).click()
     page.locator(SUBMISSION_RESULT).wait_for(state="visible")
     check("SUBMITTED" in page.locator(SUBMISSION_RESULT).inner_text(), "staff assist submission did not complete")
+    check(page.locator(STAFF_SUBMIT_ACTION).count() == 0, "staff submit action remained available after success")
     open_page(page, admin_url, STAFF_SUBMIT_PATH, role="constituent")
     check(page.url.endswith("/c311/403") or page.get_by_role("heading", name="Access denied").count() == 1, "staff capability denial missing")
 

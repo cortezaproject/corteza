@@ -765,6 +765,9 @@ describe('C311 shared components', () => {
     expect(options.idempotencyKey).toBeTruthy()
     expect(wrapper.vm.submissionResult.status).toBe('SUBMITTED')
     expect(wrapper.vm.submissionResult.request_number).toBe('SR-2026-00041')
+    expect(wrapper.find('[data-c311-action="submit-request"]').exists()).toBe(false)
+    await wrapper.vm.submit()
+    expect(provider.submitPortalRequest).toHaveBeenCalledTimes(1)
   })
 
   it('validates conditional location and consent while preserving valid input', async () => {
@@ -813,6 +816,9 @@ describe('C311 shared components', () => {
     resolveSubmit({ request_number: 'SR-2026-00042', status: 'SUBMITTED', version: 1 })
     await Promise.all([first, second])
 
+    // A new logical submission starts after the previous terminal result is cleared.
+    wrapper.vm.submissionResult = null
+    await Vue.nextTick()
     provider.submitPortalRequest.mockRejectedValueOnce({ status: 422, error: 'VALIDATION_ERROR', errors: [{ field: '/requester/email', code: 'INVALID_FORMAT', message: 'Invalid email' }] })
     wrapper.vm.form.requester.email = 'valid@example.test'
     await wrapper.vm.submit()
@@ -834,6 +840,26 @@ describe('C311 shared components', () => {
     await wrapper.vm.submit()
     expect(provider.createStaffServiceRequest).toHaveBeenCalledWith(expect.objectContaining({ constituent: expect.any(Object), request: expect.objectContaining({ summary: 'Staff request' }) }))
     expect(provider.createStaffServiceRequest.mock.calls[0][0].request).not.toHaveProperty('source_channel')
+    await wrapper.vm.submit()
+    expect(provider.createStaffServiceRequest).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not submit a draft twice after a successful terminal result', async () => {
+    const provider = { submitDraft: jest.fn().mockResolvedValue({ request_number: 'SR-2026-00044', status: 'SUBMITTED', version: 2 }) }
+    const wrapper = mount(Portal, {
+      mocks: { ...mocks, $route: { name: 'c311.submit', query: {} }, $C311: { provider, session: { authenticated: true, actor: { actor_id: 'actor-1', capabilities: ['portal_draft_submit'] } } } },
+      stubs: { 'c311-app-shell': AppShellStub, 'c311-data-state': DataStateStub, 'c311-error-summary': ChildStub, 'c311-capability-action': ChildStub, 'c311-help-drawer': ChildStub, 'c311-language-selector': ChildStub, 'c311-main-nav': ChildStub, 'c311-responsive-data': ChildStub, 'router-link': RouterLinkStub },
+    })
+    wrapper.vm.draftID = 'draft-fixture-001'
+    wrapper.vm.draftVersion = 1
+    wrapper.vm.form = {
+      service_type: 'GENERAL_INQUIRY', summary: 'Draft request', description: 'A valid draft description for submission.',
+      requester: { display_name: 'Resident', email: 'resident@example.test', phone: '' }, location: { address: '', latitude: null, longitude: null }, attachment_tokens: [], custom_fields: {}, consent: true,
+    }
+    await wrapper.vm.submit()
+    await wrapper.vm.submit()
+    expect(provider.submitDraft).toHaveBeenCalledTimes(1)
+    expect(wrapper.vm.submissionResult).toEqual(expect.objectContaining({ request_number: 'SR-2026-00044', status: 'SUBMITTED' }))
   })
 
   it('does not load constituent profile on the staff assist route', async () => {
