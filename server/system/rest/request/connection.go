@@ -225,6 +225,13 @@ type (
 		CatalogID string
 	}
 
+	ConnectionResync struct {
+		// ConnectionID PATH parameter
+		//
+		// Connection ID
+		ConnectionID uint64 `json:",string"`
+	}
+
 	ConnectionListOAuthApps struct {
 	}
 
@@ -1216,6 +1223,41 @@ func (r *ConnectionImport) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+	}
+
+	return err
+}
+
+// NewConnectionResync request
+func NewConnectionResync() *ConnectionResync {
+	return &ConnectionResync{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionResync) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"connectionID": r.ConnectionID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ConnectionResync) GetConnectionID() uint64 {
+	return r.ConnectionID
+}
+
+// Fill processes request and fills internal variables
+func (r *ConnectionResync) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "connectionID")
+		r.ConnectionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err

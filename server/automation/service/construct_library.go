@@ -1,6 +1,7 @@
 package service
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/crusttech/human/server/automation/types"
@@ -47,6 +48,22 @@ func (r *constructRegistry) AddFunctions(ff ...types.ConstructFunction) {
 			r.functions = append(r.functions, fn)
 		}
 	}
+}
+
+// RemoveFunctions drops every function whose Ref has the given prefix. Used to
+// clear a connection's stale functions before re-registering, since AddFunctions
+// only replaces matching refs and never removes renamed or deleted ones.
+func (r *constructRegistry) RemoveFunctions(refPrefix string) {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	kept := r.functions[:0]
+	for _, fn := range r.functions {
+		if !strings.HasPrefix(fn.Ref, refPrefix) {
+			kept = append(kept, fn)
+		}
+	}
+	r.functions = kept
 }
 
 func (r *constructRegistry) AddTriggers(tt ...types.ConstructTrigger) {

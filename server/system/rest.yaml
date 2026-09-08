@@ -3531,6 +3531,13 @@ endpoints:
         parameters:
           post:
             - { type: 'string', name: 'catalogID', required: true, title: 'Catalog ID' }
+      - name: resync
+        method: POST
+        title: Re-import a catalog connection's definition and refresh its functions
+        path: '/{connectionID}/resync'
+        parameters:
+          path:
+            - { type: uint64, name: connectionID, required: true, title: 'Connection ID' }
       - name: listOAuthApps
         method: GET
         title: List OAuth provider blueprints from the catalog

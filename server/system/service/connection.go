@@ -623,6 +623,38 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 		return conn, nil
 	}
 
+	return svc.createImported(ctx, catalogConn)
+}
+
+// Resync re-imports a catalog connection's definition (operations, resources,
+// auth options) from the catalog and refreshes its automation functions live,
+// so blueprint changes take effect without a re-install or restart.
+func (svc *connection) Resync(ctx context.Context, connectionID uint64) (*types.Connection, error) {
+	conn, err := loadConnection(ctx, svc.store, connectionID)
+	if err != nil {
+		return nil, err
+	}
+	if !svc.ac.CanUpdateConnection(ctx, conn) {
+		return nil, ConnectionErrNotAllowedToUpdate()
+	}
+	if conn.Source != "catalog" || conn.CatalogID == "" {
+		return nil, errors.InvalidData("only catalog connections can be resynced")
+	}
+
+	updated, err := svc.Import(ctx, conn.CatalogID)
+	if err != nil {
+		return nil, err
+	}
+
+	if svc.services.configuredConnection != nil {
+		svc.services.configuredConnection.ReRegisterConnection(ctx, updated.ID)
+	}
+
+	return updated, nil
+}
+
+// createImported builds and stores a new catalog connection from a catalog entry.
+func (svc *connection) createImported(ctx context.Context, catalogConn *appstore.Connection) (*types.Connection, error) {
 	conn := &types.Connection{
 		Handle:    catalogConn.Handle,
 		CatalogID: catalogConn.ID,

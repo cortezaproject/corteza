@@ -507,6 +507,11 @@ connections:
   configurePage:
     noConfigured: No configured connections yet.
     title: Configure connection
+  resync:
+    button: Sync
+    hint: Re-import the latest connector definition from the library.
+    success: Connector definition synced.
+    error: Failed to sync connector
   editor:
     configuration: Configuration
     configurations:

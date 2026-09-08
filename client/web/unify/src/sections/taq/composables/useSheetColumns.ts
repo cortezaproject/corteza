@@ -18,7 +18,7 @@ export function useSheetColumns() {
 
   const configID = computed(() => argValue('configurationID'))
   const spreadsheetId = computed(() => argValue('spreadsheetId'))
-  const tab = computed(() => argValue('range'))
+  const tab = computed(() => argValue('sheetName') ?? argValue('range'))
 
   async function load() {
     error.value = ''

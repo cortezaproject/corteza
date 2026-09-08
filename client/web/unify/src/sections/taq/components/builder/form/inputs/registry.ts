@@ -19,6 +19,7 @@ import CInputArray from './CInputArray.vue'
 import CInputSheetRow from './CInputSheetRow.vue'
 import CInputSheetGrid from './CInputSheetGrid.vue'
 import CInputWorksheet from './CInputWorksheet.vue'
+import CInputWorksheetName from './CInputWorksheetName.vue'
 
 /**
  * Maps input.type (from API function definition segments) to Vue component.
@@ -70,6 +71,9 @@ export const INPUT_REGISTRY: Record<string, Component> = {
 
   // Google Sheets worksheet picker (name → numeric sheet id)
   Worksheet: CInputWorksheet,
+
+  // Google Sheets worksheet picker that emits the tab name
+  WorksheetName: CInputWorksheetName,
 
   // Booleans
   Boolean: CInputSwitch,

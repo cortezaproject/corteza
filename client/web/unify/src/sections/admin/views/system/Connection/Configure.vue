@@ -24,6 +24,17 @@
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <Button
+                v-if="connection?.source === 'catalog'"
+                :label="$t('system.connections.resync.button')"
+                icon="pi pi-sync"
+                severity="secondary"
+                outlined
+                size="small"
+                :loading="resyncing"
+                v-tooltip.bottom="$t('system.connections.resync.hint')"
+                @click="handleResync"
+              />
+              <Button
                 v-if="oauthAppHandle"
                 :label="$t('system.connections.authSetup.credentialsButton')"
                 icon="pi pi-key"
@@ -128,6 +139,26 @@ async function isProviderConfigured(handle) {
 function handleAuthSaved() {
   providerConfigured.value = true
   authModal.value = false
+}
+
+const resyncing = ref(false)
+
+// Re-import the connector definition from the catalog and refresh its automation
+// functions live. Typed client method isn't generated, so call the axios instance.
+async function handleResync() {
+  if (!connection.value?.connectionID) return
+  resyncing.value = true
+  try {
+    await $SystemAPI.api().post(`/connections/${connection.value.connectionID}/resync`)
+    $toast.toastSuccess(t('system.connections.resync.success'))
+    await loadConnection()
+  } catch (e) {
+    const detail = e?.response?.data?.error?.message || e?.message
+    const prefix = t('system.connections.resync.error')
+    $toast.toastDanger(detail ? `${prefix}: ${detail}` : prefix)
+  } finally {
+    resyncing.value = false
+  }
 }
 
 // Uninstall removes the imported connection; the backend rejects it while any

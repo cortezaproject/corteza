@@ -137,7 +137,7 @@
         >
           <div class="flex flex-col gap-2">
             <div
-              v-for="opt in authOptions"
+              v-for="opt in orderedAuthOptions"
               :key="opt.method"
               class="flex items-start gap-3 rounded-md border p-3 cursor-pointer"
               :class="
@@ -428,6 +428,15 @@ const OAUTH_METHOD = 'oauth2_authorization_code'
 const authOptions = computed(() => props.connection?.service?.authOptions || [])
 const hasMethodChoice = computed(() => authOptions.value.length > 1)
 
+// Order the picker so the OAuth "Connect" option leads.
+const orderedAuthOptions = computed(() =>
+  [...authOptions.value].sort((a, b) => {
+    if (a.method === OAUTH_METHOD) return -1
+    if (b.method === OAUTH_METHOD) return 1
+    return 0
+  }),
+)
+
 const selectedOption = computed(() =>
   authOptions.value.find(o => o.method === selectedAuthMethod.value),
 )
@@ -462,10 +471,12 @@ const isOAuthConnected = computed(() => {
   return cfg?.authMethod === OAUTH_METHOD && cfg?.credentialID && cfg.credentialID !== '0'
 })
 
-// Choose the method to preselect: the saved one, else the first option,
-// else the connector default.
+// Choose the method to preselect: the saved one, else the OAuth "Connect"
+// method when offered, else the first option, else the connector default.
 function defaultAuthMethod(cc) {
   if (cc?.config?.authMethod) return cc.config.authMethod
+  const oauth = authOptions.value.find(o => isOAuthMethod(o.method))
+  if (oauth) return oauth.method
   if (authOptions.value.length) return authOptions.value[0].method
   return props.connection?.service?.auth?.method || ''
 }

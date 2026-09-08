@@ -179,8 +179,14 @@ type (
 
 	ConnectionOperationStep struct {
 		Type      string                     `json:"type"`
+		When      *ConnectionStepCondition   `json:"when,omitempty"`
 		HTTP      *ConnectionHTTPAction      `json:"http,omitempty"`
 		MimeBuild *ConnectionMimeBuildAction `json:"mime_build,omitempty"`
+	}
+
+	ConnectionStepCondition struct {
+		Arg    string `json:"arg"`
+		Equals string `json:"equals"`
 	}
 
 	ConnectionMimeBuildAction struct {
@@ -1192,6 +1198,10 @@ func (r ConnectionOperationOutputField) Value() (driver.Value, error) { return j
 
 func (r ConnectionOperationStep) Clone() *ConnectionOperationStep {
 	dup := r
+	if r.When != nil {
+		dup.When = r.When.Clone()
+	}
+
 	if r.HTTP != nil {
 		dup.HTTP = r.HTTP.Clone()
 	}
@@ -1210,6 +1220,15 @@ func (r ConnectionOperationStep) Diff(cmp *ConnectionOperationStep) []*revisions
 	}
 	if r.Type != cmp.Type {
 		out = append(out, &revisions.Change{Key: "type", Old: []any{cmp.Type}, New: []any{r.Type}})
+	}
+
+	if (r.When == nil) != (cmp.When == nil) {
+		out = append(out, &revisions.Change{Key: "when", Old: []any{cmp.When}, New: []any{r.When}})
+	} else if r.When != nil {
+		for _, c := range r.When.Diff(cmp.When) {
+			c.Key = "when." + c.Key
+			out = append(out, c)
+		}
 	}
 
 	if (r.HTTP == nil) != (cmp.HTTP == nil) {
@@ -1235,6 +1254,30 @@ func (r ConnectionOperationStep) Diff(cmp *ConnectionOperationStep) []*revisions
 
 func (r *ConnectionOperationStep) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r ConnectionOperationStep) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r ConnectionStepCondition) Clone() *ConnectionStepCondition {
+	dup := r
+	return &dup
+}
+
+func (r ConnectionStepCondition) Diff(cmp *ConnectionStepCondition) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ConnectionStepCondition{}
+	}
+	if r.Arg != cmp.Arg {
+		out = append(out, &revisions.Change{Key: "arg", Old: []any{cmp.Arg}, New: []any{r.Arg}})
+	}
+
+	if r.Equals != cmp.Equals {
+		out = append(out, &revisions.Change{Key: "equals", Old: []any{cmp.Equals}, New: []any{r.Equals}})
+	}
+
+	return out
+}
+
+func (r *ConnectionStepCondition) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ConnectionStepCondition) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func (r ConnectionMimeBuildAction) Clone() *ConnectionMimeBuildAction {
 	dup := r

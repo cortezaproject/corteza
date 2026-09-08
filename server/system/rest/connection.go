@@ -46,6 +46,7 @@ type (
 		UndeleteByID(ctx context.Context, ID uint64) error
 		Search(ctx context.Context, filter types.ConnectionFilter) (types.ConnectionSet, types.ConnectionFilter, error)
 		Import(ctx context.Context, catalogID string) (*types.Connection, error)
+		Resync(ctx context.Context, connectionID uint64) (*types.Connection, error)
 		ListOAuthApps(ctx context.Context) ([]appstore.OAuthApp, error)
 		Enable(ctx context.Context, ID uint64) (*types.Connection, error)
 		Configure(ctx context.Context, new *types.ConfiguredConnection) (*types.ConfiguredConnection, error)
@@ -144,6 +145,14 @@ func (ctrl Connection) Generate(ctx context.Context, r *request.ConnectionGenera
 
 func (ctrl Connection) Import(ctx context.Context, r *request.ConnectionImport) (interface{}, error) {
 	res, err := ctrl.svc.Import(ctx, r.CatalogID)
+	if err != nil {
+		return nil, err
+	}
+	return ctrl.makePayload(ctx, res, nil)
+}
+
+func (ctrl Connection) Resync(ctx context.Context, r *request.ConnectionResync) (interface{}, error) {
+	res, err := ctrl.svc.Resync(ctx, r.ConnectionID)
 	if err != nil {
 		return nil, err
 	}

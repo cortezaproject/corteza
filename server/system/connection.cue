@@ -133,8 +133,13 @@ _connectionDefs: {
 			]}
 			ConnectionOperationStep: { name: "ConnectionOperationStep", fields: [
 				{ name: "Type", type: "string", json: "type" },
+				{ name: "When", ptr: true, type: _connectionDefs.ConnectionStepCondition, json: "when,omitempty" },
 				{ name: "HTTP", ptr: true, type: _connectionDefs.ConnectionHTTPAction, json: "http,omitempty" },
 				{ name: "MimeBuild", ptr: true, type: _connectionDefs.ConnectionMimeBuildAction, json: "mime_build,omitempty" },
+			]}
+			ConnectionStepCondition: { name: "ConnectionStepCondition", fields: [
+				{ name: "Arg", type: "string", json: "arg" },
+				{ name: "Equals", type: "string", json: "equals" },
 			]}
 			ConnectionMimeBuildAction: { name: "ConnectionMimeBuildAction", fields: [
 				{ name: "To", type: "string", json: "to" },

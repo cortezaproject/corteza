@@ -421,8 +421,18 @@ func ensureOAuth2Credential(ctx context.Context, s store.Storer, cc *types.Confi
 		return
 	}
 
+	// The token endpoint is docs-driven: settings hold only the client id/secret,
+	// so read tokenURL off the catalog blueprint. Without it the refresher POSTs
+	// to an empty URL and the credential can never be renewed.
+	tokenURL := app.TokenURL
+	if DefaultConnection != nil && DefaultConnection.services.catalog != nil {
+		if bp, e := DefaultConnection.services.catalog.GetOAuthApp(ctx, auth.OAuthApp); e == nil && bp != nil && bp.TokenURL != "" {
+			tokenURL = bp.TokenURL
+		}
+	}
+
 	cred := cred_registry.NewOAuth2AuthCodeCredential(
-		cc.ID, app.ClientID, app.ClientSecret, app.TokenURL, auth.Scopes,
+		cc.ID, app.ClientID, app.ClientSecret, tokenURL, auth.Scopes,
 		"", stored.Credentials, time.Time{},
 	)
 
@@ -812,6 +822,33 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 	}
 }
 
+// ReRegisterConnection refreshes one connector's functions in the construct
+// library without a restart: it drops the connection's existing functions (so
+// renamed or removed operations disappear) and re-registers from the current
+// definition and its active configured connections.
+func (svc *configuredConnection) ReRegisterConnection(ctx context.Context, connID uint64) {
+	automationService.ConstructLibrary().RemoveFunctions(fmt.Sprintf("conn_%d_", connID))
+
+	conn, err := loadConnection(ctx, svc.store, connID)
+	if err != nil {
+		return
+	}
+
+	set, _, err := store.SearchConfiguredConnections(ctx, svc.store, types.ConfiguredConnectionFilter{
+		ConnectionID: connID,
+		Status:       []string{"active"},
+	})
+	if err != nil {
+		return
+	}
+	ccs := make([]types.ConfiguredConnection, 0, len(set))
+	for _, cc := range set {
+		ccs = append(ccs, *cc)
+	}
+
+	svc.registerOperations(conn, ccs)
+}
+
 // registerOperations converts each ConnectionOperation into a ConstructFunction
 // and adds it to the automation construct library.
 func (svc *configuredConnection) registerOperations(conn *types.Connection, ccs []types.ConfiguredConnection) {
@@ -879,8 +916,7 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 		}
 	}
 
-	// Render the append "values" input from the sheet's header row: a labeled
-	// row for the single-row op, a table for the multi-row op.
+	// Render the "values" input as a table sourced from the sheet's header row.
 	var argsMerger atypes.FunctionMerger
 	if strings.Contains(conn.Service.BaseURL.Value, "sheets.googleapis.com") {
 		relabelSheetOptions(segments)
@@ -888,11 +924,11 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 		setInputTypeByArgument(segments, "sheetId", "Worksheet")
 		setInputTypeByArgument(segments, "sourceSheetId", "Worksheet")
 		setInputTypeByArgument(segments, "destSheetId", "Worksheet")
-		switch strings.ToLower(op.Handle) {
-		case "create-spreadsheet-row":
-			setInputTypeByArgument(segments, "values", "SheetRow")
-			setParamAggregateByName(params, "values")
-		case "create-multiple-spreadsheet-rows":
+		if strings.ToLower(op.Handle) == "create-spreadsheet-rows" {
+			// The tab input is a name (used in A1 ranges); give it a picker scoped
+			// to the chosen spreadsheet instead of the flat cross-sheet option list.
+			// The dynamic picker fetches its own options, ignoring any baked ones.
+			setInputTypeByArgument(segments, "sheetName", "WorksheetName")
 			setInputTypeByArgument(segments, "values", "SheetGrid")
 			setParamAggregateByName(params, "values")
 			// Grid cells are per-cell targets (r{i}c{j}); rebuild the 2D array.
@@ -996,12 +1032,23 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 				}
 			}
 
+			// The placeholder engine can only substitute names, so resolve the
+			// Sheets row-op companions here: the tab name for A1 ranges and the
+			// insert window (start/end row) for the top-insert path.
+			if op.Handle == "create-spreadsheet-rows" {
+				injectSheetRowVars(ctx, cc.ID, vars)
+			}
+
 			if dbg, _ := json.Marshal(vars); dbg != nil {
 				fmt.Printf("[DEBUG] connector vars before template resolution: %s\n", string(dbg))
 			}
 
 			var respBody []byte
 			for _, step := range op.Steps {
+				// A step with a when-condition runs only when the named arg matches.
+				if step.When != nil && varString(vars[step.When.Arg]) != step.When.Equals {
+					continue
+				}
 				switch step.Type {
 				case "mime_build":
 					if step.MimeBuild == nil {
@@ -1051,6 +1098,19 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 			var respData any
 			if err := json.Unmarshal(respBody, &respData); err != nil {
 				return out, fmt.Errorf("failed to parse response JSON: %w", err)
+			}
+
+			// The top-insert path ends on values.update, whose fields sit at the
+			// top level; append nests them under "updates". Wrap the flat shape so
+			// one set of updates.* output selectors covers both.
+			if op.Handle == "create-spreadsheet-rows" {
+				if m, ok := respData.(map[string]any); ok {
+					if _, hasUpdates := m["updates"]; !hasUpdates {
+						if _, flat := m["updatedRange"]; flat {
+							respData = map[string]any{"updates": m}
+						}
+					}
+				}
 			}
 
 			for _, outField := range op.Output {
@@ -1686,6 +1746,63 @@ func sheetsGridArgsMerger(_ context.Context, args atypes.ExprSet, raw []expr.Typ
 	aux["values"] = values
 
 	return expr.NewVars(aux)
+}
+
+// injectSheetRowVars fills the Sheets row-op placeholders the template engine
+// cannot compute: the numeric sheetId (resolved from the picked sheetName, for
+// insertDimension) and the insert window, both used only by the top-insert path.
+func injectSheetRowVars(ctx context.Context, ccID uint64, vars map[string]any) {
+	if varString(vars["position"]) != "top" {
+		return
+	}
+
+	if _, ok := vars["sheetId"]; !ok {
+		name := varString(vars["sheetName"])
+		spreadsheetID := varString(vars["spreadsheetId"])
+		if name != "" && spreadsheetID != "" {
+			if tabs, err := ConfiguredConnectionSvc().SheetTabs(ctx, ccID, spreadsheetID); err == nil {
+				for _, t := range tabs {
+					if t.Label == name {
+						vars["sheetId"] = t.Value
+						break
+					}
+				}
+			}
+		}
+	}
+
+	// A header row occupies row 1, so new rows insert from row index 1 (0-based).
+	n := sheetRowCount(vars["values"])
+	vars["insertStartIndex"] = 1
+	vars["insertEndIndex"] = 1 + n
+}
+
+// sheetRowCount returns the row count of the aggregated "values" argument.
+func sheetRowCount(v any) int {
+	switch s := v.(type) {
+	case interface{ Slice() []any }:
+		return len(s.Slice())
+	case []any:
+		return len(s)
+	}
+	return 0
+}
+
+// varString returns the string form of a template var, unwrapping expr values.
+func varString(v any) string {
+	switch x := v.(type) {
+	case nil:
+		return ""
+	case string:
+		return x
+	case expr.TypedValue:
+		if s, ok := x.Get().(string); ok {
+			return s
+		}
+		return fmt.Sprint(x.Get())
+	default:
+		return fmt.Sprint(v)
+	}
 }
 
 // setParamAggregateByName marks a parameter aggregate so the runtime builds its
