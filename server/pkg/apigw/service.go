@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"sync"
 
 	"github.com/crusttech/human/server/pkg/apigw/filter"
 	"github.com/crusttech/human/server/pkg/apigw/filter/proxy"
@@ -35,6 +36,13 @@ type (
 		storer storer
 
 		cfg types.Config
+
+		// reloadMu serializes every structural change (Reload, ReloadEndpoint,
+		// NotFound, UpdateSettings) so two goroutines never mutate the chi tree
+		// at once. mu guards the mx/routes fields for the ServeHTTP read side
+		// against the swap.
+		reloadMu sync.Mutex
+		mu       sync.RWMutex
 	}
 )
 
@@ -78,12 +86,19 @@ func New(cfg types.Config, logger *zap.Logger, storer storer) *apigw {
 //
 // When reloading routes, make sure to replace the original mux
 func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if s.mx == nil {
+	// Capture the current mux; a reload only ever swaps in a fresh, immutable
+	// mux, so the captured pointer stays safe to serve even mid-reload.
+	s.mu.RLock()
+	mx := s.mx
+	empty := len(s.routes) == 0
+	s.mu.RUnlock()
+
+	if mx == nil {
 		http.Error(w, "Integration Gateway not initialized", http.StatusInternalServerError)
 		return
 	}
 
-	if len(s.routes) == 0 {
+	if empty {
 		helperDefaultResponse(s.cfg, s.pr, s.log)(w, r)
 		return
 	}
@@ -95,88 +110,110 @@ func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, nil))
 
 	// Handle api-gw request
-	s.mx.ServeHTTP(w, r)
+	mx.ServeHTTP(w, r)
 }
 
 // Reload reloads all routes and their filters
 //
 // The procedure constructs a new chi mux
-func (s *apigw) Reload(ctx context.Context) (err error) {
-	routes, err := s.loadRoutes(ctx)
+func (s *apigw) Reload(ctx context.Context) error {
+	s.reloadMu.Lock()
+	defer s.reloadMu.Unlock()
+	return s.reloadLocked(ctx)
+}
 
+// reloadLocked rebuilds every route into a fresh mux and publishes it. The
+// caller must hold reloadMu.
+func (s *apigw) reloadLocked(ctx context.Context) error {
+	routes, err := s.loadRoutes(ctx)
 	if err != nil {
 		s.log.Error("could not reload Integration Gateway routes", zap.Error(err))
-		return
+		return err
 	}
 
-	s.Init(ctx, routes...)
-
-	// Rebuild the mux
-	s.mx = chi.NewMux()
-
-	for _, r := range s.routes {
-		// Register route handler on endpoint & method
-		s.mx.Method(r.method, r.endpoint, r)
-	}
-
-	// handling missed hits
-	// profiler gets the missed hit info also
-	{
-		var (
-			defaultMethodResponse = helperMethodNotAllowed(s.cfg, s.pr, s.log)
-			defaultResponse       = helperDefaultResponse(s.cfg, s.pr, s.log)
-		)
-
-		s.mx.NotFound(defaultResponse)
-		s.mx.MethodNotAllowed(defaultMethodResponse)
-	}
-
+	s.PrepRoutes(ctx, routes...)
+	s.publish(s.buildMux(routes), routes)
 	return nil
+}
+
+// buildMux constructs a fresh chi mux from the given routes plus the miss
+// handlers. The returned mux is never mutated afterwards, so ServeHTTP can hold
+// a captured reference to it safely.
+func (s *apigw) buildMux(routes []*route) *chi.Mux {
+	mx := chi.NewMux()
+	for _, r := range routes {
+		mx.Method(r.method, r.endpoint, r)
+	}
+	mx.NotFound(helperDefaultResponse(s.cfg, s.pr, s.log))
+	mx.MethodNotAllowed(helperMethodNotAllowed(s.cfg, s.pr, s.log))
+	return mx
+}
+
+// publish swaps in a freshly built mux and its route set under the field lock.
+func (s *apigw) publish(mx *chi.Mux, routes []*route) {
+	s.mu.Lock()
+	s.mx = mx
+	s.routes = routes
+	s.mu.Unlock()
+}
+
+// currentRoutes returns a copy of the live route set for a caller that is about
+// to build the next one. Caller must hold reloadMu so the set cannot change
+// between the read and the publish.
+func (s *apigw) currentRoutes() []*route {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]*route, len(s.routes))
+	copy(out, s.routes)
+	return out
+}
+
+// mergeRoutes returns existing with incoming applied: a route replaces one with
+// the same method+endpoint, otherwise it is appended.
+func mergeRoutes(existing, incoming []*route) []*route {
+	out := make([]*route, len(existing))
+	copy(out, existing)
+
+	idx := make(map[string]int, len(out))
+	for i, r := range out {
+		if r != nil {
+			idx[r.method+r.endpoint] = i
+		}
+	}
+	for _, r := range incoming {
+		if r == nil {
+			continue
+		}
+		key := r.method + r.endpoint
+		if i, ok := idx[key]; ok {
+			out[i] = r
+		} else {
+			idx[key] = len(out)
+			out = append(out, r)
+		}
+	}
+	return out
 }
 
 // ReloadEndpoint reload a route and its filters
 //
 // The procedure use existing chi mux
-func (s *apigw) ReloadEndpoint(ctx context.Context, method, endpoint string) (err error) {
-	var (
-		routes []*route
-	)
+func (s *apigw) ReloadEndpoint(ctx context.Context, method, endpoint string) error {
+	s.reloadMu.Lock()
+	defer s.reloadMu.Unlock()
 
-	routes, err = s.loadRoute(ctx, method, endpoint)
-
+	routes, err := s.loadRoute(ctx, method, endpoint)
 	if err != nil {
 		s.log.Error("could not reload Integration Gateway routes", zap.Error(err))
-		return
+		return err
 	}
 
-	// rr := append(s.routes, routes...)
 	s.PrepRoutes(ctx, routes...)
 
-	if s.mx == nil {
-		// Rebuild the mux
-		s.mx = chi.NewMux()
-	}
-
-	for _, r := range routes {
-		// Register route handler on endpoint & method
-		s.mx.Method(r.method, r.endpoint, r)
-	}
-
-	// Make sure to append newly registered routes
-	s.AppendRoutes(routes...)
-
-	// handling missed hits
-	// profiler gets the missed hit info also
-	{
-		var (
-			defaultMethodResponse = helperMethodNotAllowed(s.cfg, s.pr, s.log)
-			defaultResponse       = helperDefaultResponse(s.cfg, s.pr, s.log)
-		)
-
-		s.mx.NotFound(defaultResponse)
-		s.mx.MethodNotAllowed(defaultMethodResponse)
-	}
-
+	// Merge the reloaded route into the current set and rebuild a fresh mux,
+	// rather than mutating the one requests are being served from.
+	merged := mergeRoutes(s.currentRoutes(), routes)
+	s.publish(s.buildMux(merged), merged)
 	return nil
 }
 
@@ -329,16 +366,19 @@ func (s *apigw) AppendRoutes(routes ...*route) {
 }
 
 func (s *apigw) NotFound(_ context.Context, method, endpoint string) {
-	if s.mx == nil || len(method) == 0 || len(endpoint) == 0 {
+	if len(method) == 0 || len(endpoint) == 0 {
 		return
 	}
 
-	var (
-		defaultResponse = helperDefaultResponse(s.cfg, s.pr, s.log)
-	)
+	s.reloadMu.Lock()
+	defer s.reloadMu.Unlock()
 
-	// Attach 404 handler
-	s.mx.Method(method, endpoint, defaultResponse)
+	// Rebuild from the current set, then override this endpoint with the default
+	// 404 handler, and publish — never mutate the live mux in place.
+	routes := s.currentRoutes()
+	mx := s.buildMux(routes)
+	mx.Method(method, endpoint, helperDefaultResponse(s.cfg, s.pr, s.log))
+	s.publish(mx, routes)
 }
 
 func (s *apigw) registerFilter(f *st.ApigwFilter, r *route) (ff *pipeline.Worker, err error) {
@@ -391,12 +431,15 @@ func (s *apigw) ProxyAuthDef() (list []*proxy.ProxyAuthDefinition) {
 }
 
 func (s *apigw) UpdateSettings(ctx context.Context, cfg types.Config) {
+	s.reloadMu.Lock()
+	defer s.reloadMu.Unlock()
+
 	s.cfg = cfg
 
 	s.reg = registry.NewRegistry(cfg)
 	s.reg.Preload()
 
-	s.Reload(ctx)
+	_ = s.reloadLocked(ctx)
 }
 
 func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {

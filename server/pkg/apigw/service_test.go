@@ -217,13 +217,13 @@ func Test_serviceAppendRoutes(t *testing.T) {
 
 		tests = []struct {
 			name     string
-			ag       apigw
+			ag       *apigw
 			routes   []*route
 			expected []*route
 		}{
 			{
 				name: "add new",
-				ag: apigw{
+				ag: &apigw{
 					routes: routes(r1, r2, r3),
 				},
 				routes:   routes(r4),
@@ -231,7 +231,7 @@ func Test_serviceAppendRoutes(t *testing.T) {
 			},
 			{
 				name: "no duplicates",
-				ag: apigw{
+				ag: &apigw{
 					routes: routes(r1, r2, r3, r4, r5),
 				},
 				routes:   routes(r1, r5),
