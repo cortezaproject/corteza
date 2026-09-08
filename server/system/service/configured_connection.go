@@ -421,14 +421,17 @@ func ensureOAuth2Credential(ctx context.Context, s store.Storer, cc *types.Confi
 		return
 	}
 
-	// The token endpoint is docs-driven: settings hold only the client id/secret,
-	// so read tokenURL off the catalog blueprint. Without it the refresher POSTs
-	// to an empty URL and the credential can never be renewed.
+	// Token endpoint comes from the catalog blueprint; settings hold only credentials.
 	tokenURL := app.TokenURL
 	if DefaultConnection != nil && DefaultConnection.services.catalog != nil {
 		if bp, e := DefaultConnection.services.catalog.GetOAuthApp(ctx, auth.OAuthApp); e == nil && bp != nil && bp.TokenURL != "" {
 			tokenURL = bp.TokenURL
 		}
+	}
+
+	// Token endpoint unresolved (catalog unavailable); retried on the next call.
+	if tokenURL == "" {
+		return
 	}
 
 	cred := cred_registry.NewOAuth2AuthCodeCredential(

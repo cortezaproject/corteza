@@ -389,7 +389,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	DefaultConnection.WithConfiguredConnection(DefaultConfiguredConnection)
 
-	// Register automation functions from all active configured connections
+	// Pull the latest catalog definitions so a restart always picks up connector
+	// blueprint changes, then register automation functions from the fresh state.
+	DefaultConnection.ResyncAllCatalog(ctx, false)
 	DefaultConfiguredConnection.RegisterAllOperations(ctx)
 
 	// Load delegated OAuth2 credentials (refresh tokens) from durable storage
@@ -397,6 +399,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	// Start background Google resource discovery refresh (every 1 hour)
 	DefaultConfiguredConnection.StartDiscoveryRefreshLoop(ctx, time.Hour)
+
+	// Keep catalog connector definitions current without a restart or manual sync
+	DefaultConnection.StartCatalogResyncLoop(ctx, 15*time.Minute)
 
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
 		return err

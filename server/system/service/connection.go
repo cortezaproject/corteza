@@ -586,36 +586,9 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 	if len(existing) > 0 {
 		conn := existing[0]
 
-		// Refresh catalog connections from the catalog on re-import.
-		//
-		// Auth params are healed surgically: a stored empty value (e.g. imported
-		// before the parser understood the nested { token, headerName } shape) is
-		// restored, but a user-set value is never overwritten.
-		//
-		// Operations and resources are catalog-owned — no user data lives on them
-		// (credentials and config live on the ConfiguredConnection) — so they are
-		// re-synced wholesale to pick up connector fixes (paths, bodies, defaults).
 		if conn.Source == "catalog" {
 			fresh := catalogConnectionToLocal(catalogConn)
-
-			changed := healCatalogAuthParams(conn, fresh)
-			if !reflect.DeepEqual(conn.Operations, fresh.Operations) {
-				conn.Operations = fresh.Operations
-				changed = true
-			}
-			if !reflect.DeepEqual(conn.Resources, fresh.Resources) {
-				conn.Resources = fresh.Resources
-				changed = true
-			}
-			// authOptions are catalog-owned (the connector declares which auth
-			// methods it offers) — no user data lives on them, so re-sync wholesale
-			// to pick up newly-added methods like oauth2_authorization_code.
-			if !reflect.DeepEqual(conn.Service.AuthOptions, fresh.Service.AuthOptions) {
-				conn.Service.AuthOptions = fresh.Service.AuthOptions
-				changed = true
-			}
-
-			if changed {
+			if applyCatalogRefresh(conn, fresh) {
 				return svc.Update(ctx, conn)
 			}
 		}
@@ -624,6 +597,92 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 	}
 
 	return svc.createImported(ctx, catalogConn)
+}
+
+// applyCatalogRefresh overlays the catalog-owned definition onto conn and returns
+// whether anything changed. Operations, resources and auth options carry no user
+// data (credentials and config live on the ConfiguredConnection), so they are
+// re-synced wholesale to pick up connector fixes. Auth params are healed
+// surgically: a stored empty value is restored, a user-set value never overwritten.
+func applyCatalogRefresh(conn, fresh *types.Connection) bool {
+	changed := healCatalogAuthParams(conn, fresh)
+	if !reflect.DeepEqual(conn.Operations, fresh.Operations) {
+		conn.Operations = fresh.Operations
+		changed = true
+	}
+	if !reflect.DeepEqual(conn.Resources, fresh.Resources) {
+		conn.Resources = fresh.Resources
+		changed = true
+	}
+	if !reflect.DeepEqual(conn.Service.AuthOptions, fresh.Service.AuthOptions) {
+		conn.Service.AuthOptions = fresh.Service.AuthOptions
+		changed = true
+	}
+	return changed
+}
+
+// refreshCatalogConnection pulls the latest catalog definition for one catalog
+// connection and persists it directly (no RBAC), returning whether it changed.
+func (svc *connection) refreshCatalogConnection(ctx context.Context, conn *types.Connection) (bool, error) {
+	if svc.services.catalog == nil || conn.Source != "catalog" || conn.CatalogID == "" {
+		return false, nil
+	}
+	catalogConn, err := svc.services.catalog.GetConnection(ctx, conn.CatalogID)
+	if err != nil {
+		return false, err
+	}
+	if !applyCatalogRefresh(conn, catalogConnectionToLocal(catalogConn)) {
+		return false, nil
+	}
+	conn.UpdatedAt = now()
+	if err := store.UpdateConnection(ctx, svc.store, conn); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// ResyncAllCatalog refreshes every catalog connection's definition from the
+// catalog. Best-effort: a per-connector failure is logged and skipped. When
+// reRegister is set, connectors whose definition changed have their automation
+// functions refreshed live.
+func (svc *connection) ResyncAllCatalog(ctx context.Context, reRegister bool) {
+	if svc.services.catalog == nil {
+		return
+	}
+	set, _, err := store.SearchConnections(ctx, svc.store, types.ConnectionFilter{})
+	if err != nil {
+		return
+	}
+	for _, conn := range set {
+		changed, err := svc.refreshCatalogConnection(ctx, conn)
+		if err != nil {
+			svc.services.logger.Warn("catalog resync failed",
+				zap.Uint64("connectionID", conn.ID),
+				zap.String("catalogID", conn.CatalogID),
+				zap.Error(err))
+			continue
+		}
+		if changed && reRegister && svc.services.configuredConnection != nil {
+			svc.services.configuredConnection.ReRegisterConnection(ctx, conn.ID)
+		}
+	}
+}
+
+// StartCatalogResyncLoop periodically re-syncs catalog connectors so blueprint
+// changes propagate without a restart or a manual sync.
+func (svc *connection) StartCatalogResyncLoop(ctx context.Context, interval time.Duration) {
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				svc.ResyncAllCatalog(ctx, true)
+			}
+		}
+	}()
 }
 
 // Resync re-imports a catalog connection's definition (operations, resources,
