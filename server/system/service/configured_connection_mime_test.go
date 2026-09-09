@@ -16,7 +16,7 @@ func decode(t *testing.T, encoded string) string {
 }
 
 func TestBuildMIMEEmail_RequiredHeaders(t *testing.T) {
-	raw, err := buildMIMEEmail("", "to@example.com", "Hello", "Body text")
+	raw, err := buildMIMEEmail("", "to@example.com", "Hello", "Body text", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -37,7 +37,7 @@ func TestBuildMIMEEmail_RequiredHeaders(t *testing.T) {
 }
 
 func TestBuildMIMEEmail_WithFrom(t *testing.T) {
-	raw, err := buildMIMEEmail("sender@example.com", "to@example.com", "Subject", "Body")
+	raw, err := buildMIMEEmail("sender@example.com", "to@example.com", "Subject", "Body", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -49,7 +49,7 @@ func TestBuildMIMEEmail_WithFrom(t *testing.T) {
 }
 
 func TestBuildMIMEEmail_EmptyFromOmitted(t *testing.T) {
-	raw, err := buildMIMEEmail("", "to@example.com", "Subject", "Body")
+	raw, err := buildMIMEEmail("", "to@example.com", "Subject", "Body", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -61,7 +61,7 @@ func TestBuildMIMEEmail_EmptyFromOmitted(t *testing.T) {
 }
 
 func TestBuildMIMEEmail_ValidBase64URL(t *testing.T) {
-	raw, err := buildMIMEEmail("", "to@example.com", "Subject", "Body")
+	raw, err := buildMIMEEmail("", "to@example.com", "Subject", "Body", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -72,7 +72,7 @@ func TestBuildMIMEEmail_ValidBase64URL(t *testing.T) {
 }
 
 func TestBuildMIMEEmail_HeaderBodySeparator(t *testing.T) {
-	raw, err := buildMIMEEmail("", "to@example.com", "Subj", "Hello World")
+	raw, err := buildMIMEEmail("", "to@example.com", "Subj", "Hello World", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

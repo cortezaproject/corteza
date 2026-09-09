@@ -135,6 +135,7 @@ _connectionDefs: {
 				{ name: "Type", type: "string", json: "type" },
 				{ name: "When", ptr: true, type: _connectionDefs.ConnectionStepCondition, json: "when,omitempty" },
 				{ name: "HTTP", ptr: true, type: _connectionDefs.ConnectionHTTPAction, json: "http,omitempty" },
+				{ name: "Fetch", ptr: true, type: _connectionDefs.ConnectionHTTPAction, json: "fetch,omitempty" },
 				{ name: "MimeBuild", ptr: true, type: _connectionDefs.ConnectionMimeBuildAction, json: "mime_build,omitempty" },
 			]}
 			ConnectionStepCondition: { name: "ConnectionStepCondition", fields: [
@@ -146,6 +147,7 @@ _connectionDefs: {
 				{ name: "Subject", type: "string", json: "subject" },
 				{ name: "Body", type: "string", json: "body" },
 				{ name: "From", type: "string", json: "from,omitempty" },
+				{ name: "Headers", goType: "map[string]string", json: "headers,omitempty" },
 				{ name: "Output", type: "string", json: "output" },
 			]}
 		}

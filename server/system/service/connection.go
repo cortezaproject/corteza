@@ -624,14 +624,26 @@ func applyCatalogRefresh(conn, fresh *types.Connection) bool {
 // refreshCatalogConnection pulls the latest catalog definition for one catalog
 // connection and persists it directly (no RBAC), returning whether it changed.
 func (svc *connection) refreshCatalogConnection(ctx context.Context, conn *types.Connection) (bool, error) {
-	if svc.services.catalog == nil || conn.Source != "catalog" || conn.CatalogID == "" {
+	if svc.services.catalog == nil || conn.Source != "catalog" {
 		return false, nil
 	}
-	catalogConn, err := svc.services.catalog.GetConnection(ctx, conn.CatalogID)
+	catalogID := conn.CatalogID
+	if catalogID == "" {
+		catalogID = svc.catalogIDForHandle(ctx, conn.Handle)
+	}
+	if catalogID == "" {
+		return false, nil
+	}
+	catalogConn, err := svc.services.catalog.GetConnection(ctx, catalogID)
 	if err != nil {
 		return false, err
 	}
-	if !applyCatalogRefresh(conn, catalogConnectionToLocal(catalogConn)) {
+	changed := applyCatalogRefresh(conn, catalogConnectionToLocal(catalogConn))
+	if conn.CatalogID != catalogID {
+		conn.CatalogID = catalogID
+		changed = true
+	}
+	if !changed {
 		return false, nil
 	}
 	conn.UpdatedAt = now()
@@ -696,11 +708,19 @@ func (svc *connection) Resync(ctx context.Context, connectionID uint64) (*types.
 	if !svc.ac.CanUpdateConnection(ctx, conn) {
 		return nil, ConnectionErrNotAllowedToUpdate()
 	}
-	if conn.Source != "catalog" || conn.CatalogID == "" {
+	if conn.Source != "catalog" {
 		return nil, errors.InvalidData("only catalog connections can be resynced")
 	}
 
-	updated, err := svc.Import(ctx, conn.CatalogID)
+	catalogID := conn.CatalogID
+	if catalogID == "" {
+		catalogID = svc.catalogIDForHandle(ctx, conn.Handle)
+	}
+	if catalogID == "" {
+		return nil, errors.InvalidData("connection is not in the catalog")
+	}
+
+	updated, err := svc.Import(ctx, catalogID)
 	if err != nil {
 		return nil, err
 	}
@@ -710,6 +730,31 @@ func (svc *connection) Resync(ctx context.Context, connectionID uint64) (*types.
 	}
 
 	return updated, nil
+}
+
+// catalogIDForHandle looks up a connector's catalog ID by its handle, for
+// connections whose stored CatalogID was never populated. Returns "" when the
+// catalog has no match.
+func (svc *connection) catalogIDForHandle(ctx context.Context, handle string) string {
+	if svc.services.catalog == nil || handle == "" {
+		return ""
+	}
+	const maxPages, pageSize = 20, 50
+	for page := 1; page <= maxPages; page++ {
+		summaries, err := svc.services.catalog.ListPage(ctx, page, pageSize)
+		if err != nil {
+			return ""
+		}
+		for _, s := range summaries {
+			if s.Handle == handle {
+				return s.ID
+			}
+		}
+		if len(summaries) < pageSize {
+			break
+		}
+	}
+	return ""
 }
 
 // createImported builds and stores a new catalog connection from a catalog entry.

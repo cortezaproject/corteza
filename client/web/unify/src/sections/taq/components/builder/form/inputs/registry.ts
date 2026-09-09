@@ -20,6 +20,7 @@ import CInputSheetRow from './CInputSheetRow.vue'
 import CInputSheetGrid from './CInputSheetGrid.vue'
 import CInputWorksheet from './CInputWorksheet.vue'
 import CInputWorksheetName from './CInputWorksheetName.vue'
+import CInputGmailMessage from './CInputGmailMessage.vue'
 
 /**
  * Maps input.type (from API function definition segments) to Vue component.
@@ -74,6 +75,9 @@ export const INPUT_REGISTRY: Record<string, Component> = {
 
   // Google Sheets worksheet picker that emits the tab name
   WorksheetName: CInputWorksheetName,
+
+  // Gmail message picker (label = subject/from, value = message id)
+  GmailMessage: CInputGmailMessage,
 
   // Booleans
   Boolean: CInputSwitch,

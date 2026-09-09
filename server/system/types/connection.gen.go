@@ -181,6 +181,7 @@ type (
 		Type      string                     `json:"type"`
 		When      *ConnectionStepCondition   `json:"when,omitempty"`
 		HTTP      *ConnectionHTTPAction      `json:"http,omitempty"`
+		Fetch     *ConnectionHTTPAction      `json:"fetch,omitempty"`
 		MimeBuild *ConnectionMimeBuildAction `json:"mime_build,omitempty"`
 	}
 
@@ -190,11 +191,12 @@ type (
 	}
 
 	ConnectionMimeBuildAction struct {
-		To      string `json:"to"`
-		Subject string `json:"subject"`
-		Body    string `json:"body"`
-		From    string `json:"from,omitempty"`
-		Output  string `json:"output"`
+		To      string            `json:"to"`
+		Subject string            `json:"subject"`
+		Body    string            `json:"body"`
+		From    string            `json:"from,omitempty"`
+		Headers map[string]string `json:"headers,omitempty"`
+		Output  string            `json:"output"`
 	}
 )
 
@@ -1206,6 +1208,10 @@ func (r ConnectionOperationStep) Clone() *ConnectionOperationStep {
 		dup.HTTP = r.HTTP.Clone()
 	}
 
+	if r.Fetch != nil {
+		dup.Fetch = r.Fetch.Clone()
+	}
+
 	if r.MimeBuild != nil {
 		dup.MimeBuild = r.MimeBuild.Clone()
 	}
@@ -1236,6 +1242,15 @@ func (r ConnectionOperationStep) Diff(cmp *ConnectionOperationStep) []*revisions
 	} else if r.HTTP != nil {
 		for _, c := range r.HTTP.Diff(cmp.HTTP) {
 			c.Key = "http." + c.Key
+			out = append(out, c)
+		}
+	}
+
+	if (r.Fetch == nil) != (cmp.Fetch == nil) {
+		out = append(out, &revisions.Change{Key: "fetch", Old: []any{cmp.Fetch}, New: []any{r.Fetch}})
+	} else if r.Fetch != nil {
+		for _, c := range r.Fetch.Diff(cmp.Fetch) {
+			c.Key = "fetch." + c.Key
 			out = append(out, c)
 		}
 	}
@@ -1281,6 +1296,13 @@ func (r ConnectionStepCondition) Value() (driver.Value, error) { return json.Mar
 
 func (r ConnectionMimeBuildAction) Clone() *ConnectionMimeBuildAction {
 	dup := r
+	if r.Headers != nil {
+		dup.Headers = make(map[string]string, len(r.Headers))
+		for k, v := range r.Headers {
+			dup.Headers[k] = v
+		}
+	}
+
 	return &dup
 }
 
@@ -1303,6 +1325,10 @@ func (r ConnectionMimeBuildAction) Diff(cmp *ConnectionMimeBuildAction) []*revis
 
 	if r.From != cmp.From {
 		out = append(out, &revisions.Change{Key: "from", Old: []any{cmp.From}, New: []any{r.From}})
+	}
+
+	if !reflect.DeepEqual(r.Headers, cmp.Headers) {
+		out = append(out, &revisions.Change{Key: "headers", Old: []any{cmp.Headers}, New: []any{r.Headers}})
 	}
 
 	if r.Output != cmp.Output {

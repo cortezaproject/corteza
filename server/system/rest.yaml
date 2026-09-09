@@ -3696,6 +3696,13 @@ endpoints:
             - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
           get:
             - { type: 'string', name: 'spreadsheetId', required: true, title: 'Spreadsheet ID' }
+      - name: gmailMessages
+        method: GET
+        title: List recent Gmail messages for the message picker
+        path: '/{connectionID}/gmail-messages'
+        parameters:
+          path:
+            - { type: 'uint64', name: 'connectionID', required: true, title: 'Connection ID' }
 
   - title: MCP
     path: '/mcp'

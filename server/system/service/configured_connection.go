@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	automationService "github.com/crusttech/human/server/automation/service"
@@ -939,6 +940,11 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 		}
 	}
 
+	// The message-id input becomes a picker of recent emails to reply to.
+	if strings.Contains(conn.Service.BaseURL.Value, "gmail.googleapis.com") {
+		setInputTypeByArgument(segments, "messageId", "GmailMessage")
+	}
+
 	var icon *atypes.NgAutomationIcon
 	if conn.Meta.Icon != "" {
 		icon = &atypes.NgAutomationIcon{Type: "name", Value: conn.Meta.Icon}
@@ -1052,6 +1058,11 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 				if step.When != nil && varString(vars[step.When.Arg]) != step.When.Equals {
 					continue
 				}
+				// "fetch" is an alias for an http step whose action is under "fetch".
+				if step.HTTP == nil && step.Fetch != nil {
+					step.HTTP = step.Fetch
+					step.Type = "http"
+				}
 				switch step.Type {
 				case "mime_build":
 					if step.MimeBuild == nil {
@@ -1062,11 +1073,17 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 					subject, _ := resolveTemplate(types.ConnectionTemplate{Value: mb.Subject}, vars)
 					body, _ := resolveTemplate(types.ConnectionTemplate{Value: mb.Body}, vars)
 					from, _ := resolveTemplate(types.ConnectionTemplate{Value: mb.From}, vars)
+					headers := make(map[string]string, len(mb.Headers))
+					for name, tpl := range mb.Headers {
+						if v, e := resolveTemplate(types.ConnectionTemplate{Value: tpl}, vars); e == nil {
+							headers[name] = v
+						}
+					}
 					outKey := mb.Output
 					if outKey == "" {
 						outKey = "raw"
 					}
-					raw, err := buildMIMEEmail(from, to, subject, body)
+					raw, err := buildMIMEEmail(from, to, subject, body, headers)
 					if err != nil {
 						return nil, fmt.Errorf("mime_build: %w", err)
 					}
@@ -1091,6 +1108,19 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 					}
 
 					respBody = body
+
+					// Feed mapped response values into vars so later steps can
+					// reference them (e.g. a fetched threadId in the send body).
+					if len(step.HTTP.ResponseMap) > 0 {
+						var parsed any
+						if json.Unmarshal(body, &parsed) == nil {
+							for name, path := range step.HTTP.ResponseMap {
+								if v := extractByPath(parsed, splitPath(path)); v != nil {
+									vars[name] = v
+								}
+							}
+						}
+					}
 				}
 			}
 
@@ -1282,6 +1312,34 @@ func resolveTemplate(tpl types.ConnectionTemplate, vars map[string]any) (string,
 func extractByPath(data any, path []string) any {
 	current := data
 	for _, p := range path {
+		// key[field=value] selects the array element under key whose field
+		// equals value (case-insensitive) — e.g. headers[name=Message-ID].
+		if key, field, value, ok := parsePathFilter(p); ok {
+			m, isMap := current.(map[string]any)
+			if !isMap {
+				return nil
+			}
+			arr, isArr := m[key].([]any)
+			if !isArr {
+				return nil
+			}
+			current = nil
+			for _, el := range arr {
+				em, ok := el.(map[string]any)
+				if !ok {
+					continue
+				}
+				if s, ok := em[field].(string); ok && strings.EqualFold(s, value) {
+					current = em
+					break
+				}
+			}
+			if current == nil {
+				return nil
+			}
+			continue
+		}
+
 		switch v := current.(type) {
 		case map[string]any:
 			current = v[p]
@@ -1290,6 +1348,54 @@ func extractByPath(data any, path []string) any {
 		}
 	}
 	return current
+}
+
+// splitPath splits a response path on "." at bracket depth zero, so a filter
+// segment like headers[?(@.name=='Message-ID')] stays intact.
+func splitPath(path string) []string {
+	var segs []string
+	depth, start := 0, 0
+	for i, c := range path {
+		switch c {
+		case '[':
+			depth++
+		case ']':
+			if depth > 0 {
+				depth--
+			}
+		case '.':
+			if depth == 0 {
+				segs = append(segs, path[start:i])
+				start = i + 1
+			}
+		}
+	}
+	return append(segs, path[start:])
+}
+
+// parsePathFilter parses an array-filter path segment, accepting both the plain
+// "key[field=value]" form and the JSONPath "key[?(@.field=='value')]" form.
+func parsePathFilter(seg string) (key, field, value string, ok bool) {
+	open := strings.IndexByte(seg, '[')
+	if open < 0 || !strings.HasSuffix(seg, "]") {
+		return "", "", "", false
+	}
+	key = seg[:open]
+	inner := seg[open+1 : len(seg)-1]
+	if strings.HasPrefix(inner, "?(@.") && strings.HasSuffix(inner, ")") {
+		inner = inner[len("?(@.") : len(inner)-1]
+	}
+	sep := "=="
+	if !strings.Contains(inner, sep) {
+		sep = "="
+	}
+	i := strings.Index(inner, sep)
+	if i < 0 {
+		return "", "", "", false
+	}
+	field = strings.TrimSpace(inner[:i])
+	value = strings.Trim(strings.TrimSpace(inner[i+len(sep):]), `'"`)
+	return key, field, value, true
 }
 
 // normalizeParamType maps common type aliases from connection operation specs
@@ -1563,13 +1669,19 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 
 // buildMIMEEmail constructs a minimal RFC 2822 email message and returns it
 // base64url-encoded, suitable for the Gmail API "raw" field.
-func buildMIMEEmail(from, to, subject, body string) (string, error) {
+func buildMIMEEmail(from, to, subject, body string, headers map[string]string) (string, error) {
 	var buf bytes.Buffer
 	if from != "" {
 		buf.WriteString("From: " + from + "\r\n")
 	}
 	buf.WriteString("To: " + to + "\r\n")
 	buf.WriteString("Subject: " + subject + "\r\n")
+	// Extra headers such as In-Reply-To and References for threaded replies.
+	for name, value := range headers {
+		if name != "" && value != "" {
+			buf.WriteString(name + ": " + value + "\r\n")
+		}
+	}
 	buf.WriteString("Content-Type: text/plain; charset=UTF-8\r\n")
 	buf.WriteString("\r\n")
 	buf.WriteString(body)
@@ -2135,6 +2247,84 @@ func (svc *configuredConnection) SheetTabs(ctx context.Context, ID uint64, sprea
 		})
 	}
 	return tabs, nil
+}
+
+// GmailMessages returns recent Gmail messages as {label,value} items where the
+// value is the message id. The builder uses it to let the user pick an email to
+// reply to instead of pasting a raw id.
+func (svc *configuredConnection) GmailMessages(ctx context.Context, ID uint64) ([]atypes.SelectItem, error) {
+	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
+	if err != nil {
+		return nil, err
+	}
+
+	ensureCredential(ctx, svc.store, cc, &cc.Connection)
+
+	w := google.NewWrapper("https://gmail.googleapis.com/gmail/v1", cc.ID)
+	_, _, body, err := w.Run(ctx, "GET", "/users/me/messages?maxResults=20", nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not list messages: %w", err)
+	}
+
+	var list struct {
+		Messages []struct {
+			ID string `json:"id"`
+		} `json:"messages"`
+	}
+	if err := json.Unmarshal(body, &list); err != nil {
+		return nil, err
+	}
+
+	// Fetch each message's headers concurrently; one sequential call per message
+	// makes the picker crawl. Results stay in list order.
+	items := make([]atypes.SelectItem, len(list.Messages))
+	sem := make(chan struct{}, 10)
+	var wg sync.WaitGroup
+	for i, m := range list.Messages {
+		wg.Add(1)
+		go func(i int, id string) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			items[i] = atypes.SelectItem{Label: id, Value: id}
+
+			_, _, mb, err := w.Run(ctx, "GET",
+				"/users/me/messages/"+id+"?format=metadata&metadataHeaders=Subject&metadataHeaders=From", nil, nil)
+			if err != nil {
+				return
+			}
+			var meta struct {
+				Snippet string `json:"snippet"`
+				Payload struct {
+					Headers []struct {
+						Name  string `json:"name"`
+						Value string `json:"value"`
+					} `json:"headers"`
+				} `json:"payload"`
+			}
+			if err := json.Unmarshal(mb, &meta); err != nil {
+				return
+			}
+
+			var subject, from string
+			for _, h := range meta.Payload.Headers {
+				switch strings.ToLower(h.Name) {
+				case "subject":
+					subject = h.Value
+				case "from":
+					from = h.Value
+				}
+			}
+			if label := strings.TrimSpace(strings.TrimSuffix(subject+" — "+from, " — ")); label != "" {
+				items[i].Label = label
+			} else if meta.Snippet != "" {
+				items[i].Label = meta.Snippet
+			}
+		}(i, m.ID)
+	}
+	wg.Wait()
+	return items, nil
 }
 
 // StartDiscoveryRefreshLoop starts a background goroutine that periodically
