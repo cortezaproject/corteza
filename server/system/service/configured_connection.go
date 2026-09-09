@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	automationService "github.com/crusttech/human/server/automation/service"
@@ -938,11 +937,6 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 			// Grid cells are per-cell targets (r{i}c{j}); rebuild the 2D array.
 			argsMerger = sheetsGridArgsMerger
 		}
-	}
-
-	// The message-id input becomes a picker of recent emails to reply to.
-	if strings.Contains(conn.Service.BaseURL.Value, "gmail.googleapis.com") {
-		setInputTypeByArgument(segments, "messageId", "GmailMessage")
 	}
 
 	var icon *atypes.NgAutomationIcon
@@ -2247,84 +2241,6 @@ func (svc *configuredConnection) SheetTabs(ctx context.Context, ID uint64, sprea
 		})
 	}
 	return tabs, nil
-}
-
-// GmailMessages returns recent Gmail messages as {label,value} items where the
-// value is the message id. The builder uses it to let the user pick an email to
-// reply to instead of pasting a raw id.
-func (svc *configuredConnection) GmailMessages(ctx context.Context, ID uint64) ([]atypes.SelectItem, error) {
-	cc, err := loadConfiguredConnection(ctx, svc.store, ID)
-	if err != nil {
-		return nil, err
-	}
-
-	ensureCredential(ctx, svc.store, cc, &cc.Connection)
-
-	w := google.NewWrapper("https://gmail.googleapis.com/gmail/v1", cc.ID)
-	_, _, body, err := w.Run(ctx, "GET", "/users/me/messages?maxResults=20", nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("could not list messages: %w", err)
-	}
-
-	var list struct {
-		Messages []struct {
-			ID string `json:"id"`
-		} `json:"messages"`
-	}
-	if err := json.Unmarshal(body, &list); err != nil {
-		return nil, err
-	}
-
-	// Fetch each message's headers concurrently; one sequential call per message
-	// makes the picker crawl. Results stay in list order.
-	items := make([]atypes.SelectItem, len(list.Messages))
-	sem := make(chan struct{}, 10)
-	var wg sync.WaitGroup
-	for i, m := range list.Messages {
-		wg.Add(1)
-		go func(i int, id string) {
-			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-
-			items[i] = atypes.SelectItem{Label: id, Value: id}
-
-			_, _, mb, err := w.Run(ctx, "GET",
-				"/users/me/messages/"+id+"?format=metadata&metadataHeaders=Subject&metadataHeaders=From", nil, nil)
-			if err != nil {
-				return
-			}
-			var meta struct {
-				Snippet string `json:"snippet"`
-				Payload struct {
-					Headers []struct {
-						Name  string `json:"name"`
-						Value string `json:"value"`
-					} `json:"headers"`
-				} `json:"payload"`
-			}
-			if err := json.Unmarshal(mb, &meta); err != nil {
-				return
-			}
-
-			var subject, from string
-			for _, h := range meta.Payload.Headers {
-				switch strings.ToLower(h.Name) {
-				case "subject":
-					subject = h.Value
-				case "from":
-					from = h.Value
-				}
-			}
-			if label := strings.TrimSpace(strings.TrimSuffix(subject+" — "+from, " — ")); label != "" {
-				items[i].Label = label
-			} else if meta.Snippet != "" {
-				items[i].Label = meta.Snippet
-			}
-		}(i, m.ID)
-	}
-	wg.Wait()
-	return items, nil
 }
 
 // StartDiscoveryRefreshLoop starts a background goroutine that periodically

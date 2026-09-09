@@ -150,13 +150,6 @@ type (
 		// Spreadsheet ID
 		SpreadsheetId string
 	}
-
-	ConfiguredConnectionGmailMessages struct {
-		// ConnectionID PATH parameter
-		//
-		// Connection ID
-		ConnectionID uint64 `json:",string"`
-	}
 )
 
 // NewConfiguredConnectionList request
@@ -589,41 +582,6 @@ func (r *ConfiguredConnectionSheetTabs) Fill(req *http.Request) (err error) {
 			}
 		}
 	}
-
-	{
-		var val string
-		// path params
-
-		val = chi.URLParam(req, "connectionID")
-		r.ConnectionID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return err
-}
-
-// NewConfiguredConnectionGmailMessages request
-func NewConfiguredConnectionGmailMessages() *ConfiguredConnectionGmailMessages {
-	return &ConfiguredConnectionGmailMessages{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConfiguredConnectionGmailMessages) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"connectionID": r.ConnectionID,
-	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ConfiguredConnectionGmailMessages) GetConnectionID() uint64 {
-	return r.ConnectionID
-}
-
-// Fill processes request and fills internal variables
-func (r *ConfiguredConnectionGmailMessages) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

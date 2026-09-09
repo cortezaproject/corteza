@@ -27,7 +27,6 @@ type (
 		RefreshDiscovery(context.Context, *request.ConfiguredConnectionRefreshDiscovery) (interface{}, error)
 		SheetColumns(context.Context, *request.ConfiguredConnectionSheetColumns) (interface{}, error)
 		SheetTabs(context.Context, *request.ConfiguredConnectionSheetTabs) (interface{}, error)
-		GmailMessages(context.Context, *request.ConfiguredConnectionGmailMessages) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -40,7 +39,6 @@ type (
 		RefreshDiscovery func(http.ResponseWriter, *http.Request)
 		SheetColumns     func(http.ResponseWriter, *http.Request)
 		SheetTabs        func(http.ResponseWriter, *http.Request)
-		GmailMessages    func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -174,22 +172,6 @@ func NewConfiguredConnection(h ConfiguredConnectionAPI) *ConfiguredConnection {
 
 			api.Send(w, r, value)
 		},
-		GmailMessages: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewConfiguredConnectionGmailMessages()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.GmailMessages(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
 	}
 }
 
@@ -204,6 +186,5 @@ func (h ConfiguredConnection) MountRoutes(r chi.Router, middlewares ...func(http
 		r.Post("/configured-connections/{connectionID}/refresh-discovery", h.RefreshDiscovery)
 		r.Get("/configured-connections/{connectionID}/sheet-columns", h.SheetColumns)
 		r.Get("/configured-connections/{connectionID}/sheet-tabs", h.SheetTabs)
-		r.Get("/configured-connections/{connectionID}/gmail-messages", h.GmailMessages)
 	})
 }

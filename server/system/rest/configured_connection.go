@@ -43,7 +43,6 @@ type (
 		RefreshDiscovery(ctx context.Context, ID uint64) (map[string]any, error)
 		SheetColumns(ctx context.Context, ID uint64, spreadsheetID, tab string) ([]string, error)
 		SheetTabs(ctx context.Context, ID uint64, spreadsheetID string) ([]atypes.SelectItem, error)
-		GmailMessages(ctx context.Context, ID uint64) ([]atypes.SelectItem, error)
 	}
 )
 
@@ -103,10 +102,6 @@ func (ctrl ConfiguredConnection) SheetColumns(ctx context.Context, r *request.Co
 
 func (ctrl ConfiguredConnection) SheetTabs(ctx context.Context, r *request.ConfiguredConnectionSheetTabs) (interface{}, error) {
 	return ctrl.configuredConnection.SheetTabs(ctx, r.ConnectionID, r.SpreadsheetId)
-}
-
-func (ctrl ConfiguredConnection) GmailMessages(ctx context.Context, r *request.ConfiguredConnectionGmailMessages) (interface{}, error) {
-	return ctrl.configuredConnection.GmailMessages(ctx, r.ConnectionID)
 }
 
 func (ctrl ConfiguredConnection) makeFilterPayload(ctx context.Context, set types.ConfiguredConnectionSet, f types.ConfiguredConnectionFilter, err error) (*configuredConnectionSetPayload, error) {
