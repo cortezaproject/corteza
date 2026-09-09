@@ -4,87 +4,102 @@
   </Teleport>
 
   <CViewContainer>
-    <div class="h-full overflow-y-auto">
-      <div class="flex flex-col gap-4 pb-2">
-        <Card :pt="{ content: { class: 'p-0' } }">
-          <template #content>
-            <div class="flex flex-col gap-4">
-              <p class="text-sm text-muted-color">{{ $t('system.oauthApps.intro') }}</p>
+    <div class="h-full flex flex-col gap-4 min-h-0">
+      <Card :pt="{ root: { class: 'shrink-0' }, content: { class: 'p-0' } }">
+        <template #content>
+          <div class="flex flex-col gap-4">
+            <p class="text-sm text-muted-color">{{ $t('system.oauthApps.intro') }}</p>
 
-              <div class="flex flex-col gap-1.5">
-                <label class="block font-medium text-sm">
-                  {{ $t('system.oauthApps.redirectUrl') }}
-                </label>
-                <span class="block text-xs text-muted-color">
-                  {{ $t('system.oauthApps.redirectUrlHint') }}
-                </span>
-                <div class="flex items-center gap-2 mt-1">
-                  <InputText :model-value="redirectURL" readonly class="w-full font-mono text-sm" />
-                  <Button
-                    icon="pi pi-copy"
-                    severity="secondary"
-                    outlined
-                    size="small"
-                    v-tooltip.bottom="$t('general.label.copy')"
-                    @click="copyRedirectURL"
-                  />
-                </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="block font-medium text-sm">
+                {{ $t('system.oauthApps.redirectUrl') }}
+              </label>
+              <span class="block text-xs text-muted-color">
+                {{ $t('system.oauthApps.redirectUrlHint') }}
+              </span>
+              <div class="flex items-center gap-2 mt-1">
+                <InputText :model-value="redirectURL" readonly class="w-full font-mono text-sm" />
+                <Button
+                  icon="pi pi-copy"
+                  severity="secondary"
+                  outlined
+                  size="small"
+                  v-tooltip.bottom="$t('general.label.copy')"
+                  @click="copyRedirectURL"
+                />
               </div>
             </div>
-          </template>
-        </Card>
-
-        <div class="flex items-center justify-between">
-          <span class="font-medium">{{ $t('system.oauthApps.providers') }}</span>
-          <Button
-            :label="$t('system.oauthApps.add')"
-            icon="pi pi-plus"
-            size="small"
-            @click="openEditor(null)"
-          />
-        </div>
-
-        <div v-if="loading" class="flex justify-center p-6">
-          <ProgressSpinner style="width: 2rem; height: 2rem" />
-        </div>
-
-        <div v-else-if="!apps.length" class="text-sm text-muted-color italic p-4 text-center">
-          {{ $t('system.oauthApps.empty') }}
-        </div>
-
-        <div v-else class="flex flex-col gap-2">
-          <div
-            v-for="app in apps"
-            :key="app.handle"
-            class="flex items-center gap-3 rounded-md border border-surface-200 dark:border-surface-700 p-3"
-          >
-            <span
-              class="flex items-center justify-center w-9 h-9 rounded-md bg-surface-100 dark:bg-surface-800 text-muted-color shrink-0"
-            >
-              <i class="pi pi-key" />
-            </span>
-            <div class="flex flex-col min-w-0 flex-1">
-              <span class="font-medium capitalize">{{ app.handle }}</span>
-              <span class="text-xs text-muted-color truncate">
-                {{ $t('system.oauthApps.credentialsSet') }}
-              </span>
-            </div>
+          </div>
+        </template>
+      </Card>
+      <Card
+        :pt="{
+          root: { class: 'overflow-hidden flex-1 min-h-0 flex flex-col min-w-0' },
+          header: {
+            class: 'p-3 w-full border-b shrink-0',
+          },
+          body: {
+            class: 'p-0 flex flex-col flex-1 min-h-0 min-w-0',
+          },
+          content: {
+            class: 'flex-1 overflow-auto min-h-0 min-w-0 p-3',
+          },
+        }"
+      >
+        <template #header>
+          <div class="flex items-center justify-between">
+            <span class="font-medium">{{ $t('system.oauthApps.providers') }}</span>
             <Button
-              icon="pi pi-pencil"
-              text
-              severity="secondary"
+              :label="$t('system.oauthApps.add')"
+              icon="pi pi-plus"
               size="small"
-              @click="openEditor(app)"
-            />
-            <CInputDelete
-              :message="$t('system.oauthApps.deleteConfirm')"
-              :header="app.handle"
-              size="small"
-              @confirm="handleDelete(app)"
+              @click="openEditor(null)"
             />
           </div>
-        </div>
-      </div>
+        </template>
+        <template #content>
+          <div v-if="loading" class="flex justify-center p-6">
+            <ProgressSpinner style="width: 2rem; height: 2rem" />
+          </div>
+
+          <div v-else-if="!apps.length" class="text-sm text-muted-color italic p-4 text-center">
+            {{ $t('system.oauthApps.empty') }}
+          </div>
+
+          <div v-else class="flex flex-col gap-2">
+            <div
+              v-for="app in apps"
+              :key="app.handle"
+              class="flex items-center gap-3 rounded-md border border-surface-200 dark:border-surface-700 p-3"
+            >
+              <span
+                class="flex items-center justify-center w-9 h-9 rounded-md bg-surface-100 dark:bg-surface-800 text-muted-color shrink-0"
+              >
+                <i class="pi pi-key" />
+              </span>
+              <div class="flex flex-col min-w-0 flex-1">
+                <span class="font-medium capitalize">{{ app.handle }}</span>
+                <span class="text-xs text-muted-color truncate">
+                  {{ $t('system.oauthApps.credentialsSet') }}
+                </span>
+              </div>
+              <Button
+                icon="pi pi-pencil"
+                text
+                severity="secondary"
+                size="small"
+                @click="openEditor(app)"
+              />
+              <CInputDelete
+                :message="$t('system.oauthApps.deleteConfirm')"
+                :header="app.handle"
+                size="small"
+                @confirm="handleDelete(app)"
+              />
+            </div>
+          </div>
+        </template>
+      </Card>
     </div>
   </CViewContainer>
 

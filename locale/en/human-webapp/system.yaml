@@ -581,7 +581,7 @@ connections:
     noConnectors: No connectors match your search.
     resourcePlural: connections
     resourceSingle: connection
-    searchConnectors: Search connectors
+    searchConnectors: Search for connectors
     searchPlaceholder: Search for connections
     setUp: Set up
     sourceValues:
