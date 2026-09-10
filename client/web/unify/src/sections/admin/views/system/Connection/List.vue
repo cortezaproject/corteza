@@ -14,7 +14,7 @@
           class: 'p-0 flex flex-col flex-1 min-h-0 min-w-0',
         },
         content: {
-          class: 'flex-1 overflow-auto min-h-0 min-w-0',
+          class: 'flex-1 overflow-auto min-h-0 min-w-0 p-3',
         },
       }"
     >
