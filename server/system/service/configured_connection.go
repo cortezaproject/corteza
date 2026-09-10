@@ -820,6 +820,7 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 		}
 		svc.registerOperations(conn, ccs)
 		for _, cc := range ccs {
+			cc.Connection = *conn // use the live definition, not the CC snapshot
 			svc.registerWebhookTriggers(cc)
 		}
 	}
@@ -850,6 +851,10 @@ func (svc *configuredConnection) ReRegisterConnection(ctx context.Context, connI
 	}
 
 	svc.registerOperations(conn, ccs)
+	for _, cc := range ccs {
+		cc.Connection = *conn // use the live definition, not the CC snapshot
+		svc.registerWebhookTriggers(cc)
+	}
 }
 
 // registerOperations converts each ConnectionOperation into a ConstructFunction
@@ -1619,11 +1624,10 @@ func (svc *configuredConnection) provisionWebhooks(ctx context.Context, resolved
 
 // registerWebhookTriggers registers Webhook-based triggers to the registry
 func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConnection) {
-	existing := automationService.ConstructLibrary().Triggers()
-	seen := make(map[string]bool, len(existing))
-	for _, t := range existing {
-		seen[t.ResourceType+"|"+t.EventType] = true
-	}
+	// Dedupe within this call only. AddTriggers replaces by resource+event, so
+	// re-registering an existing trigger refreshes its properties (e.g. a webhook
+	// payload that was added after the trigger was first registered).
+	seen := make(map[string]bool)
 
 	var tt []atypes.ConstructTrigger
 
