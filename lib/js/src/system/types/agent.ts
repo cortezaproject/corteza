@@ -15,7 +15,6 @@ interface AgentBehaviorKnowledgeBase {
 interface AgentBehavior {
   systemPrompt: string
   guardrails: string[]
-  injectSystemContext: boolean
   knowledgeBases: AgentBehaviorKnowledgeBase[]
 }
 
@@ -123,7 +122,6 @@ export class Agent {
   public behavior: AgentBehavior = {
     systemPrompt: '',
     guardrails: [],
-    injectSystemContext: true,
     knowledgeBases: [],
   }
 

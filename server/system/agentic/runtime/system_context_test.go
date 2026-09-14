@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -35,7 +36,7 @@ func TestSystemContextFor(t *testing.T) {
 	t.Run("everything else survives the cut", func(t *testing.T) {
 		out := systemContextFor(agentWith("compose_record_lookup"))
 		for _, keep := range []string{
-			"# System Context", "## Platform Concepts", "## General Rules", "## Response Style",
+			"# System Context", "## Platform Concepts", "## General Rules",
 		} {
 			require.Contains(t, out, keep)
 		}
@@ -70,4 +71,46 @@ func TestAgentCanBuild(t *testing.T) {
 	require.False(t, agentCanBuild(agentWith("compose_record_lookup", "compose_record_update")))
 	require.False(t, agentCanBuild(agentWith()))
 	require.False(t, agentCanBuild(nil))
+}
+
+// TL;DR: the platform context follows the agent's tools, and the confirm rule
+// follows whether anybody is there to confirm.
+// Example: an automation agent granted compose_record_delete is told what a
+// module is, but not to ask a person who does not exist before deleting.
+func TestBuildSystemPrompt(t *testing.T) {
+	const (
+		contextHeading = "# System Context"
+		denialRule     = "If a tool call is denied, stop and tell the user exactly what was denied."
+		confirmRule    = "Never perform a destructive action (delete, bulk delete) without confirming with the user first."
+	)
+
+	prompt := func(a *types.Agent, unattended bool) string {
+		out, _ := (&runtime{}).buildSystemPrompt(context.Background(), a, nil, unattended)
+		return out
+	}
+
+	t.Run("an agent granted a tool gets the platform context", func(t *testing.T) {
+		require.Contains(t, prompt(agentWith("compose_record_lookup"), false), contextHeading)
+	})
+
+	t.Run("an agent granted nothing does not", func(t *testing.T) {
+		require.NotContains(t, prompt(&types.Agent{}, false), contextHeading)
+	})
+
+	t.Run("every run is told to stop on a denial", func(t *testing.T) {
+		for _, a := range []*types.Agent{agentWith("compose_record_lookup"), {}} {
+			for _, unattended := range []bool{false, true} {
+				require.Contains(t, prompt(a, unattended), denialRule)
+			}
+		}
+	})
+
+	t.Run("an attended run is told to confirm destructive actions", func(t *testing.T) {
+		require.Contains(t, prompt(agentWith("compose_record_delete"), false), confirmRule)
+		require.Contains(t, prompt(&types.Agent{}, false), confirmRule)
+	})
+
+	t.Run("an unattended run is not", func(t *testing.T) {
+		require.NotContains(t, prompt(agentWith("compose_record_delete"), true), confirmRule)
+	})
 }

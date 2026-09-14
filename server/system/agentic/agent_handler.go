@@ -178,13 +178,8 @@ func seedNamespaceAccess(ctx context.Context, a *sysTypes.Agent, ref string) str
 	// has to be written.
 	a.Access.Allow = []sysTypes.AgentAccessAllow{{NamespaceID: ns.ID}}
 
-	// A scope is only worth anything if the agent is told what it reaches;
-	// without the platform context it guesses handles and reports they do not
-	// exist.
-	a.Behavior.InjectSystemContext = true
-
 	return fmt.Sprintf(
-		"Scoped this agent to namespace %q (every module, including ones added later) and turned on the platform context, because 'access' said nothing. It has NO tools yet, so it answers from its prompt and reaches nothing — grant some in access.tools.",
+		"Scoped this agent to namespace %q (every module, including ones added later), because 'access' said nothing. It has NO tools yet, so it answers from its prompt and reaches nothing — grant some in access.tools, and the platform context comes with the first one.",
 		ns.Slug,
 	)
 }

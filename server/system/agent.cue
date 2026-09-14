@@ -14,7 +14,6 @@ _agentDefs: {
 	AgentBehavior: {name: "AgentBehavior", fields: [
 				{name: "SystemPrompt", type:        "string", json:              "systemPrompt,omitempty"},
 				{name: "Guardrails", slice:         true, type:                  "string", json: "guardrails,omitempty"},
-				{name: "InjectSystemContext", type: "bool", json:                "injectSystemContext"},
 				{name: "KnowledgeBases", goType:    "KnowledgeBaseIDList", json: "knowledgeBases,omitempty"},
 	]}
 

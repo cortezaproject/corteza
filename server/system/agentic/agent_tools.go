@@ -22,7 +22,8 @@ const (
 		`'short' is the name a person sees — an agent has no separate name field. 'sidebarRoles' limits who sees it in the webapp sidebar and is not an authorization check.`
 
 	agentBehaviorDoc = `JSON object: what the agent is told and what it may draw on. ` +
-		`{"systemPrompt":"You triage support tickets.","guardrails":["no-pii"],"injectSystemContext":true,"knowledgeBases":["<knowledgeBaseID>"]}.`
+		`{"systemPrompt":"You triage support tickets.","guardrails":["no-pii"],"knowledgeBases":["<knowledgeBaseID>"]}. ` +
+		`The platform context — what namespaces, modules and records are, and how to work with them — is not a setting: the server adds it to the prompt of any agent granted a tool in access.tools.`
 
 	agentExecutionDoc = `JSON object: which model runs it and how far it may go. ` +
 		`{"model":{"llmProviderID":"<id>","model":"claude-sonnet-5","temperature":0.2},"limits":{"maxIterations":10,"timeout":"5m","softLimitRatio":0.8,"contextWindow":200000,"outputTokens":8192}}. ` +
@@ -93,8 +94,7 @@ func (h *agentHandler) register() {
 			mcp.WithString("access", mcp.Description(agentAccessDoc)),
 			mcp.WithString("namespace", mcp.Description(
 				"Compose namespace this agent is for, by handle, slug or ID. Sets 'access.allow' to that "+
-					"namespace and turns on the platform context, so whatever tools you grant are confined to "+
-					"it and the agent knows what it is looking at. It does NOT grant any tool: an agent scoped "+
+					"namespace, so whatever tools you grant are confined to it. It does NOT grant any tool: an agent scoped "+
 					"here and granted nothing still reaches nothing. Ignored when 'access' already says "+
 					"something. It is not stored — what is stored is the scope it produced.")),
 			mcp.WithString("invocation", mcp.Description(agentInvocationDoc)),

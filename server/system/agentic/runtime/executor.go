@@ -131,7 +131,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 	// 4. prompt.build span — system prompt preparation
 	promptBuildStart := time.Now()
-	systemPrompt, canaryToken := r.buildSystemPrompt(ctx, agent, taqInfos)
+	systemPrompt, canaryToken := r.buildSystemPrompt(ctx, agent, taqInfos, req.Unattended)
 	var callerCtxMsg *types.AiConversationMessage
 	if execCtx := scopeCallerContext(ctx, agent, req.ExecContext); len(execCtx) > 0 {
 		// Sanitized like a tool result, and for the same reason: most of what
@@ -305,10 +305,10 @@ func agentHasPageTools(agent *types.Agent) bool {
 	return false
 }
 
-func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taqInfos map[uint64]*autoTypes.NgAutomation) (string, string) {
+func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taqInfos map[uint64]*autoTypes.NgAutomation, unattended bool) (string, string) {
 	now := time.Now()
 	systemPrompt := fmt.Sprintf("Current date and time: %s\n\n", now.Format("2006-01-02 15:04:05 MST")) + agent.Behavior.SystemPrompt
-	if agent.Behavior.InjectSystemContext {
+	if len(agent.Access.Tools) > 0 {
 		systemPrompt = systemContextFor(agent) + "\n\n" + systemPrompt
 	}
 	for _, t := range agent.Access.Tools {
@@ -333,7 +333,12 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taq
 	systemPrompt += "\n\n## GROUNDING — MANDATORY\n\n" +
 		"- For questions about the user's platform data (records, modules, namespaces, pages): only answer based on what tool calls in this conversation have returned. Never guess or infer platform data.\n" +
 		"- For general knowledge questions, explanations, or anything not about the user's specific data: answer directly from your own knowledge. Do not call tools and do not say you lack information.\n" +
-		"- Never fabricate platform data that was not returned by a tool."
+		"- Never fabricate platform data that was not returned by a tool.\n" +
+		"- If a tool call is denied, stop and tell the user exactly what was denied. Do not attempt a workaround, and do not offer to do it in another namespace or module instead."
+	// An unattended run has nobody to confirm with; tool permissions gate it instead.
+	if !unattended {
+		systemPrompt += "\n- Never perform a destructive action (delete, bulk delete) without confirming with the user first."
+	}
 
 	// Citation instructions — injected for user-facing agents only.
 	// System-invoked agents validate structured output programmatically.

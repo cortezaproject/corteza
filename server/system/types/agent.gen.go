@@ -46,10 +46,9 @@ type (
 	}
 
 	AgentBehavior struct {
-		SystemPrompt        string              `json:"systemPrompt,omitempty"`
-		Guardrails          []string            `json:"guardrails,omitempty"`
-		InjectSystemContext bool                `json:"injectSystemContext"`
-		KnowledgeBases      KnowledgeBaseIDList `json:"knowledgeBases,omitempty"`
+		SystemPrompt   string              `json:"systemPrompt,omitempty"`
+		Guardrails     []string            `json:"guardrails,omitempty"`
+		KnowledgeBases KnowledgeBaseIDList `json:"knowledgeBases,omitempty"`
 	}
 
 	AgentExecution struct {
@@ -300,10 +299,6 @@ func (r AgentBehavior) Diff(cmp *AgentBehavior) []*revisions.Change {
 
 	if !reflect.DeepEqual(r.Guardrails, cmp.Guardrails) {
 		out = append(out, &revisions.Change{Key: "guardrails", Old: []any{cmp.Guardrails}, New: []any{r.Guardrails}})
-	}
-
-	if r.InjectSystemContext != cmp.InjectSystemContext {
-		out = append(out, &revisions.Change{Key: "injectSystemContext", Old: []any{cmp.InjectSystemContext}, New: []any{r.InjectSystemContext}})
 	}
 
 	if !reflect.DeepEqual(r.KnowledgeBases, cmp.KnowledgeBases) {

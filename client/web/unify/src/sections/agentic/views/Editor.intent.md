@@ -24,7 +24,7 @@ screen without saving round-trips elsewhere.
 
 ## UX capabilities
 
-- Config tab: general identity + labels; execution (LLM provider → model — both form-validated required, revalidated on selection change — optional temperature toggle, iteration/context/output/timeout limits); behavior (system prompt — form-validated required — and guardrails); knowledge bases + system-context injection; access (the namespace the agent works in, the tools it holds, and the TAQs and workflows it may set off — the namespace leads because it bounds the rest); TAQ and workflow access lists with per-entry descriptions (names resolved via `$AutomationAPI`); invocation (user chat + sidebar roles, system + service account).
+- Config tab: general identity + labels; execution (LLM provider → model — both form-validated required, revalidated on selection change — optional temperature toggle, iteration/context/output/timeout limits); behavior (system prompt — form-validated required — and guardrails); knowledge bases; access (the namespace the agent works in, the tools it holds, and the TAQs and workflows it may set off — the namespace leads because it bounds the rest); TAQ and workflow access lists with per-entry descriptions (names resolved via `$AutomationAPI`); invocation (user chat + sidebar roles, system + service account).
 - Exec tab: `AiTrace` for the active conversation; auto-activates on the first trace.
 - History tab (edit mode): past `aiConversation`s, row click reopens one as a chat tab (deduped by ID).
 - Right: resizable, persisted chat column (`AiChat` + `CConversationTabs`, multi-conversation), placeholder in create mode; hidden on narrow viewports.

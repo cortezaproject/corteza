@@ -43,9 +43,13 @@ Granting a tool never widens what the agent may see — it runs as the person wh
 invoked it, so RBAC still applies on top.
 
 The `namespace` argument is a shortcut: it sets `access.allow` to that
-namespace and turns on the platform context. It is **ignored when you also send
-`access`**, and it grants no tool on its own. Sending both leaves
-`injectSystemContext` false, which is usually not what was meant.
+namespace. It is **ignored when you also send `access`**, and it grants no tool
+on its own.
+
+The platform context — what namespaces, modules and records are, and the rules
+for working with them — is not a setting. The server adds it to the prompt of
+every agent that holds at least one tool in `access.tools`, and leaves it out of
+an agent that holds none.
 
 ## The model is settled when the agent is written
 

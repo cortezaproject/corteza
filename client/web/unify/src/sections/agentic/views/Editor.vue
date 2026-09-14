@@ -317,14 +317,6 @@
                           :disabled="!canEdit"
                         />
                       </CFormGroup>
-
-                      <!-- System Context as a KB-style entry in the list -->
-                      <CInputToggleCard
-                        v-model="agent.behavior.injectSystemContext"
-                        :label="$t('agent.editor.injectSystemContext.label')"
-                        :description="$t('agent.editor.injectSystemContext.help')"
-                        :disabled="!canEdit"
-                      />
                     </div>
                   </Panel>
                   <!-- Four statements about what this agent may reach, all of
