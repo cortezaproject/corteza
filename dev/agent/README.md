@@ -209,7 +209,17 @@ DOM as it is; use a visibility assertion when visibility is the question.
   explicit paths to the formatter afterwards. `dev_commit_create` formats
   before staging too, so it mangles the file **at commit time**, after the
   suite you just ran went green — commit a regenerated `TOOLS.md` with plain
-  `git`, and check `git show --stat` afterwards.
+  `git`, and check `git show --stat` afterwards. The same goes for
+  `server/pkg/codegen/resource_schema.gen.json` and `server/system/rest.yaml`:
+  prettier reflows the whole file, thousands of lines, for a three-line edit —
+  pass `skipFormat` to `dev_commit_create` when either is in the commit.
+- **`make codegen` exits 0 when the REST codegen failed.** `codegen-legacy`
+  runs `$GOPATH/bin/human-codegen`, which is built only when missing, so a
+  binary older than `server/pkg/codegen/assets/*.tpl` dies on the template
+  (`can't evaluate field … in type *codegen.eventProps`) before it reaches
+  `rest.yaml` — `rest/handlers` and `rest/request` stay stale while the make
+  target reports success. Grep the output for `failed to process`; a fresh
+  `go build -o <tmp> ./cmd/codegen/main.go` run from `server/` with `-v` fixes it.
 - **A webapp path no route matches renders the home page, not an error.** The
   router's catch-all (`client/web/unify/src/router/index.js`) redirects an
   unknown path to `/`, which loads cleanly — so a wrong path used to come back
@@ -341,6 +351,12 @@ What catches people out:
   the process start time, as on the primary.
 - **The shared token works against every worktree** — same JWT secret, and the
   cloned DB has the same user IDs. No re-bootstrap.
+- **`dev_ui_verify` takes no worktree argument.** It drives the webapp named in
+  the `.env.e2e` of the checkout its MCP server was started from — the primary,
+  for a session launched there. Against a worktree, run
+  `node dev/mcp/uiverify.mjs` with `baseURL` in its JSON argument;
+  `npx playwright test` run from the worktree already reads the worktree's own
+  `.env.e2e`.
 - **`rm` refuses while the checkout is dirty.** It will not discard your work.
 - **A worktree needs no `cleanup.sh`** — `rm` drops its whole database, so
   nothing it created can outlive it.
