@@ -154,7 +154,7 @@ func watch(root, pkg, bin string, childArgs []string, logger *log.Logger) error 
 	defer child.stop()
 
 	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 
 	stop := make(chan struct{})
 	go func() {
@@ -243,10 +243,7 @@ func (s *server) start() error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	// Its own process group, so a shutdown reaches whatever the server itself
-	// started, and so the terminal's Ctrl-C arrives here rather than racing us
-	// to the child.
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.SysProcAttr = childAttr()
 
 	if err := cmd.Start(); err != nil {
 		return err
