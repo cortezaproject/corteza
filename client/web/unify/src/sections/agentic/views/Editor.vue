@@ -289,62 +289,6 @@
                     </div>
                   </Panel>
 
-                  <Panel :header="$t('agent.editor.panels.tcl')" toggleable>
-                    <div class="flex flex-col gap-3">
-                      <CInputToggleCard
-                        v-model="agent.behavior.treatyCLEnabled"
-                        :label="$t('agent.editor.tcl.enabledLabel')"
-                        :description="$t('agent.editor.tcl.enabledHelp')"
-                        :disabled="!canEdit"
-                      />
-
-                      <template v-if="agent.behavior.treatyCLEnabled">
-                        <CFormGroup :description="$t('agent.editor.tcl.temperature.help')">
-                          <template #label>
-                            {{ $t('agent.editor.tcl.temperature.label') }} ({{
-                              agent.behavior.tclTemperature
-                            }})
-                          </template>
-                          <Slider
-                            v-model="agent.behavior.tclTemperature"
-                            :min="1"
-                            :max="10"
-                            :step="1"
-                            class="w-full mt-2"
-                            :disabled="!canEdit"
-                          />
-                        </CFormGroup>
-
-                        <CFormGroup
-                          :label="$t('agent.editor.tcl.articles.label')"
-                          :description="$t('agent.editor.tcl.articles.help')"
-                        />
-
-                        <div
-                          v-for="group in tclSortedArticleGroups"
-                          :key="group.treatyLabel"
-                          class="flex flex-col gap-2 mt-2"
-                        >
-                          <span
-                            class="text-sm font-semibold text-muted-color uppercase tracking-wide"
-                          >
-                            {{ group.treatyLabel }}
-                          </span>
-                          <CInputToggleCard
-                            v-for="article in group.items"
-                            :key="article.id"
-                            :modelValue="agent.behavior.tclArticles.includes(article.id)"
-                            :label="article.label"
-                            :description="article.interpretation"
-                            :disabled="!canEdit || article.hardwired"
-                            dimWhenOff
-                            @update:modelValue="toggleTclArticle(article.id, $event)"
-                          />
-                        </div>
-                      </template>
-                    </div>
-                  </Panel>
-
                   <Panel :header="$t('agent.editor.panels.knowledgeBase')" toggleable>
                     <div class="flex flex-col gap-3">
                       <CFormGroup
@@ -1106,86 +1050,10 @@ function columnLabel(col) {
 
 // Tool configuration dialog
 
-// TCL
-const tclMasterList = ref(null)
-const loadingTcl = ref(false)
-
-const tclArticleOptions = computed(() => {
-  if (!tclMasterList.value) return []
-  const treaties = tclMasterList.value.treaties || []
-  const groups = tclMasterList.value.articles || []
-  return groups.map(g => {
-    const treaty = treaties.find(t => t.id === g.treatyId)
-    return {
-      treatyLabel: treaty?.label || g.treatyId,
-      items: g.items.map(a => ({
-        id: a.id,
-        label: a.label,
-        hardwired: a.hardwired,
-        defaultSelected: a.defaultSelected,
-        interpretation: a.interpretation || '',
-      })),
-    }
-  })
-})
-
-const tclSortedArticleGroups = computed(() => tclArticleOptions.value)
-
 function toggleTemperature(enabled) {
   agent.value.execution.model.temperature = enabled ? 0.7 : null
 }
 
-function toggleTclArticle(articleId, enabled) {
-  if (enabled) {
-    if (!agent.value.behavior.tclArticles.includes(articleId)) {
-      agent.value.behavior.tclArticles.push(articleId)
-    }
-  } else {
-    agent.value.behavior.tclArticles = agent.value.behavior.tclArticles.filter(
-      id => id !== articleId,
-    )
-  }
-}
-
-function defaultTclArticleIds() {
-  const ids = []
-  for (const group of tclArticleOptions.value) {
-    for (const a of group.items) {
-      if (a.defaultSelected || a.hardwired) ids.push(a.id)
-    }
-  }
-  return ids
-}
-
-function applyTclArticleDefaults() {
-  const defaults = defaultTclArticleIds()
-  const current = agent.value.behavior.tclArticles || []
-  const merged = Array.from(new Set([...current, ...defaults]))
-  agent.value.behavior.tclArticles = merged
-}
-
-watch(
-  () => agent.value?.behavior?.treatyCLEnabled,
-  (enabled, prev) => {
-    if (enabled && !prev) applyTclArticleDefaults()
-  },
-)
-
-watch(tclArticleOptions, () => {
-  if (agent.value?.behavior?.treatyCLEnabled) applyTclArticleDefaults()
-})
-
-async function fetchTclMasterList() {
-  loadingTcl.value = true
-  try {
-    tclMasterList.value = await $SystemAPI.agentTclMasterList()
-  } catch (e) {
-    console.error('Failed to fetch TCL master list:', e)
-    tclMasterList.value = null
-  } finally {
-    loadingTcl.value = false
-  }
-}
 function applyAgentData(res) {
   agent.value = new system.Agent(res)
   capture()
@@ -1426,7 +1294,6 @@ watch(activeTab, val => {
 
 onMounted(() => {
   fetchAvailableTools()
-  fetchTclMasterList()
 })
 
 async function fetchAvailableTools() {

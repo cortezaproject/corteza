@@ -114,7 +114,6 @@ editor:
     general: General
     invocation: Invocation
     knowledgeBase: Knowledge Base
-    tcl: Treaty Compliance Layer
   provider:
     help: The LLM provider to use for this agent
     label: LLM Provider
@@ -146,19 +145,6 @@ editor:
     help: Select TAQs this agent can invoke to automate routines
     label: TAQs
     selectPlaceholder: Select a TAQ to add...
-  tcl:
-    articles:
-      hardwired: Required
-      help: Select which treaty articles the agent must comply with.
-      label: Compliance Articles
-      placeholder: Select articles...
-    enabledHelp: When enabled, the agent will enforce compliance rules and inject treaty articles into the system prompt
-    enabledLabel: Enable TCL
-    help: Enforce compliance with applicable treaties and regulations at the platform level
-    label: Treaty Compliance Layer
-    temperature:
-      help: Controls how verbosely the agent cites compliance references in responses (1 = minimal, 10 = full citations)
-      label: Citation Verbosity
   temperature:
     help: Controls randomness. Lower values (0.0) are more deterministic, higher values (1.0) are more creative. Only supported on certain models.
     label: Temperature

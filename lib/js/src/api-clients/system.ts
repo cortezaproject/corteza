@@ -10178,38 +10178,6 @@ export default class System {
     return '/project-board/'
   }
 
-  // Get TCL master list
-  async agentTclMasterList(extra: AxiosRequestConfig = {}): Promise<KV> {
-    const cfg: AxiosRequestConfig = {
-      ...extra,
-      method: 'get',
-      url: this.agentTclMasterListEndpoint(),
-    }
-
-    return this.api()
-      .request(cfg)
-      .then(result => stdResolve(result))
-  }
-
-  agentTclMasterListCancellable(extra: AxiosRequestConfig = {}): {
-    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
-    cancel: () => void
-  } {
-    const cancelTokenSource = axios.CancelToken.source()
-    const options = { ...extra, cancelToken: cancelTokenSource.token }
-
-    return {
-      response: () => this.agentTclMasterList(options),
-      cancel: () => {
-        cancelTokenSource.cancel()
-      },
-    }
-  }
-
-  agentTclMasterListEndpoint(): string {
-    return '/agents/tcl'
-  }
-
   // List agents
   async agentList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { query, projectID, handle, status, deleted, labels, limit, incTotal, pageCursor, sort } =

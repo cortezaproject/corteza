@@ -7,7 +7,6 @@ import (
 	"github.com/crusttech/human/server/pkg/label"
 
 	"github.com/crusttech/human/server/store"
-	"github.com/crusttech/human/server/system/agentic/tcl"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -19,7 +18,7 @@ import (
 // Search / Create / Update delegate to, the hand-written UndeleteByID (the
 // generated undelete is disabled because it uses the non-standard
 // CanDeleteAgent + AgentErrNotAllowedToDelete pairing), and the
-// resource-specific helpers (Get, prepareTCL). The loadAgent helper is
+// resource-specific helpers (Get). The loadAgent helper is
 // generated in agent.gen.go.
 
 type (
@@ -78,8 +77,8 @@ func (svc *agent) onLookup(ctx context.Context, ID uint64, aProps *agentActionPr
 
 // onCreate is the custom body for the generated Create. The generated method
 // owns the action-log scaffold + recordAction + the CanCreateAgent check; the
-// Revision / Status defaults, optional temperature validation, prepareTCL and
-// persistence live here.
+// Revision / Status defaults, optional temperature validation and persistence
+// live here.
 func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 	new.ID = nextID()
 	new.CreatedAt = *now()
@@ -112,8 +111,6 @@ func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 		}
 	}
 
-	prepareTCL(&new.Behavior)
-
 	if err = store.CreateAgent(ctx, svc.store, new); err != nil {
 		return
 	}
@@ -143,7 +140,7 @@ func defaultInvocation(inv *types.AgentInvocation) {
 // onUpdate is the custom body for the generated Update. The generated method
 // owns the action-log scaffold + recordAction; the update access check (on the
 // incoming resource), the stale guard, the Revision bump, optional temperature
-// validation, prepareTCL and the whole-record persistence live here.
+// validation and the whole-record persistence live here.
 func (svc *agent) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Agent, aProps *agentActionProps, _ func() error, _ func() error) error {
 	if !svc.ac.CanUpdateAgent(ctx, upd) {
 		return AgentErrNotAllowedToUpdate()
@@ -174,8 +171,6 @@ func (svc *agent) onUpdate(ctx context.Context, s store.Storer, upd, res *types.
 			}
 		}
 	}
-
-	prepareTCL(&upd.Behavior)
 
 	if err := store.UpdateAgent(ctx, s, upd); err != nil {
 		return err
@@ -249,19 +244,4 @@ func (svc *agent) onSearch(ctx context.Context, filter types.AgentFilter, aProps
 	}
 
 	return set, f, nil
-}
-
-// prepareTCL ensures TCL is properly initialized on the agent behavior:
-// - if enabled and no articles selected, populate defaults
-// - always merge hardwired articles back in (user cannot remove them)
-// TCL is opt-in: only an explicit true enables it; nil (unset) means off.
-func prepareTCL(b *types.AgentBehavior) {
-	if b.TreatyCLEnabled == nil || !*b.TreatyCLEnabled {
-		return
-	}
-	if len(b.TreatyCLArticles) == 0 {
-		b.TreatyCLArticles = tcl.DefaultArticleIDs()
-	} else {
-		b.TreatyCLArticles = tcl.MergeWithHardwired(b.TreatyCLArticles)
-	}
 }

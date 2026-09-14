@@ -50,9 +50,6 @@ type (
 		Guardrails          []string            `json:"guardrails,omitempty"`
 		InjectSystemContext bool                `json:"injectSystemContext"`
 		KnowledgeBases      KnowledgeBaseIDList `json:"knowledgeBases,omitempty"`
-		TreatyCLEnabled     *bool               `json:"treatyCLEnabled"`
-		TreatyCLTemperature int                 `json:"tclTemperature,omitempty"`
-		TreatyCLArticles    []string            `json:"tclArticles,omitempty"`
 	}
 
 	AgentExecution struct {
@@ -289,16 +286,6 @@ func (r AgentBehavior) Clone() *AgentBehavior {
 		copy(dup.Guardrails, r.Guardrails)
 	}
 
-	if r.TreatyCLEnabled != nil {
-		v := *r.TreatyCLEnabled
-		dup.TreatyCLEnabled = &v
-	}
-
-	if r.TreatyCLArticles != nil {
-		dup.TreatyCLArticles = make([]string, len(r.TreatyCLArticles))
-		copy(dup.TreatyCLArticles, r.TreatyCLArticles)
-	}
-
 	return &dup
 }
 
@@ -321,18 +308,6 @@ func (r AgentBehavior) Diff(cmp *AgentBehavior) []*revisions.Change {
 
 	if !reflect.DeepEqual(r.KnowledgeBases, cmp.KnowledgeBases) {
 		out = append(out, &revisions.Change{Key: "knowledgeBases", Old: []any{cmp.KnowledgeBases}, New: []any{r.KnowledgeBases}})
-	}
-
-	if !reflect.DeepEqual(r.TreatyCLEnabled, cmp.TreatyCLEnabled) {
-		out = append(out, &revisions.Change{Key: "treatyCLEnabled", Old: []any{cmp.TreatyCLEnabled}, New: []any{r.TreatyCLEnabled}})
-	}
-
-	if r.TreatyCLTemperature != cmp.TreatyCLTemperature {
-		out = append(out, &revisions.Change{Key: "tclTemperature", Old: []any{cmp.TreatyCLTemperature}, New: []any{r.TreatyCLTemperature}})
-	}
-
-	if !reflect.DeepEqual(r.TreatyCLArticles, cmp.TreatyCLArticles) {
-		out = append(out, &revisions.Change{Key: "tclArticles", Old: []any{cmp.TreatyCLArticles}, New: []any{r.TreatyCLArticles}})
 	}
 
 	return out

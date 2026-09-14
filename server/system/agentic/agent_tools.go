@@ -22,8 +22,7 @@ const (
 		`'short' is the name a person sees — an agent has no separate name field. 'sidebarRoles' limits who sees it in the webapp sidebar and is not an authorization check.`
 
 	agentBehaviorDoc = `JSON object: what the agent is told and what it may draw on. ` +
-		`{"systemPrompt":"You triage support tickets.","guardrails":["no-pii"],"injectSystemContext":true,"knowledgeBases":["<knowledgeBaseID>"],"treatyCLEnabled":false}. ` +
-		`Setting treatyCLEnabled true makes the server fill tclArticles with its default set when you send none, and merge the hardwired ones into any list you do send — so reading back a longer list than you sent is expected, not a fault.`
+		`{"systemPrompt":"You triage support tickets.","guardrails":["no-pii"],"injectSystemContext":true,"knowledgeBases":["<knowledgeBaseID>"]}.`
 
 	agentExecutionDoc = `JSON object: which model runs it and how far it may go. ` +
 		`{"model":{"llmProviderID":"<id>","model":"claude-sonnet-5","temperature":0.2},"limits":{"maxIterations":10,"timeout":"5m","softLimitRatio":0.8,"contextWindow":200000,"outputTokens":8192}}. ` +

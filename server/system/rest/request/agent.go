@@ -37,9 +37,6 @@ var (
 
 type (
 	// Internal API interface
-	AgentTclMasterList struct {
-	}
-
 	AgentList struct {
 		// Query GET parameter
 		//
@@ -239,22 +236,6 @@ type (
 		ApprovedTools []string
 	}
 )
-
-// NewAgentTclMasterList request
-func NewAgentTclMasterList() *AgentTclMasterList {
-	return &AgentTclMasterList{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AgentTclMasterList) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
-}
-
-// Fill processes request and fills internal variables
-func (r *AgentTclMasterList) Fill(req *http.Request) (err error) {
-
-	return err
-}
 
 // NewAgentList request
 func NewAgentList() *AgentList {

@@ -19,7 +19,6 @@ import (
 	"github.com/crusttech/human/server/system/agentic/knowledge"
 	"github.com/crusttech/human/server/system/agentic/observability"
 	"github.com/crusttech/human/server/system/agentic/policy"
-	"github.com/crusttech/human/server/system/agentic/tcl"
 	"github.com/crusttech/human/server/system/types"
 )
 
@@ -320,15 +319,6 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taq
 	if len(agent.Behavior.KnowledgeBases) > 0 {
 		if kbContext := knowledge.BuildContext(ctx, r.knowledgeBase, r.namespaceLookup, r.moduleLookup, agent.Behavior.KnowledgeBases); kbContext != "" {
 			systemPrompt += "\n\n" + kbContext
-		}
-	}
-	if agent.Behavior.TreatyCLEnabled != nil && *agent.Behavior.TreatyCLEnabled && len(agent.Behavior.TreatyCLArticles) > 0 {
-		temp := agent.Behavior.TreatyCLTemperature
-		if temp == 0 {
-			temp = 5
-		}
-		if p := tcl.BuildPrompt(agent.Behavior.TreatyCLArticles, temp); p != "" {
-			systemPrompt += "\n\n" + p
 		}
 	}
 	if len(agent.Behavior.Guardrails) > 0 {

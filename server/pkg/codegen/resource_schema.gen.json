@@ -657,10 +657,7 @@
   "systemPrompt": "string",
   "guardrails": "string",
   "injectSystemContext": "bool",
-  "knowledgeBases": "KnowledgeBaseIDList",
-  "treatyCLEnabled": "bool",
-  "tclTemperature": "int",
-  "tclArticles": "string"
+  "knowledgeBases": "KnowledgeBaseIDList"
 },
   "execution": {
   "model": {

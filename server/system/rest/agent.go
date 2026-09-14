@@ -6,7 +6,6 @@ import (
 
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/agentic/runtime"
-	"github.com/crusttech/human/server/system/agentic/tcl"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
 	"github.com/crusttech/human/server/system/types"
@@ -129,10 +128,6 @@ func (ctrl *Agent) Exec(ctx context.Context, r *request.AgentExec) (interface{},
 		ExecContext:    r.Context,
 		ApprovedTools:  r.ApprovedTools,
 	})
-}
-
-func (ctrl *Agent) TclMasterList(_ context.Context, _ *request.AgentTclMasterList) (interface{}, error) {
-	return tcl.Master(), nil
 }
 
 func (ctrl *Agent) makePayload(ctx context.Context, a *types.Agent, err error) (*agentPayload, error) {

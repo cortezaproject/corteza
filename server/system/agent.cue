@@ -16,9 +16,6 @@ _agentDefs: {
 				{name: "Guardrails", slice:         true, type:                  "string", json: "guardrails,omitempty"},
 				{name: "InjectSystemContext", type: "bool", json:                "injectSystemContext"},
 				{name: "KnowledgeBases", goType:    "KnowledgeBaseIDList", json: "knowledgeBases,omitempty"},
-				{name: "TreatyCLEnabled", ptr:      true, type:                  "bool", json: "treatyCLEnabled"},
-				{name: "TreatyCLTemperature", type: "int", json:                 "tclTemperature,omitempty"},
-				{name: "TreatyCLArticles", slice:   true, type:                  "string", json: "tclArticles,omitempty"},
 	]}
 
 	AgentExecution: {name: "AgentExecution", fields: [

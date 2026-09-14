@@ -88,11 +88,6 @@ Flattening them would be ~25 params and would still not reach
 sent a zero would unlink the agent from its project's resource graph, which the
 service guards against explicitly.
 
-**`behavior.treatyCLEnabled` rewrites its own siblings.** `prepareTCL`
-(`agent.go:213`) fills `treatyCLArticles` with the default set when the flag is
-on and the list is empty, and merges the hardwired ones in when it is not. A
-caller reading back a different article list than it sent has not hit a bug.
-
 **Temperature is the only validated field, and it validates three things.**
 `onCreate`/`onUpdate` call the LLM validator only when `Temperature` is
 non-nil, and that call resolves `LLMProviderID` and asks the provider about the

@@ -567,9 +567,9 @@
       "t": "2026-08-28"
     },
     "client/web/unify/src/sections/agentic/views/Editor.vue": {
-      "h": "ecf6e3cd1344",
+      "h": "564d836ff902",
       "doc": "client/web/unify/src/sections/agentic/views/Editor.intent.md",
-      "t": "2026-08-28"
+      "t": "2026-09-14"
     },
     "client/web/unify/src/sections/agentic/views/Home.vue": {
       "h": "753045398cd6",
@@ -3452,9 +3452,9 @@
       "t": "2026-08-13"
     },
     "lib/js/src/system/types/agent.ts": {
-      "h": "afa081925579",
+      "h": "9fb770bfa7f9",
       "doc": "lib/js/src/system/system.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-09-14"
     },
     "lib/js/src/system/types/application.ts": {
       "h": "89b8a7006a9b",

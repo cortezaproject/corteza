@@ -17,9 +17,6 @@ interface AgentBehavior {
   guardrails: string[]
   injectSystemContext: boolean
   knowledgeBases: AgentBehaviorKnowledgeBase[]
-  treatyCLEnabled: boolean
-  tclTemperature: number
-  tclArticles: string[]
 }
 
 interface AgentExecutionModel {
@@ -128,9 +125,6 @@ export class Agent {
     guardrails: [],
     injectSystemContext: true,
     knowledgeBases: [],
-    treatyCLEnabled: false,
-    tclTemperature: 5,
-    tclArticles: [],
   }
 
   public execution: AgentExecution = {
@@ -212,9 +206,6 @@ export class Agent {
         knowledgeBases: Array.isArray(o.behavior?.knowledgeBases)
           ? o.behavior.knowledgeBases
           : this.behavior.knowledgeBases,
-        tclArticles: Array.isArray(o.behavior?.tclArticles)
-          ? o.behavior.tclArticles
-          : this.behavior.tclArticles,
       }
     }
 
