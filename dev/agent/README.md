@@ -350,7 +350,10 @@ What catches people out:
 - **The server rebuilds and restarts itself**, here as on the primary. Judge by
   the process start time, as on the primary.
 - **The shared token works against every worktree** — same JWT secret, and the
-  cloned DB has the same user IDs. No re-bootstrap.
+  cloned DB has the same user IDs. No re-bootstrap for the API.
+- **A browser login to a fresh worktree can be refused** ("invalid username and
+  password combination") while the token works. `bootstrap.sh` run from the
+  worktree resets the agent passwords in its database to `.state/`'s.
 - **`dev_ui_verify` takes no worktree argument.** It drives the webapp named in
   the `.env.e2e` of the checkout its MCP server was started from — the primary,
   for a session launched there. Against a worktree, run
