@@ -1,5 +1,9 @@
 <template>
   <div class="flex flex-col gap-4">
+    <p class="text-sm text-muted-color">
+      {{ $t('system.user-groups.editor.roles.explainer') }}
+    </p>
+
     <CInputRole
       class="w-full"
       :placeholder="$t('system.user-groups.editor.roles.placeholder')"

@@ -32,7 +32,11 @@
             <InputText id="name" name="name" v-model="userGroup.meta.short" :disabled="!canEdit" />
           </CFormGroup>
 
-          <CFormGroup name="handle" :label="$t('system.user-groups.editor.info.handle')">
+          <CFormGroup
+            name="handle"
+            :label="$t('system.user-groups.editor.info.handle')"
+            :description="$t('system.user-groups.editor.info.handle-description')"
+          >
             <InputText id="handle" name="handle" v-model="userGroup.handle" :disabled="!canEdit" />
           </CFormGroup>
 
@@ -65,14 +69,25 @@
                 @click="addParent"
               />
             </template>
+            <p class="text-sm text-muted-color">
+              {{ $t('system.user-groups.editor.info.parents.description') }}
+            </p>
             <CFormList
               v-if="userGroup.config?.path"
               v-model="userGroup.config.path"
               :min-items="1"
               :empty-message="$t('system.user-groups.editor.info.parents.empty')"
               :columns="[
-                { label: $t('system.user-groups.editor.info.parents.parent.label'), width: '1fr' },
-                { label: $t('system.user-groups.editor.info.parents.name.label'), width: '1fr' },
+                {
+                  label: $t('system.user-groups.editor.info.parents.parent.label'),
+                  tooltip: $t('system.user-groups.editor.info.parents.parent.tooltip'),
+                  width: '1fr',
+                },
+                {
+                  label: $t('system.user-groups.editor.info.parents.name.label'),
+                  tooltip: $t('system.user-groups.editor.info.parents.name.tooltip'),
+                  width: '1fr',
+                },
               ]"
               :disabled="!canEdit"
             >

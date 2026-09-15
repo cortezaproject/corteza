@@ -217,9 +217,9 @@
       "t": "2026-09-15"
     },
     "client/web/unify/src/sections/admin/components/UserGroup/UserGroupRoles.vue": {
-      "h": "8ea9c3c84951",
+      "h": "d8ac03837842",
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-15"
     },
     "client/web/unify/src/sections/admin/components/Workflow/WorkflowTriggers.vue": {
       "h": "9d2570f042cb",
@@ -497,7 +497,7 @@
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/admin/views/system/UserGroup/Editor.vue": {
-      "h": "aec5977f79c9",
+      "h": "d4cdd1187de8",
       "doc": "client/web/unify/src/sections/admin/views/system/UserGroup/Editor.intent.md",
       "t": "2026-09-15"
     },

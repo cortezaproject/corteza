@@ -1249,19 +1249,23 @@ user-groups:
       delete: Delete
       deletedAt: Deleted at
       handle: Handle
+      handle-description: Optional. A unique identifier imports and exports use to refer to this group instead of its ID. At least 2 characters, starting with a letter and ending with a letter or number; letters, numbers, underscores, dashes and dots in between.
       id: ID
       invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
       meta:
         description: Description
         short: Name
       parents:
+        description: Members of the groups listed here also get this group's roles, and the roles of every group below it. A group can report to more than one group.
         empty: No parent user groups yet.
         name:
           label: Relationship name
           placeholder: Enter name for the relationship
+          tooltip: 'Optional. Used only by isDescendantOf role expressions: leave it empty to count this link for every check, or use read, create, update or delete for that kind only. Names must differ between links.'
         parent:
           label: Parent user group
           placeholder: Select parent user group
+          tooltip: The group this one sits under. Its members inherit the roles attached here.
         title: This user group reports to
       placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
       title: Basic information
@@ -1289,6 +1293,7 @@ user-groups:
       addError: Failed to add role
       count: roles
       empty: No roles assigned to this user group yet.
+      explainer: Members of this group, and of every group it reports to, get these roles. Contextual roles cannot be added.
       fetchError: Failed to load roles
       placeholder: Select a role to add
       remove: Remove
