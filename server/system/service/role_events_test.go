@@ -73,6 +73,7 @@ func newRoleTestService(t *testing.T) (*role, *roleEventSpy, store.Storer, conte
 		rbac.AllowRule(testRoleID, types.RoleRbacResource(0), "read"),
 		rbac.AllowRule(testRoleID, types.RoleRbacResource(0), "update"),
 		rbac.AllowRule(testRoleID, types.RoleRbacResource(0), "delete"),
+		rbac.AllowRule(testRoleID, types.RoleRbacResource(0), "members.manage"),
 		rbac.AllowRule(testRoleID, types.UserRbacResource(0), "read"),
 	))
 

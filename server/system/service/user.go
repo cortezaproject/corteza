@@ -17,11 +17,15 @@ import (
 	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/logger"
+	"github.com/crusttech/human/server/pkg/rbac"
 	"github.com/crusttech/human/server/pkg/sass"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/service/event"
 	"github.com/crusttech/human/server/system/types"
+	"go.uber.org/zap"
 )
 
 const (
@@ -37,6 +41,13 @@ type (
 		opt       UserOptions
 		preloaded map[string]*types.User
 		att       AttachmentService
+		groups    userGroupTree
+	}
+
+	// userGroupTree is the live org tree that places each user in one group.
+	userGroupTree interface {
+		AssignGroupMembers(group id.ID, members ...id.ID) error
+		RemoveGroupMembers(group id.ID, members ...id.ID) error
 	}
 
 	synteticUserDataGen interface {
@@ -113,6 +124,7 @@ func User(opt UserOptions) *user {
 			opt:       opt,
 			preloaded: make(map[string]*types.User),
 			att:       DefaultAttachment,
+			groups:    rbac.Global(),
 		},
 	}
 }
@@ -593,6 +605,10 @@ func (svc *user) onCreate(ctx context.Context, new *types.User) error {
 	new.CreatedAt = *now()
 	new.EmailConfirmed = true
 
+	if err := svc.checkUserGroup(ctx, new.UserGroupID); err != nil {
+		return err
+	}
+
 	if err := store.CreateUser(ctx, svc.store, new); err != nil {
 		return err
 	}
@@ -600,6 +616,8 @@ func (svc *user) onCreate(ctx context.Context, new *types.User) error {
 	if err := label.Create(ctx, svc.store, new); err != nil {
 		return err
 	}
+
+	svc.placeInGroup(ctx, new.ID, 0, new.UserGroupID)
 
 	_ = svc.services.eventbus.WaitFor(ctx, event.UserAfterCreate(new, nil))
 	return nil
@@ -641,12 +659,52 @@ func (svc *user) onUpdate(ctx context.Context, s store.Storer, upd, res *types.U
 		return err
 	}
 
+	if upd.UserGroupID != res.UserGroupID {
+		if err := svc.checkUserGroup(ctx, upd.UserGroupID); err != nil {
+			return err
+		}
+
+		svc.placeInGroup(ctx, res.ID, res.UserGroupID, upd.UserGroupID)
+	}
+
 	if err := after(); err != nil {
 		return err
 	}
 
 	_ = svc.services.eventbus.WaitFor(ctx, event.UserAfterUpdate(upd, res))
 	return nil
+}
+
+// checkUserGroup refuses a group that does not exist or is deleted; 0 is no group.
+func (svc *user) checkUserGroup(ctx context.Context, userGroupID uint64) error {
+	if userGroupID == 0 {
+		return nil
+	}
+
+	g, err := store.LookupUserGroupByID(ctx, svc.store, userGroupID)
+	if errors.IsNotFound(err) || (err == nil && g.DeletedAt != nil) {
+		return UserGroupErrNotFound()
+	}
+
+	return err
+}
+
+// placeInGroup moves the user between groups in the live org tree once the
+// write is committed.
+func (svc *user) placeInGroup(ctx context.Context, userID, from, to uint64) {
+	store.AfterCommit(ctx, func() {
+		var err error
+		switch {
+		case to > 0:
+			err = svc.services.groups.AssignGroupMembers(id.MustNumID(to), id.MustNumID(userID))
+		case from > 0:
+			err = svc.services.groups.RemoveGroupMembers(id.MustNumID(from), id.MustNumID(userID))
+		}
+
+		if err != nil {
+			logger.Default().Warn("could not place user in org tree", zap.Uint64("userID", userID), zap.Error(err))
+		}
+	})
 }
 
 func (svc *user) onDelete(ctx context.Context, s store.Storer, res *types.User, aProps *userActionProps) error {

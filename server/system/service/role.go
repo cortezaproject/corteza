@@ -11,6 +11,7 @@ import (
 	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/handle"
+	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/logger"
 	"github.com/crusttech/human/server/pkg/options"
@@ -89,6 +90,8 @@ type (
 
 	rbacRuleService interface {
 		CloneRulesByRoleID(ctx context.Context, roleID uint64, toRoleID ...uint64) error
+		AddGroupRole(group id.ID, roles ...id.ID) error
+		RemoveGroupRole(group id.ID, roles ...id.ID) error
 	}
 
 	roleAuth interface {
@@ -601,8 +604,21 @@ func (svc *role) onMemberAddGroup(ctx context.Context, _ *roleActionProps, roleI
 		return RoleErrNotAllowedToManageMembers()
 	}
 
+	live, err := svc.liveUserGroup(ctx, userGroupID)
+	if err != nil {
+		return err
+	}
+
+	if !live {
+		return UserGroupErrNotFound()
+	}
+
 	resource := fmt.Sprintf("corteza::system:user-group/%d", userGroupID)
-	return store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: resource})
+	if err = store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: resource}); err != nil {
+		return err
+	}
+
+	return svc.services.rbac.AddGroupRole(id.MustNumID(userGroupID), id.MustNumID(r.ID))
 }
 
 func (svc *role) onMemberRemove(ctx context.Context, _ *roleActionProps, roleID, memberID uint64) error {
@@ -664,7 +680,31 @@ func (svc *role) onMemberRemoveGroup(ctx context.Context, _ *roleActionProps, ro
 	}
 
 	resource := fmt.Sprintf("corteza::system:user-group/%d", userGroupID)
-	return store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: resource})
+	if err = store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: resource}); err != nil {
+		return err
+	}
+
+	// a deleted group has no node in the org tree, so there is nothing live to update
+	live, err := svc.liveUserGroup(ctx, userGroupID)
+	if err != nil || !live {
+		return err
+	}
+
+	return svc.services.rbac.RemoveGroupRole(id.MustNumID(userGroupID), id.MustNumID(r.ID))
+}
+
+// liveUserGroup reports whether the group exists and is not deleted.
+func (svc *role) liveUserGroup(ctx context.Context, userGroupID uint64) (bool, error) {
+	g, err := store.LookupUserGroupByID(ctx, svc.store, userGroupID)
+	if errors.IsNotFound(err) {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return g.DeletedAt == nil, nil
 }
 
 // -- init helpers --
