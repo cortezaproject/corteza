@@ -19,6 +19,9 @@
     @filter="onFilter"
     @show="onShow"
   >
+    <template v-if="$slots.option" #option="slotProps">
+      <slot name="option" v-bind="slotProps" />
+    </template>
     <template #footer>
       <div
         v-if="hasNextPage || hasPrevPage"
@@ -62,6 +65,9 @@
     @filter="onFilter"
     @show="onShow"
   >
+    <template v-if="$slots.option" #option="slotProps">
+      <slot name="option" v-bind="slotProps" />
+    </template>
     <template #footer>
       <div
         v-if="hasNextPage || hasPrevPage"

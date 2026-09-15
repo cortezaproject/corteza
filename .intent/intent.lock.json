@@ -4116,15 +4116,25 @@
       "doc": "lib/vue/src/components/input/input.intent.md",
       "t": "2026-08-24"
     },
-    "lib/vue/src/components/input/CInputUser.vue": {
-      "h": "181b9ce83536",
+    "lib/vue/src/components/input/CInputUser.option.test.ts": {
+      "h": "02331ca3621c",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-08-24"
+      "t": "2026-09-15"
+    },
+    "lib/vue/src/components/input/CInputUser.vue": {
+      "h": "a49cf655fb23",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-09-15"
+    },
+    "lib/vue/src/components/input/CInputUserGroup.exclude.test.ts": {
+      "h": "cc955c197fb7",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-09-15"
     },
     "lib/vue/src/components/input/CInputUserGroup.vue": {
-      "h": "e072f9301cce",
+      "h": "1404ec04e0f4",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-08-24"
+      "t": "2026-09-15"
     },
     "lib/vue/src/components/input/CInputWorkflow.vue": {
       "h": "bf753435d5d0",

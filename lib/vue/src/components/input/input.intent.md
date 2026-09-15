@@ -32,7 +32,7 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 
 - Selector contract: v-model holds the entity ID (string), or an array of them where the selector offers `multiple`; props `placeholder`, `disabled`; options are self-fetched with search.
 - A dropdown option is two lines wherever the resource carries a description: the name, then the description muted beneath it, guarded so an option without one stays a single line. Agent, Chart, KnowledgeBase, LLM, Module, Namespace, Role, UserGroup and Workflow read it from `meta.description`; TAQ (NgAutomation) from a top-level `description`. `CInputPickers.descriptions.test.ts` is the sweep that holds the set together.
-- `CInputUser`, `CInputRole`, `CInputUserGroup`, `CInputAgent`, `CInputLLM`, `CInputLabel`, `CInputKnowledgeBase` — SystemAPI-backed selectors (User/Role support exclusion lists and a `multiple` mode rendering picked entities as chips; Label/KnowledgeBase can create inline).
+- `CInputUser`, `CInputRole`, `CInputUserGroup`, `CInputAgent`, `CInputLLM`, `CInputLabel`, `CInputKnowledgeBase` — SystemAPI-backed selectors (User/Role/UserGroup support exclusion lists; User/Role support a `multiple` mode rendering picked entities as chips; User hands an `option` slot to its dropdown so a caller can add a line under a user without replacing the selector; Label/KnowledgeBase can create inline).
 - `CInputModel` — model selector scoped to an LLM provider (SystemAPI).
 - `CInputTAQ`, `CInputWorkflow` — AutomationAPI-backed selectors.
 - `CInputNamespace`, `CInputModule`, `CInputChart` — store-backed compose selectors (module/chart scoped by `namespaceID` prop).

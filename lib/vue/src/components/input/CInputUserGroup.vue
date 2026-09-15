@@ -2,7 +2,7 @@
   <Select
     :model-value="selectedUserGroup"
     @update:model-value="onSelect"
-    :options="options"
+    :options="filteredOptions"
     :option-label="getOptionLabel"
     :placeholder="placeholder"
     :disabled="disabled"
@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -49,6 +49,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  excludeUserGroups: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'select'])
@@ -57,6 +61,13 @@ const $SystemAPI = inject('$SystemAPI')
 
 const options = ref([])
 const selectedUserGroup = ref(null)
+
+const filteredOptions = computed(() =>
+  props.excludeUserGroups.length
+    ? options.value.filter(g => !props.excludeUserGroups.includes(g.userGroupID))
+    : options.value,
+)
+
 const loading = ref(false)
 
 let cancelCurrentRequest = null
