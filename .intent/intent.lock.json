@@ -3987,9 +3987,9 @@
       "t": "2026-08-25"
     },
     "lib/vue/src/components/input/CFormList.vue": {
-      "h": "eef8ae5ae38e",
+      "h": "78b21dae9b18",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-08-25"
+      "t": "2026-09-15"
     },
     "lib/vue/src/components/input/CFormLists.disabled.test.ts": {
       "h": "098da2091505",

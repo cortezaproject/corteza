@@ -40,7 +40,7 @@
           </span>
           <i
             v-if="col.tooltip"
-            v-tooltip.top="col.tooltip"
+            v-tooltip.top="{ value: col.tooltip, class: 'max-w-md' }"
             class="pi pi-info-circle text-sm cursor-help ml-1"
           />
         </span>
