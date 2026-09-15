@@ -83,3 +83,7 @@ errors:
   - error: invalidHandle
     message: "invalid handle"
     severity: warning
+
+  - error: missingName
+    message: "missing name"
+    severity: warning

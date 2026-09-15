@@ -30,7 +30,11 @@ type agent struct {
 	actionlog actionlog.Recorder
 	store     store.Storer
 	ac        agentAccessController
-	services  *agentServices
+}
+
+type agentServices struct {
+	scope scope.Scope
+	caps  scope.Capabilities
 }
 
 func (svc *agent) FindByID(ctx context.Context, ID uint64) (res *types.Agent, err error) {
@@ -212,4 +216,10 @@ func (svc *agent) checkScope(ctx context.Context, cap scope.Capability) error {
 		return err
 	}
 	return scope.RequireCapability(ctx, cap)
+}
+func (svc *agent) scopeServices(ctx context.Context) *agentServices {
+	return &agentServices{
+		scope: scope.GetScopeFromContext(ctx),
+		caps:  scope.GetCapabilitiesFromContext(ctx),
+	}
 }

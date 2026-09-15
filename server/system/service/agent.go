@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/label"
@@ -13,37 +14,19 @@ import (
 // The CRUD skeleton (FindByID, Search, Create, Update, DeleteByID and the
 // toLabeledAgents helper) is generated in agent.gen.go from system/agent.cue.
 //
-// This file owns the struct, access-controller interface, constructor, the
-// LLM-validator opt-in, the on<Op> custom bodies the generated FindByID /
+// This file owns the constructor, the on<Op> custom bodies the generated FindByID /
 // Search / Create / Update delegate to, the hand-written UndeleteByID (the
 // generated undelete is disabled because it uses the non-standard
 // CanDeleteAgent + AgentErrNotAllowedToDelete pairing), and the
 // resource-specific helpers (Get). The loadAgent helper is
 // generated in agent.gen.go.
 
-type (
-	agentLLMValidator interface {
-		ValidateTemperature(ctx context.Context, providerID uint64, model string, temperature *float64) error
-		ResolveModel(ctx context.Context, providerID uint64, model string) (uint64, string, error)
-	}
-
-	agentServices struct {
-		llm agentLLMValidator
-	}
-)
-
 func Agent() *agent {
 	return &agent{
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
-		services:  &agentServices{},
 	}
-}
-
-func (svc *agent) WithLLMValidator(v agentLLMValidator) *agent {
-	svc.services.llm = v
-	return svc
 }
 
 func (svc *agent) Get(ctx context.Context, ID uint64) (*types.Agent, error) {
@@ -77,9 +60,12 @@ func (svc *agent) onLookup(ctx context.Context, ID uint64, aProps *agentActionPr
 
 // onCreate is the custom body for the generated Create. The generated method
 // owns the action-log scaffold + recordAction + the CanCreateAgent check; the
-// Revision / Status defaults, optional temperature validation and persistence
-// live here.
+// name check, Revision / Status defaults and persistence live here.
 func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
+	if err = validateAgent(new); err != nil {
+		return
+	}
+
 	new.ID = nextID()
 	new.CreatedAt = *now()
 	// An agent carries a tool allow-list and reads data on somebody's behalf,
@@ -94,23 +80,6 @@ func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 
 	defaultInvocation(&new.Invocation)
 
-	if svc.services.llm != nil {
-		// Settle the provider and model now. Stored unresolved, an agent is
-		// accepted here and fails on its first prompt, in front of whoever runs
-		// it rather than whoever wrote it.
-		if new.Execution.Model.LLMProviderID, new.Execution.Model.Model, err = svc.services.llm.ResolveModel(
-			ctx, new.Execution.Model.LLMProviderID, new.Execution.Model.Model,
-		); err != nil {
-			return
-		}
-
-		if new.Execution.Model.Temperature != nil {
-			if err = svc.services.llm.ValidateTemperature(ctx, new.Execution.Model.LLMProviderID, new.Execution.Model.Model, new.Execution.Model.Temperature); err != nil {
-				return
-			}
-		}
-	}
-
 	if err = store.CreateAgent(ctx, svc.store, new); err != nil {
 		return
 	}
@@ -119,6 +88,15 @@ func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 		return
 	}
 
+	return nil
+}
+
+// validateAgent refuses an agent with no name, the one field storing it
+// requires. Provider and model are left to the editor and to run time.
+func validateAgent(res *types.Agent) error {
+	if strings.TrimSpace(res.Meta.Short) == "" {
+		return AgentErrMissingName()
+	}
 	return nil
 }
 
@@ -139,11 +117,15 @@ func defaultInvocation(inv *types.AgentInvocation) {
 
 // onUpdate is the custom body for the generated Update. The generated method
 // owns the action-log scaffold + recordAction; the update access check (on the
-// incoming resource), the stale guard, the Revision bump, optional temperature
-// validation and the whole-record persistence live here.
+// incoming resource), the name check, the stale guard, the Revision bump and
+// the whole-record persistence live here.
 func (svc *agent) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Agent, aProps *agentActionProps, _ func() error, _ func() error) error {
 	if !svc.ac.CanUpdateAgent(ctx, upd) {
 		return AgentErrNotAllowedToUpdate()
+	}
+
+	if err := validateAgent(upd); err != nil {
+		return err
 	}
 
 	upd.Revision = res.Revision + 1
@@ -156,21 +138,6 @@ func (svc *agent) onUpdate(ctx context.Context, s store.Storer, upd, res *types.
 	// the existing owning project so an update never unlinks the agent from it
 	// (otherwise it would vanish from the project-scoped resource graph).
 	upd.ProjectID = res.ProjectID
-
-	if svc.services.llm != nil {
-		var err error
-		if upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, err = svc.services.llm.ResolveModel(
-			ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model,
-		); err != nil {
-			return err
-		}
-
-		if upd.Execution.Model.Temperature != nil {
-			if err := svc.services.llm.ValidateTemperature(ctx, upd.Execution.Model.LLMProviderID, upd.Execution.Model.Model, upd.Execution.Model.Temperature); err != nil {
-				return err
-			}
-		}
-	}
 
 	if err := store.UpdateAgent(ctx, s, upd); err != nil {
 		return err

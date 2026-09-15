@@ -19,7 +19,7 @@ const agentSectionDoc = "An agent's configuration is five objects — meta, beha
 
 const (
 	agentMetaDoc = `JSON object: the agent's labels. {"short":"Support triage","description":"Reads new tickets and files them","sidebarRoles":["<roleID>"]}. ` +
-		`'short' is the name a person sees — an agent has no separate name field. 'sidebarRoles' limits who sees it in the webapp sidebar and is not an authorization check.`
+		`'short' is the name a person sees and is required — an agent has no separate name field. 'sidebarRoles' limits who sees it in the webapp sidebar and is not an authorization check.`
 
 	agentBehaviorDoc = `JSON object: what the agent is told and what it may draw on. ` +
 		`{"systemPrompt":"You triage support tickets.","guardrails":["no-pii"],"knowledgeBases":["<knowledgeBaseID>"]}. ` +

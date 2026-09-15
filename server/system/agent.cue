@@ -218,6 +218,8 @@ agent: {
 
 		genAccessController: true
 
+		extraServices: false
+
 		undelete: false
 
 		customBodyOps: ["lookup", "search", "create", "update"]

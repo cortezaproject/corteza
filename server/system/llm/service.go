@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/store"
 	rt "github.com/crusttech/human/server/system/agentic/runtime"
@@ -253,18 +252,6 @@ func fetchModels(ctx context.Context, provider *sysTypes.LlmProvider, cred *sysT
 	}
 }
 
-// ValidateTemperature sends a minimal request with temperature set to verify the model accepts it.
-// Returns a KindInvalidData error with the provider's message so callers can surface it directly.
-func (svc *Service) ValidateTemperature(ctx context.Context, providerID uint64, model string, temperature *float64) error {
-	_, err := svc.Prompt(ctx, providerID, model, temperature, 1, []Message{{Role: "user", Content: "hi"}}, nil)
-	if err != nil {
-		// %s, not err.Error() as the format itself: a provider message
-		// containing a percent verb would otherwise be interpreted as one.
-		return errors.InvalidData("%s", err.Error())
-	}
-	return nil
-}
-
 // Prompt resolves the provider and its credential, then forwards the conversation to the LLM.
 // If model is non-empty it overrides the provider's configured model without changing the DB record.
 func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string, temperature *float64, outputTokens int, messages []Message, tools []Tool) (*Response, error) {
@@ -289,57 +276,6 @@ func (svc *Service) Prompt(ctx context.Context, providerID uint64, model string,
 // at run time with "not found", which reads as a broken ID rather than a
 // missing one. With a single configured provider there is no choice to make, so
 // it is made here; with several there is, and the error names them.
-// ResolveModel settles which provider and model an agent will run on, at the
-// moment the agent is written rather than the moment somebody runs it.
-//
-// An agent stored with no model name is accepted everywhere and then fails on
-// its first prompt with "no model named for LLM provider", which reaches a
-// different person from the one who configured it — usually much later, and
-// reading like a broken agent rather than an unfinished one. Resolving here
-// turns that into a refusal the author sees, with the models to choose from.
-//
-// The provider's own default model stands in when the agent names none, which
-// is the other half of what the run-time error already suggests.
-func (svc *Service) ResolveModel(ctx context.Context, providerID uint64, model string) (uint64, string, error) {
-	provider, err := svc.resolveProvider(ctx, providerID)
-	if err != nil {
-		return 0, "", err
-	}
-
-	if model == "" {
-		model = provider.Config.Model
-	}
-
-	if model == "" {
-		// Only reached on the error path, so the happy path never waits on the
-		// provider's API to list something nobody asked for.
-		known, lErr := svc.ListModels(ctx, provider.ID)
-		if lErr != nil || len(known) == 0 {
-			return 0, "", fmt.Errorf(
-				"no model named for LLM provider %d (%s): set execution.model.model on the agent, or config.model on the provider",
-				provider.ID, provider.Provider)
-		}
-
-		// A provider can offer dozens; naming them all buries the instruction
-		// under a wall of names, most of them irrelevant to the caller.
-		shown, rest := known, 0
-		if len(shown) > 12 {
-			shown, rest = shown[:12], len(known)-12
-		}
-
-		more := ""
-		if rest > 0 {
-			more = fmt.Sprintf(", and %d more — system_llm_provider_lookup with models lists them", rest)
-		}
-
-		return 0, "", fmt.Errorf(
-			"no model named for LLM provider %d (%s): set execution.model.model on the agent, or config.model on the provider. Models: %s%s",
-			provider.ID, provider.Provider, strings.Join(shown, ", "), more)
-	}
-
-	return provider.ID, model, nil
-}
-
 func (svc *Service) resolveProvider(ctx context.Context, providerID uint64) (*sysTypes.LlmProvider, error) {
 	if providerID == 0 {
 		return svc.soleActiveProvider(ctx)

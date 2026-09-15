@@ -719,6 +719,38 @@ func AgentErrInvalidHandle(mm ...*agentActionProps) *errors.Error {
 	return e
 }
 
+// AgentErrMissingName returns "system:agent.missingName" as *errors.Error
+//
+// This function is auto-generated.
+func AgentErrMissingName(mm ...*agentActionProps) *errors.Error {
+	var p = &agentActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("missing name", nil),
+
+		errors.Meta("type", "missingName"),
+		errors.Meta("resource", "system:agent"),
+
+		errors.Meta(agentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "agent.errors.missingName"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
