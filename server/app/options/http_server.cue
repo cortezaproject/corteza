@@ -129,6 +129,16 @@ HTTPServer: schema.#optionsGroup & {
 				"""
 			env: "HTTP_SSL_TERMINATED"
 		}
+		corsAllowedOrigins: {
+			defaultValue: "http://*,https://*"
+			description: """
+				Comma separated list of origins allowed to make cross-origin requests (CORS).
+				Each origin can contain one wildcard (https://*.example.com).
+				Corteza webapps served by this server do not need to be listed.
+				When empty, requests from any origin are allowed.
+				"""
+			env: "HTTP_CORS_ALLOWED_ORIGINS"
+		}
 
 		assets_path: {
 			description: """

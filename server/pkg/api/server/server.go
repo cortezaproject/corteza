@@ -4,6 +4,8 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"slices"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/go-chi/chi/v5"
@@ -46,10 +48,27 @@ func New(log *zap.Logger, opts *options.Options) *server {
 		opts: opts,
 	}
 
+	logCorsAllowedOrigins(s.log, opts.HTTPServer.GetCorsAllowedOrigins())
+
 	s.demux = Demux(waiting, waitingRoutes(s.log.Named("waiting"), s.opts.HTTPServer))
 	s.demux.Router(shutdown, shutdownRoutes())
 
 	return s
+}
+
+// logs restricted CORS origins and warns about the ones that can never match
+func logCorsAllowedOrigins(log *zap.Logger, origins []string) {
+	if slices.Equal(origins, options.CorsAnyOrigin()) {
+		return
+	}
+
+	log.Info("CORS allowed origins restricted (HTTP_CORS_ALLOWED_ORIGINS)", zap.Strings("origins", origins))
+
+	for _, origin := range origins {
+		if !strings.Contains(origin, "://") {
+			log.Warn("CORS allowed origin is missing scheme and will never match (HTTP_CORS_ALLOWED_ORIGINS)", zap.String("origin", origin))
+		}
+	}
 }
 
 func (s *server) LastError() error {

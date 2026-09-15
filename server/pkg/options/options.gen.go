@@ -45,6 +45,7 @@ type (
 		WebappBaseDir          string `env:"HTTP_WEBAPP_BASE_DIR"`
 		WebappList             string `env:"HTTP_WEBAPP_LIST"`
 		SslTerminated          bool   `env:"HTTP_SSL_TERMINATED"`
+		CorsAllowedOrigins     string `env:"HTTP_CORS_ALLOWED_ORIGINS"`
 		AssetsPath             string `env:"HTTP_SERVER_ASSETS_PATH"`
 		WebConsoleEnabled      bool   `env:"HTTP_SERVER_WEB_CONSOLE_ENABLED"`
 		WebConsoleUsername     string `env:"HTTP_SERVER_WEB_CONSOLE_USERNAME"`
@@ -356,6 +357,7 @@ func HttpServer() (o *HttpServerOpt) {
 		WebappBaseDir:          "./webapp/public",
 		WebappList:             "admin,compose,workflow,reporter,privacy",
 		SslTerminated:          isSecure(),
+		CorsAllowedOrigins:     "http://*,https://*",
 		WebConsoleEnabled:      false,
 		WebConsoleUsername:     "admin",
 		WebConsolePassword:     string(rand.Bytes(32)),
