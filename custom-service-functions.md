@@ -87,7 +87,6 @@ Generated audit of `server/*/service` methods that fall outside the standard CRU
 | accessControl | Trace | custom | server/compose/service/access_control.gen.go:67 |
 | agent | Get | custom | server/system/service/agent.go:51 |
 | agent | UndeleteByID | custom | server/system/service/agent.go:140 |
-| agent | WithLLMValidator | custom | server/system/service/agent.go:46 |
 | agent | onCreate | hook | server/system/service/agent.go:80 |
 | agent | onLookup | hook | server/system/service/agent.go:58 |
 | agent | onSearch | hook | server/system/service/agent.go:165 |

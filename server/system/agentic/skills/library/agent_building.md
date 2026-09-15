@@ -51,23 +51,22 @@ for working with them — is not a setting. The server adds it to the prompt of
 every agent that holds at least one tool in `access.tools`, and leaves it out of
 an agent that holds none.
 
-## The model is settled when the agent is written
+## The model is resolved when the agent runs
 
 `system_llm_provider_lookup` lists the providers this instance has and, with
 `models` set, the model names a provider advertises. Both go in
 `execution.model`.
 
-Creation resolves both and stores what it resolved, so an agent always carries
-the provider and model it will actually run on.
+Writing an agent checks one thing: `meta.short`, its name, is not empty.
+Provider, model and temperature are stored as sent, unchecked.
 
-- Leaving `llmProviderID` out is fine where one provider is active — that one is
-  written onto the agent. Where several are, the write is refused naming them.
-- A model name is required. If the agent names none and the provider has no
-  `config.model` of its own, the write is refused and the provider's models are
-  listed in the error.
+- Leaving `llmProviderID` out works where one provider is active — that one is
+  used on each run. Where several are, the run fails naming them.
+- Leaving the model out works where the provider has a `config.model` of its
+  own. Where it has none, the run fails asking for one.
 
-`system_agent_update` settles it the same way, so an edit cannot leave an agent
-in a state creation would have refused.
+So an agent that saved can still fail its first prompt, which is why the next
+step is not optional.
 
 ## Run it before you call it done
 

@@ -16,7 +16,6 @@ Group: `configuring`
 | `DeleteByID` | `(ctx, ID uint64) error` | `delete` |
 | `UndeleteByID` | `(ctx, ID uint64) error` | `undelete` — hand-written, `agent.go:145` |
 | `Get` | alias for `FindByID` | not a tool |
-| `WithLLMValidator` | wiring | not a tool |
 
 Risks: `lookup` read; `create`/`update`/`undelete` write; `delete` destructive.
 
@@ -88,16 +87,11 @@ Flattening them would be ~25 params and would still not reach
 sent a zero would unlink the agent from its project's resource graph, which the
 service guards against explicitly.
 
-**Temperature is the only validated field, and it validates three things.**
-`onCreate`/`onUpdate` call the LLM validator only when `Temperature` is
-non-nil, and that call resolves `LLMProviderID` and asks the provider about the
-model. Measured against the running server: a temperature with no provider ID
-fails `could not resolve LLM provider: not found`, and a temperature with a
-valid provider but an unknown model fails `Invalid model: … (HTTP 400)`. Omit
-the temperature and nothing is checked at all — the model name is stored as
-given. It is also skipped entirely where no validator is wired
-(`WithLLMValidator`), so the same payload can pass in one deployment and fail
-in another.
+**The name is the only validated field.** `onCreate`/`onUpdate` refuse an
+empty or blank `meta.short` with `missing name`, and check nothing else:
+provider, model and temperature are stored as given and first meet the provider
+on `system_agent_exec`. The webapp's agent editor requires provider and model
+before it saves; the API does not.
 
 **`access.tools` is an allow-list of MCP tool names** — the same names this
 registry publishes. An agent editing agents is expressible, so the description
