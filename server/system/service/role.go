@@ -287,7 +287,21 @@ func (svc *role) validate(ctx context.Context, new *types.Role) error {
 	return svc.UniqueCheck(ctx, new)
 }
 
-func (svc *role) beforeSearch(_ context.Context, _ *types.RoleFilter) error {
+// beforeSearch narrows the search to one user's or one group's memberships.
+func (svc *role) beforeSearch(_ context.Context, filter *types.RoleFilter) error {
+	if filter.MemberID > 0 && filter.UserGroupID > 0 {
+		return RoleErrSearchByMemberUserGroup()
+	}
+
+	if filter.Resource == "" {
+		if filter.MemberID > 0 {
+			filter.Resource = fmt.Sprintf("corteza::system:user/%d", filter.MemberID)
+		}
+		if filter.UserGroupID > 0 {
+			filter.Resource = fmt.Sprintf("corteza::system:user-group/%d", filter.UserGroupID)
+		}
+	}
+
 	return nil
 }
 
