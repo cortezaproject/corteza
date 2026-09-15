@@ -76,7 +76,10 @@ func shutdownRoutes() (r chi.Router) {
 // routes used when in active mode
 func activeRoutes(log *zap.Logger, mountable []func(r chi.Router), opts *options.Options) (r chi.Router) {
 	r = chi.NewRouter()
-	r.Use(handleCORS(opts.HTTPServer.GetCorsAllowedOrigins()))
+
+	// chatbot widget routes enforce their own per-chatbot allowed origins
+	widgetPath := options.CleanBase(opts.HTTPServer.BaseUrl, opts.HTTPServer.ApiBaseUrl, "widget/v1") + "/"
+	r.Use(skipCORS(widgetPath, handleCORS(opts.HTTPServer.GetCorsAllowedOrigins())))
 
 	httpOpt := opts.HTTPServer
 	authOpt := opts.Auth
