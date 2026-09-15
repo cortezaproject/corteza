@@ -212,7 +212,13 @@ DOM as it is; use a visibility assertion when visibility is the question.
   `git`, and check `git show --stat` afterwards. The same goes for
   `server/pkg/codegen/resource_schema.gen.json` and `server/system/rest.yaml`:
   prettier reflows the whole file, thousands of lines, for a three-line edit —
-  pass `skipFormat` to `dev_commit_create` when either is in the commit.
+  pass `skipFormat` to `dev_commit_create` when either is in the commit. A
+  `server/*/service/*_actions.yaml` gets every double quote rewritten to single
+  the same way.
+- **The dev tools' `files` argument is space-separated.** A comma-separated
+  list is read as one path, and `dev_intent_governing` answers it with "no
+  intent doc governs this path" — a clean negative, not an error, for files
+  that are covered. `dev_format_run` likewise reports "nothing to format".
 - **`make codegen` exits 0 when the REST codegen failed.** `codegen-legacy`
   runs `$GOPATH/bin/human-codegen`, which is built only when missing, so a
   binary older than `server/pkg/codegen/assets/*.tpl` dies on the template
@@ -353,7 +359,9 @@ What catches people out:
   cloned DB has the same user IDs. No re-bootstrap for the API.
 - **A browser login to a fresh worktree can be refused** ("invalid username and
   password combination") while the token works. `bootstrap.sh` run from the
-  worktree resets the agent passwords in its database to `.state/`'s.
+  worktree resets the agent passwords in its database to `.state/`'s. The
+  primary can drift the same way (`page.waitForURL` timeout from
+  `dev_ui_verify`); `bootstrap.sh` from the primary is the same fix.
 - **`dev_ui_verify` takes no worktree argument.** It drives the webapp named in
   the `.env.e2e` of the checkout its MCP server was started from — the primary,
   for a session launched there. Against a worktree, run
