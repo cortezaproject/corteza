@@ -353,15 +353,21 @@ What catches people out:
   with it. `new` warns and names the count.
 - **First `up` is minutes, not seconds** — `pnpm install` and a Go build. After
   that it is seconds.
+- **Do not pipe `up` into `tail` or `head`.** The server it starts keeps the
+  pipe open, so the pipeline never ends and anything chained after it never
+  runs. Redirect to a file instead.
 - **The server rebuilds and restarts itself**, here as on the primary. Judge by
   the process start time, as on the primary.
 - **The shared token works against every worktree** — same JWT secret, and the
   cloned DB has the same user IDs. No re-bootstrap for the API.
 - **A browser login to a fresh worktree can be refused** ("invalid username and
   password combination") while the token works. `bootstrap.sh` run from the
-  worktree resets the agent passwords in its database to `.state/`'s. The
-  primary can drift the same way (`page.waitForURL` timeout from
-  `dev_ui_verify`); `bootstrap.sh` from the primary is the same fix.
+  worktree resets `agent@local.dev`'s password in its database to `.state/`'s.
+  The primary can drift the same way (`page.waitForURL` timeout from
+  `dev_ui_verify`); `bootstrap.sh` from the primary is the same fix. It prints
+  `read-only login ready` for `agent-ro` even when the server refuses that
+  password as not secure enough, so an `agent-ro` login that still fails needs
+  its password set by hand, on that checkout's database only.
 - **`dev_ui_verify` takes no worktree argument.** It drives the webapp named in
   the `.env.e2e` of the checkout its MCP server was started from — the primary,
   for a session launched there. Against a worktree, run
