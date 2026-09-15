@@ -6,13 +6,10 @@ import (
 	"github.com/go-chi/cors"
 )
 
-// Sets up default CORS rules to use as a middleware
-func handleCORS(next http.Handler) http.Handler {
+// Sets up CORS rules with allowed origins to use as a middleware
+func handleCORS(allowedOrigins []string) func(http.Handler) http.Handler {
 	return cors.New(cors.Options{
-		AllowedOrigins: []string{
-			"http://*",
-			"https://*",
-		},
+		AllowedOrigins: allowedOrigins,
 		AllowedMethods: []string{
 			http.MethodHead,
 			http.MethodGet,
@@ -29,5 +26,5 @@ func handleCORS(next http.Handler) http.Handler {
 		},
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	}).Handler(next)
+	}).Handler
 }

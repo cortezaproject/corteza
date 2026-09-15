@@ -17,7 +17,6 @@ import (
 
 func BaseMiddleware(isProduction bool, log *zap.Logger) []func(http.Handler) http.Handler {
 	return []func(http.Handler) http.Handler{
-		handleCORS,
 		locale.DetectLanguage(locale.Global()),
 		middleware.RealIP,
 		api.RemoteAddrToContext,

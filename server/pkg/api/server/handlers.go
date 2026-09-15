@@ -26,7 +26,7 @@ import (
 // routes used when server is in waiting mode
 func waitingRoutes(log *zap.Logger, httpOpt options.HttpServerOpt) (r chi.Router) {
 	r = chi.NewRouter()
-	r.Use(handleCORS)
+	r.Use(handleCORS(httpOpt.GetCorsAllowedOrigins()))
 
 	mountServiceHandlers(r, log, httpOpt, waiting)
 
@@ -76,7 +76,7 @@ func shutdownRoutes() (r chi.Router) {
 // routes used when in active mode
 func activeRoutes(log *zap.Logger, mountable []func(r chi.Router), opts *options.Options) (r chi.Router) {
 	r = chi.NewRouter()
-	r.Use(handleCORS)
+	r.Use(handleCORS(opts.HTTPServer.GetCorsAllowedOrigins()))
 
 	httpOpt := opts.HTTPServer
 	authOpt := opts.Auth
@@ -96,7 +96,7 @@ func activeRoutes(log *zap.Logger, mountable []func(r chi.Router), opts *options
 		// Handle panic (sets 500 server error headers)
 		//r.Use(handlePanic)
 
-		// Base middleware, CORS, RealIP, RequestID, context-logger
+		// Base middleware, RealIP, RequestID, context-logger
 		r.Use(BaseMiddleware(envOpt.IsProduction(), log)...)
 
 		// Logging request if enabled
