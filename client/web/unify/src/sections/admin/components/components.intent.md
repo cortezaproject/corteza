@@ -22,7 +22,7 @@ via props.
 
 - `User/` — user editor panels: UserAvatar (avatar preview/upload/remove), UserExternalAuth (linked external identity providers), UserRoles (role-membership editor), UserSecurity (password + MFA management).
 - `Role/` — RoleMembers (role membership editor), RolePermissionClone (dialog that clones another role's permission rules; emits `cloned`).
-- `UserGroup/` — UserGroupMembers, UserGroupRoles: group membership and group-role assignment panels.
+- `UserGroup/` — UserGroupMembers, UserGroupRoles: group membership and group-role assignment panels. A user is in exactly one group, so UserGroupMembers never removes anyone: a row moves its user to another group, and adding a user from another group moves them here. Every move is confirmed with a sentence naming both groups, and adding and moving both need `members.manage` on the group.
 - `Template/` — template editor tooling: CCodeEditor (template body code editor), CTemplatePreview (render preview with variables/options JSON), CTemplateToolbox (snippet/partial helper).
 - `ApiGateway/` — CFilterParamsEditor (per-filter parameter form for gateway route filters: workflow picker, HTTP status, response type, …).
 - `Workflow/` — WorkflowTriggers (trigger listing panel for the workflow editor).

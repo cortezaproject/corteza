@@ -15,8 +15,11 @@ tests: []
 
 ## Intention
 
-Manage user groups — hierarchical groupings of users used for organizing
-and scoping (e.g. auth-client visibility), separate from RBAC roles.
+Manage user groups — a hierarchy that places every user in exactly one group,
+used for organizing and scoping (e.g. auth-client visibility). Roles attached
+to a group are live permissions: a member is evaluated against the roles of
+their own group and of every group beneath it, and a change to a group's
+members or roles applies without a server restart.
 
 ## Data touched
 
@@ -30,6 +33,7 @@ and scoping (e.g. auth-client visibility), separate from RBAC roles.
 
 ## When changing this
 
-- Groups are not roles: nothing here should touch permission rules.
+- Groups are not roles: nothing here should touch permission rules. Moving a
+  user into a group higher in the tree widens what they can reach.
 - Members/roles panel components live in
   `sections/admin/components/UserGroup/`.

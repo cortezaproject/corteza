@@ -206,10 +206,15 @@
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
       "t": "2026-08-21"
     },
-    "client/web/unify/src/sections/admin/components/UserGroup/UserGroupMembers.vue": {
-      "h": "96933089a05c",
+    "client/web/unify/src/sections/admin/components/UserGroup/UserGroupMembers.test.js": {
+      "h": "3f5898250455",
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-09-15"
+    },
+    "client/web/unify/src/sections/admin/components/UserGroup/UserGroupMembers.vue": {
+      "h": "48422bccc12a",
+      "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
+      "t": "2026-09-15"
     },
     "client/web/unify/src/sections/admin/components/UserGroup/UserGroupRoles.vue": {
       "h": "8ea9c3c84951",
@@ -492,9 +497,9 @@
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/admin/views/system/UserGroup/Editor.vue": {
-      "h": "d7f3c60a9d38",
+      "h": "aec5977f79c9",
       "doc": "client/web/unify/src/sections/admin/views/system/UserGroup/Editor.intent.md",
-      "t": "2026-08-21"
+      "t": "2026-09-15"
     },
     "client/web/unify/src/sections/admin/views/system/UserGroup/List.vue": {
       "h": "f1bcd02626f2",

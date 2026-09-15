@@ -25,7 +25,9 @@ mode) its members and attached roles.
 - Name (`meta.short`, required), handle, description; parent hierarchy as a
   list of `{selfID, name}` in `config.path` — hidden for the root group.
 - Edit-only panels: members and roles, both self-managed sub-components
-  keyed by `userGroupID` (they persist independently of the Save button).
+  (they persist independently of the Save button). The members panel takes
+  the group itself — it names the group in its move confirmations and gates
+  on `canManageMembersOnUserGroup`; the roles panel takes `userGroupID`.
 - Delete and undelete (restore); per-group permissions button;
   unsaved-changes guard on leave.
 

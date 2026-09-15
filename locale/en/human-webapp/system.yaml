@@ -1268,7 +1268,17 @@ user-groups:
     members:
       addError: Failed to add member
       empty: No members assigned to this user group yet.
+      explainer: Each user belongs to one group. Adding a user here moves them from their current group.
       fetchError: Failed to load members
+      move:
+        action: Move to another group
+        confirm: Move {user} from {from} to {to}?
+        error: Failed to move the user to the other group
+        submit: Move
+        success: Moved {user} to {to}
+        target: Group to move the user to
+        targetPlaceholder: Select the group this user should move to
+        title: Move user to another group
       placeholder: Select a user to add
       removeError: Failed to remove member
       title: User Group Members

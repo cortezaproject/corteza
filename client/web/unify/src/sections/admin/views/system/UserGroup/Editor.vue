@@ -101,7 +101,7 @@
         toggleable
         class="shadow"
       >
-        <UserGroupMembers :userGroupID="userGroup.userGroupID" />
+        <UserGroupMembers :userGroup="userGroup" />
       </Panel>
 
       <Panel
