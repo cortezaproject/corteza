@@ -961,10 +961,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cortezaproject/corteza-js@^2024.9.10":
-  version "2024.9.10"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2024.9.10.tgz#91a81328b6b51f378f6577cbefa9b9c007b4184d"
-  integrity sha512-iTHeydDL12ZCHldl62lZ6mBAthe7cWExduzXTWOu3KdHsA6iPjh2+pkVejdD4HUfdPA7P+8WI8J1er1F8E9aCg==
+"@cortezaproject/corteza-js@^2026.9.0-dev.1":
+  version "2026.9.0-dev.1"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2026.9.0-dev.1.tgz#3f6d170f19ba5d1de1e6ac8eb59bdd644e87925a"
+  integrity sha512-Ip8Xevfn9ekeN01Wluqt+mCocy4BtK2GnrweHqmIzUPdmXQDs4OhPjyQwDs4HYIf8pKAygY7dVlDvoISTAv7Ag==
   dependencies:
     axios "^1.8.3"
     hex-rgb "^5.0.0"
@@ -975,12 +975,12 @@
     numeral "^2.0.6"
     pino "^9.6.0"
 
-"@cortezaproject/corteza-vue@2024.9.10":
-  version "2024.9.10"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2024.9.10.tgz#cc4de2a839bdff1fca316e655f5b24d24ef96c27"
-  integrity sha512-77J59IYJ1WYSUaJsueAc3ksRHVtIxpgRZssiHSAC0lKAO7p93J7HhSCdR62Yz1OazOyw4PBr3egAut33tppttA==
+"@cortezaproject/corteza-vue@2026.9.0-dev.1":
+  version "2026.9.0-dev.1"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2026.9.0-dev.1.tgz#351c0bb71f2c5bfc2f48e6617f1217892789643c"
+  integrity sha512-7oLFd32ADWEgk1V21FPU/gZOPVW+1Jih1qcSUOLrubAyT0tX7z2Xp5nbtoJy+afjYilSB2i3nw2EjZ967nLeGg==
   dependencies:
-    "@cortezaproject/corteza-js" "^2024.9.10"
+    "@cortezaproject/corteza-js" "^2026.9.0-dev.1"
     "@floating-ui/dom" "^1.7.4"
     "@fortawesome/fontawesome-svg-core" "^6.7.2"
     "@fortawesome/free-regular-svg-icons" "^6.7.2"
@@ -4933,7 +4933,7 @@ escodegen@^2.0.0:
     source-map "~0.6.1"
 
 "eslint-config-corteza-client@file:../../../lib/eslint-client":
-  version "2024.9.10"
+  version "2026.9.0-dev.1"
 
 eslint-config-standard@^17.0.0:
   version "17.1.0"
