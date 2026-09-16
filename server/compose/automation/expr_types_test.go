@@ -748,6 +748,26 @@ func initPather(req *require.Assertions, p expr.Pather) (out expr.Pather) {
 	return p
 }
 
+// A record event raised outside a page carries a nil page, and a workflow
+// session clones every scope variable into its stack trace frames.
+func TestComposePageCloneWithoutPage(t *testing.T) {
+	var (
+		req  = require.New(t)
+		vars = &expr.Vars{}
+	)
+
+	page, err := NewComposePage((*types.Page)(nil))
+	req.NoError(err)
+	req.NoError(vars.Set("page", page))
+
+	clone, err := vars.Clone()
+	req.NoError(err)
+
+	cloned, err := clone.(*expr.Vars).Select("page")
+	req.NoError(err)
+	req.Zero(cloned.(*ComposePage).GetValue().ID)
+}
+
 // TestComposePageInputResolution walks the path a page automation button takes:
 // the webapp posts the page as {"@type":"ComposePage","@value":{…}}, the REST
 // layer unmarshals that into an expr.Unresolved and resolves it against the

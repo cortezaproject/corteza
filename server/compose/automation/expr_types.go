@@ -71,6 +71,10 @@ func CastToComposePage(val interface{}) (out *types.Page, err error) {
 
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.Page:
+		if val == nil {
+			val = &types.Page{}
+		}
+
 		return val, nil
 	case map[string]interface{}:
 		out = &types.Page{}
