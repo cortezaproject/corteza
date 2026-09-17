@@ -154,6 +154,11 @@ DOM as it is; use a visibility assertion when visibility is the question.
   it the links come back pointing at the API, which does not serve the webapp.
 - **Errors come back as HTTP 200** with `{"error":{"message":…}}` — `api.sh`
   detects this and exits non-zero.
+- **`api.sh` shows an error's English message, the webapp its translation.**
+  The webapp's JSON requests make the server translate an error from
+  `locale/en/human-server/`, and a missing string comes back as the raw key
+  (`user-group.errors.notFound`). Check wording the way the webapp gets it:
+  `curl -H 'Accept: application/json' -H 'Accept-Language: en'` with the token.
 - **Automation `input` takes only typed envelopes.** `ngAutomationExec`,
   `workflowExec` and session resume decode `input` into `expr.Vars`, which reads
   `{"@type":…,"@value":…}` and nothing else, so one bare string or array rejects
