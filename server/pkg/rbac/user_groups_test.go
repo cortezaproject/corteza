@@ -2,6 +2,7 @@ package rbac
 
 import (
 	"testing"
+	"time"
 
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/stretchr/testify/require"
@@ -126,6 +127,31 @@ func TestIsAbove(t *testing.T) {
 		})
 
 	})
+}
+
+func TestIsAboveStopsOnCycles(t *testing.T) {
+	svc, err := mkOrgTree()
+	require.NoError(t, err)
+
+	require.NoError(t, svc.AddNode(id.MustNumID(101), "root"))
+	require.NoError(t, svc.AddNode(id.MustNumID(201), "a", mkPp(id.MustNumID(101))...))
+	require.NoError(t, svc.AddNode(id.MustNumID(301), "b", mkPp(id.MustNumID(201))...))
+	require.NoError(t, svc.AddNode(id.MustNumID(401), "other", mkPp(id.MustNumID(101))...))
+	require.NoError(t, svc.AssignGroupMembers(id.MustNumID(301), id.MustNumID(3)))
+	require.NoError(t, svc.AssignGroupMembers(id.MustNumID(401), id.MustNumID(4)))
+
+	// a reports to b, b reports to a
+	require.NoError(t, svc.UpdateNode(id.MustNumID(201), "a", mkPp(id.MustNumID(301))...))
+
+	done := make(chan bool, 1)
+	go func() { done <- svc.IsAbove(id.MustNumID(3), id.MustNumID(4)) }()
+
+	select {
+	case above := <-done:
+		require.False(t, above)
+	case <-time.After(2 * time.Second):
+		t.Fatal("IsAbove did not return on a cycle")
+	}
 }
 
 func TestAddGroupRole(t *testing.T) {
@@ -480,6 +506,35 @@ func TestUpdateNode(t *testing.T) {
 
 		checkInline(t, svc.branchIndex[id.MustNumID(201)], id.MustNumID(201))
 		checkInline(t, svc.branchIndex[id.MustNumID(202)], id.MustNumID(202), id.MustNumID(301))
+	})
+
+	t.Run("move under a parent that is not indexed", func(t *testing.T) {
+		svc, err := mkOrgTree()
+		require.NoError(t, err)
+
+		require.NoError(t, svc.AddNode(id.MustNumID(101), "root"))
+		require.NoError(t, svc.AddNode(id.MustNumID(201), "c1", mkPp(id.MustNumID(101))...))
+		require.NoError(t, svc.AddNode(id.MustNumID(301), "c2", mkPp(id.MustNumID(201))...))
+
+		require.Error(t, svc.UpdateNode(id.MustNumID(301), "c2 edited", mkPp(id.MustNumID(999))...))
+
+		checkInline(t, svc.branchIndex[id.MustNumID(201)], id.MustNumID(201), id.MustNumID(301))
+		require.Equal(t, "c2", svc.branchIndex[id.MustNumID(301)].handle)
+	})
+
+	t.Run("move away from a parent that is no longer indexed", func(t *testing.T) {
+		svc, err := mkOrgTree()
+		require.NoError(t, err)
+
+		require.NoError(t, svc.AddNode(id.MustNumID(101), "root"))
+		require.NoError(t, svc.AddNode(id.MustNumID(201), "c1", mkPp(id.MustNumID(101))...))
+		require.NoError(t, svc.AddNode(id.MustNumID(301), "c2", mkPp(id.MustNumID(201))...))
+
+		delete(svc.branchIndex, id.MustNumID(201))
+
+		require.NoError(t, svc.UpdateNode(id.MustNumID(301), "c2", mkPp(id.MustNumID(101))...))
+		require.Len(t, svc.branchIndex[id.MustNumID(301)].parents, 1)
+		require.Equal(t, id.MustNumID(101), svc.branchIndex[id.MustNumID(301)].parents[0].node.id)
 	})
 
 	t.Run("update non existing node", func(t *testing.T) {

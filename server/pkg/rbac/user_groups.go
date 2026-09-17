@@ -191,21 +191,27 @@ func (svc *orgTree) UpdateNode(idx id.ID, handle string, paths ...GroupNodePath)
 		return fmt.Errorf("cannot update node %v (%s): not indexed", idx.Value(), handle)
 	}
 
+	for _, p := range paths {
+		if svc.branchIndex[p.SelfID] == nil {
+			return fmt.Errorf("cannot update node %v (%s): parent node %v not indexed", idx.Value(), handle, p.SelfID.Value())
+		}
+	}
+
 	oldPaths := n.paths
 
 	n.handle = handle
 	n.paths = paths
 
-	if svc.branchIndex == nil {
-		svc.branchIndex = make(map[id.ID]*groupNode)
-	}
-
 	for _, op := range oldPaths {
-		i = svc.isInConnections(svc.branchIndex[op.SelfID].children, idx)
-		svc.branchIndex[op.SelfID].children = append(svc.branchIndex[op.SelfID].children[:i], svc.branchIndex[op.SelfID].children[i+1:]...)
+		if parent := svc.branchIndex[op.SelfID]; parent != nil {
+			if i = svc.isInConnections(parent.children, idx); i >= 0 {
+				parent.children = append(parent.children[:i], parent.children[i+1:]...)
+			}
+		}
 
-		i = svc.isInConnections(svc.branchIndex[idx].parents, op.SelfID)
-		svc.branchIndex[idx].parents = append(svc.branchIndex[idx].parents[:i], svc.branchIndex[idx].parents[i+1:]...)
+		if i = svc.isInConnections(n.parents, op.SelfID); i >= 0 {
+			n.parents = append(n.parents[:i], n.parents[i+1:]...)
+		}
 	}
 
 	for _, p := range paths {
@@ -293,6 +299,7 @@ func (svc *orgTree) isAbove(parent, child *groupNode, paths ...string) (ok bool)
 		return false
 	}
 
+	seen := make(map[id.ID]bool)
 	stack := stack.Stack[*groupNode]{}
 	for _, p := range child.parents {
 		if !checkConnection(p) {
@@ -307,6 +314,11 @@ func (svc *orgTree) isAbove(parent, child *groupNode, paths ...string) (ok bool)
 		if n.id.Equal(parent.id) {
 			return true
 		}
+
+		if seen[n.id] {
+			continue
+		}
+		seen[n.id] = true
 
 		for _, c := range n.parents {
 			if !checkConnection(c) {
