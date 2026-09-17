@@ -32,11 +32,7 @@
             <InputText id="name" name="name" v-model="userGroup.meta.short" :disabled="!canEdit" />
           </CFormGroup>
 
-          <CFormGroup
-            name="handle"
-            :label="$t('system.user-groups.editor.info.handle')"
-            :description="$t('system.user-groups.editor.info.handle-description')"
-          >
+          <CFormGroup name="handle" :label="$t('system.user-groups.editor.info.handle')">
             <InputText id="handle" name="handle" v-model="userGroup.handle" :disabled="!canEdit" />
           </CFormGroup>
 

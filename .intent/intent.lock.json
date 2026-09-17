@@ -497,9 +497,9 @@
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/admin/views/system/UserGroup/Editor.vue": {
-      "h": "d4cdd1187de8",
+      "h": "d9bb8c55a7fe",
       "doc": "client/web/unify/src/sections/admin/views/system/UserGroup/Editor.intent.md",
-      "t": "2026-09-15"
+      "t": "2026-09-17"
     },
     "client/web/unify/src/sections/admin/views/system/UserGroup/List.vue": {
       "h": "f1bcd02626f2",

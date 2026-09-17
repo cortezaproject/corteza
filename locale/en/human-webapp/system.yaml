@@ -1249,7 +1249,6 @@ user-groups:
       delete: Delete
       deletedAt: Deleted at
       handle: Handle
-      handle-description: Optional. A unique identifier imports and exports use to refer to this group instead of its ID. At least 2 characters, starting with a letter and ending with a letter or number; letters, numbers, underscores, dashes and dots in between.
       id: ID
       invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
       meta:
