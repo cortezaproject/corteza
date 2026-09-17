@@ -231,15 +231,18 @@ DOM as it is; use a visibility assertion when visibility is the question.
   `rest.yaml` — `rest/handlers` and `rest/request` stay stale while the make
   target reports success. Grep the output for `failed to process`; a fresh
   `go build -o <tmp> ./cmd/codegen/main.go` run from `server/` with `-v` fixes it.
-- **`server/tests/compose` does not boot from `dev_test_run` or a plain
-  `go test`.** It dies with `could not find en in loaded languages` because the
-  relative `../locale` resolves under `server/tests/`, and neither
-  `ENVIRONMENT=dev` nor `LOCALE_DEVELOPMENT_MODE=true` helps. Run it from
-  `server/` with `LOCALE_PATH=$PWD/../locale go test ./tests/compose/`. Error
-  assertions there need `Header("Accept", "application/json")`, since without it
-  the body is plain text and `AssertError` fails to decode it. With no locale
-  loaded, `AssertError` compares the translation key (`module.errors.…`), not
-  the message.
+- **A server integration suite passing on the primary can still fail in a
+  worktree at `could not find en in loaded languages`.** The primary may hold a
+  gitignored `server/pkg/locale/src/en/` from an old `make -C pkg/locale`, and
+  that copy gets built into the binary. It hides a `LOCALE_PATH` that points
+  nowhere, and a worktree has no such copy. `tests/helpers` resolves a relative
+  `LOCALE_PATH` from `server/.env` against `server/`, so look for
+  `language overloaded … imported` in the suite's log. `embedded: true` alone
+  means the path missed. In `server/tests/compose`, error assertions need
+  `Header("Accept", "application/json")`, since without it the body is plain
+  text and `AssertError` fails to decode it. The suite runs with no locale
+  loaded, so `AssertError` compares the translation key (`module.errors.…`),
+  not the message.
 - **`.p-select.p-disabled` in a `drive.mjs` check matches selects on hidden
   tabs.** The module editor renders the unique-values tab's disabled Column
   select up front. Scope the locator to the row, e.g.
