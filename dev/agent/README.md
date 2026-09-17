@@ -231,6 +231,19 @@ DOM as it is; use a visibility assertion when visibility is the question.
   `rest.yaml` — `rest/handlers` and `rest/request` stay stale while the make
   target reports success. Grep the output for `failed to process`; a fresh
   `go build -o <tmp> ./cmd/codegen/main.go` run from `server/` with `-v` fixes it.
+- **`server/tests/compose` does not boot from `dev_test_run` or a plain
+  `go test`.** It dies with `could not find en in loaded languages` because the
+  relative `../locale` resolves under `server/tests/`, and neither
+  `ENVIRONMENT=dev` nor `LOCALE_DEVELOPMENT_MODE=true` helps. Run it from
+  `server/` with `LOCALE_PATH=$PWD/../locale go test ./tests/compose/`. Error
+  assertions there need `Header("Accept", "application/json")`, since without it
+  the body is plain text and `AssertError` fails to decode it. With no locale
+  loaded, `AssertError` compares the translation key (`module.errors.…`), not
+  the message.
+- **`.p-select.p-disabled` in a `drive.mjs` check matches selects on hidden
+  tabs.** The module editor renders the unique-values tab's disabled Column
+  select up front. Scope the locator to the row, e.g.
+  `.p-inputgroup:has(.p-select.p-disabled)`.
 - **A webapp path no route matches renders the home page, not an error.** The
   router's catch-all (`client/web/unify/src/router/index.js`) redirects an
   unknown path to `/`, which loads cleanly — so a wrong path used to come back
