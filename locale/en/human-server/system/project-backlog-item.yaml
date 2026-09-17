@@ -1,0 +1,14 @@
+errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  invalidCategory: The category has to be incident, task, feature, privacy or review.
+  invalidID: The backlog item ID is missing or isn't valid.
+  invalidRevision: That revision doesn't belong to this project.
+  missingEvent: A backlog item needs the item it belongs to.
+  missingProject: A backlog item needs a project.
+  notAllowedToCreate: You don't have permission to create backlog items.
+  notAllowedToDelete: You don't have permission to delete this backlog item.
+  notAllowedToRead: You don't have permission to view this backlog item.
+  notAllowedToSearch: You don't have permission to search or list backlog items.
+  notAllowedToUpdate: You don't have permission to change this backlog item.
+  notFound: This backlog item doesn't exist or has been deleted.
+  staleData: Someone else changed this backlog item after you opened it. Refresh to see the latest version.

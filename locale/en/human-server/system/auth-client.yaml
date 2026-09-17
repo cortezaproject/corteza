@@ -1,5 +1,7 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   invalidID: invalid ID
+  missingName: The auth client needs a name.
   notAllowedToCreate: not allowed to create auth clients
   notAllowedToDelete: not allowed to delete this auth client
   notAllowedToRead: not allowed to read this auth client
@@ -7,6 +9,7 @@ errors:
   notAllowedToUndelete: not allowed to undelete this auth client
   notAllowedToUpdate: not allowed to update this auth client
   notFound: auth client not found
+  staleData: Someone else, or a workflow, changed this auth client after you opened it. Refresh to see the latest version.
   unableToChangeDefaultClientHandle: unable to change the handle of the default auth client
   unableToDeleteDefaultClient: unable to delete the default auth client
   unableToDisableDefaultClient: unable to disable the default auth client

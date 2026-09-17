@@ -1,4 +1,6 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  invalidID: The federation node ID is missing or isn't valid.
   notAllowedToCreate: not allowed to create nodes
   notAllowedToManage: not allowed to manage this node
   notAllowedToPair: not allowed to pair this node
@@ -8,3 +10,4 @@ errors:
   pairingURIInvalid: 'pairing URI invalid: {err}'
   pairingURISourceIDInvalid: pairing URI without source node ID
   pairingURITokenInvalid: pairing URI with invalid pairing token
+  staleData: Someone else changed this federation node after you opened it. Refresh to see the latest version.

@@ -1,7 +1,10 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   invalidID: invalid ID
   notAllowedToAssign: not allowed to assign reminders to other users
   notAllowedToDismiss: not allowed to dismiss reminders of other users
   notAllowedToRead: not allowed to read reminders of other users
   notAllowedToSnooze: not allowed to snooze reminders of other users
+  notAllowedToUndismiss: You can't bring back reminders that other users dismissed.
   notFound: reminder not found
+  staleData: Someone else changed this reminder after you opened it. Refresh to see the latest version.

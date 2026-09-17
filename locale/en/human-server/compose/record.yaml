@@ -1,11 +1,18 @@
 errors:
   fieldNotFound: no such field {field}
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   importSessionAlreadActive: import session already active
+  invalidGroupFieldConfigMultiValue: The group field {{groupField}} can't be used for this because it holds more than one value.
   invalidID: invalid ID
   invalidModuleID: invalid or missing module ID
   invalidNamespaceID: invalid or missing namespace ID
+  invalidPositionFieldConfigMultiValue: The position field {{positionField}} can't be used for this because it holds more than one value.
+  invalidPositionFieldKind: The position field {{positionField}} has to be a Number field.
+  invalidPositionValueType: The position has to be a number.
   invalidReferenceFormat: invalid reference format
   invalidValueStructure: more than one value for a single-value field {field}
+  missingGroupField: The group field doesn't exist on this module.
+  missingPositionField: The position field doesn't exist on this module.
   moduleNotFoundModule: module not found
   namespaceNotFound: namespace not found
   notAllowedToChangeFieldValue: not allowed to change value of field {field}
@@ -16,9 +23,11 @@ errors:
   notAllowedToReadModule: not allowed to read module
   notAllowedToReadNamespace: not allowed to read this namespace
   notAllowedToSearch: not allowed to search or list records
+  notAllowedToSearchRevisions: You don't have permission to view this record's revisions.
   notAllowedToUndelete: not allowed to undelete this record
   notAllowedToUpdate: not allowed to update this record
   notFound: record not found
+  revisionsDisabledOnModule: Revisions aren't turned on for this module.
   staleData: record was modified by someone else or by a workflow after you've opened it. Please refresh to see the latest updated version
   unknownBulkOperation: unknown bulk operation {bulkOperation}
   valueInput: invalid record value input

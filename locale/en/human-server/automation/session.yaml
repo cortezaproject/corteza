@@ -1,4 +1,5 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   invalidID: invalid ID
   notAllowedToDelete: not allowed to delete this session
   notAllowedToManage: not allowed to manage session's workflow

@@ -1,2 +1,3 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   notAllowedToReadStatistics: not allowed to read statistics

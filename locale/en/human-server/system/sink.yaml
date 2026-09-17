@@ -5,6 +5,7 @@ errors:
   failedToProcess: failed to process request
   failedToRespond: failed to respond to request
   failedToSign: 'could not sign request params: {err}'
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   invalidContentType: invalid content-type header
   invalidHttpMethod: invalid HTTP method
   invalidPath: invalid path

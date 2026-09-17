@@ -1,6 +1,7 @@
 errors:
   alreadyExists: route by that endpoint already exists
   existsEndpoint: route with this endpoint already exists
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   invalidEndpoint: invalid endpoint
   invalidID: invalid ID
   notAllowedToCreate: not allowed to create a route
@@ -11,3 +12,4 @@ errors:
   notAllowedToUpdate: not allowed to update this route
   notAllowedToSearch: not allowed to list or search routes
   notFound: route not found
+  staleData: Someone else, or a workflow, changed this gateway route after you opened it. Refresh to see the latest version.

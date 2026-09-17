@@ -1,12 +1,15 @@
 errors:
   emailNotUnique: email not unique
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   handleNotUnique: handle not unique
   invalidEmail: invalid email
   invalidHandle: invalid handle
   invalidID: invalid ID
+  maxUserLimitReached: This server has reached its user limit. Contact your administrator.
   notAllowedToCreate: not allowed to create users
   notAllowedToCreateSystem: not allowed to create system users
   notAllowedToDelete: not allowed to delete this user
+  notAllowedToDeleteAvatar: You don't have permission to remove this user's avatar.
   notAllowedToListUsers: not allowed to list users
   notAllowedToRead: not allowed to read this user
   notAllowedToSearch: not allowed to list or search users
@@ -17,4 +20,5 @@ errors:
   notAllowedToUpdateSystem: not allowed to update system users
   notFound: user not found
   passwordNotSecure: provided password is not secure; use longer password with more special characters
+  staleData: Someone else, or a workflow, changed this user after you opened it. Refresh to see the latest version.
   usernameNotUnique: username not unique

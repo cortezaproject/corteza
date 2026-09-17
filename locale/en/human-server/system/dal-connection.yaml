@@ -1,4 +1,7 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  invalidHandle: This handle isn't valid. A handle has at least 2 characters, starts with a letter, ends with a letter or number, and uses only letters, numbers, underscores, dashes and dots.
+  missingName: The data connection needs a name.
   notFound: connection not found
   invalidID: invalid ID
   invalidEndpoint: invalid endpoint
@@ -11,3 +14,4 @@ errors:
   notAllowedToDelete: not allowed to delete this connection
   notAllowedToUndelete: not allowed to undelete this connection
   notAllowedToExec: not allowed to execute this connection
+  staleData: Someone else, or a workflow, changed this data connection after you opened it. Refresh to see the latest version.

@@ -1,0 +1,6 @@
+errors:
+  failedToDownloadAttachment: "The attachment at {{attachmentURL}} couldn't be downloaded: {{err}}"
+  failedToLoadUser: No user could be found for the recipient {{recipient}}.
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  invalidReceipientFormat: The recipient {{recipient}} isn't an address an email can be sent to.
+  noRecipients: An email needs at least one recipient.

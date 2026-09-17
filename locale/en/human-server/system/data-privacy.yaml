@@ -1,4 +1,5 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   notFound: data privacy request not found
   invalidID: invalid ID
   invalidKind: invalid kind
@@ -7,3 +8,4 @@ errors:
   notAllowedToSearch: not allowed to search or list data privacy request
   notAllowedToCreate: not allowed to create data privacy request
   notAllowedToApprove: not allowed to approve/reject data privacy request
+  staleData: Someone else, or a workflow, changed this data privacy request after you opened it. Refresh to see the latest version.

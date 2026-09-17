@@ -1,5 +1,7 @@
 errors:
   federationSyncStructureChanged: module structure changed
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  invalidHandle: This handle isn't valid. A handle has at least 2 characters, starts with a letter, ends with a letter or number, and uses only letters, numbers, underscores, dashes and dots.
   invalidID: invalid ID
   nodeNotFound: node does not exist
   notAllowedToCreate: not allowed to create modules

@@ -1,0 +1,12 @@
+errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  invalidID: The incident ID is missing or isn't valid.
+  invalidRevision: That revision doesn't belong to this project.
+  missingProject: A incident needs a project.
+  notAllowedToCreate: You don't have permission to create incidents.
+  notAllowedToDelete: You don't have permission to delete this incident.
+  notAllowedToRead: You don't have permission to view this incident.
+  notAllowedToSearch: You don't have permission to search or list incidents.
+  notAllowedToUpdate: You don't have permission to change this incident.
+  notFound: This incident doesn't exist or has been deleted.
+  staleData: Someone else changed this incident after you opened it. Refresh to see the latest version.

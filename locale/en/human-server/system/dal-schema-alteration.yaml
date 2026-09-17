@@ -1,0 +1,5 @@
+errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  invalidID: The schema alteration ID is missing or isn't valid.
+  notAllowedToManage: You don't have permission to manage schema alterations.
+  notFound: This schema alteration doesn't exist or has been deleted.

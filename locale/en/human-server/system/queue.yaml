@@ -1,5 +1,6 @@
 errors:
   alreadyExists: queue by that name already exists
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   invalidConsumer: invalid consumer
   invalidID: invalid ID
   notAllowedToCreate: not allowed to create a queue
@@ -11,3 +12,4 @@ errors:
   notAllowedToUpdate: not allowed to update this queue
   notAllowedToWriteTo: not allowed to add messages to this queue
   notFound: queue not found
+  staleData: Someone else, or a workflow, changed this messaging queue after you opened it. Refresh to see the latest version.

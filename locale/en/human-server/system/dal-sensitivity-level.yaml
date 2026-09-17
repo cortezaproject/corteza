@@ -3,7 +3,10 @@ errors:
   existsEndpoint: sensitivity level with this DNS already exists
   generic: failed to complete request due to internal error
   invalidEndpoint: invalid endpoint
+  invalidHandle: This handle isn't valid. A handle has at least 2 characters, starts with a letter, ends with a letter or number, and uses only letters, numbers, underscores, dashes and dots.
   invalidID: invalid ID
+  missingName: The sensitivity level needs a name.
   notAllowedToManage: not allowed to manage sensitivity level
   notFound: sensitivity level not found
   deleteInUse: cannot delete in use sensitivity levels
+  staleData: Someone else, or a workflow, changed this sensitivity level after you opened it. Refresh to see the latest version.

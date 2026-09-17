@@ -1,0 +1,11 @@
+errors:
+  cannotUpdateInstalled: An installed connection can't be changed.
+  deletionNotSupported: Deleting connections isn't supported yet.
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  invalidID: The connection ID is missing or isn't valid.
+  notAllowedToCreate: You don't have permission to create connections.
+  notAllowedToDelete: You don't have permission to delete this connection.
+  notAllowedToInstall: You don't have permission to install connections.
+  notAllowedToRead: You don't have permission to view this connection.
+  notAllowedToSearch: You don't have permission to search connections.
+  notFound: This connection doesn't exist or has been deleted.

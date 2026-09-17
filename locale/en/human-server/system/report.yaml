@@ -1,5 +1,7 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   invalidConfiguration: Invalid report configuration
+  invalidHandle: This handle isn't valid. A handle has at least 2 characters, starts with a letter, ends with a letter or number, and uses only letters, numbers, underscores, dashes and dots.
   invalidID: invalid ID
   notAllowedToCreate: not allowed to create reports
   notAllowedToDelete: not allowed to delete this report
@@ -10,3 +12,4 @@ errors:
   notAllowedToUndelete: not allowed to undelete this report
   notAllowedToUpdate: not allowed to update this report
   notFound: report not found
+  staleData: Someone else, or a workflow, changed this report after you opened it. Refresh to see the latest version.

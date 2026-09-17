@@ -1,0 +1,16 @@
+errors:
+  agentNotConfigured: This chatbot's agent isn't set up to be run by the system.
+  agentUnavailable: This chatbot's agent isn't available right now.
+  badHandoffID: The handoff ID isn't valid.
+  chatbotNoScenarios: This chatbot has no scenarios, so a conversation can't start.
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  handoffNotActive: This handoff isn't active.
+  handoffNotFound: This handoff doesn't exist.
+  handoffNotRequested: This handoff hasn't been requested, so it can't be taken over.
+  noActiveStep: This conversation has no active step.
+  scenarioNotConsent: The current step isn't a consent step.
+  scenarioNotForm: The current step isn't a form.
+  scenarioNotMessage: The current step doesn't accept messages.
+  scenarioOutOfRange: That scenario doesn't exist in this chatbot.
+  sessionNotActive: This chat session isn't active.
+  sessionNotFound: This chat session doesn't exist.

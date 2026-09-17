@@ -1,3 +1,28 @@
 errors:
+  approvalAlreadyRequested: This revision is already waiting for a decision.
+  approvalNotRequested: This revision hasn't been submitted for approval.
+  approvalStale: This revision changed after it was approved. Submit it for approval again.
+  cannotApproveOwnRequest: You submitted this revision for approval, so someone else has to decide on it.
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  handleNotUnique: Another project already uses this handle.
+  invalidHandle: This handle isn't valid. A handle has at least 2 characters, starts with a letter, ends with a letter or number, and uses only letters, numbers, underscores, dashes and dots.
+  invalidID: The project ID is missing or isn't valid.
+  invalidRolePreset: That member role isn't one a project can use.
+  invalidStatus: That project status isn't valid.
   locked: >-
     This project is no longer a draft, so its resources are read-only. Changes are made on a new draft revision and published from there.
+  memberAlreadyExists: This user is already a member of the project.
+  memberNotFound: This user isn't a member of the project.
+  notAllowedToCreate: You don't have permission to create projects.
+  notAllowedToDelete: You don't have permission to delete this project.
+  notAllowedToGrantApproval: You don't have permission to approve or reject publishing this project.
+  notAllowedToManageMembers: You don't have permission to manage this project's members.
+  notAllowedToPublish: You don't have permission to publish this project.
+  notAllowedToRead: You don't have permission to view this project.
+  notAllowedToRequestApproval: You don't have permission to ask for publish approval for this project.
+  notAllowedToRevise: You don't have permission to create a new revision of this project.
+  notAllowedToSearch: You don't have permission to search or list projects.
+  notAllowedToUpdate: You don't have permission to change this project.
+  notApproved: This revision hasn't been approved for publishing yet.
+  notFound: This project doesn't exist or has been deleted.
+  staleData: Someone else changed this project after you opened it. Refresh to see the latest version.

@@ -1,5 +1,7 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   handleNotUnique: handle not unique
+  importSessionNotFound: This import session no longer exists. Start the import again.
   invalidHandle: invalid handle
   invalidID: invalid ID
   notAllowedToCreate: not allowed to create namespaces

@@ -2,6 +2,7 @@ errors:
   composeModuleNotFound: compose module not found
   composeNamespaceNotFound: compose namespace not found
   federationModuleNotFound: federation module not found
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   moduleMappingExists: module mapping already exists
   nodeNotFound: node does not exist
   notAllowedToMap: not allowed to map this module

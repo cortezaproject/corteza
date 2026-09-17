@@ -1,4 +1,6 @@
 errors:
+  deleteAbortedForPageWithSubpages: This page has subpages, so it wasn't deleted. Move or delete its subpages first, or choose to delete them together with the page.
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   handleNotUnique: handle not unique
   invalidHandle: invalid handle
   invalidID: invalid ID
@@ -16,3 +18,4 @@ errors:
   notFound: page does not exist
   recordPageNotUnique: a record page for this module already exists
   staleData: page was modified by someone else or by a workflow after you've opened it. Please refresh to see the latest updated version
+  unknownDeleteStrategy: The server doesn't recognise the chosen way of handling this page's subpages.

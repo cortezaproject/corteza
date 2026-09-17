@@ -2,10 +2,16 @@ errors:
   credentialsLinkedToInvalidUser: credentials {credentials.kind} linked to disabled or deleted user {user}
   disabledMFAWithEmailOTP: multi factor authentication with email OTP is disabled
   disabledMFAWithTOTP: multi factor authentication with TOTP is disabled
+  disabledSendUserInviteEmail: Sending invitation emails is turned off on this server.
   enforcedMFAWithEmailOTP: OTP over email is enforced and cannot be disabled
   enforcedMFAWithTOTP: TOTP is enforced and cannot be disabled
   externalDisabledByConfig: external authentication (using external authentication provider) is disabled
+  failedForDeletedUser: invalid username and password combination
+  failedForSuspendedUser: invalid username and password combination
+  failedForSystemUser: invalid username and password combination
+  failedForUnknownUser: invalid username and password combination
   failedUnconfirmedEmail: system requires confirmed email before logging in
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   internalLoginDisabledByConfig: internal login (username/password) is disabled
   internalSignupDisabledByConfig: internal sign-up (username/password) is disabled
   invalidCredentials: invalid username and password combination
@@ -14,12 +20,18 @@ errors:
   invalidHandle: invalid handle
   invalidTOTP: invalid code
   invalidToken: invalid token
+  maxUserLimitReached: This server has reached its user limit. Contact your administrator.
   notAllowedToConfigureTOTP: not allowed to configure TOTP
   notAllowedToImpersonate: not allowed to impersonate this user
   notAllowedToRemoveTOTP: not allowed to remove TOTP
   passwodResetFailedOldPasswordCheckFailed: failed to change password, old password does not match
   passwordChangeFailedForUnknownUser: failed to change password for the unknown user
+  passwordCreateDisabledByConfig: Creating passwords is turned off on this server.
+  passwordCreateFailedForUnknownUser: A password can't be created for a user that doesn't exist.
   passwordNotSecure: provided password is not secure; use longer password with more special characters
   passwordResetDisabledByConfig: password reset is disabled
+  passwordResetFailedOldPasswordCheckFailed: Your current password doesn't match, so the password wasn't changed.
+  passwordSetFailedReusedPasswordCheckFailed: You've used this password before. Choose a new one.
   profileWithoutValidEmail: external authentication provider returned profile without valid email
+  rateLimitExceeded: Too many attempts. Wait a moment and try again.
   unconfiguredTOTP: TOTP not configured

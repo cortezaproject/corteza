@@ -1,0 +1,13 @@
+errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  handleNotUnique: Another AI system already uses this handle.
+  invalidHandle: This handle isn't valid. A handle has at least 2 characters, starts with a letter, ends with a letter or number, and uses only letters, numbers, underscores, dashes and dots.
+  invalidID: The AI system ID is missing or isn't valid.
+  notAllowedToCreate: You don't have permission to create AI systems.
+  notAllowedToDelete: You don't have permission to delete this AI system.
+  notAllowedToManageResources: You don't have permission to manage this AI system's resources.
+  notAllowedToRead: You don't have permission to view this AI system.
+  notAllowedToSearch: You don't have permission to search or list AI systems.
+  notAllowedToUpdate: You don't have permission to change this AI system.
+  notFound: This AI system doesn't exist or has been deleted.
+  staleData: Someone else changed this AI system after you opened it. Refresh to see the latest version.

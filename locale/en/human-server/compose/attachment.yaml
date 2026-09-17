@@ -2,6 +2,7 @@ errors:
   failedToExtractMimeType: could not extract mime type
   failedToProcessImage: could not process image
   failedToStoreFile: could not extract store file
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   invalidID: invalid ID
   invalidModuleID: invalid module ID
   invalidNamespaceID: invalid namespace ID

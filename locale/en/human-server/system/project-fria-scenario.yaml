@@ -1,0 +1,11 @@
+errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  invalidID: The FRIA risk scenario ID is missing or isn't valid.
+  missingProject: A FRIA risk scenario needs a project.
+  notAllowedToCreate: You don't have permission to create FRIA risk scenarios.
+  notAllowedToDelete: You don't have permission to delete this FRIA risk scenario.
+  notAllowedToRead: You don't have permission to view this FRIA risk scenario.
+  notAllowedToSearch: You don't have permission to search or list FRIA risk scenarios.
+  notAllowedToUpdate: You don't have permission to change this FRIA risk scenario.
+  notFound: This FRIA risk scenario doesn't exist or has been deleted.
+  staleData: Someone else changed this FRIA risk scenario after you opened it. Refresh to see the latest version.

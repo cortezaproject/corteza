@@ -1,3 +1,4 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   nodeNotFound: node does not exist
   notFound: node_sync does not exist

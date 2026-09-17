@@ -1,8 +1,11 @@
 errors:
   disabled: disabled workflow or trigger
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   handleNotUnique: workflow handle not unique
   invalidHandle: invalid handle
   invalidID: invalid ID
+  maximumCallStackSizeExceeded: This workflow called itself too many times and was stopped. Check for workflows that call each other in a loop.
+  missingName: The workflow needs a name.
   notAllowedToCreate: not allowed to create workflows
   notAllowedToDelete: not allowed to delete this workflow
   notAllowedToExecute: not allowed to execute this workflow

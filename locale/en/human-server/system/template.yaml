@@ -1,7 +1,9 @@
 errors:
   cannotRenderPartial: cannot render partial templates
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   invalidHandle: invalid handle
   invalidID: invalid ID
+  missingShort: The template needs a name.
   notAllowedToCreate: not allowed to create templates
   notAllowedToDelete: not allowed to delete this template
   notAllowedToRead: not allowed to read this template
@@ -10,3 +12,4 @@ errors:
   notAllowedToUndelete: not allowed to undelete this template
   notAllowedToUpdate: not allowed to update this template
   notFound: template not found
+  staleData: Someone else, or a workflow, changed this template after you opened it. Refresh to see the latest version.

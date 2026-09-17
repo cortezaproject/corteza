@@ -1,0 +1,20 @@
+errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  handleNotUnique: Another tenant already uses this handle.
+  invalidHandle: This handle isn't valid. A handle has at least 2 characters, starts with a letter, ends with a letter or number, and uses only letters, numbers, underscores, dashes and dots.
+  invalidID: The tenant ID is missing or isn't valid.
+  invalidMemberStatus: That tenant member status isn't valid.
+  invalidRole: That tenant member role isn't valid.
+  invalidStatus: That tenant status isn't valid.
+  memberAlreadyExists: This user is already a member of the tenant.
+  memberNotFound: This user isn't a member of the tenant.
+  notAllowedToCreate: You don't have permission to create tenants.
+  notAllowedToDelete: You don't have permission to delete this tenant.
+  notAllowedToManageMembers: You don't have permission to manage this tenant's members.
+  notAllowedToRead: You don't have permission to view this tenant.
+  notAllowedToSearch: You don't have permission to search or list tenants.
+  notAllowedToSuspend: You don't have permission to suspend this tenant.
+  notAllowedToUpdate: You don't have permission to change this tenant.
+  notFound: This tenant doesn't exist or has been deleted.
+  staleData: Someone else changed this tenant after you opened it. Refresh to see the latest version.
+  userAlreadyInTenant: This user already belongs to another tenant.

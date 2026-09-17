@@ -1,0 +1,17 @@
+errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
+  handleNotUnique: Another page layout already uses this handle.
+  invalidHandle: This handle isn't valid. A handle has at least 2 characters, starts with a letter, ends with a letter or number, and uses only letters, numbers, underscores, dashes and dots.
+  invalidID: The page layout ID is missing or isn't valid.
+  invalidNamespaceID: The namespace ID is missing or isn't valid.
+  moduleNotFound: The module doesn't exist or has been deleted.
+  namespaceNotFound: The namespace doesn't exist or has been deleted.
+  notAllowedToCreate: You don't have permission to create page layouts.
+  notAllowedToDelete: You don't have permission to delete this page layout.
+  notAllowedToListPageLayouts: You don't have permission to list page layouts.
+  notAllowedToRead: You don't have permission to view this page layout.
+  notAllowedToSearch: You don't have permission to search or list page layouts.
+  notAllowedToUndelete: You don't have permission to restore this page layout.
+  notAllowedToUpdate: You don't have permission to change this page layout.
+  notFound: This page layout doesn't exist or has been deleted.
+  staleData: Someone else, or a workflow, changed this page layout after you opened it. Refresh to see the latest version.

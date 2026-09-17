@@ -1,9 +1,11 @@
 errors:
+  generic: Something went wrong on the server, so the request couldn't be completed. Try again, and contact your administrator if it keeps happening.
   handleNotUnique: role handle not unique
   invalidHandle: invalid handle
   invalidID: invalid ID
   nameNotUnique: role name not unique
   notAllowedToArchive: not allowed to archive this role
+  notAllowedToCloneRules: You don't have permission to copy this role's permissions.
   notAllowedToCreate: not allowed to create roles
   notAllowedToDelete: not allowed to delete this role
   notAllowedToManageMembers: not allowed to manage role members
@@ -13,3 +15,5 @@ errors:
   notAllowedToUndelete: not allowed to undelete this role
   notAllowedToUpdate: not allowed to update this role
   notFound: role not found
+  searchByMemberUserGroup: Roles can be searched by member or by user group, but not both at once.
+  staleData: Someone else, or a workflow, changed this role after you opened it. Refresh to see the latest version.
