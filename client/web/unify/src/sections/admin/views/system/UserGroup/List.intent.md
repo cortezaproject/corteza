@@ -24,7 +24,9 @@ Browse user groups and reach the group editor, permissions, or delete.
 - Create button gated by `user-group.create`; wildcard permissions
   (`user-group/*`) gated by system `grant`.
 - Row action menu: per-group permissions (row `canGrant`), delete
-  (`canDeleteUserGroup`).
+  (`canDeleteUserGroup`). Delete counts the group's members and child groups
+  first and opens `UserGroupDeleteBlocked` instead of the confirm while either
+  remains.
 
 ## Routes
 

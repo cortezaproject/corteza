@@ -127,6 +127,13 @@
         </div>
       </div>
     </Popover>
+
+    <UserGroupDeleteBlocked
+      v-model:visible="blocked.visible"
+      :name="blocked.name"
+      :members="blocked.members"
+      :child-groups="blocked.childGroups"
+    />
   </CViewContainer>
 </template>
 
@@ -140,9 +147,11 @@ import {
   useRBACStore,
   useResourceList,
 } from '@planetcrust/human-vue'
-import { computed, inject, ref } from 'vue'
+import { computed, inject, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import UserGroupDeleteBlocked from '@/sections/admin/components/UserGroup/UserGroupDeleteBlocked.vue'
+import { userGroupDeleteBlockers } from '@/sections/admin/components/UserGroup/deleteBlockers'
 
 const { CResourceList, CRouterLinkButton, CViewContainer } = components
 
@@ -157,6 +166,7 @@ const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 
 const resourceListRef = ref()
+const blocked = reactive({ visible: false, name: '', members: 0, childGroups: 0 })
 
 // Filter menu
 const filterMenu = ref()
@@ -245,7 +255,26 @@ function getActionsMenuItems(userGroup) {
   return items
 }
 
-function onConfirmDelete(userGroup) {
+async function onConfirmDelete(userGroup) {
+  resourceListRef.value.hideActionsMenu()
+  try {
+    const { members, childGroups } = await userGroupDeleteBlockers(
+      $SystemAPI,
+      userGroup.userGroupID,
+    )
+    if (members || childGroups) {
+      Object.assign(blocked, {
+        visible: true,
+        name: userGroup.meta?.short || userGroup.handle || userGroup.userGroupID,
+        members,
+        childGroups,
+      })
+      return
+    }
+  } catch {
+    // counting failed; the server still refuses a delete it cannot take
+  }
+
   confirmDelete({
     message: t('general.confirm.delete'),
     header: userGroup.meta?.short || userGroup.handle || t('system.user-groups.list.new'),

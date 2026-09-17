@@ -132,11 +132,26 @@
     <CEditorActions :back-to="{ name: 'system.userGroups' }">
       <CInputDelete
         v-if="isEdit && userGroup.canDeleteUserGroup && !userGroup.deletedAt"
-        :label="$t('system.user-groups.editor.info.delete')"
+        v-slot="{ trigger }"
         :message="$t('general.confirm.delete')"
         :header="userGroup.meta.short || userGroup.handle || userGroup.userGroupID"
-        :disabled="deleting"
         @confirm="handleDelete"
+      >
+        <Button
+          :label="$t('system.user-groups.editor.info.delete')"
+          icon="pi pi-trash"
+          severity="danger"
+          :loading="checkingDelete"
+          :disabled="deleting"
+          data-testid="user-group-delete"
+          @click="deleteUnlessBlocked(trigger)"
+        />
+      </CInputDelete>
+      <UserGroupDeleteBlocked
+        v-model:visible="blocked.visible"
+        :name="userGroup.meta.short || userGroup.handle || userGroup.userGroupID"
+        :members="blocked.members"
+        :child-groups="blocked.childGroups"
       />
       <Button
         v-if="isEdit && userGroup.canDeleteUserGroup && userGroup.deletedAt"
@@ -159,13 +174,15 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
 import { components, useDraftGuard } from '@planetcrust/human-vue'
 import UserGroupMembers from '@/sections/admin/components/UserGroup/UserGroupMembers.vue'
 import UserGroupRoles from '@/sections/admin/components/UserGroup/UserGroupRoles.vue'
+import UserGroupDeleteBlocked from '@/sections/admin/components/UserGroup/UserGroupDeleteBlocked.vue'
+import { userGroupDeleteBlockers } from '@/sections/admin/components/UserGroup/deleteBlockers'
 
 const { CInputDelete, CInputUserGroup, CViewContainer } = components
 
@@ -181,6 +198,8 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const restoring = ref(false)
+const checkingDelete = ref(false)
+const blocked = reactive({ visible: false, members: 0, childGroups: 0 })
 const userGroup = ref(null)
 const { capture, markSaved } = useDraftGuard({
   draft: userGroup,
@@ -307,6 +326,28 @@ async function handleSubmit({ valid }) {
   } finally {
     saving.value = false
   }
+}
+
+// Opens the delete confirm, or the blocked dialog when the group still has
+// members or child groups.
+async function deleteUnlessBlocked(trigger) {
+  checkingDelete.value = true
+  try {
+    const { members, childGroups } = await userGroupDeleteBlockers(
+      $SystemAPI,
+      userGroup.value.userGroupID,
+    )
+    if (members || childGroups) {
+      Object.assign(blocked, { visible: true, members, childGroups })
+      return
+    }
+  } catch {
+    // counting failed; the server still refuses a delete it cannot take
+  } finally {
+    checkingDelete.value = false
+  }
+
+  trigger()
 }
 
 async function handleDelete() {

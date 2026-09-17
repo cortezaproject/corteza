@@ -29,7 +29,9 @@ mode) its members and attached roles.
   the group itself — it names the group in its move confirmations and gates
   on `canManageMembersOnUserGroup`; the roles panel takes `userGroupID`.
 - Delete and undelete (restore); per-group permissions button;
-  unsaved-changes guard on leave.
+  unsaved-changes guard on leave. Delete counts members and child groups first
+  and opens `UserGroupDeleteBlocked` instead of the confirm while either
+  remains.
 
 ## Routes
 

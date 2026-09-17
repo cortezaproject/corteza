@@ -37,3 +37,7 @@ members or roles applies without a server restart.
   user into a group higher in the tree widens what they can reach.
 - Members/roles panel components live in
   `sections/admin/components/UserGroup/`.
+- A group is deleted only when it is empty: no members who are not deleted and
+  no groups reporting to it. The server refuses anything else, and both delete
+  entry points count with `deleteBlockers` first so the refusal is explained
+  before it happens.

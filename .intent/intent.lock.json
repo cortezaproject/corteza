@@ -206,6 +206,21 @@
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
       "t": "2026-08-21"
     },
+    "client/web/unify/src/sections/admin/components/UserGroup/deleteBlockers.js": {
+      "h": "dad009f992ce",
+      "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
+      "t": "2026-09-17"
+    },
+    "client/web/unify/src/sections/admin/components/UserGroup/deleteBlockers.test.js": {
+      "h": "97e7a3441e1f",
+      "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
+      "t": "2026-09-17"
+    },
+    "client/web/unify/src/sections/admin/components/UserGroup/UserGroupDeleteBlocked.vue": {
+      "h": "38f5f5888d34",
+      "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
+      "t": "2026-09-17"
+    },
     "client/web/unify/src/sections/admin/components/UserGroup/UserGroupMembers.test.js": {
       "h": "3f5898250455",
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
@@ -497,14 +512,14 @@
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/admin/views/system/UserGroup/Editor.vue": {
-      "h": "d9bb8c55a7fe",
+      "h": "5e97ee5983cd",
       "doc": "client/web/unify/src/sections/admin/views/system/UserGroup/Editor.intent.md",
       "t": "2026-09-17"
     },
     "client/web/unify/src/sections/admin/views/system/UserGroup/List.vue": {
-      "h": "f1bcd02626f2",
+      "h": "356f884a3048",
       "doc": "client/web/unify/src/sections/admin/views/system/UserGroup/List.intent.md",
-      "t": "2026-08-21"
+      "t": "2026-09-17"
     },
     "client/web/unify/src/sections/admin/views/ui/Location/Index.vue": {
       "h": "6a4ffe769668",

@@ -1242,6 +1242,12 @@ templates:
     title: Templates
     yaml: YAML
 user-groups:
+  delete-blocked:
+    child-groups: no child groups | one child group | {count} child groups
+    how-to: Open the group, move its members to other groups with Move in its member list, and make each child group report to a different group in that group's own editor. Then delete this group.
+    members: no members | one member | {count} members
+    summary: This group still has {members} and {childGroups}, so it can't be deleted yet.
+    title: Can't delete "{name}"
   editor:
     info:
       createdAt: Created at
