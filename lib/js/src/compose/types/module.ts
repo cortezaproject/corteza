@@ -204,6 +204,9 @@ export class Module {
   public canCreateOwnedRecord = false
   public canGrant = false
 
+  // Set when records are stored for the module; its fields' names and kinds are then locked.
+  public hasRecords = false
+
   private [propNamespace]?: Namespace
 
   constructor(i?: PartialModule, ns?: Namespace) {
@@ -272,6 +275,7 @@ export class Module {
       'canCreateRecord',
       'canCreateOwnedRecord',
       'canGrant',
+      'hasRecords',
     )
   }
 

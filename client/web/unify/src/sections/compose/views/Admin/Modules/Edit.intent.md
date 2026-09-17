@@ -14,6 +14,7 @@ touched-by:
   - client/web/unify/src/sections/compose/routes.js
 tests:
   - client/web/unify/src/sections/compose/views/Admin/Modules/Edit.field-translation.test.js
+  - client/web/unify/src/sections/compose/views/Admin/Modules/Edit.field-lock.test.js
   - client/web/unify/e2e/sections/compose/translations.spec.ts
 ---
 
@@ -28,7 +29,7 @@ module's whole lifecycle.
 ## UX capabilities
 
 - Tabs: Fields (name/handle + draggable field list), DAL, unique values, record revisions, and an Issues tab shown only when the server reports module issues (opening it triggers the schema-alterations dialog).
-- Per-field row: name/label/kind, required/multi flags, kind-specific configurator modal (shares the draft via `moduleDraft` provide), field permissions, and one translate button behind the translator gate covering every key the field has — label, descriptions, hints, validator messages, and its select options or bool labels; system fields shown read-only below. The two flags carry the configurator's own guards — a kind that cannot hold them, or a value expression that owns the field's value, disables the box and says why.
+- Per-field row: name/label/kind, required/multi flags, kind-specific configurator modal (shares the draft via `moduleDraft` provide), field permissions, and one translate button behind the translator gate covering every key the field has — label, descriptions, hints, validator messages, and its select options or bool labels; system fields shown read-only below. The two flags carry the configurator's own guards — a kind that cannot hold them, or a value expression that owns the field's value, disables the box and says why. A saved field's name and kind lock once the server reports `hasRecords` on the module (records exist, deleted ones included) and say why; fields not yet saved stay editable, and the server refuses the change regardless.
 - Validation: module name required (free text — no pattern), handle matches the handle pattern, field names valid identifiers and unique, field labels required — errors surface on the Fields tab and block save.
 - Related-page actions (`canManageNamespace`): open-or-create the module's record page and record-list page (created pages get a seeded `primary` layout; record page parents under the list page), edit in builder.
 - Discovery/federation settings modals gated by `$Settings` feature flags; export JSON; permissions menu covering module, all fields, and all records wildcards.

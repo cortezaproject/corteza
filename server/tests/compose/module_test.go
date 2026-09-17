@@ -9,12 +9,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/crusttech/human/server/compose/dalutils"
 	"github.com/crusttech/human/server/compose/service"
 	"github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/id"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/tests/helpers"
+	"github.com/steinfletcher/apitest"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
 )
@@ -686,6 +688,120 @@ func TestModuleFieldsUpdate_removedHasRecords(t *testing.T) {
 	h.a.Equal(m.Fields[0].Name, "a")
 }
 
+func TestModuleFieldsUpdate_lockedByRecords(t *testing.T) {
+	const locked = "module.errors.fieldLocked"
+
+	h := newHelper(t)
+	h.clearModules()
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "update")
+	ns := h.makeNamespace("some-namespace")
+
+	// records is "live", "deleted" or "" for none
+	setup := func(records string) (*types.Module, *types.ModuleField) {
+		m := h.makeModule(ns, fmt.Sprintf("module-%d", id.Next()), &types.ModuleField{Kind: "String", Name: "amount"})
+		switch records {
+		case "live":
+			h.makeRecord(m, &types.RecordValue{Name: "amount", Value: "not a number"})
+		case "deleted":
+			rec := h.makeRecord(m, &types.RecordValue{Name: "amount", Value: "not a number"})
+			now := time.Now()
+			rec.DeletedAt = &now
+			h.noError(dalutils.ComposeRecordSoftDelete(context.Background(), defDal, m, rec))
+		}
+		return m, m.Fields[0]
+	}
+
+	update := func(t *testing.T, m *types.Module, fields string) *apitest.Response {
+		return h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+			Header("Accept", "application/json").
+			JSON(fmt.Sprintf(`{ "name": "%s", "fields": [%s] }`, m.Name, fields)).
+			Expect(t).
+			Status(http.StatusOK)
+	}
+
+	cases := []struct {
+		name    string
+		records string
+		field   string
+		err     string
+		kind    string
+		fName   string
+	}{
+		{"kind change with a record", "live", `"name": "amount", "kind": "Number"`, locked, "String", "amount"},
+		{"rename with a record", "live", `"name": "total", "kind": "String"`, locked, "String", "amount"},
+		{"kind change with a deleted record", "deleted", `"name": "amount", "kind": "Number"`, locked, "String", "amount"},
+		{"kind change and rename without records", "", `"name": "total", "kind": "Number"`, "", "Number", "total"},
+		{"label change with a record", "live", `"name": "amount", "kind": "String", "label": "Amount"`, "", "String", "amount"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			m, f := setup(c.records)
+			rsp := update(t, m, fmt.Sprintf(`{ "fieldID": "%d", %s }`, f.ID, c.field))
+			if c.err != "" {
+				rsp.Assert(helpers.AssertError(c.err)).End()
+			} else {
+				rsp.Assert(helpers.AssertNoErrors).End()
+			}
+
+			m = h.lookupModuleByID(m.ID)
+			req := require.New(t)
+			req.Len(m.Fields, 1)
+			req.Equal(c.kind, m.Fields[0].Kind)
+			req.Equal(c.fName, m.Fields[0].Name)
+		})
+	}
+
+	t.Run("new field beside a locked one", func(t *testing.T) {
+		m, f := setup("live")
+		update(t, m, fmt.Sprintf(`{ "fieldID": "%d", "name": "amount", "kind": "String" }, { "name": "total", "kind": "Number" }`, f.ID)).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		require.Len(t, h.lookupModuleByID(m.ID).Fields, 2)
+	})
+
+	read := func(t *testing.T, m *types.Module) *apitest.Response {
+		return h.apiInit().
+			Get(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors)
+	}
+
+	t.Run("read flags a module with records", func(t *testing.T) {
+		m, _ := setup("deleted")
+		read(t, m).Assert(jsonpath.Equal(`$.response.hasRecords`, true)).End()
+	})
+
+	t.Run("read does not flag a module without records", func(t *testing.T) {
+		m, _ := setup("")
+		read(t, m).Assert(jsonpath.NotPresent(`$.response.hasRecords`)).End()
+	})
+
+	t.Run("list does not flag modules", func(t *testing.T) {
+		setup("live")
+		h.apiInit().
+			Get(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			Assert(jsonpath.NotPresent(`$.response.set[? @.hasRecords]`)).
+			End()
+	})
+
+	t.Run("read does not flag a module the caller can not update", func(t *testing.T) {
+		m, _ := setup("live")
+		helpers.DenyMe(h, types.ModuleRbacResource(0, 0), "update")
+		read(t, m).Assert(jsonpath.NotPresent(`$.response.hasRecords`)).End()
+	})
+}
+
 func TestModuleFieldsUpdateExpressions(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
@@ -802,23 +918,18 @@ func TestModuleFieldsPreventUpdate_ifRecordExists(t *testing.T) {
 	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "Number" }, { "name": "new", "kind": "DateTime" }] }`, m.Name, f.ID)
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		Header("Accept", "application/json").
 		JSON(fjs).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertNoErrors).
+		Assert(helpers.AssertError("module.errors.fieldLocked")).
 		End()
 
 	m = h.lookupModuleByID(m.ID)
 	h.a.NotNil(m)
-	h.a.NotNil(m.Fields)
-	h.a.Len(m.Fields, 2)
-
-	h.a.NotNil(m.Fields[0].UpdatedAt)
-	h.a.Equal(m.Fields[0].Name, "existing")
-	h.a.Equal(m.Fields[0].Kind, "String")
-	h.a.Nil(m.Fields[1].UpdatedAt)
-	h.a.Equal(m.Fields[1].Name, "new")
-	h.a.Equal(m.Fields[1].Kind, "DateTime")
+	h.a.Len(m.Fields, 1)
+	h.a.Equal("existing", m.Fields[0].Name)
+	h.a.Equal("String", m.Fields[0].Kind)
 }
 
 func TestModuleDeleteForbidden(t *testing.T) {

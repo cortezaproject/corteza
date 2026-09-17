@@ -6,6 +6,7 @@ errors:
   invalidNamespaceID: invalid or missing namespace ID
   nameNotUnique: name not unique
   fieldNameReserved: field name reserved
+  fieldLocked: The field {{field}} already has records saved in it, so its name and type can't be changed. Add a new field instead.
   namespaceNotFound: namespace does not exist
   notAllowedToCreate: not allowed to create modules
   notAllowedToDelete: not allowed to delete this module

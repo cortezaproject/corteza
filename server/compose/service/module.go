@@ -15,6 +15,7 @@ import (
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/filter"
 
+	"github.com/crusttech/human/server/compose/dalutils"
 	"github.com/crusttech/human/server/compose/service/event"
 	"github.com/crusttech/human/server/compose/service/values"
 	"github.com/crusttech/human/server/compose/types"
@@ -59,6 +60,8 @@ type (
 		Update(ctx context.Context, module *types.Module) (*types.Module, error)
 		DeleteByID(ctx context.Context, namespaceID, moduleID uint64) error
 		UndeleteByID(ctx context.Context, namespaceID, moduleID uint64) error
+
+		HasRecords(ctx context.Context, m *types.Module) bool
 
 		// @note probably temporary just so tests are easier
 		ReloadDALModels(ctx context.Context) error
@@ -255,11 +258,11 @@ func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd *types.Modu
 		return err
 	}
 
-	// hasRecords protects field name/kind changes once a module holds data; it
-	// stays false here (the DAL model is the source of truth for materialized
-	// records), matching the behaviour before the codegen refactor.
-	hasRecords := false
-	if err := updateModuleFields(ctx, s, res, old, hasRecords); err != nil {
+	if f := renamedOrRetypedField(res.Fields, old.Fields); f != nil && svc.HasRecords(ctx, old) {
+		return ModuleErrFieldLocked().Apply(errors.Meta("field", f.Name))
+	}
+
+	if err := updateModuleFields(ctx, s, res, old); err != nil {
 		return err
 	}
 
@@ -468,6 +471,42 @@ func (svc module) procDal(m *types.Module) {
 	if len(m.Issues) == 0 {
 		m.Issues = nil
 	}
+}
+
+// HasRecords reports whether the module stores any record, deleted ones
+// included. A module whose DAL model has issues, or whose records can not be
+// listed, reports none.
+func (svc *module) HasRecords(ctx context.Context, m *types.Module) bool {
+	if svc.services.dal == nil || m == nil || m.ID == 0 {
+		return false
+	}
+
+	if len(svc.services.dal.SearchModelIssues(m.ID)) > 0 {
+		return false
+	}
+
+	set, _, err := dalutils.ComposeRecordsList(ctx, svc.services.dal, m, types.RecordFilter{
+		Deleted: filter.StateInclusive,
+		Paging:  filter.Paging{Limit: 1},
+	})
+
+	return err == nil && len(set) > 0
+}
+
+// renamedOrRetypedField returns the first stored field whose name or kind the
+// incoming set changes.
+func renamedOrRetypedField(new, old types.ModuleFieldSet) *types.ModuleField {
+	for _, f := range new {
+		if f.DeletedAt != nil {
+			continue
+		}
+
+		if of := old.FindByID(f.ID); of != nil && (of.Name != f.Name || of.Kind != f.Kind) {
+			return of
+		}
+	}
+
+	return nil
 }
 
 func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.Module, error) {
@@ -740,7 +779,7 @@ func (svc module) uniqueCheck(ctx context.Context, m *types.Module) (err error) 
 // updates module fields
 // expecting to receive all module fields, as it deletes the rest
 // also, sort order of the fields is also important as this fn stores and updates field's place as send
-func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Module, hasRecords bool) (err error) {
+func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Module) (err error) {
 	// Go over new to assure field integrity
 	for _, f := range new.Fields {
 		if f.ModuleID == 0 {
@@ -811,15 +850,6 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 		f.Place = idx
 		if of := old.Fields.FindByID(f.ID); of != nil {
 			f.CreatedAt = of.CreatedAt
-
-			// We do not have any other code in place that would handle changes of field name and kind, so we need
-			// to reset any changes made to the field.
-			// @todo remove when we are able to handle field rename & type change
-			if hasRecords {
-				f.Name = of.Name
-				f.Kind = of.Kind
-			}
-
 			f.UpdatedAt = now()
 
 			err = store.UpdateComposeModuleField(ctx, s, f)

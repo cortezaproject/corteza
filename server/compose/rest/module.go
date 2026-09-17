@@ -28,6 +28,10 @@ type (
 		CanDeleteModule      bool `json:"canDeleteModule"`
 		CanCreateRecord      bool `json:"canCreateRecord"`
 		CanCreateOwnedRecord bool `json:"canCreateOwnedRecord"`
+
+		// HasRecords is set on a single module for callers who can update it;
+		// its fields' names and kinds are then locked.
+		HasRecords bool `json:"hasRecords,omitempty"`
 	}
 
 	moduleFieldPayload struct {
@@ -147,6 +151,15 @@ func (ctrl *Module) TriggerScript(ctx context.Context, r *request.ModuleTriggerS
 }
 
 func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) (*modulePayload, error) {
+	mp, err := ctrl.makeSetItemPayload(ctx, m, err)
+	if mp != nil && mp.CanUpdateModule {
+		mp.HasRecords = ctrl.module.HasRecords(ctx, m)
+	}
+
+	return mp, err
+}
+
+func (ctrl Module) makeSetItemPayload(ctx context.Context, m *types.Module, err error) (*modulePayload, error) {
 	if err != nil || m == nil {
 		return nil, err
 	}
@@ -194,7 +207,7 @@ func (ctrl Module) makeFilterPayload(ctx context.Context, nn types.ModuleSet, f 
 	msp := &moduleSetPayload{Filter: f, Set: make([]*modulePayload, len(nn))}
 
 	for i := range nn {
-		msp.Set[i], _ = ctrl.makePayload(ctx, nn[i], nil)
+		msp.Set[i], _ = ctrl.makeSetItemPayload(ctx, nn[i], nil)
 	}
 
 	return msp, nil

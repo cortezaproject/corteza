@@ -210,11 +210,12 @@
                     :columns="fieldFormListColumns"
                   >
                     <template #row="{ item: field, index }">
-                      <div class="flex flex-col gap-1">
+                      <div class="flex flex-col gap-1" v-tooltip.top="fieldLockedReason(field)">
                         <InputText
                           v-model="field.name"
                           class="w-full"
                           size="small"
+                          :disabled="!!fieldLockedReason(field)"
                           :invalid="validationTriggered && fieldNameError(field) !== ''"
                         />
                         <Message
@@ -263,13 +264,14 @@
                         </Message>
                       </div>
 
-                      <InputGroup>
+                      <InputGroup v-tooltip.top="fieldLockedReason(field)">
                         <Select
                           v-model="field.kind"
                           :options="fieldKinds"
                           option-label="label"
                           option-value="value"
                           size="small"
+                          :disabled="!!fieldLockedReason(field)"
                         />
                         <InputGroupAddon v-if="field.expressions?.value">
                           <i
@@ -678,6 +680,13 @@ function requiredTooltip(field) {
 
 function multiDisabledReason(field) {
   return capsOf(field).multi ? '' : t('field.disabled.multiUnsupported')
+}
+
+// A saved field's name and kind are fixed once the module has records; the
+// server refuses the change too.
+function fieldLockedReason(field) {
+  if (!module.value?.hasRecords || !field.fieldID || field.fieldID === '0') return ''
+  return t('field.disabled.lockedByRecords')
 }
 
 // Valid field name: starts with a letter, then letters/numbers/underscores.

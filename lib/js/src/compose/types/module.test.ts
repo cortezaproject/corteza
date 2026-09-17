@@ -45,6 +45,17 @@ describe('module', () => {
     })
   })
 
+  describe('records flag', () => {
+    it('defaults to false and takes the server value', () => {
+      expect(new Module({ name: 'm' }).hasRecords).to.equal(false)
+      expect(new Module({ name: 'm', hasRecords: true }).hasRecords).to.equal(true)
+    })
+
+    it('survives a clone', () => {
+      expect(new Module({ name: 'm', hasRecords: true }).clone().hasRecords).to.equal(true)
+    })
+  })
+
   describe('field operations', () => {
     it('simple search', () => {
       expect(mod.findField('f1s')).to.not.equal(undefined)

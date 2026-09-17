@@ -17,6 +17,7 @@ constraints:
 defaultFieldValue: Default field value
 defaultValue: Default value
 disabled:
+  lockedByRecords: This module already has records, so the name and type of a saved field cannot be changed. Add a new field instead.
   multiUnsupported: This field type cannot hold more than one value
   requiredUnsupported: This field type cannot be made required
 expressions:
