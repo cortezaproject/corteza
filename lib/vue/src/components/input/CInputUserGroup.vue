@@ -16,7 +16,17 @@
   >
     <template #option="{ option }">
       <div class="flex flex-col w-full min-w-0 whitespace-normal break-words">
-        <span>{{ getOptionLabel(option) }}</span>
+        <div class="flex items-center justify-between w-full">
+          <span>
+            {{ getOptionLabel(option) }}
+          </span>
+          <Tag
+            v-if="option.deletedAt"
+            :value="$t('general.deleted')"
+            severity="danger"
+            class="ml-2"
+          />
+        </div>
         <small v-if="option.meta?.description" class="text-muted-color">
           {{ option.meta.description }}
         </small>
@@ -26,8 +36,9 @@
 </template>
 
 <script setup>
+import Tag from 'primevue/tag'
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-
+import { useI18n } from 'vue-i18n'
 const props = defineProps({
   modelValue: {
     type: [String, Number],
@@ -56,7 +67,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'select'])
-
+const { t } = useI18n()
 const $SystemAPI = inject('$SystemAPI')
 
 const options = ref([])
