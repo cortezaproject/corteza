@@ -1,0 +1,7 @@
+errors:
+  cyclicPath: A user group can't report to itself or to a group below it. Pick a parent group that isn't under this one.
+  duplicatePathName: Each group this user group reports to needs a different relationship name.
+  hasChildGroups: Other user groups still report to this one. Make them report to a different group before deleting it.
+  hasMembers: This user group still has members. Move them to other groups before deleting it.
+  notFound: This user group doesn't exist or has been deleted.
+  parentNotFound: A group this user group should report to doesn't exist or has been deleted. Pick another parent group.

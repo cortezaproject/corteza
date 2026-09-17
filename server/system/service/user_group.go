@@ -10,10 +10,12 @@ import (
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/pkg/label"
+	"github.com/crusttech/human/server/pkg/logger"
 	"github.com/crusttech/human/server/pkg/rbac"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/service/event"
 	"github.com/crusttech/human/server/system/types"
+	"go.uber.org/zap"
 )
 
 type (
@@ -91,10 +93,37 @@ func (svc *userGroup) onActivate(ctx context.Context, _ *userGroupActionProps) (
 		return
 	}
 
+	live := make(map[uint64]bool, len(groups))
 	for _, g := range groups {
-		if len(g.Config.Paths) == 0 {
+		live[g.ID] = true
+		if g.Config == nil || len(g.Config.Paths) == 0 {
 			svc.services.rootUserGroup = id.MustNumID(g.ID)
 		}
+	}
+
+	paths := make(map[uint64][]types.UserGroupPath, len(groups))
+	for _, g := range groups {
+		kept, dropped := liveParentPaths(g, live, svc.services.rootUserGroup.Num())
+		paths[g.ID] = kept
+
+		if len(dropped) > 0 {
+			logger.Default().Warn(
+				"user group reports to a deleted or missing group; the link is ignored until the group is re-parented",
+				zap.Uint64("userGroupID", g.ID),
+				zap.String("handle", g.Handle),
+				zap.Uint64s("ignoredParents", dropped),
+			)
+		}
+	}
+
+	for _, ID := range breakReportingCycles(paths, svc.services.rootUserGroup.Num()) {
+		logger.Default().Warn(
+			"user group is part of a reporting cycle; it is placed under the root group until it is re-parented",
+			zap.Uint64("userGroupID", ID),
+		)
+	}
+
+	for _, g := range groups {
 
 		roles, _, err := svc.services.role.Find(ctx, types.RoleFilter{
 			Resource: fmt.Sprintf("corteza::system:user-group/%d", g.ID),
@@ -120,7 +149,7 @@ func (svc *userGroup) onActivate(ctx context.Context, _ *userGroupActionProps) (
 		}
 
 		pp := []rbac.GroupNodePath{}
-		for _, p := range g.Config.Paths {
+		for _, p := range paths[g.ID] {
 			pp = append(pp, rbac.GroupNodePath{
 				SelfID: id.MustNumID(p.SelfID),
 				Name:   p.Name,
@@ -299,8 +328,12 @@ func (svc *userGroup) validate(ctx context.Context, new *types.UserGroup) error 
 		return UserGroupErrInvalidHandle()
 	}
 
-	if !svc.checkPaths(new) {
-		return UserGroupErrInvalidSelfID()
+	if err := svc.checkPaths(new); err != nil {
+		return err
+	}
+
+	if err := svc.checkParents(ctx, new); err != nil {
+		return err
 	}
 
 	if !svc.isValidStructure(ctx, new) {
@@ -365,12 +398,12 @@ func (svc *userGroup) Update(ctx context.Context, upd *types.UserGroup) (r *type
 			return UserGroupErrNotAllowedToUpdate()
 		}
 
-		if len(upd.Config.Paths) == 0 {
-			return UserGroupErrMissingSelfID()
+		if err = svc.checkPaths(upd); err != nil {
+			return err
 		}
 
-		if !svc.checkSelfID(ctx, upd) {
-			return UserGroupErrInvalidSelfID()
+		if err = svc.checkParents(ctx, upd); err != nil {
+			return err
 		}
 
 		if !svc.isValidStructure(ctx, upd) {
@@ -465,6 +498,10 @@ func (svc *userGroup) DeleteByID(ctx context.Context, userGroupID uint64) (err e
 			return err
 		}
 
+		if err = svc.checkEmpty(ctx, r.ID); err != nil {
+			return err
+		}
+
 		if err = svc.services.eventbus.WaitFor(ctx, event.UserGroupBeforeDelete(nil, r)); err != nil {
 			return
 		}
@@ -529,6 +566,10 @@ func (svc *userGroup) UndeleteByID(ctx context.Context, userGroupID uint64) (err
 
 		if !svc.ac.CanDeleteUserGroup(ctx, upd) {
 			return UserGroupErrNotAllowedToDelete()
+		}
+
+		if err = svc.checkParents(ctx, upd); err != nil {
+			return err
 		}
 
 		upd.DeletedAt = nil
@@ -600,6 +641,10 @@ func (svc *userGroup) onMemberAdd(ctx context.Context, aProps *userGroupActionPr
 		return
 	}
 
+	if g.DeletedAt != nil {
+		return UserGroupErrNotFound()
+	}
+
 	aProps.setUserGroup(g)
 
 	if m, err = svc.services.user.FindByID(ctx, memberID); err != nil {
@@ -631,6 +676,82 @@ func (svc *userGroup) onMemberAdd(ctx context.Context, aProps *userGroupActionPr
 	return nil
 }
 
+// liveParentPaths keeps a group's parent links to live groups. A non-root group
+// whose every parent is gone is placed under the root group, so the org tree can
+// still be built from data a past delete left behind.
+func liveParentPaths(g *types.UserGroup, live map[uint64]bool, root uint64) (kept []types.UserGroupPath, dropped []uint64) {
+	if g.Config == nil || len(g.Config.Paths) == 0 {
+		return nil, nil
+	}
+
+	for _, p := range g.Config.Paths {
+		if live[p.SelfID] {
+			kept = append(kept, p)
+			continue
+		}
+
+		dropped = append(dropped, p.SelfID)
+	}
+
+	if len(kept) == 0 && g.ID != root {
+		kept = []types.UserGroupPath{{SelfID: root}}
+	}
+
+	return kept, dropped
+}
+
+// breakReportingCycles places the lowest-ID group of every reporting cycle under
+// the root group, so each group reaches the root again. It returns the groups it
+// moved.
+func breakReportingCycles(paths map[uint64][]types.UserGroupPath, root uint64) (moved []uint64) {
+	onCycle := func(start uint64) bool {
+		var (
+			seen  = map[uint64]bool{}
+			stack = []uint64{}
+		)
+
+		for _, p := range paths[start] {
+			stack = append(stack, p.SelfID)
+		}
+
+		for len(stack) > 0 {
+			cur := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+
+			if cur == start {
+				return true
+			}
+
+			if seen[cur] {
+				continue
+			}
+			seen[cur] = true
+
+			for _, p := range paths[cur] {
+				stack = append(stack, p.SelfID)
+			}
+		}
+
+		return false
+	}
+
+	for {
+		var lowest uint64
+		for ID := range paths {
+			if ID != root && (lowest == 0 || ID < lowest) && onCycle(ID) {
+				lowest = ID
+			}
+		}
+
+		if lowest == 0 {
+			return moved
+		}
+
+		paths[lowest] = []types.UserGroupPath{{SelfID: root}}
+		moved = append(moved, lowest)
+	}
+}
+
 func loadUserGroup(ctx context.Context, s store.UserGroups, ID uint64) (res *types.UserGroup, err error) {
 	if ID == 0 {
 		return nil, UserGroupErrInvalidID()
@@ -648,49 +769,139 @@ func (svc *userGroup) isValidStructure(ctx context.Context, g *types.UserGroup) 
 	return true
 }
 
-func (svc *userGroup) checkSelfID(ctx context.Context, g *types.UserGroup) bool {
+// checkParents refuses parent links to groups that do not exist or are deleted,
+// and links that would place the group below itself.
+func (svc *userGroup) checkParents(ctx context.Context, g *types.UserGroup) error {
+	if g.Config == nil {
+		return nil
+	}
+
 	for _, p := range g.Config.Paths {
-		// Can't point to itself
 		if p.SelfID == g.ID {
-			return false
+			return UserGroupErrCyclicPath()
 		}
 
-		// The pointed to selfID exists
-		_, err := svc.FindByID(ctx, p.SelfID)
+		parent, err := store.LookupUserGroupByID(ctx, svc.store, p.SelfID)
+		if errors.IsNotFound(err) || (err == nil && parent.DeletedAt != nil) {
+			return UserGroupErrParentNotFound()
+		}
+
 		if err != nil {
-			return false
+			return err
 		}
 	}
 
-	return true
+	if g.ID == 0 {
+		return nil
+	}
+
+	// walk up from every parent; reaching the group itself means it would sit below itself
+	var (
+		seen  = map[uint64]bool{}
+		queue = make([]uint64, 0, len(g.Config.Paths))
+	)
+
+	for _, p := range g.Config.Paths {
+		queue = append(queue, p.SelfID)
+	}
+
+	for len(queue) > 0 {
+		cur := queue[0]
+		queue = queue[1:]
+
+		if cur == g.ID {
+			return UserGroupErrCyclicPath()
+		}
+
+		if seen[cur] {
+			continue
+		}
+		seen[cur] = true
+
+		ancestor, err := store.LookupUserGroupByID(ctx, svc.store, cur)
+		if errors.IsNotFound(err) {
+			continue
+		}
+
+		if err != nil {
+			return err
+		}
+
+		if ancestor.Config == nil {
+			continue
+		}
+
+		for _, p := range ancestor.Config.Paths {
+			queue = append(queue, p.SelfID)
+		}
+	}
+
+	return nil
 }
 
-func (svc *userGroup) checkPaths(g *types.UserGroup) (ok bool) {
-	if id.MustNumID(g.ID).Equal(svc.services.rootUserGroup) {
-		return len(g.Config.Paths) == 0
+// checkEmpty refuses a group that still has members who are not deleted, or
+// groups that report to it.
+func (svc *userGroup) checkEmpty(ctx context.Context, userGroupID uint64) error {
+	members, _, err := store.SearchUsers(ctx, svc.store, types.UserFilter{UserGroupID: userGroupID})
+	if err != nil {
+		return err
 	}
 
+	if len(members) > 0 {
+		return UserGroupErrHasMembers()
+	}
+
+	groups, _, err := store.SearchUserGroups(ctx, svc.store, types.UserGroupFilter{})
+	if err != nil {
+		return err
+	}
+
+	for _, g := range groups {
+		if g.Config == nil {
+			continue
+		}
+
+		for _, p := range g.Config.Paths {
+			if p.SelfID == userGroupID {
+				return UserGroupErrHasChildGroups()
+			}
+		}
+	}
+
+	return nil
+}
+
+// checkPaths requires the root group to have no parent links and every other
+// group at least one, each naming a parent and each with its own relationship name.
+func (svc *userGroup) checkPaths(g *types.UserGroup) error {
 	if g.Config == nil {
 		g.Config = &types.UserGroupConfig{}
 	}
 
-	if len(g.Config.Paths) == 0 {
-		return false
-	}
-
-	names := make(map[string]bool, len(g.Config.Paths)/2)
-	for _, p := range g.Config.Paths {
-		if p.SelfID == 0 {
-			return false
+	if id.MustNumID(g.ID).Equal(svc.services.rootUserGroup) {
+		if len(g.Config.Paths) > 0 {
+			return UserGroupErrInvalidSelfID()
 		}
 
-		// Do not allow duplicate paths
+		return nil
+	}
+
+	if len(g.Config.Paths) == 0 {
+		return UserGroupErrMissingSelfID()
+	}
+
+	names := make(map[string]bool, len(g.Config.Paths))
+	for _, p := range g.Config.Paths {
+		if p.SelfID == 0 {
+			return UserGroupErrInvalidSelfID()
+		}
+
 		if names[p.Name] {
-			return false
+			return UserGroupErrDuplicatePathName()
 		}
 
 		names[p.Name] = true
 	}
 
-	return true
+	return nil
 }

@@ -14,121 +14,143 @@ import:
 
 props:
   - name: member
-    type: "*types.User"
-    fields: [ handle, email, ID ]
+    type: '*types.User'
+    fields: [handle, email, ID]
   - name: userGroup
-    type: "*types.UserGroup"
-    fields: [ handle, ID ]
+    type: '*types.UserGroup'
+    fields: [handle, ID]
   - name: new
-    type: "*types.UserGroup"
-    fields: [ handle, ID ]
+    type: '*types.UserGroup'
+    fields: [handle, ID]
   - name: update
-    type: "*types.UserGroup"
-    fields: [ handle, ID ]
+    type: '*types.UserGroup'
+    fields: [handle, ID]
   - name: existing
-    type: "*types.UserGroup"
-    fields: [ handle, ID ]
+    type: '*types.UserGroup'
+    fields: [handle, ID]
   - name: filter
-    type: "*types.UserGroupFilter"
-    fields: [ userGroupID, handle, deleted, sort ]
+    type: '*types.UserGroupFilter'
+    fields: [userGroupID, handle, deleted, sort]
 
 actions:
   - action: search
-    log: "searched for matching userGroups"
+    log: 'searched for matching userGroups'
     severity: info
 
   - action: lookup
-    log: "looked-up for a {{userGroup}}"
+    log: 'looked-up for a {{userGroup}}'
     severity: info
 
   - action: create
-    log: "created {{userGroup}}"
+    log: 'created {{userGroup}}'
 
   - action: update
-    log: "updated {{userGroup}}"
+    log: 'updated {{userGroup}}'
 
   - action: delete
-    log: "deleted {{userGroup}}"
+    log: 'deleted {{userGroup}}'
 
   - action: undelete
-    log: "undeleted {{userGroup}}"
+    log: 'undeleted {{userGroup}}'
 
   - action: members
-    log: "searched for members of {{userGroup}}"
+    log: 'searched for members of {{userGroup}}'
 
   - action: memberAdd
-    log: "added {{member.email}} to {{userGroup}}"
+    log: 'added {{member.email}} to {{userGroup}}'
 
   - action: memberRemove
-    log: "removed {{member.email}} from {{userGroup}}"
+    log: 'removed {{member.email}} from {{userGroup}}'
 
   - action: activate
-    log: "activated user groups"
+    log: 'activated user groups'
 
 errors:
   - error: notFound
-    message: "userGroup not found"
+    message: 'userGroup not found'
     severity: warning
 
   - error: invalidID
-    message: "invalid ID"
+    message: 'invalid ID'
     severity: warning
 
   - error: invalidHandle
-    message: "invalid handle"
+    message: 'invalid handle'
     severity: warning
 
   - error: missingSelfID
-    message: "missing self ID"
+    message: 'missing self ID'
 
   - error: invalidSelfID
-    message: "invalid self ID"
+    message: 'invalid self ID'
 
   - error: invalidUpdateStructure
-    message: "invalid structure after update"
+    message: 'invalid structure after update'
+
+  - error: parentNotFound
+    message: 'parent user group does not exist or is deleted'
+    severity: warning
+
+  - error: cyclicPath
+    message: 'user group cannot report to itself or to a group below it'
+    severity: warning
+
+  - error: duplicatePathName
+    message: 'parent links of a user group need different relationship names'
+    severity: warning
+
+  - error: hasMembers
+    message: 'user group still has members'
+    log: 'failed to delete {{userGroup.handle}}; it still has members'
+    severity: warning
+
+  - error: hasChildGroups
+    message: 'user group still has child groups'
+    log: 'failed to delete {{userGroup.handle}}; other groups still report to it'
+    severity: warning
 
   - error: staleData
     message: "user group was modified by someone else or by a workflow after you've opened it. Please refresh to see the latest updated version"
     severity: warning
 
   - error: notAllowedToRead
-    message: "not allowed to read this userGroup"
-    log: "failed to read {{userGroup.handle}}; insufficient permissions"
+    message: 'not allowed to read this userGroup'
+    log: 'failed to read {{userGroup.handle}}; insufficient permissions'
 
   - error: notAllowedToSearch
-    message: "not allowed to list or search userGroups"
-    log: "failed to search for userGroups; insufficient permissions"
+    message: 'not allowed to list or search userGroups'
+    log: 'failed to search for userGroups; insufficient permissions'
 
   - error: notAllowedToListUserGroups
-    message: "not allowed to list userGroups"
-    log: "failed to list userGroup; insufficient permissions"
+    message: 'not allowed to list userGroups'
+    log: 'failed to list userGroup; insufficient permissions'
 
   - error: notAllowedToCreate
-    message: "not allowed to create userGroups"
-    log: "failed to create userGroups; insufficient permissions"
+    message: 'not allowed to create userGroups'
+    log: 'failed to create userGroups; insufficient permissions'
 
   - error: notAllowedToUpdate
-    message: "not allowed to update this userGroup"
-    log: "failed to update {{userGroup.handle}}; insufficient permissions"
+    message: 'not allowed to update this userGroup'
+    log: 'failed to update {{userGroup.handle}}; insufficient permissions'
 
   - error: notAllowedToDelete
-    message: "not allowed to delete this userGroup"
-    log: "failed to delete {{userGroup.handle}}; insufficient permissions"
+    message: 'not allowed to delete this userGroup'
+    log: 'failed to delete {{userGroup.handle}}; insufficient permissions'
 
   - error: notAllowedToUndelete
-    message: "not allowed to undelete this userGroup"
-    log: "failed to undelete {{userGroup.handle}}; insufficient permissions"
+    message: 'not allowed to undelete this userGroup'
+    log: 'failed to undelete {{userGroup.handle}}; insufficient permissions'
 
   - error: handleNotUnique
-    message: "handle not unique"
-    log: "used duplicate handle ({{userGroup.handle}}) for userGroup"
+    message: 'handle not unique'
+    log: 'used duplicate handle ({{userGroup.handle}}) for userGroup'
     severity: warning
 
   - error: nameNotUnique
-    message: "name not unique"
-    log: "used duplicate name ({{userGroup.handle}}) for userGroup"
+    message: 'name not unique'
+    log: 'used duplicate name ({{userGroup.handle}}) for userGroup'
     severity: warning
 
   - error: notAllowedToManageMembers
-    message: "not allowed to manage user group members"
-    log: "failed to manage {{userGroup.handle}} members; insufficient permissions"
+    message: 'not allowed to manage user group members'
+    log: 'failed to manage {{userGroup.handle}} members; insufficient permissions'
