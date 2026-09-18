@@ -7,11 +7,18 @@
         :options="selectOptions"
         option-label="name"
         data-key="namespaceID"
+        filter
+        :filter-fields="['name', 'slug']"
+        auto-filter-focus
+        reset-filter-on-hide
         :placeholder="$t('sidebar.namespaceSelector.placeholder')"
         size="small"
         class="w-full"
         @update:model-value="handleNamespaceChange"
       >
+        <template #value="{ value, placeholder }">
+          {{ value?.name || placeholder }}
+        </template>
         <template #option="{ option }">
           <div class="flex items-center gap-2">
             <span>{{ option.name }}</span>
