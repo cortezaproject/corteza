@@ -86,6 +86,11 @@
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-07-29"
     },
+    "client/web/unify/e2e/sections/shell/document-title.spec.ts": {
+      "h": "79902432a334",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-09-18"
+    },
     "client/web/unify/eslint.config.js": {
       "h": "bb961567d66b",
       "doc": "client/web/unify/unify.intent.md",

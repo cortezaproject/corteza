@@ -26,6 +26,14 @@ const openShell = async (page: Page, path: string) => {
 const heading = (page: Page) =>
   page.evaluate(() => document.getElementById('topbar-title')?.innerText.trim() ?? '')
 
+// The tab title carries the unread-notification count in front of the heading
+// (`composeTitle` in src/utils/documentTitle.js), and a stack in use always has
+// some. These tests are about the heading half, so the count is split off by a
+// shape that only a count matches rather than assumed to be absent.
+const UNREAD_PREFIX = /^\(\d+\) /
+
+const tabHeading = async (page: Page) => (await page.title()).replace(UNREAD_PREFIX, '')
+
 // A heading arrives with the data behind it (a project name, a page title), so
 // it is polled for rather than read once.
 const headingArrives = (page: Page) =>
@@ -48,7 +56,7 @@ for (const path of MIRRORED) {
     await openShell(page, path)
     await headingArrives(page)
 
-    expect(await page.title()).toBe(await heading(page))
+    expect(await tabHeading(page)).toBe(await heading(page))
   })
 }
 
@@ -56,17 +64,17 @@ test('a route that states no heading keeps the app name', async ({ page }) => {
   await openShell(page, '/')
 
   expect(await heading(page)).toBe('')
-  await expect(page).toHaveTitle(BASE_TITLE)
+  await expect.poll(() => tabHeading(page)).toBe(BASE_TITLE)
 })
 
 test('the title follows navigation, leaving nothing stale behind', async ({ page }) => {
   await openShell(page, '/admin/system/users')
   await headingArrives(page)
-  const first = await page.title()
+  const first = await tabHeading(page)
 
   await openShell(page, '/taq')
   await headingArrives(page)
-  const second = await page.title()
+  const second = await tabHeading(page)
 
   expect(second).not.toBe(first)
   expect(second).toBe(await heading(page))
@@ -85,7 +93,7 @@ test('the project dashboard titles the project, not the revision switcher', asyn
   await page.waitForURL(/\/project\/projects\/\d+/)
   await headingArrives(page)
 
-  const [topbar, title] = [await heading(page), await page.title()]
+  const [topbar, title] = [await heading(page), await tabHeading(page)]
 
   // The switcher sits inside #topbar-title and carries data-title-exclude, so
   // the topbar says more than the tab does.
