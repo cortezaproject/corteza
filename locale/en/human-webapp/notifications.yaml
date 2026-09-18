@@ -2,6 +2,10 @@ all: All
 allMarkedAsRead: All notifications have been marked as read
 allMarkedAsUnread: All notifications have been marked as unread
 delete: Delete
+desktopBlocked: Desktop notifications are blocked for this site. To get them, allow notifications for this site in your browser's site settings.
+desktopDismiss: Dismiss
+desktopEnable: Enable desktop notifications
+desktopPrompt: Get a desktop notification from your browser when a new notification arrives while you are not looking at Human.
 empty: No notifications
 loadMore: Load More
 markAllAsRead: Mark all as read
@@ -13,6 +17,7 @@ markAsUnread: Mark as unread
 mute: Mute notifications
 muted: Notifications muted
 namespaceNotFound: Namespace not found
+newNotification: New notification
 notificationDeleted: Notification has been deleted
 notificationDeletedError: Error deleting notification
 open: Open

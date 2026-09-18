@@ -9,8 +9,8 @@
       @click="rightSidebarStore.toggle('notifications')"
     />
     <Badge
-      v-if="notifications.unreadCount > 0 && !notifications.muted"
-      :value="notifications.unreadCount > 9 ? '9+' : notifications.unreadCount"
+      v-if="notifications.badgeCount > 0"
+      :value="notifications.badgeCount > 9 ? '9+' : notifications.badgeCount"
       class="!absolute !-top-1 !-right-1 !pointer-events-none"
       severity="danger"
       size="small"

@@ -14,6 +14,8 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const unreadCount = computed(
     () => notifications.value.filter(notification => !notification.readAt).length,
   )
+  // The count the bell and the tab title show: none while muted.
+  const badgeCount = computed(() => (muted.value ? 0 : unreadCount.value))
 
   function setNotifications(set: Array<system.Notification> = []) {
     notifications.value = set.map(notification => new system.Notification(notification))
@@ -182,6 +184,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     hasUnread,
     hasRead,
     unreadCount,
+    badgeCount,
     fetchNotifications,
     markAsRead,
     markAsUnread,

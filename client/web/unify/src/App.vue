@@ -119,6 +119,7 @@ import {
   useNotificationsStore,
   useRBACStore,
   useRightSidebarStore,
+  useSystemNotifications,
   useWorkflowPromptsStore,
   websocket,
 } from '@planetcrust/human-vue'
@@ -156,6 +157,7 @@ const $eventBus = inject('$eventBus', null)
 
 const applicationsStore = useApplicationsStore()
 const notificationsStore = useNotificationsStore()
+const systemNotifications = useSystemNotifications()
 const rightSidebarStore = useRightSidebarStore()
 const workflowPromptsStore = useWorkflowPromptsStore()
 const rbacStore = useRBACStore()
@@ -288,8 +290,8 @@ let realtimeClient
 const logoUrl = computed(() => $Settings.attachment('ui.mainLogo'))
 
 // Tab title = the heading the active view teleports into the topbar, with the
-// unread count kept in front of it.
-useDocumentTitle(() => notificationsStore.unreadCount)
+// unread count kept in front of it unless notifications are muted.
+useDocumentTitle(() => notificationsStore.badgeCount)
 
 onMounted(async () => {
   window.addEventListener('resize', handleResize)
@@ -334,8 +336,12 @@ onMounted(async () => {
       // Re-broadcast every realtime message so active sections can react to
       // their own types (e.g. compose handles 'reminder').
       $eventBus?.emit('realtime', msg)
-      // Notification.* types are owned by the notifications store.
-      if (notificationsStore.handleRealtime(msg)) return
+      // Notification.* types are owned by the notifications store; a new one
+      // is also offered to the OS.
+      if (notificationsStore.handleRealtime(msg)) {
+        if (msg['@type'] === 'notification') systemNotifications.notify(msg['@value'])
+        return
+      }
       switch (msg['@type']) {
         case 'workflowSessionPrompt':
           workflowPromptsStore.newPrompt(msg['@value'], currentWebapp.value)

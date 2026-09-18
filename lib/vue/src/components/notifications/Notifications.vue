@@ -39,10 +39,12 @@
               variant="text"
               rounded
               size="small"
-              @click="notifications.toggleMuted()"
+              @click="toggleMuted"
             />
           </div>
         </div>
+
+        <CDesktopNotificationsPrompt />
       </div>
 
       <TabPanels class="flex-1 min-h-0 p-0" :pt="{ root: { class: 'h-full' } }">
@@ -80,9 +82,12 @@
 import { inject, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNotificationsStore } from '../../stores/useNotificationsStore'
+import { useSystemNotificationPermission } from '../../composables/useSystemNotifications'
+import CDesktopNotificationsPrompt from './CDesktopNotificationsPrompt.vue'
 import NotificationList from './NotificationList.vue'
 
 const notifications = useNotificationsStore()
+const desktopPermission = useSystemNotificationPermission()
 const $toast = inject('$toast')
 const { t } = useI18n()
 
@@ -119,6 +124,14 @@ async function handleDelete(notificationID) {
     $toast?.toastSuccess?.(t('notifications.notificationDeleted'))
   } catch {
     $toast?.toastDanger?.(t('notifications.notificationDeletedError'))
+  }
+}
+
+// Unmuting is a click, so it is where the browser can be asked.
+function toggleMuted() {
+  notifications.toggleMuted()
+  if (!notifications.muted) {
+    desktopPermission.request()
   }
 }
 

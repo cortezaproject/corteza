@@ -52,6 +52,10 @@ export { useUserResolver } from './composables/useUserResolver'
 export { useFileUpload } from './composables/useFileUpload'
 export { providePermissions, usePermissions, PermissionsKey } from './composables/usePermissions'
 export { useRightSidebarResize } from './composables/useRightSidebarResize'
+export {
+  useSystemNotificationPermission,
+  useSystemNotifications,
+} from './composables/useSystemNotifications'
 export { useAgentRouteContextProvider } from './composables/useAgentRouteContextProvider'
 export { useUnsavedGuard } from './composables/useUnsavedGuard'
 export { useDraftGuard } from './composables/useDraftGuard'
