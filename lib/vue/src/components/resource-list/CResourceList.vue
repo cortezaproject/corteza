@@ -39,7 +39,7 @@
           v-model:expandedRows="expandedRows"
           :dataKey="primaryKey"
           :value="items"
-          :loading="loading"
+          :loading="masked"
           :sortOrder="sorting.sortDesc ? -1 : 1"
           :sortField="sorting.sortBy"
           scrollable
@@ -56,11 +56,11 @@
             emptyMessageCell: { class: 'h-full' },
             footer: { class: 'p-0 border-0' },
           }"
-          @sort="$emit('sort', $event)"
+          @sort="onSort"
           @row-click="$emit('row-click', $event)"
         >
           <template #empty>
-            <div class="flex items-center justify-center p-4 text-muted-color">
+            <div v-if="!loading" class="flex items-center justify-center p-4 text-muted-color">
               {{ translations.noItems || t('general.resourceList.noItems') }}
             </div>
           </template>
@@ -88,6 +88,9 @@
             :frozen="field.frozen"
             :alignFrozen="field.alignFrozen"
           >
+            <template v-if="sortingColumn === field.key" #sorticon="{ class: iconClass }">
+              <i :class="[iconClass, 'pi pi-spin pi-spinner']" />
+            </template>
             <template #body="slotProps">
               <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
                 {{ slotProps.data[field.key] }}
@@ -206,6 +209,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CInputSearch from '../input/CInputSearch.vue'
+import { useTableBusy } from '../../composables/useTableBusy'
 
 const emit = defineEmits(['search', 'sort', 'row-click', 'update:filter', 'page-change'])
 
@@ -295,6 +299,13 @@ const props = defineProps({
 const { t } = useI18n()
 const selected = ref([])
 const expandedRows = ref([])
+
+const { masked, sortingColumn, sortStarted } = useTableBusy(() => props.loading)
+
+function onSort(event) {
+  emit('sort', event)
+  sortStarted(event.sortField)
+}
 
 // -- Actions menu --
 const actionsMenuRef = ref()

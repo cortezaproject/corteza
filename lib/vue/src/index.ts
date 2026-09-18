@@ -47,6 +47,7 @@ export {
 } from './composables/useChangedAt'
 export { getTheme, setThemes, useTheme } from './composables/useTheme'
 export { useDeferredBusy } from './composables/useDeferredBusy'
+export { useTableBusy } from './composables/useTableBusy'
 export { useMinDuration, withMinDuration } from './composables/useMinDuration'
 export { useUserResolver } from './composables/useUserResolver'
 export { useFileUpload } from './composables/useFileUpload'

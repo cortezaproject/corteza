@@ -353,7 +353,7 @@
       <DataTable
         v-model:selection="selectedRecords"
         :value="records"
-        :loading="loading"
+        :loading="masked"
         :rows="currentPerPage"
         :total-records="totalRecords"
         :lazy="true"
@@ -375,7 +375,10 @@
         }"
       >
         <template #empty>
-          <div class="flex items-center justify-center p-4 text-muted-color text-center">
+          <div
+            v-if="!loading"
+            class="flex items-center justify-center p-4 text-muted-color text-center"
+          >
             {{
               prefilterUnresolved
                 ? $t('block.recordList.noRecordContext')
@@ -398,7 +401,7 @@
           :key="col.name"
           :field="col.name"
           :sortable="columnsSortable"
-          :pt="sortBadgePt"
+          :pt="{ ...sortBadgePt, headerCell: { 'data-field': col.name } }"
         >
           <!-- The header slot renders in place of PrimeVue's built-in title span,
                so it has to carry that span's class or the labels lose their
@@ -426,7 +429,13 @@
                 showDelay: 500,
                 class: 'max-w-sm',
               }"
-              :class="['pi', sortIconClass(sorted, sortOrder), iconClass]"
+              :class="[
+                'pi',
+                sortingColumn === col.name
+                  ? 'pi-spin pi-spinner'
+                  : sortIconClass(sorted, sortOrder),
+                iconClass,
+              ]"
             />
           </template>
 
@@ -659,7 +668,7 @@ import { computed, inject, nextTick, onBeforeUnmount, reactive, ref, watch } fro
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { compose, validator } from '@planetcrust/human-js'
-import { components, useConfirmDelete, usePermissions } from '@planetcrust/human-vue'
+import { components, useConfirmDelete, usePermissions, useTableBusy } from '@planetcrust/human-vue'
 const { CFieldViewer, CInputSearch, CFieldPicker } = components
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
@@ -733,6 +742,7 @@ const reminderStore = useReminderStore()
 const $recordRoutes = inject('$recordRoutes', null)
 
 const loading = ref(false)
+const { masked, sortingColumn, sortStarted } = useTableBusy(loading)
 const records = ref([])
 const totalRecords = ref(0)
 const searchInput = ref('')
@@ -1692,6 +1702,8 @@ onBeforeUnmount(() => {
 function onSort(event) {
   multiSortMeta.value = event.multiSortMeta ?? []
   fetchRecords(true)
+  // In multiple mode the sort event names no column, so the header says which
+  sortStarted(event.originalEvent?.target?.closest('th')?.dataset.field)
 }
 
 function onPageSizeChange() {
