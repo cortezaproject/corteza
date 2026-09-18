@@ -364,6 +364,7 @@
     <!-- Data table -->
     <div v-else class="flex-1 overflow-auto">
       <DataTable
+        ref="tableRef"
         v-model:selection="selectedRecords"
         :value="records"
         :loading="masked"
@@ -691,7 +692,14 @@ import { computed, inject, nextTick, onBeforeUnmount, reactive, ref, watch } fro
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { compose, validator } from '@planetcrust/human-js'
-import { components, useConfirmDelete, usePermissions, useTableBusy } from '@planetcrust/human-vue'
+import {
+  components,
+  useConfirmDelete,
+  useGrowOnlyColumns,
+  usePermissions,
+  useTableBusy,
+  useUserResolver,
+} from '@planetcrust/human-vue'
 const { CFieldViewer, CInputSearch, CFieldPicker } = components
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
@@ -757,6 +765,7 @@ const $eventBus = inject('$eventBus', null)
 const $toast = inject('$toast')
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
+const { resolveUsers } = useUserResolver()
 const pageStore = usePageStore()
 const reminderStore = useReminderStore()
 
@@ -940,6 +949,9 @@ const columns = computed(() => {
 
   return recordListModule.value.filterFields(activeNames)
 })
+
+const tableRef = ref(null)
+useGrowOnlyColumns(() => tableRef.value?.$el, [records, columns])
 
 // Pagination helpers
 const hasPrevPage = computed(() => pageCursors.value.length > 0)
@@ -1476,6 +1488,8 @@ async function handleDenyDirtyRecords() {
 
 // Request cancellation
 let cancelPendingRequest = null
+// Which fetch is the latest, so one overtaken while it waits on labels drops its rows
+let fetchSeq = 0
 
 function abortPendingRequest() {
   if (cancelPendingRequest) {
@@ -1598,9 +1612,34 @@ async function loadNavigationIDs() {
   }
 }
 
+// Linked records and users in the shown columns, fetched before the rows are
+// swapped in so a page draws once, with labels, rather than as IDs first
+async function resolveLabels(set) {
+  const waits = columns.value.map(field => {
+    const ids = set.flatMap(r => {
+      const v = field.isSystem ? r[field.name] : r.values?.[field.name]
+      return (Array.isArray(v) ? v : [v]).filter(Boolean)
+    })
+    if (!ids.length) return null
+
+    if (field.kind === 'Record' && field.options?.moduleID) {
+      return recordStore.resolveRecordLabels({
+        namespaceID: props.namespace.namespaceID,
+        moduleID: field.options.moduleID,
+        recordIDs: ids,
+      })
+    }
+    if (field.kind === 'User') return resolveUsers(ids)
+    return null
+  })
+
+  await Promise.allSettled(waits)
+}
+
 // Fetch records with cancellation support
 async function fetchRecords(resetCursor = false) {
   if (!recordListModule.value) return
+  const seq = ++fetchSeq
 
   if (prefilterUnresolved.value) {
     console.warn(
@@ -1669,6 +1708,9 @@ async function fetchRecords(resetCursor = false) {
 
     const mod = recordListModule.value
     const set = (result.set || []).map(r => new compose.Record(mod, r))
+
+    await resolveLabels(set)
+    if (seq !== fetchSeq) return
 
     records.value = set
     if (result.filter?.total !== undefined) {

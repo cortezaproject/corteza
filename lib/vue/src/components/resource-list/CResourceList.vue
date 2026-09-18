@@ -35,6 +35,7 @@
     <template #content>
       <div class="flex-1 overflow-auto min-h-0 min-w-0 flex flex-col h-full w-full">
         <DataTable
+          ref="tableRef"
           v-model:selection="selected"
           v-model:expandedRows="expandedRows"
           :dataKey="primaryKey"
@@ -79,6 +80,7 @@
               ...field.pt,
               headerCell: {
                 ...field.pt?.headerCell,
+                'data-field': field.key,
                 class: [
                   'bg-emphasis text-muted-color font-semibold uppercase text-sm tracking-wide',
                   field.pt?.headerCell?.class,
@@ -210,6 +212,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CInputSearch from '../input/CInputSearch.vue'
 import { useTableBusy } from '../../composables/useTableBusy'
+import { useGrowOnlyColumns } from '../../composables/useGrowOnlyColumns'
 
 const emit = defineEmits(['search', 'sort', 'row-click', 'update:filter', 'page-change'])
 
@@ -301,6 +304,9 @@ const selected = ref([])
 const expandedRows = ref([])
 
 const { masked, sortingColumn, sortStarted } = useTableBusy(() => props.loading)
+
+const tableRef = ref(null)
+useGrowOnlyColumns(() => tableRef.value?.$el, [() => props.items, () => props.fields])
 
 function onSort(event) {
   emit('sort', event)

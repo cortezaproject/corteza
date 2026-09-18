@@ -48,6 +48,7 @@ export {
 export { getTheme, setThemes, useTheme } from './composables/useTheme'
 export { useDeferredBusy } from './composables/useDeferredBusy'
 export { useTableBusy } from './composables/useTableBusy'
+export { useGrowOnlyColumns } from './composables/useGrowOnlyColumns'
 export { useMinDuration, withMinDuration } from './composables/useMinDuration'
 export { useUserResolver } from './composables/useUserResolver'
 export { useFileUpload } from './composables/useFileUpload'
