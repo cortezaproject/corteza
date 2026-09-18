@@ -100,7 +100,8 @@ const props = defineProps({
   selectedFields: { type: Array, default: () => [] },
   initialRecord: { type: Object, default: () => ({}) },
   modalTitle: { type: String, default: '' },
-  query: { type: String, default: '' },
+  // Records to update: { recordID: [...] } or, for a whole result, { query }
+  target: { type: Object, required: true },
 })
 
 const emit = defineEmits(['update:visible', 'close', 'save'])
@@ -227,7 +228,8 @@ function isFieldEditable(field) {
 }
 
 async function handleBulkUpdate() {
-  if (!fields.value.length || props.query === undefined || props.query === null) return
+  if (!fields.value.length) return
+  if (props.target.recordID && !props.target.recordID.length) return
 
   processing.value = true
   const values = []
@@ -249,7 +251,7 @@ async function handleBulkUpdate() {
     await $ComposeAPI.recordPatch({
       moduleID: props.module.moduleID,
       namespaceID: props.namespace.namespaceID,
-      query: props.query,
+      ...props.target,
       values,
     })
     $toast?.toastSuccess?.(t('notification.record.bulkRecordUpdateSuccess'))

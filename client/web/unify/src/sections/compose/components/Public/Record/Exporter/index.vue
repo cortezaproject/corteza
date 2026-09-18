@@ -368,11 +368,14 @@ function fmt(d) {
   return moment(d).format('YYYY-MM-DD')
 }
 
+// The selected rows by ID, when the export is limited to them
+function selectedIDs() {
+  if (rangeType.value !== 'selection' || !props.selection.length) return undefined
+  return props.selection.map(r => r.recordID || r)
+}
+
 function makeFilter() {
-  if (rangeType.value === 'selection' && props.selection.length > 0) {
-    const ids = props.selection.map(r => `'${r.recordID || r}'`).join(',')
-    return `recordID IN (${ids})`
-  }
+  if (selectedIDs()) return ''
 
   const base = (extraFilter.value || '').trim()
 
@@ -433,6 +436,7 @@ function fetchCount() {
         namespaceID: props.namespace.namespaceID,
         moduleID: props.module.moduleID,
         query,
+        recordID: selectedIDs(),
         limit: 1,
         incTotal: true,
       })
@@ -468,6 +472,7 @@ async function doExport(ext) {
         ext,
         fields: selectedFieldNames.value.join(','),
         filter: makeFilter() || undefined,
+        recordID: selectedIDs(),
         multiValueDelimiter: multiValueDelimiter.value || undefined,
         timezone: forTimezone.value ? exportTimezone.value || undefined : undefined,
         resolveRefs: resolveRefs.value || undefined,

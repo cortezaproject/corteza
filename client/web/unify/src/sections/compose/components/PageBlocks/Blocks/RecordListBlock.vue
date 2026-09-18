@@ -338,7 +338,7 @@
         v-model:visible="showBulkEditModal"
         :module="recordListModule"
         :namespace="namespace"
-        :query="activeBulkQuery"
+        :target="bulkTarget"
         allow-add-field
         @save="fetchRecords(true)"
       />
@@ -1571,12 +1571,15 @@ const currentQuery = computed(() => {
   return queryToFilter(searchQuery.value || '', evaluatedPrefilter, searchFields, filterGroups)
 })
 
-const activeBulkQuery = computed(() => {
-  if (selectedAllRecords.value) return currentQuery.value
-  const ids = selectedRecords.value.map(r => `'${getRecordKey(r)}'`)
-  if (ids.length === 1) return `recordID = ${ids[0]}`
-  return `recordID IN (${ids.join(',')})`
-})
+// What a bulk action works on: the selected rows by ID, or everything the list's
+// query matches once the whole result is selected. Unsaved rows have no ID.
+const bulkTarget = computed(() =>
+  selectedAllRecords.value
+    ? { query: currentQuery.value }
+    : {
+        recordID: selectedRecords.value.map(r => r.recordID).filter(id => id && id !== '0'),
+      },
+)
 
 // Fetch a flat list of record IDs for prev/next navigation (mirrors Human's loadPaginationRecords)
 async function loadNavigationIDs() {
@@ -2043,22 +2046,12 @@ async function restoreSelected() {
   if (!selectedRecords.value.length && !selectedAllRecords.value) return
   loading.value = true
   try {
-    if (selectedAllRecords.value) {
-      await $ComposeAPI.recordBulkUndelete({
-        namespaceID: props.namespace.namespaceID,
-        moduleID: recordListModule.value.moduleID,
-        query: activeBulkQuery.value,
-      })
-      selectedAllRecords.value = false
-    } else {
-      for (const record of selectedRecords.value) {
-        await recordStore.undelete({
-          namespaceID: props.namespace.namespaceID,
-          moduleID: recordListModule.value.moduleID,
-          recordID: record.recordID,
-        })
-      }
-    }
+    await recordStore.bulkUndelete({
+      namespaceID: props.namespace.namespaceID,
+      moduleID: recordListModule.value.moduleID,
+      ...bulkTarget.value,
+    })
+    selectedAllRecords.value = false
     selectedRecords.value = []
     $toast?.toastSuccess(t('notification.record.restoreBulkSuccess'))
     fetchRecords(true)
@@ -2073,33 +2066,17 @@ async function restoreSelected() {
 async function deleteSelected() {
   if (!selectedRecords.value.length && !selectedAllRecords.value) return
   loading.value = true
-  if (selectedAllRecords.value) {
-    try {
-      await $ComposeAPI.recordBulkDelete({
-        namespaceID: props.namespace.namespaceID,
-        moduleID: recordListModule.value.moduleID,
-        query: activeBulkQuery.value,
-      })
-      selectedRecords.value = []
-      selectedAllRecords.value = false
-      fetchRecords(true)
-    } catch (e) {
-      console.error('Failed to mass delete records:', e)
-    }
-  } else {
-    try {
-      for (const record of selectedRecords.value) {
-        await recordStore.delete({
-          namespaceID: props.namespace.namespaceID,
-          moduleID: recordListModule.value.moduleID,
-          recordID: record.recordID,
-        })
-      }
-      selectedRecords.value = []
-      fetchRecords(true)
-    } catch (e) {
-      console.error('Failed to delete selected records:', e)
-    }
+  try {
+    await recordStore.bulkDelete({
+      namespaceID: props.namespace.namespaceID,
+      moduleID: recordListModule.value.moduleID,
+      ...bulkTarget.value,
+    })
+    selectedRecords.value = []
+    selectedAllRecords.value = false
+    fetchRecords(true)
+  } catch (e) {
+    console.error('Failed to delete selected records:', e)
   }
 }
 

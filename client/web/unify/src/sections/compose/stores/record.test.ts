@@ -497,4 +497,82 @@ describe('useRecordStore', () => {
       expect(store.getByID('30001')).toBeNull()
     })
   })
+
+  describe('bulkDelete() / bulkUndelete()', () => {
+    const listed = [
+      { recordID: '30011', namespaceID: NS_ID, moduleID: MOD_ID },
+      { recordID: '30012', namespaceID: NS_ID, moduleID: MOD_ID },
+    ]
+
+    it('deletes the given records in one call and drops only them from the cache', async () => {
+      const recordBulkDelete = vi.fn().mockResolvedValue({})
+      const { store } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({ set: listed, filter: {} }),
+          recordBulkDelete,
+        }),
+      )
+      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+
+      await store.bulkDelete({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: ['30011'] })
+
+      expect(recordBulkDelete).toHaveBeenCalledTimes(1)
+      expect(recordBulkDelete).toHaveBeenCalledWith(
+        expect.objectContaining({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: ['30011'] }),
+      )
+      expect(store.getByID('30011')).toBeNull()
+      expect(store.getByID('30012')).toBeTruthy()
+    })
+
+    it('passes a query through for a whole result, evicting nothing', async () => {
+      const recordBulkDelete = vi.fn().mockResolvedValue({})
+      const { store } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({ set: listed, filter: {} }),
+          recordBulkDelete,
+        }),
+      )
+      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+
+      await store.bulkDelete({ namespaceID: NS_ID, moduleID: MOD_ID, query: "name = 'x'" })
+
+      expect(recordBulkDelete).toHaveBeenCalledWith(
+        expect.objectContaining({ query: "name = 'x'", recordID: undefined }),
+      )
+      expect(store.getByID('30011')).toBeTruthy()
+    })
+
+    it('restores the given records in one call and drops them from both caches', async () => {
+      const recordBulkUndelete = vi.fn().mockResolvedValue({})
+      const { store } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({ set: listed, filter: {} }),
+          recordBulkUndelete,
+        }),
+      )
+      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+
+      await store.bulkUndelete({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: ['30012'] })
+
+      expect(recordBulkUndelete).toHaveBeenCalledTimes(1)
+      expect(store.getByID('30012')).toBeNull()
+      expect(store.getByID('30011')).toBeTruthy()
+    })
+
+    it('rethrows a failed bulk call and keeps the cache', async () => {
+      const { store } = setup(
+        makeAPI({
+          recordList: vi.fn().mockResolvedValue({ set: listed, filter: {} }),
+          recordBulkDelete: vi.fn().mockRejectedValue(new Error('not allowed')),
+        }),
+      )
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      await store.list({ namespaceID: NS_ID, moduleID: MOD_ID })
+
+      await expect(
+        store.bulkDelete({ namespaceID: NS_ID, moduleID: MOD_ID, recordID: ['30011'] }),
+      ).rejects.toThrow('not allowed')
+      expect(store.getByID('30011')).toBeTruthy()
+    })
+  })
 })
