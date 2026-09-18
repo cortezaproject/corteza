@@ -66,6 +66,18 @@
       <!-- Spacer -->
       <div class="flex-1" />
 
+      <!-- Back to the block's presort, once the user has sorted by columns -->
+      <Button
+        v-if="sortResettable"
+        :label="$t('block.recordList.sort.reset')"
+        icon="pi pi-sort-alt-slash"
+        severity="secondary"
+        text
+        size="small"
+        class="shrink-0"
+        @click="resetSort"
+      />
+
       <!-- Which records, then how they are narrowed: the deleted toggle picks
            the set the filter and search then work on. -->
       <div class="flex items-center gap-1 flex-1 max-w-xl">
@@ -106,11 +118,8 @@
       </div>
     </div>
 
-    <!-- Active filters bar, which also carries the way back from a user sort -->
-    <div
-      v-if="filtersActive || sortResettable"
-      class="flex items-center flex-wrap gap-2 px-3 py-2 border-b"
-    >
+    <!-- Active filters bar -->
+    <div v-if="filtersActive" class="flex items-center flex-wrap gap-2 px-3 py-2 border-b">
       <!-- What a metric tile put on the list. It is the tile's whole filter, so
            it is one chip rather than a group the user can take apart. -->
       <Chip v-if="drillDown" removable class="text-sm rounded-border" @remove="clearDrillDown">
@@ -199,25 +208,12 @@
       </template>
 
       <Button
-        v-if="filtersActive"
         :label="$t('block.recordList.filter.reset')"
         icon="pi pi-filter-slash"
         severity="secondary"
         text
         size="small"
         @click="onFilterReset"
-      />
-
-      <!-- Back to the block's presort, once the user has sorted by columns -->
-      <Button
-        v-if="sortResettable"
-        :label="$t('block.recordList.sort.reset')"
-        icon="pi pi-sort-alt-slash"
-        severity="secondary"
-        text
-        size="small"
-        class="ml-auto"
-        @click="resetSort"
       />
     </div>
 
