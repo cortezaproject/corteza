@@ -1674,15 +1674,8 @@ async function fetchRecords(resetCursor = false) {
     // Build query using computed property
     const query = currentQuery.value
 
-    // Determine page cursor for API call
-    let pageCursor
-    if (resetCursor) {
-      pageCursor = undefined
-    } else if (pageCursors.value.length > 0) {
-      pageCursor = pageCursors.value[pageCursors.value.length - 1]
-    } else {
-      pageCursor = nextPageCursor.value
-    }
+    // The current page's cursor; none on the first page
+    const pageCursor = pageCursors.value.at(-1)
 
     const { response, cancel } = $ComposeAPI.recordListCancellable({
       namespaceID: props.namespace.namespaceID,
