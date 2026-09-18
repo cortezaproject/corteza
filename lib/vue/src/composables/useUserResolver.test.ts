@@ -190,5 +190,51 @@ describe('useUserResolver', () => {
       await resolveUsers(['90004'])
       expect(api.userList).not.toHaveBeenCalled()
     })
+
+    it('folds callers in the same tick into one lookup', async () => {
+      const api = createMockSystemAPI()
+      api.userList = vi.fn().mockResolvedValue({
+        set: [makeUser({ userID: '91001' }), makeUser({ userID: '91002' })],
+      })
+      createTestPinia({ $SystemAPI: api })
+
+      const { resolveUsers, findCached } = mountResolver({ systemAPI: api })
+      await Promise.all([resolveUsers(['91001']), resolveUsers(['91001', '91002'])])
+
+      expect(api.userList).toHaveBeenCalledTimes(1)
+      expect(api.userList).toHaveBeenCalledWith({ userID: ['91001', '91002'] })
+      expect(findCached('91002')).toBeTruthy()
+    })
+
+    it('waits for a lookup already in flight instead of asking again', async () => {
+      const api = createMockSystemAPI()
+      let answer: (v: unknown) => void = () => {}
+      api.userList = vi.fn().mockReturnValue(new Promise(resolve => (answer = resolve)))
+      createTestPinia({ $SystemAPI: api })
+
+      const { resolveUsers, findCached } = mountResolver({ systemAPI: api })
+      const first = resolveUsers(['91003'])
+      await flushPromises()
+      const second = resolveUsers(['91003'])
+
+      answer({ set: [makeUser({ userID: '91003' })] })
+      await Promise.all([first, second])
+
+      expect(api.userList).toHaveBeenCalledTimes(1)
+      expect(findCached('91003')).toBeTruthy()
+    })
+
+    it('rejects every waiting caller when the lookup fails', async () => {
+      const api = createMockSystemAPI()
+      api.userList = vi.fn().mockRejectedValue(new Error('boom'))
+      createTestPinia({ $SystemAPI: api })
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      const { resolveUsers } = mountResolver({ systemAPI: api })
+      const results = await Promise.allSettled([resolveUsers(['91004']), resolveUsers(['91004'])])
+
+      expect(results.map(r => r.status)).toEqual(['rejected', 'rejected'])
+      expect(api.userList).toHaveBeenCalledTimes(1)
+    })
   })
 })
