@@ -1,6 +1,14 @@
 import { getColorschemeColors } from '../../../shared'
 import { BaseChart, PartialChart } from './base'
-import { ChartType, Dimension, Metric, Report, TemporalDataPoint, formatChartValue } from './util'
+import {
+  ChartType,
+  Dimension,
+  Metric,
+  Report,
+  TemporalDataPoint,
+  chartFontSize,
+  formatChartValue,
+} from './util'
 
 export default class GaugeChart extends BaseChart {
   constructor(def: PartialChart = {}) {
@@ -98,6 +106,7 @@ export default class GaugeChart extends BaseChart {
       animation: !noAnimation,
       textStyle: {
         fontFamily: themeVariables['font-regular'],
+        fontSize: chartFontSize,
         overflow: 'break',
         color: themeVariables.black,
       },
@@ -154,13 +163,13 @@ export default class GaugeChart extends BaseChart {
             distance: 60,
           },
           title: {
-            fontSize: 14,
+            fontSize: chartFontSize,
             show: tooltip.fixed,
             offsetCenter: [0, '30%'],
             color: themeVariables.black,
           },
           detail: {
-            fontSize: 13,
+            fontSize: Math.round(chartFontSize * 1.5),
             offsetCenter: [0, '55%'],
             valueAnimation: true,
             color: themeVariables.black,

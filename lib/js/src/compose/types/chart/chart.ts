@@ -5,6 +5,7 @@ import {
   Metric,
   TemporalDataPoint,
   TooltipParams,
+  chartFontSize,
   formatChartTooltip,
   formatChartValue,
 } from './util'
@@ -85,6 +86,7 @@ export default class Chart extends BaseChart {
             overflow: 'break',
             hideOverlap: true,
             rotate: dimension.rotateLabel,
+            fontSize: chartFontSize,
           },
           axisTick: {
             show: false,
@@ -106,6 +108,7 @@ export default class Chart extends BaseChart {
             overflow: 'break',
             hideOverlap: true,
             rotate: yAxis.rotateLabel,
+            fontSize: chartFontSize,
             formatter: (value: string | number): string =>
               formatChartValue(value, yAxis.formatting),
           },
@@ -354,6 +357,7 @@ export default class Chart extends BaseChart {
       color: getColorschemeColors(colorScheme, data.customColorSchemes),
       textStyle: {
         fontFamily: themeVariables['font-regular'],
+        fontSize: chartFontSize,
         overflow: 'break',
         color: themeVariables.black,
       },
@@ -379,9 +383,11 @@ export default class Chart extends BaseChart {
         orient: l?.orientation || 'horizontal',
         textStyle: {
           color: themeVariables.black,
+          fontSize: chartFontSize,
         },
         pageTextStyle: {
           color: themeVariables.black,
+          fontSize: chartFontSize,
         },
         pageIconColor: themeVariables.black,
         pageIconInactiveColor: themeVariables.light,

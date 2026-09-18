@@ -21,3 +21,26 @@ export function chartConstructor(c) {
 
   return new compose.Chart(c)
 }
+
+/**
+ * Breaks a label onto lines no wider than `width`, at spaces only: a word wider
+ * than that keeps a line of its own rather than being split.
+ * @param {string|number} text
+ * @param {number} width
+ * @param {(text: string) => number} measure Rendered width of a piece of text
+ * @returns {string}
+ */
+export function wrapLabel(text, width, measure) {
+  const lines = []
+
+  for (const word of String(text).split(' ')) {
+    const last = lines.length - 1
+    if (last >= 0 && measure(`${lines[last]} ${word}`) <= width) {
+      lines[last] += ` ${word}`
+    } else {
+      lines.push(word)
+    }
+  }
+
+  return lines.join('\n')
+}

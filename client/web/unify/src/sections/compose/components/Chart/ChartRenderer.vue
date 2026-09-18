@@ -6,9 +6,11 @@
          to show yet. -->
     <CChart
       v-if="renderer"
+      ref="chartRef"
       :chart="renderer"
       class="absolute inset-0 p-1"
       @click="handleChartClick"
+      @rendered="fitLabels"
     />
 
     <div v-if="processing && !renderer" class="absolute inset-0 flex items-center justify-center">
@@ -24,8 +26,9 @@
 <script setup>
 import { ref, watch, inject, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getInstanceByDom } from 'echarts/core'
 import { components } from '@planetcrust/human-vue'
-import { chartConstructor } from '../../lib/charts'
+import { chartConstructor, wrapLabel } from '../../lib/charts'
 import { readColorSchemes } from '../../lib/chart-color-schemes'
 import { useModuleStore, useRecordStore } from '@planetcrust/human-vue'
 
@@ -57,6 +60,10 @@ const $Settings = inject('$Settings', undefined)
 const error = ref(undefined)
 const processing = ref(false)
 const renderer = ref(undefined)
+const chartRef = ref(null)
+// Per category axis: the width its labels were wrapped to, and the formatter doing it
+const fittedLabels = new Map()
+let measureContext
 const valueMap = ref(new Map())
 // The chart whose configured animation has already played. Held per chart, so
 // opening a different one animates it in rather than inheriting the last one's
@@ -232,6 +239,91 @@ function handleChartClick(e) {
   emit('drill-down', { ...e, trueName })
 }
 
+// Labels that no longer fit where echarts put them. A category label wraps
+// between words: on a horizontal axis to the width of its band, on a vertical
+// one to a third of the chart, and hideOverlap only drops what still collides;
+// rotated labels keep their own layout. A radar shrinks until the names beside
+// it fit on the canvas.
+function fitLabels() {
+  const el = chartRef.value?.$el
+  const instance = el && getInstanceByDom(el)
+  if (!instance || instance.isDisposed()) return
+
+  const patch = { ...fitCategoryAxes(instance), ...fitRadars(instance) }
+  if (Object.keys(patch).length) instance.setOption(patch)
+}
+
+function fitCategoryAxes(instance) {
+  const patch = {}
+
+  for (const mainType of ['xAxis', 'yAxis']) {
+    const axes = []
+    let changed = false
+
+    instance.getModel().eachComponent(mainType, (axisModel, i) => {
+      const axisPatch = {}
+      if (axisModel.axis.type === 'category' && !+axisModel.get(['axisLabel', 'rotate'])) {
+        const width =
+          mainType === 'xAxis'
+            ? Math.floor(axisModel.axis.getBandWidth()) - 8
+            : Math.floor(instance.getWidth() / 3)
+        const fit = fittedLabels.get(`${mainType}${i}`)
+
+        if (fit?.width !== width || fit.formatter !== axisModel.get(['axisLabel', 'formatter'])) {
+          const font = axisModel.getModel('axisLabel').getFont()
+          const formatter = value => wrapLabel(value, width, text => measureText(text, font))
+          fittedLabels.set(`${mainType}${i}`, { width, formatter })
+          axisPatch.axisLabel = { formatter }
+          changed = true
+        }
+      }
+      axes.push(axisPatch)
+    })
+
+    if (changed) patch[mainType] = axes
+  }
+
+  return patch
+}
+
+function fitRadars(instance) {
+  const radars = []
+  let changed = false
+
+  instance.getModel().eachComponent('radar', radarModel => {
+    const { cx, startAngle } = radarModel.coordinateSystem
+    const names = radarModel.get('indicator').map(({ name }) => String(name))
+    const font = radarModel.getModel('axisName').getFont()
+    const gap = radarModel.get('axisNameGap') + 4
+    const width = instance.getWidth()
+
+    // echarts' own radius, half of half the shorter side, as the ceiling
+    let radius = Math.min(width, instance.getHeight()) / 4
+    names.forEach((name, i) => {
+      const cos = Math.cos(startAngle + (i * Math.PI * 2) / names.length)
+      if (Math.abs(cos) < 0.1) return
+      const room = cos > 0 ? width - cx : cx
+      radius = Math.min(radius, (room - measureText(name, font)) / Math.abs(cos) - gap)
+    })
+    radius = Math.max(Math.floor(radius), 20)
+
+    const radarPatch = {}
+    if (radius !== radarModel.get('radius')) {
+      radarPatch.radius = radius
+      changed = true
+    }
+    radars.push(radarPatch)
+  })
+
+  return changed ? { radar: radars } : {}
+}
+
+function measureText(text, font) {
+  measureContext ??= document.createElement('canvas').getContext('2d')
+  measureContext.font = font
+  return measureContext.measureText(text).width
+}
+
 function getThemeVariables() {
   const getCssVariable = variableName => {
     return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim()
@@ -248,7 +340,7 @@ function getThemeVariables() {
     light: getCssVariable('--p-content-border-color') || '#E5E7EB',
     'extra-light': getCssVariable('--p-content-hover-background') || '#F3F4F6',
     dark: getCssVariable('--p-text-color') || '#374151',
-    'font-regular': getCssVariable('--p-font-family') || 'inherit',
+    'font-regular': getComputedStyle(document.body).fontFamily || 'sans-serif',
   }
 }
 

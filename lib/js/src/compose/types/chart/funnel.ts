@@ -1,6 +1,14 @@
 import { getColorschemeColors } from '../../../shared'
 import { BaseChart, PartialChart } from './base'
-import { ChartType, Dimension, Metric, Report, TooltipParams, formatChartValue } from './util'
+import {
+  ChartType,
+  Dimension,
+  Metric,
+  Report,
+  TooltipParams,
+  chartFontSize,
+  formatChartValue,
+} from './util'
 
 export default class FunnelChart extends BaseChart {
   constructor(def: PartialChart = {}) {
@@ -95,6 +103,7 @@ export default class FunnelChart extends BaseChart {
       animation: !noAnimation,
       textStyle: {
         fontFamily: themeVariables['font-regular'],
+        fontSize: chartFontSize,
         overflow: 'break',
         color: themeVariables.black,
       },
@@ -130,9 +139,11 @@ export default class FunnelChart extends BaseChart {
         orient: l?.orientation || 'horizontal',
         textStyle: {
           color: themeVariables.black,
+          fontSize: chartFontSize,
         },
         pageTextStyle: {
           color: themeVariables.black,
+          fontSize: chartFontSize,
         },
         pageIconColor: themeVariables.black,
         pageIconInactiveColor: themeVariables.light,

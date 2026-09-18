@@ -1,6 +1,9 @@
 import numeral from 'numeral'
 import * as fmt from '../../../formatting'
 
+// Chart text size: the app's small text (0.875rem of its 15px root).
+export const chartFontSize = 13
+
 export const rgbaRegex = /^rgba\((\d+),.*?(\d+),.*?(\d+),.*?(\d*\.?\d*)\)$/
 
 const ln = (n: number) => Math.round(n < 0 ? 255 + n : n > 255 ? n - 255 : n)

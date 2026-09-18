@@ -1,6 +1,6 @@
 import { getColorschemeColors } from '../../../shared'
 import { BaseChart } from './base'
-import { ChartType, Dimension, Metric, formatChartValue } from './util'
+import { ChartType, Dimension, Metric, chartFontSize, formatChartValue } from './util'
 
 export default class RadarChart extends BaseChart {
   mtrCheck({ field, aggregate }: Metric) {
@@ -48,6 +48,7 @@ export default class RadarChart extends BaseChart {
       animation: !noAnimation,
       textStyle: {
         fontFamily: themeVariables['font-regular'],
+        fontSize: chartFontSize,
         overflow: 'break',
         color: themeVariables.black,
       },
@@ -72,9 +73,11 @@ export default class RadarChart extends BaseChart {
         orient: l?.orientation || 'horizontal',
         textStyle: {
           color: themeVariables.black,
+          fontSize: chartFontSize,
         },
         pageTextStyle: {
           color: themeVariables.black,
+          fontSize: chartFontSize,
         },
         pageIconColor: themeVariables.black,
         pageIconInactiveColor: themeVariables.light,
