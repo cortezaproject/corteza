@@ -5,6 +5,7 @@ import { createPinia } from 'pinia'
 import { useNotificationsStore } from '../stores/useNotificationsStore'
 import { useRightSidebarStore } from '../stores/useRightSidebarStore'
 import {
+  FOCUS_CLAIM_TTL_MS,
   FOCUSED_TAB_KEY,
   useSystemNotificationPermission,
   useSystemNotifications,
@@ -56,6 +57,9 @@ const SIMPLE = {
 }
 
 let hasFocus: ReturnType<typeof vi.spyOn>
+
+const claim = (id: string, at: number) =>
+  localStorage.setItem(FOCUSED_TAB_KEY, JSON.stringify({ id, at }))
 
 function setup() {
   const pinia = createPinia()
@@ -132,12 +136,43 @@ describe('useSystemNotifications', () => {
     expect(FakeNotification.shown).toHaveLength(0)
   })
 
-  it('shows nothing while another Human tab has focus', () => {
-    localStorage.setItem(FOCUSED_TAB_KEY, 'another-tab')
+  it('shows nothing while another Human tab has focus', async () => {
+    claim('another-tab', Date.now())
 
-    setup().receive(RECORD)
+    await setup().receive(RECORD)
 
     expect(FakeNotification.shown).toHaveLength(0)
+  })
+
+  it('ignores the claim of a tab that stopped renewing it', async () => {
+    claim('another-tab', Date.now() - FOCUS_CLAIM_TTL_MS - 1)
+
+    await setup().receive(RECORD)
+
+    expect(FakeNotification.shown).toHaveLength(1)
+  })
+
+  it('ignores a claim it cannot read', async () => {
+    localStorage.setItem(FOCUSED_TAB_KEY, 'another-tab')
+
+    await setup().receive(RECORD)
+
+    expect(FakeNotification.shown).toHaveLength(1)
+  })
+
+  it('renews its own claim for as long as it has focus', () => {
+    vi.useFakeTimers()
+    setup()
+    window.dispatchEvent(new Event('focus'))
+    const first = JSON.parse(localStorage.getItem(FOCUSED_TAB_KEY)!).at
+
+    vi.advanceTimersByTime(FOCUS_CLAIM_TTL_MS * 2)
+
+    expect(JSON.parse(localStorage.getItem(FOCUSED_TAB_KEY)!).at).toBeGreaterThan(
+      first + FOCUS_CLAIM_TTL_MS,
+    )
+    window.dispatchEvent(new Event('blur'))
+    vi.useRealTimers()
   })
 
   it('is not held back by a focus claim this tab left behind', () => {
@@ -148,6 +183,7 @@ describe('useSystemNotifications', () => {
     receive(RECORD)
 
     expect(FakeNotification.shown).toHaveLength(1)
+    window.dispatchEvent(new Event('blur'))
   })
 
   it('stops holding other tabs back once this tab loses focus', () => {

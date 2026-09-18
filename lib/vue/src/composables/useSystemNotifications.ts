@@ -8,8 +8,11 @@ import { useOpenNotification } from './useOpenNotification'
 export type SystemNotificationPermission = NotificationPermission | 'unsupported'
 
 // The Human tab that has focus, if any, shared across tabs so an unfocused tab
-// can tell that the user is looking at another one.
+// can tell that the user is looking at another one. The focused tab renews its
+// claim; one that stops being renewed belongs to a tab that is gone.
 export const FOCUSED_TAB_KEY = 'notificationsFocusedTab'
+export const FOCUS_CLAIM_TTL_MS = 15_000
+const FOCUS_CLAIM_RENEW_MS = 5_000
 
 const tabID = Math.random().toString(36).slice(2)
 
@@ -26,7 +29,8 @@ let tracking = false
 
 function focusedTab(): string | null {
   try {
-    return localStorage.getItem(FOCUSED_TAB_KEY)
+    const { id, at } = JSON.parse(localStorage.getItem(FOCUSED_TAB_KEY) || 'null') || {}
+    return typeof id === 'string' && Date.now() - at < FOCUS_CLAIM_TTL_MS ? id : null
   } catch {
     return null
   }
@@ -36,12 +40,21 @@ function trackFocus() {
   if (tracking) return
   tracking = true
 
-  const claim = () => {
+  let renewal: ReturnType<typeof setInterval> | undefined
+
+  const write = () => {
     try {
-      localStorage.setItem(FOCUSED_TAB_KEY, tabID)
+      localStorage.setItem(FOCUSED_TAB_KEY, JSON.stringify({ id: tabID, at: Date.now() }))
     } catch {}
   }
+  const claim = () => {
+    write()
+    clearInterval(renewal)
+    renewal = setInterval(write, FOCUS_CLAIM_RENEW_MS)
+  }
   const release = () => {
+    clearInterval(renewal)
+    renewal = undefined
     if (focusedTab() !== tabID) return
     try {
       localStorage.removeItem(FOCUSED_TAB_KEY)
