@@ -16,6 +16,7 @@
         root: { class: 'record-list-filter-popover' },
         content: { class: 'p-0' },
       }"
+      @hide="onHide"
     >
       <div class="flex flex-col" style="width: min(90vw, 850px); max-height: 60vh">
         <!-- Presets dropdown -->
@@ -194,6 +195,13 @@
               @click="showSaveDialog = true"
             />
             <Button
+              :label="$t('general.label.cancel')"
+              severity="secondary"
+              text
+              size="small"
+              @click="onCancel"
+            />
+            <Button
               :label="$t('block.recordList.filter.update')"
               severity="primary"
               size="small"
@@ -293,13 +301,12 @@ const presetsWithDelete = computed(() => {
 const internalFilter = ref([])
 
 // Sync from modelValue (external → internal)
-watch(
-  () => props.modelValue,
-  raw => {
-    internalFilter.value = raw?.length ? JSON.parse(JSON.stringify(raw)) : [createDefaultGroup()]
-  },
-  { immediate: true, deep: true },
-)
+function syncFromModel() {
+  const raw = props.modelValue
+  internalFilter.value = raw?.length ? JSON.parse(JSON.stringify(raw)) : [createDefaultGroup()]
+}
+
+watch(() => props.modelValue, syncFromModel, { immediate: true, deep: true })
 
 // --- Field helpers ---
 const filterableFields = computed(() => {
@@ -500,6 +507,19 @@ function resetFilter() {
   emit('update:modelValue', [])
   emit('reset')
   popoverRef.value?.hide()
+}
+
+function onCancel() {
+  syncFromModel()
+  popoverRef.value?.hide()
+}
+
+// Any close that did not commit discards the staged edits, so the panel only
+// ever shows the filter in effect. A commit's own close is safe: the
+// modelValue watcher is flush-pre and has already run by the time Popover
+// emits hide from its leave transition.
+function onHide() {
+  syncFromModel()
 }
 
 // --- Preset methods ---
