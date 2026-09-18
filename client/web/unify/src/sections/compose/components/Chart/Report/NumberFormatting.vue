@@ -1,5 +1,9 @@
 <template>
-  <Fieldset :legend="$t('chart.edit.formatting.presetFormats.label')" class="mt-4">
+  <Fieldset
+    :legend="$t('chart.edit.formatting.presetFormats.label')"
+    :pt="{ legend: { class: 'bg-transparent' } }"
+    class="mt-4 bg-transparent"
+  >
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <CFormGroup :label="$t('chart.edit.formatting.prefix.label')" :input-id="`${idPrefix}Prefix`">
         <InputText

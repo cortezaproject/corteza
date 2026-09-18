@@ -18,9 +18,17 @@ vi.mock('@/sections/compose/composables/useExpressionScope', () => ({
 import { compose } from '@planetcrust/human-js'
 import { GenericChart, RadarChart, FunnelChart, GaugeChart } from './index.js'
 
+// A panel that collapses, and remembers it, per instance — as PrimeVue's does.
 const PanelStub = {
   name: 'Panel',
-  template: '<div><slot name="icons" /><slot /></div>',
+  data: () => ({ collapsed: false }),
+  template: `
+    <div class="panel" :data-collapsed="collapsed">
+      <slot name="header" id="title" class="title" />
+      <button class="toggle" @click="collapsed = !collapsed" />
+      <slot name="icons" />
+      <slot v-if="!collapsed" />
+    </div>`,
 }
 
 const ButtonStub = {
@@ -75,5 +83,20 @@ describe('metrics per chart type', () => {
     const { wrapper } = mountEditor(editor, new Chart(), 1)
 
     expect(addButton(wrapper)).toBeUndefined()
+  })
+})
+
+describe('metric panels', () => {
+  it('keep their own collapsed state when a metric above them is removed', async () => {
+    const { wrapper, report } = mountEditor(GenericChart, new compose.Chart(), 2)
+    const metricPanels = () => wrapper.findAll('.panel .panel')
+
+    await metricPanels()[0].find('.toggle').trigger('click')
+    expect(metricPanels().map(p => p.attributes('data-collapsed'))).toEqual(['true', 'false'])
+
+    await metricPanels()[0].find('[aria-label="general.label.remove"]').trigger('click')
+
+    expect(report.value.metrics).toHaveLength(1)
+    expect(metricPanels().map(p => p.attributes('data-collapsed'))).toEqual(['false'])
   })
 })

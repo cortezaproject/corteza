@@ -122,62 +122,86 @@
 
     <!-- Configure report metrics -->
     <Panel v-if="module" :header="$t('chart.edit.metric.title')" toggleable>
-      <template #icons>
-        <Button
-          v-if="canAddMetric"
-          :label="'+ ' + $t('chart.edit.metric.add')"
-          text
-          size="small"
-          @click="addMetric"
-        />
-      </template>
-
-      <div v-for="(m, i) in metrics" :key="i" class="border border-surface rounded p-3 mb-3">
-        <div v-if="metrics.length > 1" class="flex items-center mb-3">
-          <h6 class="m-0">{{ $t('chart.edit.metric.label') }} {{ i + 1 }}</h6>
+      <template #header="{ id, class: titleClass }">
+        <div class="flex items-center gap-2">
+          <span :id="id" :class="titleClass">{{ $t('chart.edit.metric.title') }}</span>
           <Button
-            icon="pi pi-trash"
-            text
-            severity="danger"
+            v-if="canAddMetric"
+            :label="$t('chart.edit.metric.add')"
+            icon="pi pi-plus"
+            severity="secondary"
             size="small"
-            class="ml-auto"
-            @click="removeMetric(i)"
+            @click="addMetric"
           />
         </div>
+      </template>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <CFormGroup :label="$t('chart.edit.metric.fieldLabel')" :input-id="`metricField${i}`">
-            <Select
-              :id="`metricField${i}`"
-              v-model="m.field"
-              :options="metricFields"
-              option-label="text"
-              option-value="value"
-              :placeholder="$t('chart.edit.metric.fieldPlaceholder')"
-              class="w-full"
-              filter
-              @change="e => onMetricFieldChange(e.value, m)"
+      <div class="flex flex-col gap-3">
+        <Panel
+          v-for="(m, i) in metrics"
+          :key="metricKey(m)"
+          :header="`${$t('chart.edit.metric.label')} ${i + 1}`"
+          toggleable
+          class="bg-emphasis"
+        >
+          <template #header="{ id }">
+            <div class="flex flex-wrap items-baseline gap-x-2 min-w-0">
+              <span :id="id" class="font-semibold">
+                {{ $t('chart.edit.metric.label') }} {{ i + 1 }}
+              </span>
+              <span v-if="metricSummary(m)" class="text-sm text-muted-color break-words">
+                {{ metricSummary(m) }}
+              </span>
+            </div>
+          </template>
+
+          <template #icons>
+            <Button
+              v-if="metrics.length > 1"
+              icon="pi pi-trash"
+              text
+              rounded
+              severity="danger"
+              size="small"
+              :aria-label="$t('general.label.remove')"
+              @click="removeMetric(i)"
             />
-          </CFormGroup>
+          </template>
 
-          <CFormGroup
-            :label="$t('chart.edit.metric.function.label')"
-            :input-id="`metricAggregate${i}`"
-          >
-            <Select
-              :id="`metricAggregate${i}`"
-              v-model="m.aggregate"
-              :options="metricAggregates"
-              option-label="text"
-              option-value="value"
-              :disabled="!m.field || m.field === 'count'"
-              :placeholder="$t('chart.edit.metric.function.placeholder')"
-              class="w-full"
-            />
-          </CFormGroup>
-        </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <CFormGroup :label="$t('chart.edit.metric.fieldLabel')" :input-id="`metricField${i}`">
+              <Select
+                :id="`metricField${i}`"
+                v-model="m.field"
+                :options="metricFields"
+                option-label="text"
+                option-value="value"
+                :placeholder="$t('chart.edit.metric.fieldPlaceholder')"
+                class="w-full"
+                filter
+                @change="e => onMetricFieldChange(e.value, m)"
+              />
+            </CFormGroup>
 
-        <slot name="metric-options" :metric="m" :report="report" :index="i" />
+            <CFormGroup
+              :label="$t('chart.edit.metric.function.label')"
+              :input-id="`metricAggregate${i}`"
+            >
+              <Select
+                :id="`metricAggregate${i}`"
+                v-model="m.aggregate"
+                :options="metricAggregates"
+                option-label="text"
+                option-value="value"
+                :disabled="!m.field || m.field === 'count'"
+                :placeholder="$t('chart.edit.metric.function.placeholder')"
+                class="w-full"
+              />
+            </CFormGroup>
+          </div>
+
+          <slot name="metric-options" :metric="m" :report="report" :index="i" />
+        </Panel>
       </div>
     </Panel>
 
@@ -455,5 +479,24 @@ function addMetric() {
 
 function removeMetric(i) {
   metrics.value.splice(i, 1)
+}
+
+// A key that stays with its metric, so each panel keeps its own collapsed
+// state when a metric above it is removed.
+const metricKeys = new WeakMap()
+let lastMetricKey = 0
+function metricKey(m) {
+  const raw = toRaw(m)
+  if (!metricKeys.has(raw)) metricKeys.set(raw, ++lastMetricKey)
+  return metricKeys.get(raw)
+}
+
+// What a metric plots — its field, then its function — for the panel header.
+function metricSummary(m) {
+  const field = metricFields.value.find(f => f.value === m.field)?.text
+  if (!field) return ''
+  const aggregate =
+    m.field === 'count' ? undefined : metricAggregates.find(a => a.value === m.aggregate)?.text
+  return [field, aggregate].filter(Boolean).join(' · ')
 }
 </script>
