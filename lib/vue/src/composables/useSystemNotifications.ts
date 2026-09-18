@@ -100,8 +100,11 @@ export function useSystemNotificationPermission() {
 }
 
 // Mirrors an incoming notification as an OS notification while no Human tab
-// has focus, unless muted or not permitted.
-export function useSystemNotifications() {
+// has focus, unless muted or not permitted. `icon` resolves the image URL the
+// OS shows beside it.
+export function useSystemNotifications({
+  icon,
+}: { icon?: () => Promise<string | undefined> } = {}) {
   const store = useNotificationsStore()
   const rightSidebar = useRightSidebarStore()
   const openNotification = useOpenNotification()
@@ -109,18 +112,23 @@ export function useSystemNotifications() {
 
   trackFocus()
 
-  function notify(raw: Partial<system.Notification>) {
+  async function notify(raw: Partial<system.Notification>) {
     permission.value = readPermission()
     if (store.muted || permission.value !== 'granted' || humanTabFocused()) return
 
     const notification = new system.Notification(raw as any)
     const { title = '', description = '' } = (notification.config || {}) as any
+    const image = await icon?.().catch(err => {
+      console.warn('OS notification icon not drawn:', err)
+      return undefined
+    })
 
     let shown: Notification
     try {
       shown = new Notification(title || description || t('notifications.newNotification'), {
         body: title ? description : '',
         tag: notification.resourceID,
+        ...(image ? { icon: image } : {}),
       })
     } catch (err) {
       console.warn('OS notification not shown:', err)

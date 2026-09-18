@@ -61,15 +61,15 @@ let hasFocus: ReturnType<typeof vi.spyOn>
 const claim = (id: string, at: number) =>
   localStorage.setItem(FOCUSED_TAB_KEY, JSON.stringify({ id, at }))
 
-function setup() {
+function setup(options = {}) {
   const pinia = createPinia()
   const api = { notificationMarkAsRead: vi.fn(async () => ({})) }
-  let notify!: (raw: any) => void
+  let notify!: (raw: any) => Promise<void>
 
   mount(
     defineComponent({
       setup() {
-        ;({ notify } = useSystemNotifications())
+        ;({ notify } = useSystemNotifications(options))
         return () => null
       },
     }),
@@ -80,7 +80,7 @@ function setup() {
   // The shell hands every realtime message to the store before the OS sees it.
   const receive = (raw: any) => {
     store.handleRealtime({ '@type': 'notification', '@value': raw })
-    notify(raw)
+    return notify(raw)
   }
 
   return { receive, store, api, rightSidebar: useRightSidebarStore(pinia) }
@@ -100,8 +100,8 @@ afterEach(() => {
 })
 
 describe('useSystemNotifications', () => {
-  it('shows an OS notification with the title, the description and a per-notification tag', () => {
-    setup().receive(RECORD)
+  it('shows an OS notification with the title, the description and a per-notification tag', async () => {
+    await setup().receive(RECORD)
 
     expect(FakeNotification.shown).toHaveLength(1)
     const [shown] = FakeNotification.shown
@@ -110,28 +110,28 @@ describe('useSystemNotifications', () => {
     expect(shown.options.tag).toBe('system:notification:11')
   })
 
-  it('shows nothing while notifications are muted', () => {
+  it('shows nothing while notifications are muted', async () => {
     const { receive, store } = setup()
     store.toggleMuted()
 
-    receive(RECORD)
+    await receive(RECORD)
 
     expect(FakeNotification.shown).toHaveLength(0)
     store.toggleMuted()
   })
 
-  it.each(['default', 'denied'] as const)('shows nothing while permission is %s', perm => {
+  it.each(['default', 'denied'] as const)('shows nothing while permission is %s', async perm => {
     FakeNotification.permission = perm
 
-    setup().receive(RECORD)
+    await setup().receive(RECORD)
 
     expect(FakeNotification.shown).toHaveLength(0)
   })
 
-  it('shows nothing while this tab has focus', () => {
+  it('shows nothing while this tab has focus', async () => {
     hasFocus.mockReturnValue(true)
 
-    setup().receive(RECORD)
+    await setup().receive(RECORD)
 
     expect(FakeNotification.shown).toHaveLength(0)
   })
@@ -175,18 +175,18 @@ describe('useSystemNotifications', () => {
     vi.useRealTimers()
   })
 
-  it('is not held back by a focus claim this tab left behind', () => {
+  it('is not held back by a focus claim this tab left behind', async () => {
     const { receive } = setup()
     window.dispatchEvent(new Event('focus'))
     expect(localStorage.getItem(FOCUSED_TAB_KEY)).toBeTruthy()
 
-    receive(RECORD)
+    await receive(RECORD)
 
     expect(FakeNotification.shown).toHaveLength(1)
     window.dispatchEvent(new Event('blur'))
   })
 
-  it('stops holding other tabs back once this tab loses focus', () => {
+  it('stops holding other tabs back once this tab loses focus', async () => {
     setup()
     window.dispatchEvent(new Event('focus'))
     window.dispatchEvent(new Event('blur'))
@@ -194,11 +194,15 @@ describe('useSystemNotifications', () => {
     expect(localStorage.getItem(FOCUSED_TAB_KEY)).toBeNull()
   })
 
-  it('titles an untitled notification with its description, then a generic title', () => {
+  it('titles an untitled notification with its description, then a generic title', async () => {
     const { receive } = setup()
 
-    receive({ ...SIMPLE, config: { simple: { title: '', description: 'Only a body' } } })
-    receive({ ...SIMPLE, notificationID: '13', config: { simple: { title: '', description: '' } } })
+    await receive({ ...SIMPLE, config: { simple: { title: '', description: 'Only a body' } } })
+    await receive({
+      ...SIMPLE,
+      notificationID: '13',
+      config: { simple: { title: '', description: '' } },
+    })
 
     expect(FakeNotification.shown.map(n => [n.title, n.options.body])).toEqual([
       ['Only a body', ''],
@@ -209,7 +213,7 @@ describe('useSystemNotifications', () => {
   it('clicking a record notification focuses the tab, marks it read and opens the record', async () => {
     const focus = vi.spyOn(window, 'focus').mockImplementation(() => {})
     const { receive, api } = setup()
-    receive(RECORD)
+    await receive(RECORD)
 
     FakeNotification.shown[0].onclick!()
 
@@ -222,9 +226,23 @@ describe('useSystemNotifications', () => {
     focus.mockRestore()
   })
 
-  it('clicking a simple notification opens the notifications panel instead', () => {
+  it('shows the icon it is given, and none when the icon fails', async () => {
+    await setup({ icon: async () => 'data:image/png;base64,ICON' }).receive(RECORD)
+    await setup({
+      icon: async () => {
+        throw new Error('no icon')
+      },
+    }).receive({ ...RECORD, notificationID: '14' })
+
+    expect(FakeNotification.shown.map(n => n.options.icon)).toEqual([
+      'data:image/png;base64,ICON',
+      undefined,
+    ])
+  })
+
+  it('clicking a simple notification opens the notifications panel instead', async () => {
     const { receive, rightSidebar, api } = setup()
-    receive(SIMPLE)
+    await receive(SIMPLE)
 
     FakeNotification.shown[0].onclick!()
 

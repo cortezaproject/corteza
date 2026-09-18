@@ -131,6 +131,7 @@ import { useModuleStore, useNamespaceStore, useUserStore } from '@planetcrust/hu
 import { appIconMap } from '@/utils/appIcons'
 import { useAppReachable } from '@/utils/appReachable'
 import { useDocumentTitle } from '@/utils/documentTitle'
+import { appIconImage, useFavicon } from '@/utils/favicon'
 
 const {
   CTopbar,
@@ -157,7 +158,9 @@ const $eventBus = inject('$eventBus', null)
 
 const applicationsStore = useApplicationsStore()
 const notificationsStore = useNotificationsStore()
-const systemNotifications = useSystemNotifications()
+// The configured app icon (a custom upload, or the default).
+const iconUrl = computed(() => $Settings.attachment('ui.iconLogo'))
+const systemNotifications = useSystemNotifications({ icon: () => appIconImage(iconUrl.value) })
 const rightSidebarStore = useRightSidebarStore()
 const workflowPromptsStore = useWorkflowPromptsStore()
 const rbacStore = useRBACStore()
@@ -292,6 +295,7 @@ const logoUrl = computed(() => $Settings.attachment('ui.mainLogo'))
 // Tab title = the heading the active view teleports into the topbar, with the
 // unread count kept in front of it unless notifications are muted.
 useDocumentTitle(() => notificationsStore.badgeCount)
+useFavicon(iconUrl, () => notificationsStore.badgeCount > 0)
 
 onMounted(async () => {
   window.addEventListener('resize', handleResize)

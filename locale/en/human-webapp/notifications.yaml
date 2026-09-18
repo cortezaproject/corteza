@@ -27,6 +27,7 @@ recordNotFound: Record not found
 recordRedirectError: Error navigating to record
 success: Success
 title: Notifications
+titleMuted: Notifications are muted
 unmute: Unmute notifications
 unmuted: Notifications unmuted
 unread: Unread
