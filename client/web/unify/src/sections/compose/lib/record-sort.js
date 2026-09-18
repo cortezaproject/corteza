@@ -1,7 +1,8 @@
-// Sort expression for the record API: the columns the user picked, in order,
-// or the block's presort when none are picked.
+// Sort expression for the record API: the columns the user picked, in order.
+// No list at all (the user has not sorted) means the block's presort; an empty
+// one (the user cleared every column) means no sort.
 export function sortExpression(multiSortMeta, presort = '') {
-  if (!multiSortMeta?.length) return presort || ''
+  if (multiSortMeta == null) return presort || ''
 
   return multiSortMeta
     .map(({ field, order }) => `${field} ${order === 1 ? 'ASC' : 'DESC'}`)

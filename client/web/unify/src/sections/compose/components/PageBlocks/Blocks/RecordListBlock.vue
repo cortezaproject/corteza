@@ -770,8 +770,9 @@ const records = ref([])
 const totalRecords = ref(0)
 const searchInput = ref('')
 const searchQuery = ref('')
-// Columns the user sorted by, in the order they were picked: [{ field, order }]
-const multiSortMeta = ref([])
+// Columns the user sorted by, in the order they were picked: [{ field, order }].
+// null until the user sorts, which keeps the presort; [] once they clear every column.
+const multiSortMeta = ref(null)
 
 // Record list filter state
 const recordListFilter = ref([])
@@ -889,14 +890,20 @@ const allModuleFields = computed(() => {
 })
 
 const columnsSortable = computed(() => !options.value.hideSorting && !options.value.editable)
-const sortResettable = computed(() => columnsSortable.value && multiSortMeta.value.length > 0)
+// Anything other than the presort is worth a way back to it
+const sortResettable = computed(
+  () =>
+    columnsSortable.value &&
+    multiSortMeta.value !== null &&
+    (multiSortMeta.value.length > 0 || presortMeta.value.length > 0),
+)
 
 // The block's presort as columns: what the headers show while the user has picked none
 const presortMeta = computed(() => parseSortExpression(options.value.presort))
 
 // A copy each time, because PrimeVue edits the array it is handed in place
 const tableSortMeta = computed(() =>
-  (multiSortMeta.value.length ? multiSortMeta.value : presortMeta.value).map(m => ({ ...m })),
+  (multiSortMeta.value ?? presortMeta.value).map(m => ({ ...m })),
 )
 
 // PrimeVue numbers every sorted key, including ones on columns the list does not
@@ -1744,9 +1751,9 @@ function onSort(event) {
   const field = event.originalEvent?.target?.closest('th')?.dataset.field
   let next = (event.multiSortMeta ?? []).map(m => ({ ...m }))
 
-  // From the default sort, a click on a column it sorts descending runs past
-  // descending and clears it, which leaves the default showing: sort by it instead
-  if (!multiSortMeta.value.length && !next.length && field) next = [{ field, order: 1 }]
+  // From the default sort, a click on a column it sorts descending would run past
+  // descending and clear it on the first click: sort by it instead
+  if (multiSortMeta.value === null && !next.length && field) next = [{ field, order: 1 }]
 
   multiSortMeta.value = next
   fetchRecords(true)
@@ -1754,7 +1761,7 @@ function onSort(event) {
 }
 
 function resetSort() {
-  multiSortMeta.value = []
+  multiSortMeta.value = null
   fetchRecords(true)
 }
 

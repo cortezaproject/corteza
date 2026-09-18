@@ -2,16 +2,21 @@ import { describe, it, expect } from 'vitest'
 import { parseSortExpression, sortExpression } from './record-sort'
 
 describe('sortExpression', () => {
-  it('falls back to the presort when no column is sorted', () => {
-    expect(sortExpression([], 'color_count, color, market_value DESC')).toBe(
+  it('uses the presort until the user sorts', () => {
+    expect(sortExpression(null, 'color_count, color, market_value DESC')).toBe(
       'color_count, color, market_value DESC',
     )
-    expect(sortExpression(null, 'createdAt DESC')).toBe('createdAt DESC')
+    expect(sortExpression(undefined, 'createdAt DESC')).toBe('createdAt DESC')
+  })
+
+  it('is no sort once the user has cleared every column, presort or not', () => {
+    expect(sortExpression([], 'createdAt DESC')).toBe('')
+    expect(sortExpression([])).toBe('')
   })
 
   it('is empty with neither columns nor a presort', () => {
-    expect(sortExpression([])).toBe('')
-    expect(sortExpression([], null)).toBe('')
+    expect(sortExpression(null)).toBe('')
+    expect(sortExpression(null, null)).toBe('')
   })
 
   it('replaces the presort with the sorted columns', () => {

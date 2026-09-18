@@ -45,8 +45,9 @@ test in isolation.
   empty-operators and storage keys; keep it green when touching escaping).
 - `record-sort.js` — `sortExpression(multiSortMeta, presort)`: the sort a
   record list sends. The columns the user sorted by, in the order picked, as
-  `field ASC|DESC` joined with `, `; the block's presort only when none are
-  picked, so picked columns replace it rather than extend it.
+  `field ASC|DESC` joined with `, `, so picked columns replace the presort
+  rather than extend it. No list (`null`, the user has not sorted) means the
+  presort; an empty list (the user cleared every column) means no sort at all.
   `parseSortExpression(raw)` reads a sort expression back into that
   `[{ field, order }]` shape (order `1`/`-1`, ascending unless `DESC`); the
   record list and its configurator both read a presort through it.
