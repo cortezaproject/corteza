@@ -229,8 +229,8 @@ api.encode ──► collector.Resolve(ctx) ──► resolver registry, keyed b
 Today `sort=company` on a Record field compiles to
 `CAST(CASE WHEN values->'company'->>0 ~ '^[0-9]+$' THEN … END AS BIGINT)` — the
 list is ordered by the referenced record's ID, so the labels on screen look
-unsorted. Multi-value fields refuse to sort. A dotted path fails with
-`unknown attribute`.
+unsorted. A multi-value field sorts by its first value, so a multi-value
+reference sorts by its first ID. A dotted path fails with `unknown attribute`.
 
 **Syntax.** `sort=label(company) ASC`, `sort=label(ownedBy) DESC`. A field
 name cannot contain parentheses, so it never collides, and `sort=company`
