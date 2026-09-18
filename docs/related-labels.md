@@ -14,15 +14,19 @@ throwaway worktree (Postgres 16, 2026-09-18); the method is at the end.
 
 ### Rulings taken
 
-| #   | Ruling                                                                                                                |
-| --- | --------------------------------------------------------------------------------------------------------------------- |
-| 1   | Scope is everywhere: record Record/User/File values, record system users, and user references on every other resource |
-| 2   | A resolved reference is a **label**, not the related object                                                           |
-| 3   | Sort means sort by what is displayed (the viewer's label), not by an arbitrary path                                   |
-| 4   | Labels ride as a **typed sibling of `response`** in the envelope                                                      |
-| 5   | Opt-in is a **query parameter on every endpoint**                                                                     |
-| 6   | Sorting is a **query-time join first**; a stored sort key only where a module is measured too big                     |
-| 7   | The user label is **name → email → handle** everywhere; `username` is left out                                        |
+| #   | Ruling                                                                                                                                           |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Scope is everywhere: record Record/User/File values, record system users, and user references on every other resource                            |
+| 2   | A resolved reference is a **label**, not the related object                                                                                      |
+| 3   | Sort means sort by what is displayed (the viewer's label), not by an arbitrary path                                                              |
+| 4   | Labels ride as a **typed sibling of `response`** in the envelope                                                                                 |
+| 5   | Opt-in is a **query parameter on every endpoint**                                                                                                |
+| 6   | Sorting is a **query-time join first**; a stored sort key only where a module is measured too big                                                |
+| 7   | The user label is **name → email → handle** everywhere; `username` is left out                                                                   |
+| 8   | A record's entry carries its label as a string **and** as its label field's raw values; the webapp formats the values itself                     |
+| 9   | Nested record labels stay as they are: lists follow each level's own `labelField` (the server mirrors this), the picker keeps `recordLabelField` |
+| 10  | Text sorts keep the database's collation, as today                                                                                               |
+| 11  | A deleted target's label is returned, marked deleted, and the webapp shows it as deleted                                                         |
 
 ---
 
@@ -33,6 +37,11 @@ throwaway worktree (Postgres 16, 2026-09-18); the method is at the end.
   for ~60 types already exists, and the agent tools already resolve labels for
   records. With an ID-set filter, resolving a 50-row page costs 8–10 ms beside
   a 75 ms list call.
+- **The webapp keeps its formatting.** Record labels are drawn by the label
+  field's own viewer (dates, numbers, select badges, translations), so a
+  record's entry carries its label field's raw values as well as a string, and
+  the refs land in a store of their own — the existing caches hand their
+  entries out as full records.
 - **Sorting by label: the hard part.** The query layer has no join in its list
   path, the page cursor can only carry values that exist on the row, and
   record-level read permission cannot be expressed in SQL. It is buildable,
@@ -130,7 +139,8 @@ The envelope gains a sibling of `response`:
   "response": { "set": [ … ], "filter": { … } },
   "refs": {
     "user":       { "506815840423837697": "Ann Smith" },
-    "record":     { "900000000000000007": "Acme Ltd" },
+    "record":     { "900000000000000007": { "moduleID": "…", "label": "Acme Ltd", "values": { "name": ["Acme Ltd"] } },
+                    "900000000000000011": { "moduleID": "…", "label": "Old Co", "values": { "name": ["Old Co"] }, "deleted": true } },
     "attachment": { "514227795113148417": { "name": "offer.pdf", "url": "…", "previewUrl": "…", "mimetype": "application/pdf", "size": 30211 } },
     "role":       { "…": "Sales" }
   },
@@ -140,25 +150,32 @@ The envelope gains a sibling of `response`:
 
 - The resource shape never changes; read and list carry `refs` the same way.
 - Buckets are keyed by reference kind, so a client knows what an ID is.
-- A reference the caller cannot read, or that no longer exists, is **absent**.
-  A client shows its fallback (the ID) exactly as it does today.
+- A reference the caller cannot read, or that does not exist at all, is
+  **absent**; a client shows its fallback (the ID) exactly as it does today.
+- A deleted record the caller could read is returned with `"deleted": true`.
+  Listing already takes `deleted=1` under the same search and read checks
+  (`server/compose/rest/record.go:112`), so including deleted targets widens
+  nothing.
 - `refsTruncated` is set when a cap was hit (see _Limits_).
-- An attachment's entry is the one bucket that is not a string: its URL is
-  signed per caller and a viewer needs it to show a thumbnail.
+- A record's entry carries its label twice: `label`, a plain string for a
+  client that only wants text, and `values`, the raw value(s) of its label
+  field, which the webapp formats itself (see _Frontend_).
+- An attachment's entry is the fields the file viewer draws: its URL is signed
+  per caller and a viewer needs it to show a thumbnail.
 
 ### Label rules — one rule per kind, owned by the server
 
-| Kind                                               | Label                                                                                                                                                                                                                                                          |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| User (every user reference, including `deletedBy`) | name → email → handle, else absent. `username` is never set (no field in the admin user editor, 0 of 63 dev users). Masking applies: a masked name or email is not a label, so fall through to the next part                                                   |
-| Record                                             | `labelField` if it resolves, else the module's first field; when that field is itself a Record, follow `recordLabelField` one more level (two levels, as the agent tools do). Multi-value label field → first value. Select → the option's text, not its value |
-| Attachment                                         | `{name, url, previewUrl, mimetype, size}`                                                                                                                                                                                                                      |
-| Other resources                                    | The resource's display name (`name`, or `meta.name` for the 11 resources that keep it there), else its handle                                                                                                                                                  |
+| Kind                                               | Label                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User (every user reference, including `deletedBy`) | name → email → handle, else absent. `username` is never set (no field in the admin user editor, 0 of 63 dev users). Masking applies: a masked name or email is not a label, so fall through to the next part                                                                                                                                                                                                                                                          |
+| Record                                             | `labelField` if it resolves, else the module's first field — the viewer's rule. When that field is itself a Record, the nested record gets its own entry, found through that field's own `labelField`, as the viewer recurses; three levels at most; `recordLabelField` is not followed (the picker keeps it). `values` holds only the label field. Deleted targets are included and marked. `label` is its first value, Select as the option's text, dates as stored |
+| Attachment                                         | `{name, url, previewUrl, mimetype, size}`                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Other resources                                    | The resource's display name (`name`, or `meta.name` for the 11 resources that keep it there), else its handle                                                                                                                                                                                                                                                                                                                                                         |
 
-The webapp viewers switch to the server's label when it is present, so every
-screen reads one rule. This changes `CFieldRecordViewer`'s formatting for
-non-string label fields; `lib/vue/src/components/field/field.intent.md`
-governs the viewers, so that change goes through `/intent-task`.
+The webapp does not render `label`: it formats `values` through the same field
+viewers it uses today, so dates, numbers, select badges and translations stay
+in the browser. The string is for other clients and is what a label sort
+orders by.
 
 ### Architecture (server)
 
@@ -208,21 +225,12 @@ api.encode ──► collector.Resolve(ctx) ──► resolver registry, keyed b
   kind, with `refsTruncated` set when hit.
 - No cross-request cache: labels depend on the caller's permissions and on
   masking.
-- Nested labels stop at two levels.
+- Nested labels stop at three levels (the viewer has no limit).
 
 ### Client
 
-- **lib/js:** the generated client's `stdResolve` returns only
-  `response.data.response`, so `refs` is dropped today
-  (`lib/js/tools/codegen/template.js:61`). The template keeps it — returned
-  alongside the response when the call asked for `refs`. The parameter needs a
-  "common parameters" feature in `rest.yaml` and both generators
-  (`server/pkg/codegen/rest.go`, `lib/js/tools/codegen/human-api-client.js`);
-  neither has file-level parameters today.
-- **lib/vue:** a small label store keyed by `(kind, id)`, seeded from any
-  response that carries `refs`. Viewers read it first and fall back to today's
-  resolution. The RecordList block asks for `refs=labels` and the per-row label
-  calls disappear.
+See _Frontend_ below: what the webapp does today, where the refs land, and
+which screens change.
 
 ### Sorting by the displayed label
 
@@ -266,7 +274,29 @@ order would leak it. Two paths:
   Measured at 719 ms for 2,000 targets over 1M rows; capped by target count,
   above which the column is not sortable by label.
 
-Deciding "uniform" is itself an RBAC question (open ruling 2).
+Deciding "uniform" is itself an RBAC question (open ruling 1).
+
+**What "displayed order" means per label kind.** Text sorts as text (see
+collation below); Number and DateTime sort by value, which matches what is
+shown; a Select label is shown as its option text, so a label sort orders by
+that text (a `CASE` over the field's options), not by the stored value — plain
+Select columns sort by stored value today, the same mismatch; a Record label
+adds one join per level; a User label joins `users`.
+
+**Collation.** Text sorts keep the database's collation, as they do today
+(ruling 10). On the dev database that is `C.UTF-8`, byte order:
+`Banana < apple < cherry < zebra < Ćevapi`. ICU collations are there if this is
+revisited (`und-x-icu`: `apple < Banana < Čas < Ćevapi < cherry < zebra`;
+`sl-x-icu`: the Slovenian order), and an index built for a sort must use the
+collation the sort names.
+
+**Deleted targets** sort by their label like any other (ruling 11): the join
+does not filter on the target's `deleted_at`.
+
+**In the webapp.** RecordList builds `sort` from column names
+(`client/web/unify/src/sections/compose/lib/record-sort.js:4-11`). A Record,
+User or system-user column sends `label(field)`, and `parseSortExpression` maps
+`label(field)` back to the column so the header shows it as sorted.
 
 **Stored sort key, later.** Where a module is measured too big for the join, a
 per-reference label stored on the row with a `NULLS FIRST` index answers in
@@ -277,31 +307,129 @@ need.
 
 ---
 
+## Frontend
+
+### How the webapp resolves references today
+
+| Where                                                                                                             | How                                                                                                                                                                                                                                                                                         | Cost                                                                                                                                                                  |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Record field viewer, `lib/vue/src/components/field/viewers/CFieldRecordViewer.vue`                                | `recordStore.getByID(id)` (`:101`), else `resolveRecordLabels` (`:152-164`). Renders the label with `<CFieldViewer :field="labelFieldDef" :record="rec">` (`:12-18`), so the label field's own viewer formats it. Shows the ID when the target module is not in the module store (`:81-94`) | One `recordList` per (namespace, module) per tick, 100 IDs each, then a `recordRead` per ID the batch did not return (`lib/vue/src/stores/useRecordStore.js:206-298`) |
+| User field viewer, `CFieldUserViewer.vue:61-73`                                                                   | `findCached(id)`, else `resolveUsers`. Label `name → handle → email → ID` (`lib/vue/src/composables/useUserResolver.ts:15-18`)                                                                                                                                                              | No in-flight dedupe across viewers; the shell preloads 500 users on mount (`client/web/unify/src/App.vue:319`)                                                        |
+| File field viewer, `CFieldFileViewer.vue:175-220`                                                                 | `attachmentRead` per ID                                                                                                                                                                                                                                                                     | One call per file, one after another, no cache                                                                                                                        |
+| RecordList, `RecordListBlock.vue` `resolveLabels`                                                                 | Resolves each Record and User column before the rows are swapped in (added in `b069022ca`, 2026-09-18)                                                                                                                                                                                      | One record batch per referenced module, one user batch per User column                                                                                                |
+| Chart, `ChartRenderer.vue:103-166`                                                                                | Bool, Select and Record dimensions get labels; the Record label is the raw first value                                                                                                                                                                                                      | User dimensions show IDs                                                                                                                                              |
+| Calendar and map feeds, `lib/js/src/compose/types/page-block/calendar/feed-record.ts:62`, `GeometryBlock.vue:173` | Title is the title field's raw first value, else the record ID                                                                                                                                                                                                                              | A Record or User title field shows an ID                                                                                                                              |
+| Pickers, `CFieldRecordEditor.vue:96-139`, `CInputRecord.vue:133-160`                                              | Their own rule: raw `labelField` value, `recordLabelField` for a nested record, else the first non-empty value, else `Record <id>`                                                                                                                                                          | Fetch full records for their options                                                                                                                                  |
+
+The browser count in _Measurements_ (29 user calls for 6 users) was taken
+before `b069022ca` added the RecordList pre-pass; re-measure before quoting the
+saving.
+
+### Formatting stays in the browser
+
+A record's label is drawn by the label field's own viewer, and every one of
+them formats:
+
+- DateTime: moment formats, relative time, date-only or time-only, in the
+  user's locale (`lib/js/src/compose/types/module-field/datetime.ts:60-79`);
+- Number: prefix, suffix, precision (`formatValue`);
+- Bool: the field's true/false labels or the translated yes/no
+  (`CFieldBoolViewer.vue:48-54`);
+- Select: the option's text, optionally as a coloured badge
+  (`CFieldSelectViewer.vue`);
+- User and Record: another resolution, recursively.
+
+A string from the server cannot carry any of that, so for records the server
+sends the label field's raw values and the webapp keeps formatting them. Users
+and attachments have no such formatting and stay a string and a payload.
+
+### Where the refs land: a store of their own
+
+Not in `labelCache`, `records` or the user store:
+
+- `getByID` returns `labelCache` entries as if they were full records, and two
+  callers use them that way — the comment block's reply modal
+  (`CommentBlock.vue:529,941`) and the compose context builder
+  (`client/web/unify/src/sections/compose/index.js:59`), which copies a record's
+  values into an agent's context. A label-only entry there shows as a truncated
+  comment or an agent context with most values missing.
+- The user store holds whole `system.User` objects that admin views read.
+
+A new `useRefStore` in `lib/vue/src/stores`:
+
+- `record(id)`, `userLabel(id)`, `attachment(id)`;
+- `absent(kind, id)` for a reference the response asked about and the server
+  left out (unreadable, or never existed). Without it a viewer falls back to fetching —
+  and the per-ID `recordRead` fallback asks again for exactly what the server
+  withheld;
+- seeded in one place: the generated client keeps `refs` (today `stdResolve`
+  drops it, `lib/js/tools/codegen/template.js:61`) and hands it to a callback
+  the shell registers. A call site only adds `refs: 'labels'`;
+- an entry is evicted when the record store updates or deletes that record, and
+  the store clears with `recordStore.clearAll`.
+
+### Viewer changes
+
+The props do not change, as `field.intent.md` requires ("keep dispatcher prop
+sets stable").
+
+- `CFieldRecordViewer`: `getByID(id) || refStore.record(id) || { recordID }`,
+  and no `resolveRecordLabels` for an ID the ref store knows or knows is absent.
+  An entry marked `deleted` draws its label as deleted (muted, with a
+  translated "deleted" hint — a new key in `locale/en/human-webapp/`).
+- `CFieldUserViewer`: the ref store's label when the user is not cached; no
+  `resolveUsers` for those.
+- `CFieldFileViewer`: the ref store's entry before `attachmentRead`.
+- The field contract's record-shape bullet gains ref entries. Its raw-array
+  guard holds only while the target module stays unloaded: the template checks
+  `labelFieldDef`, not the shape (`CFieldRecordViewer.vue:13`), so a raw entry
+  cached before the module loads renders blank after. Both go through
+  `/intent-task`, with a new `useRefStore.intent.md`.
+
+### Which screens change
+
+| Screen                                  | Today                                                    | With refs                                                                    |
+| --------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| RecordList                              | List, then a batch per referenced module and User column | One call; the pre-pass goes                                                  |
+| Record page, record organizer, comments | Viewers resolve per tick                                 | Refs from the read or list they already make                                 |
+| Calendar and map feeds                  | Record/User titles show IDs                              | Titles show labels                                                           |
+| Chart                                   | User dimensions show IDs                                 | Report refs (the agent tools' `dimensionRefs` already does this server-side) |
+| Pickers and editors                     | Fetch full records for their options                     | Unchanged                                                                    |
+
+### Rules the webapp converges on
+
+- Users: `formatUser` goes from `name → handle → email` to the ruled
+  `name → email → handle`. Visible: a user with no name shows their email
+  rather than their handle. The comment block (`CommentBlock.vue:376-378`), the
+  session view and group members have orders of their own and move too.
+- Records stay as they are (ruling 9): the server follows the viewer, the
+  pickers keep `recordLabelField`, and the chart keeps reading the raw first
+  value — which is the same text the server's `label` carries.
+
+---
+
 ## Plan
 
 Effort is an estimate from what was read, not a commitment.
 
-| Phase | Work                                                                                                                                                                                                                                                              | Size              |
-| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| 0     | ID-set filter on `RecordFilter` → DAL `IN`; switch agent tools, webapp label batches and export to it                                                                                                                                                             | S                 |
-| 1     | `refs` middleware, collector, `encode()` sibling, user resolver; record system users and User values; `TypeRef` walker for typed resources; common `refs` param in both generators; lib/js keeps `refs`; lib/vue label store; RecordList and user viewers read it | M–L               |
-| 2     | Record labels (two levels, Select text), attachments, the ruled user label (agent tools, export and webapp all change), viewers switched to server labels (`/intent-task`, `field.intent.md`)                                                                     | M                 |
-| 3     | Other resource kinds (role, namespace, module, workflow, …); annotate plain-ID and JSON-nested references in cue                                                                                                                                                  | M                 |
-| 4     | `label(field)` sort: rdbms join, virtual cursor attribute, readability gate, rank fallback; RecordList enables it for single-value reference columns                                                                                                              | L                 |
-| 5     | Stored sort key for modules measured too big                                                                                                                                                                                                                      | L, only if needed |
+| Phase | Work                                                                                                                                                                                                                                                                                                                                        | Size              |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| 0     | ID-set filter on `RecordFilter` → DAL `IN`; switch agent tools, webapp label batches and export to it                                                                                                                                                                                                                                       | S                 |
+| 1     | `refs` middleware, collector, `encode()` sibling, user resolver; record system users and User values; `TypeRef` walker for typed resources; common `refs` param in both generators; lib/js keeps `refs` and hands it to a shell callback; `useRefStore`; user viewer reads it; `formatUser` to the ruled order                              | M–L               |
+| 2     | Record entries (`label` + label-field `values`, nested entries, deleted marked), attachments; record and file viewers read the ref store; RecordList, record page, organizer, comments, calendar/map feeds and chart opt in; agent tools and export move to the same rules (`/intent-task`: `field.intent.md`, new `useRefStore.intent.md`) | M                 |
+| 3     | Other resource kinds (role, namespace, module, workflow, …); annotate plain-ID and JSON-nested references in cue                                                                                                                                                                                                                            | M                 |
+| 4     | `label(field)` sort: rdbms join, virtual cursor attribute, readability gate, rank fallback, Select-as-text, deleted targets included; RecordList sends it for reference columns and maps it back to the header                                                                                                                              | L                 |
+| 5     | Stored sort key for modules measured too big                                                                                                                                                                                                                                                                                                | L, only if needed |
 
 ---
 
 ## Open rulings
 
-1. **Record label formatting.** Server returns a string; the viewer currently
-   formats dates, numbers and select text. Which kinds does the server format?
-2. **"Read is uniform"** — which RBAC evaluation decides that a caller can
+1. **"Read is uniform"** — which RBAC evaluation decides that a caller can
    read every record of a module, given contextual roles and that `rbac.Can`
    answers false for any wildcard resource.
-3. **Deleted targets.** Both server paths exclude deleted records; the
-   webapp's per-ID fallback shows them. Should a label of a deleted target be
-   returned?
+2. **Deleted and suspended users.** Ruling 11 covers records; do users follow
+   it (label returned, marked)?
 
 ---
 
