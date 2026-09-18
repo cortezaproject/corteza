@@ -295,7 +295,8 @@ describe('useRecordStore', () => {
         expect.objectContaining({
           namespaceID: NS_ID,
           moduleID: MOD_ID,
-          query: 'recordID = 40042 OR recordID = 40043',
+          recordID: ['40042', '40043'],
+          deleted: 1,
           incTotal: false,
         }),
       )
@@ -354,15 +355,12 @@ describe('useRecordStore', () => {
       expect(api.recordList).not.toHaveBeenCalled()
     })
 
-    it('falls back to per-ID read for IDs the batch omits', async () => {
+    it('leaves IDs the batch omits unresolved, without reading them one by one', async () => {
       const { store, api } = setup(
         makeAPI({
-          // Batch returns nothing for the requested ID...
+          // Deleted records are part of the batch, so an ID it omits is one the
+          // caller cannot read or that does not exist; a read would fail too.
           recordList: vi.fn().mockResolvedValue({ set: [], filter: {} }),
-          // ...so it should be read individually.
-          recordRead: vi
-            .fn()
-            .mockResolvedValue({ recordID: '40046', namespaceID: NS_ID, moduleID: MOD_ID }),
         }),
       )
 
@@ -373,12 +371,32 @@ describe('useRecordStore', () => {
       })
 
       expect(api.recordList).toHaveBeenCalled()
+      expect(api.recordRead).not.toHaveBeenCalled()
+      expect(store.getByID('40046')).toBeNull()
+    })
+
+    it('falls back to per-ID reads when the batch fails', async () => {
+      const { store, api } = setup(
+        makeAPI({
+          recordList: vi.fn().mockRejectedValue(new Error('not allowed to search')),
+          recordRead: vi
+            .fn()
+            .mockResolvedValue({ recordID: '40048', namespaceID: NS_ID, moduleID: MOD_ID }),
+        }),
+      )
+
+      await store.resolveRecordLabels({
+        namespaceID: NS_ID,
+        moduleID: MOD_ID,
+        recordIDs: ['40048'],
+      })
+
       expect(api.recordRead).toHaveBeenCalledWith({
         namespaceID: NS_ID,
         moduleID: MOD_ID,
-        recordID: '40046',
+        recordID: '40048',
       })
-      expect(store.getByID('40046')).toBeTruthy()
+      expect(store.getByID('40048')).toBeTruthy()
     })
 
     it('handles batch + fallback failure gracefully (no throw)', async () => {
