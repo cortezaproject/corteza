@@ -81,7 +81,7 @@ func (ctrl Attachment) Original(ctx context.Context, r *request.AttachmentOrigin
 		return nil, err
 	}
 
-	return ctrl.serve(ctx, r.NamespaceID, r.AttachmentID, false, r.Download)
+	return ctrl.serve(ctx, r.Kind, r.NamespaceID, r.AttachmentID, false, r.Download)
 }
 
 func (ctrl Attachment) Preview(ctx context.Context, r *request.AttachmentPreview) (interface{}, error) {
@@ -89,7 +89,7 @@ func (ctrl Attachment) Preview(ctx context.Context, r *request.AttachmentPreview
 		return nil, err
 	}
 
-	return ctrl.serve(ctx, r.NamespaceID, r.AttachmentID, true, false)
+	return ctrl.serve(ctx, r.Kind, r.NamespaceID, r.AttachmentID, true, false)
 }
 
 func (ctrl Attachment) isAccessible(kind string, namespaceID, attachmentID, userID uint64, signature string) error {
@@ -117,10 +117,12 @@ func (ctrl Attachment) isAccessible(kind string, namespaceID, attachmentID, user
 	return nil
 }
 
-func (ctrl Attachment) serve(ctx context.Context, namespaceID, attachmentID uint64, preview, download bool) (interface{}, error) {
+// serve streams an attachment, but only under the kind it was stored as: the
+// kind in the URL is what decides whether a signature is required.
+func (ctrl Attachment) serve(ctx context.Context, kind string, namespaceID, attachmentID uint64, preview, download bool) (interface{}, error) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		att, err := ctrl.attachment.FindByID(ctx, namespaceID, attachmentID)
-		if err != nil {
+		if err != nil || att.Kind != kind {
 			// Simplify error handling for now
 			w.WriteHeader(http.StatusNotFound)
 			return

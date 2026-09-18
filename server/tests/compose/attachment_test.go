@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/crusttech/human/server/compose/service"
 	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/tests/helpers"
@@ -78,4 +79,52 @@ func TestAttachmentDelete(t *testing.T) {
 	a = h.lookupAttachmentByID(a.ID)
 	h.a.NotNil(a)
 	h.a.NotNil(a.DeletedAt)
+}
+
+func TestAttachmentServedOnlyUnderItsOwnKind(t *testing.T) {
+	h := newHelper(t)
+	h.clearAttachment()
+
+	ns := h.makeNamespace("attachment kind namespace")
+	page := h.repoMakePage(ns, "some-page")
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read", "update")
+
+	var uploaded struct {
+		Response struct {
+			ID uint64 `json:"attachmentID,string"`
+		} `json:"response"`
+	}
+
+	helpers.InitFileUpload(t, h.apiInit(),
+		fmt.Sprintf("/namespace/%d/page/%d/attachment", ns.ID, page.ID),
+		nil,
+		[]byte("private"),
+		"private.txt",
+		"text/plain",
+	).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End().
+		JSON(&uploaded)
+
+	a := h.lookupAttachmentByID(uploaded.Response.ID)
+	unsigned := fmt.Sprintf("/namespace/%d/attachment/%s/%d/original/private.txt", ns.ID, types.PageAttachment, a.ID)
+
+	h.apiInit().Get(unsigned).Expect(t).Status(http.StatusOK).Body("private").End()
+
+	a.Kind = types.RecordAttachment
+	h.noError(store.UpdateComposeAttachment(context.Background(), service.DefaultStore, a))
+
+	h.apiInit().Get(unsigned).Expect(t).Status(http.StatusNotFound).End()
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/attachment/%s/%d/original/private.txt", ns.ID, types.RecordAttachment, a.ID)).
+		Query("sign", auth.DefaultSigner.Sign(h.cUser.ID, ns.ID, a.ID)).
+		Query("userID", fmt.Sprintf("%d", h.cUser.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Body("private").
+		End()
 }
