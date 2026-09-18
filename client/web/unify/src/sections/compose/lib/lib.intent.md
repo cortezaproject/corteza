@@ -10,6 +10,7 @@ touched-by:
   - client/web/unify/src/sections/compose/views
 tests:
   - client/web/unify/src/sections/compose/lib/record-filter.test.ts
+  - client/web/unify/src/sections/compose/lib/record-sort.test.ts
   - client/web/unify/src/sections/compose/lib/chart-color-schemes.test.js
 ---
 
@@ -18,8 +19,8 @@ tests:
 ## Intention
 
 Pure, component-free helper modules for the compose section: record-list
-filtering/QL generation, chart subtype construction, and applying resource
-translations to compose entities. No Vue reactivity, no stores — safe to unit
+filtering/QL generation and sort expressions, chart subtype construction, and
+applying resource translations to compose entities. No Vue reactivity, no stores — safe to unit
 test in isolation.
 
 ## Map
@@ -42,6 +43,11 @@ test in isolation.
   a label must not degrade into an error message.
 - `record-filter.test.ts` — vitest spec for the above (escaping, grouping,
   empty-operators and storage keys; keep it green when touching escaping).
+- `record-sort.js` — `sortExpression(multiSortMeta, presort)`: the sort a
+  record list sends. The columns the user sorted by, in the order picked, as
+  `field ASC|DESC` joined with `, `; the block's presort only when none are
+  picked, so picked columns replace it rather than extend it.
+- `record-sort.test.ts` — vitest spec for the above.
 - `charts.js` — `chartConstructor(c)`: inspects report metric types to pick
   the concrete chart class (Funnel/Gauge/Radar, else base `compose.Chart`).
 - `chart-color-schemes.js` — the instance's own chart palettes, as against the

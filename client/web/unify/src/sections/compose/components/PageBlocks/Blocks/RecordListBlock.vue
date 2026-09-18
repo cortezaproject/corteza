@@ -364,8 +364,9 @@
         resizable-columns
         column-resize-mode="expand"
         data-key="recordID"
-        :sort-field="sortField"
-        :sort-order="sortOrder"
+        sort-mode="multiple"
+        removable-sort
+        :multi-sort-meta="multiSortMeta"
         @sort="onSort"
         @row-click="onRowClick"
         class="record-list-table"
@@ -396,15 +397,20 @@
           v-for="col in columns"
           :key="col.name"
           :field="col.name"
-          :sortable="!options.hideSorting && !options.editable"
+          :sortable="columnsSortable"
         >
           <!-- The header slot renders in place of PrimeVue's built-in title span,
                so it has to carry that span's class or the labels lose their
                weight. The mark goes inside it: header items are laid out with a
-               flex gap that would otherwise push it away from the label. -->
+               flex gap that would otherwise push it away from the label. The
+               sort hint sits on the label alone so it never stacks with the
+               mark's own tooltip. -->
           <template #header>
             <span class="p-datatable-column-title">
-              {{ col.label }}
+              <span v-tooltip.top="columnsSortable ? $t('block.recordList.sort.tooltip') : null">
+                {{ col.label }}
+              </span>
+              {{ ' ' }}
               <span
                 v-if="showsRequiredMark(col)"
                 v-tooltip.top="$t('field.required-field')"
@@ -679,6 +685,7 @@ import {
   recordListFilterStorageKey,
   recordListPresetsStorageKey,
 } from '../../../lib/record-filter'
+import { sortExpression } from '../../../lib/record-sort'
 
 const props = defineProps({
   block: {
@@ -722,8 +729,8 @@ const records = ref([])
 const totalRecords = ref(0)
 const searchInput = ref('')
 const searchQuery = ref('')
-const sortField = ref(null)
-const sortOrder = ref(null)
+// Columns the user sorted by, in the order they were picked: [{ field, order }]
+const multiSortMeta = ref([])
 
 // Record list filter state
 const recordListFilter = ref([])
@@ -839,6 +846,8 @@ const allModuleFields = computed(() => {
   }))
   return [...regular, ...system]
 })
+
+const columnsSortable = computed(() => !options.value.hideSorting && !options.value.editable)
 
 // Columns derived from block field config or module fields
 // localFieldNames (user runtime selection) takes precedence over block options
@@ -1499,10 +1508,7 @@ const activeBulkQuery = computed(() => {
 async function loadNavigationIDs() {
   if (!recordListModule.value || prefilterUnresolved.value) return
   try {
-    let sort = options.value.presort || ''
-    if (sortField.value) {
-      sort = `${sortField.value} ${sortOrder.value === 1 ? 'ASC' : 'DESC'}`
-    }
+    const sort = sortExpression(multiSortMeta.value, options.value.presort)
     const response = await $ComposeAPI.recordList({
       namespaceID: props.namespace.namespaceID,
       moduleID: recordListModule.value.moduleID,
@@ -1553,11 +1559,7 @@ async function fetchRecords(resetCursor = false) {
   }
 
   try {
-    // Build sort expression
-    let sort = options.value.presort || ''
-    if (sortField.value) {
-      sort = `${sortField.value} ${sortOrder.value === 1 ? 'ASC' : 'DESC'}`
-    }
+    const sort = sortExpression(multiSortMeta.value, options.value.presort)
 
     // Build query using computed property
     const query = currentQuery.value
@@ -1670,8 +1672,7 @@ onBeforeUnmount(() => {
 })
 
 function onSort(event) {
-  sortField.value = event.sortField
-  sortOrder.value = event.sortOrder
+  multiSortMeta.value = event.multiSortMeta ?? []
   fetchRecords(true)
 }
 
