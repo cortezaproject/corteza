@@ -1,5 +1,5 @@
 <template>
-  <ReportEdit :chart="chart" :modules="modules" :supported-metrics="supportedMetrics">
+  <ReportEdit :chart="chart" :modules="modules">
     <template #dimension-options-options="{ dimension, isTemporal }">
       <div
         v-if="isTemporal && !['WEEK', 'QUARTER'].includes(dimension.modifier)"
@@ -294,10 +294,6 @@ defineProps({
   modules: {
     type: Array,
     required: true,
-  },
-  supportedMetrics: {
-    type: Number,
-    default: -1,
   },
 })
 

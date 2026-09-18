@@ -169,7 +169,6 @@
               v-if="chart && editReport"
               :chart="chart"
               :modules="modules"
-              :supported-metrics="1"
             />
 
             <Panel :header="$t('chart.edit.toolbox.label')" toggleable collapsed>

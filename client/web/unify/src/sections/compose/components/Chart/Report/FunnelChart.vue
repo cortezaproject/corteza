@@ -1,5 +1,5 @@
 <template>
-  <ReportEdit :chart="chart" :modules="modules" :supported-metrics="supportedMetrics">
+  <ReportEdit :chart="chart" :modules="modules" :supported-metrics="1">
     <template #dimension-options="{ index, dimension, field }">
       <div v-if="showPicker(field)" class="grid grid-cols-1 gap-4 mt-4">
         <CFormGroup
@@ -80,10 +80,6 @@ defineProps({
   modules: {
     type: Array,
     required: true,
-  },
-  supportedMetrics: {
-    type: Number,
-    default: -1,
   },
 })
 

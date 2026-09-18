@@ -317,3 +317,13 @@ describe('deleting a custom scheme', () => {
     expect(wrapper.findComponent(SelectStub).props('modelValue')).toBeUndefined()
   })
 })
+
+describe('the report editor', () => {
+  // How many metrics a report takes is the chart type's editor to decide.
+  it('is handed the chart and its modules, and no metric limit', async () => {
+    const wrapper = await open()
+    const editor = wrapper.findComponent({ name: 'GenericChart' })
+
+    expect(Object.keys(editor.vm.$attrs).sort()).toEqual(['chart', 'modules'])
+  })
+})
