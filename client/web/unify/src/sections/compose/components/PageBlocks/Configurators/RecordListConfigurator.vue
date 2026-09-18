@@ -158,7 +158,7 @@
                   <RecordListFilter
                     :model-value="normalizePresetFilter(preset.filter)"
                     :module="recordListModule"
-                    :show-reset="true"
+                    :namespace="namespace"
                     @update:model-value="updateFilterPreset(i, 'filter', $event)"
                   />
                   <Button
