@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center gap-2">
     <Button
-      v-tooltip.top="firstText"
+      v-tooltip.top="{ value: firstText, showDelay: 500 }"
       icon="pi pi-angle-double-left"
       :aria-label="firstText"
       severity="secondary"
