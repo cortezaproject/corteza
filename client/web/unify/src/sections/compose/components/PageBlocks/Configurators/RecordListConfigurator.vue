@@ -210,7 +210,6 @@
                 :model-value="item.field"
                 :module="recordListModule"
                 include-system
-                exclude-multi
                 show-name
                 :placeholder="$t('block.recordList.record.presortPlaceholder')"
                 class="flex-1 min-w-0"

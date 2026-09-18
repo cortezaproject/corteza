@@ -1028,25 +1028,79 @@ func TestSortingAndPagination(t *testing.T) {
 			}
 		})
 
-		t.Run("advanced sorting; disable multi-value sorting", func(t *testing.T) {
+		t.Run("advanced sorting; multi-value by first value", func(t *testing.T) {
 			var (
+				mv = func(vv ...string) (out []*types.RecordValue) {
+					for p, v := range vv {
+						out = append(out, &types.RecordValue{Name: "strMulti", Place: uint(p), Value: v})
+					}
+					return
+				}
+
+				rec = func(str1 string, multi ...string) *types.Record {
+					return makeNew(append([]*types.RecordValue{{Name: "str1", Value: str1}}, mv(multi...)...)...)
+				}
+
 				_, _ = truncAndCreate(t,
-					makeNew(&types.RecordValue{Name: "strMulti", Place: 0, Value: "a"}, &types.RecordValue{Name: "strMulti", Place: 1, Value: "b"}, &types.RecordValue{Name: "strMulti", Place: 2, Value: "c"}),
+					rec("v1", "c", "a"),
+					rec("v2", "a", "z"),
+					rec("v3"),
+					rec("v4", "b"),
+					rec("v5", "a"),
+					rec("v6", "c"),
+					rec("v7"),
+					rec("v8", "b", "a"),
+					rec("v9", "z", "a"),
 				)
 			)
 
-			var (
-				req = require.New(t)
+			tcc := []tc{
+				{
+					"strMulti",
+					[]string{"v3,<NIL>;v7,<NIL>;v2,a", "v5,a;v4,b;v8,b", "v1,c;v6,c;v9,z"},
+					[]int{nextCur, bothCur, prevCur},
+				},
+				{
+					"strMulti DESC",
+					[]string{"v9,z;v6,c;v1,c", "v8,b;v4,b;v5,a", "v2,a;v7,<NIL>;v3,<NIL>"},
+					[]int{nextCur, bothCur, prevCur},
+				},
+			}
 
-				f   = types.RecordFilter{}
-				err error
-			)
+			for _, tc := range tcc {
+				t.Run("crawling: "+tc.sort, func(t *testing.T) {
+					var (
+						req = require.New(t)
 
-			f.Sort.Set("strMulti DESC")
-			f.Limit = 100
+						f   = types.RecordFilter{}
+						set types.RecordSet
+						err error
+					)
 
-			_, f, err = dalutils.ComposeRecordsList(ctx, ds, mod, f)
-			req.Error(err, "by.errors.notAllowedToSort multi-value attribute: strMulti")
+					f.Sort.Set(tc.sort)
+					f.Limit = 3
+
+					for p := 0; p < 3; p++ {
+						set, f, err = dalutils.ComposeRecordsList(ctx, ds, mod, f)
+						req.NoError(err)
+						req.Equal(tc.rval[p], str(set, "str1", "strMulti"))
+						testCursors(req, tc.curr[p], f)
+
+						f.PageCursor = f.NextPage
+					}
+
+					f.PageCursor = f.PrevPage
+					for p := 1; p >= 0; p-- {
+						f.Sort = nil
+						set, f, err = dalutils.ComposeRecordsList(ctx, ds, mod, f)
+						req.NoError(err)
+						req.Equal(tc.rval[p], str(set, "str1", "strMulti"))
+						testCursors(req, tc.curr[p], f)
+
+						f.PageCursor = f.PrevPage
+					}
+				})
+			}
 		})
 
 		t.Run("advanced sorting; NULL; record value + sys fields", func(t *testing.T) {

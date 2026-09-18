@@ -396,7 +396,7 @@
           v-for="col in columns"
           :key="col.name"
           :field="col.name"
-          :sortable="!options.hideSorting && !options.editable && !col.isMulti"
+          :sortable="!options.hideSorting && !options.editable"
         >
           <!-- The header slot renders in place of PrimeVue's built-in title span,
                so it has to carry that span's class or the labels lose their
