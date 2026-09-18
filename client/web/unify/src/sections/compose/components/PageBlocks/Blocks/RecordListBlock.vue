@@ -106,6 +106,32 @@
       </div>
     </div>
 
+    <!-- The sort in force: the block's default, or the user's with a way back to it.
+         It names every key, including ones on columns the list does not show. -->
+    <div
+      v-if="recordListModule && columnsSortable && tableSortMeta.length"
+      class="flex items-center flex-wrap gap-2 px-3 py-1.5 border-b text-sm text-muted-color"
+    >
+      <i class="pi pi-sort-alt" aria-hidden="true" />
+      <span>
+        {{
+          multiSortMeta.length
+            ? $t('block.recordList.sort.current', { fields: sortSummary })
+            : $t('block.recordList.sort.default', { fields: sortSummary })
+        }}
+      </span>
+      <Button
+        v-if="multiSortMeta.length"
+        :label="
+          presortMeta.length ? $t('block.recordList.sort.reset') : $t('block.recordList.sort.clear')
+        "
+        link
+        size="small"
+        class="p-0"
+        @click="resetSort"
+      />
+    </div>
+
     <!-- Active filters bar -->
     <div
       v-if="activeFilterDisplay.length || drillDown"
@@ -366,7 +392,7 @@
         data-key="recordID"
         sort-mode="multiple"
         removable-sort
-        :multi-sort-meta="multiSortMeta"
+        :multi-sort-meta="tableSortMeta"
         @sort="onSort"
         @row-click="onRowClick"
         class="record-list-table"
@@ -405,7 +431,7 @@
           :key="col.name"
           :field="col.name"
           :sortable="columnsSortable"
-          :pt="{ ...sortBadgePt, headerCell: { 'data-field': col.name } }"
+          :pt="{ ...hiddenSortBadgePt, headerCell: { 'data-field': col.name } }"
         >
           <!-- The header slot renders in place of PrimeVue's built-in title span,
                so it has to carry that span's class or the labels lose their
@@ -440,6 +466,12 @@
                   : sortIconClass(sorted, sortOrder),
                 iconClass,
               ]"
+            />
+            <Badge
+              v-if="sortRank(col.name)"
+              :value="sortRank(col.name)"
+              size="small"
+              class="p-datatable-sort-badge ml-1"
             />
           </template>
 
@@ -706,7 +738,7 @@ import {
   recordListFilterStorageKey,
   recordListPresetsStorageKey,
 } from '../../../lib/record-filter'
-import { sortExpression } from '../../../lib/record-sort'
+import { parseSortExpression, sortExpression } from '../../../lib/record-sort'
 
 const props = defineProps({
   block: {
@@ -871,10 +903,32 @@ const allModuleFields = computed(() => {
 
 const columnsSortable = computed(() => !options.value.hideSorting && !options.value.editable)
 
-// The sort-order badge on a header only means something with two or more sorted columns
-const sortBadgePt = computed(() =>
-  multiSortMeta.value.length < 2 ? { pcSortBadge: { root: { style: { display: 'none' } } } } : {},
+// The block's presort as columns: what the headers show while the user has picked none
+const presortMeta = computed(() => parseSortExpression(options.value.presort))
+
+// A copy each time, because PrimeVue edits the array it is handed in place
+const tableSortMeta = computed(() =>
+  (multiSortMeta.value.length ? multiSortMeta.value : presortMeta.value).map(m => ({ ...m })),
 )
+
+const sortSummary = computed(() =>
+  tableSortMeta.value
+    .map(({ field, order }) => `${getFieldLabel({ name: field })} ${order === 1 ? '↑' : '↓'}`)
+    .join(', '),
+)
+
+// PrimeVue numbers every sorted key, including ones on columns the list does not
+// show; the headers number only the shown ones, and only when two or more are sorted
+const hiddenSortBadgePt = { pcSortBadge: { root: { style: { display: 'none' } } } }
+
+const shownSortFields = computed(() => {
+  const shown = new Set(columns.value.map(c => c.name))
+  return tableSortMeta.value.map(m => m.field).filter(f => shown.has(f))
+})
+
+function sortRank(name) {
+  return shownSortFields.value.length > 1 ? shownSortFields.value.indexOf(name) + 1 : 0
+}
 
 function sortIconClass(sorted, sortOrder) {
   if (!sorted) return 'pi-sort-alt'
@@ -1704,10 +1758,22 @@ onBeforeUnmount(() => {
 })
 
 function onSort(event) {
-  multiSortMeta.value = event.multiSortMeta ?? []
-  fetchRecords(true)
   // In multiple mode the sort event names no column, so the header says which
-  sortStarted(event.originalEvent?.target?.closest('th')?.dataset.field)
+  const field = event.originalEvent?.target?.closest('th')?.dataset.field
+  let next = (event.multiSortMeta ?? []).map(m => ({ ...m }))
+
+  // From the default sort, a click on a column it sorts descending runs past
+  // descending and clears it, which leaves the default showing: sort by it instead
+  if (!multiSortMeta.value.length && !next.length && field) next = [{ field, order: 1 }]
+
+  multiSortMeta.value = next
+  fetchRecords(true)
+  sortStarted(field)
+}
+
+function resetSort() {
+  multiSortMeta.value = []
+  fetchRecords(true)
 }
 
 function onPageSizeChange() {

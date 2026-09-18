@@ -47,6 +47,9 @@ test in isolation.
   record list sends. The columns the user sorted by, in the order picked, as
   `field ASC|DESC` joined with `, `; the block's presort only when none are
   picked, so picked columns replace it rather than extend it.
+  `parseSortExpression(raw)` reads a sort expression back into that
+  `[{ field, order }]` shape (order `1`/`-1`, ascending unless `DESC`); the
+  record list and its configurator both read a presort through it.
 - `record-sort.test.ts` — vitest spec for the above.
 - `charts.js` — `chartConstructor(c)`: inspects report metric types to pick
   the concrete chart class (Funnel/Gauge/Radar, else base `compose.Chart`).

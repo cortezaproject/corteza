@@ -541,6 +541,7 @@ import { useI18n } from 'vue-i18n'
 import { useModuleStore } from '@planetcrust/human-vue'
 import RecordListFilter from '@/sections/compose/components/Common/RecordListFilter.vue'
 import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'
+import { parseSortExpression } from '@/sections/compose/lib/record-sort'
 
 const { t } = useI18n()
 
@@ -980,16 +981,11 @@ function updateSummary(i, key, value) {
 const presortItems = ref([{ field: null, descending: false }])
 
 function parsePresort(raw) {
-  if (!raw) return [{ field: null, descending: false }]
-  const parts = String(raw)
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean)
-  if (!parts.length) return [{ field: null, descending: false }]
-  return parts.map(p => {
-    const [name, dir] = p.split(/\s+/)
-    return { field: name || null, descending: (dir || '').toUpperCase() === 'DESC' }
-  })
+  const items = parseSortExpression(raw).map(({ field, order }) => ({
+    field,
+    descending: order === -1,
+  }))
+  return items.length ? items : [{ field: null, descending: false }]
 }
 
 function serializePresort(items) {

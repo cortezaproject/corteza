@@ -982,7 +982,7 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordListBlock.vue": {
-      "h": "04fd07a26705",
+      "h": "2fad7e61f706",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-09-18"
     },
@@ -1077,7 +1077,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordListConfigurator.vue": {
-      "h": "1a3b8d72426d",
+      "h": "237639a3b48c",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-09-18"
     },
@@ -1242,12 +1242,12 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/lib/record-sort.js": {
-      "h": "018f31aebbea",
+      "h": "630dc1294cfd",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-09-18"
     },
     "client/web/unify/src/sections/compose/lib/record-sort.test.ts": {
-      "h": "3bd6640b810b",
+      "h": "9cd066018fee",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-09-18"
     },
