@@ -140,17 +140,28 @@
         <Panel
           v-for="(m, i) in metrics"
           :key="metricKey(m)"
-          :header="`${$t('chart.edit.metric.label')} ${i + 1}`"
+          :header="metricTitle(m)"
           toggleable
           class="bg-emphasis"
         >
           <template #header="{ id }">
-            <div class="flex flex-wrap items-baseline gap-x-2 min-w-0">
-              <span :id="id" class="font-semibold">
-                {{ $t('chart.edit.metric.label') }} {{ i + 1 }}
-              </span>
-              <span v-if="metricSummary(m)" class="text-sm text-muted-color break-words">
-                {{ metricSummary(m) }}
+            <div :id="id" class="flex flex-wrap items-center gap-2 min-w-0">
+              <template v-if="metricFieldLabel(m)">
+                <Tag
+                  :value="metricFieldLabel(m)"
+                  severity="info"
+                  rounded
+                  class="whitespace-normal break-words"
+                />
+                <Tag
+                  v-if="metricAggregateLabel(m)"
+                  :value="metricAggregateLabel(m)"
+                  rounded
+                  class="whitespace-normal break-words bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300"
+                />
+              </template>
+              <span v-else class="text-muted-color">
+                {{ $t('chart.edit.metric.fieldPlaceholder') }}
               </span>
             </div>
           </template>
@@ -491,12 +502,20 @@ function metricKey(m) {
   return metricKeys.get(raw)
 }
 
-// What a metric plots — its field, then its function — for the panel header.
-function metricSummary(m) {
-  const field = metricFields.value.find(f => f.value === m.field)?.text
-  if (!field) return ''
-  const aggregate =
-    m.field === 'count' ? undefined : metricAggregates.find(a => a.value === m.aggregate)?.text
-  return [field, aggregate].filter(Boolean).join(' · ')
+// What a metric plots, for its panel header: its field, then its function.
+function metricFieldLabel(m) {
+  return metricFields.value.find(f => f.value === m.field)?.text
+}
+
+function metricAggregateLabel(m) {
+  if (!m.field || m.field === 'count') return undefined
+  return metricAggregates.find(a => a.value === m.aggregate)?.text
+}
+
+function metricTitle(m) {
+  return (
+    [metricFieldLabel(m), metricAggregateLabel(m)].filter(Boolean).join(' · ') ||
+    t('chart.edit.metric.fieldPlaceholder')
+  )
 }
 </script>

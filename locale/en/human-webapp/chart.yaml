@@ -137,12 +137,12 @@ edit:
     fillArea: Fill area below the line
     fixTooltips: Always show labels
     function:
-      avg: AVG
+      avg: Average
       label: Function
-      max: MAX
-      min: MIN
+      max: Highest value
+      min: Lowest value
       placeholder: Select metric aggregate function
-      sum: SUM
+      sum: Total
     fx:
       description: n - current dataset value, m - previous dataset value
       label: Post processing function
@@ -257,7 +257,7 @@ filter:
 general:
   label:
     add: Add
-    count: Count
+    count: Number of records
     permissions: Permissions
     title: Label
   placeholder:
