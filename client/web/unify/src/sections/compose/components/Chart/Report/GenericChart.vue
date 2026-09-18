@@ -217,27 +217,23 @@
             />
           </CFormGroup>
 
-          <CFormGroup
+          <CInputToggleCard
             v-if="!hasAxis"
+            v-model="r.tooltip.labelsNextToPartition"
             :label="$t('chart.edit.additionalConfig.tooltip.labelNextToChart')"
-            input-id="labelsNextToPartition"
-          >
-            <ToggleSwitch
-              input-id="labelsNextToPartition"
-              v-model="r.tooltip.labelsNextToPartition"
-            />
-          </CFormGroup>
+            :description="$t('chart.edit.additionalConfig.tooltip.labelNextToChartDescription')"
+            class="self-start"
+          />
         </div>
       </Panel>
 
       <Panel :header="$t('chart.edit.additionalConfig.offset.label')" toggleable collapsed>
-        <CFormGroup
+        <CInputToggleCard
+          v-model="r.offset.isDefault"
           :label="$t('chart.edit.additionalConfig.offset.default')"
-          input-id="offsetDefault"
+          :description="$t('chart.edit.additionalConfig.offset.defaultDescription')"
           class="mb-4"
-        >
-          <ToggleSwitch input-id="offsetDefault" v-model="r.offset.isDefault" />
-        </CFormGroup>
+        />
 
         <div v-if="!r.offset.isDefault" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <CFormGroup

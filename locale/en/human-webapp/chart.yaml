@@ -40,9 +40,11 @@ edit:
         top: Top
       scrollable: Scrollable
       show: Show legend
+      showDescription: Show a key that names what each color on the chart stands for.
       valueRange: Values can be set as pixels 20 or as percentages 20%
     offset:
       default: Default offset
+      defaultDescription: Use the standard spacing around the chart; turn off to set each side yourself.
       label: Offset
       position:
         bottom: Bottom
@@ -58,8 +60,9 @@ edit:
         placeholder: '{a}<br />{b} : {c} ({d}%)'
       label: Tooltip
       labelNextToChart: Show labels next to chart
+      labelNextToChartDescription: Always label each slice, placed beside the pie instead of inside it.
   animation:
-    enabled: Animation enabled
+    description: Animate the chart as it first draws and whenever its data changes.
     label: Animation
   dimension:
     calculateLabelCount: Calculate how many labels can be shown
@@ -208,6 +211,7 @@ edit:
   toolbox:
     label: Tools
     saveAsImage:
+      description: Show a button on the chart that downloads it as a PNG image.
       label: Show "Save as Image" button
     timeline:
       label: Timeline

@@ -227,6 +227,13 @@
       toggleable
       collapsed
     >
+      <CInputToggleCard
+        v-model="legendVisible"
+        :label="$t('chart.edit.additionalConfig.legend.show')"
+        :description="$t('chart.edit.additionalConfig.legend.showDescription')"
+        class="mb-4"
+      />
+
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <CFormGroup
           :label="$t('chart.edit.additionalConfig.legend.orientation.label')"
@@ -240,10 +247,6 @@
             option-value="value"
             class="w-full"
           />
-        </CFormGroup>
-
-        <CFormGroup :label="$t('chart.edit.additionalConfig.legend.show')" input-id="legendVisible">
-          <ToggleSwitch input-id="legendVisible" v-model="legendVisible" />
         </CFormGroup>
 
         <CFormGroup

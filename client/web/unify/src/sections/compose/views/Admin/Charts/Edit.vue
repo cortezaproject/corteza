@@ -154,12 +154,12 @@
                   </div>
                 </CFormGroup>
 
-                <CFormGroup :label="$t('chart.edit.animation.label')">
-                  <div class="flex items-center gap-2">
-                    <ToggleSwitch input-id="animation" v-model="animationEnabled" />
-                    <label for="animation">{{ $t('chart.edit.animation.enabled') }}</label>
-                  </div>
-                </CFormGroup>
+                <CInputToggleCard
+                  v-model="animationEnabled"
+                  :label="$t('chart.edit.animation.label')"
+                  :description="$t('chart.edit.animation.description')"
+                  class="self-start"
+                />
               </div>
             </Panel>
 
@@ -172,10 +172,11 @@
             />
 
             <Panel :header="$t('chart.edit.toolbox.label')" toggleable collapsed>
-              <div class="flex items-center gap-2">
-                <ToggleSwitch input-id="saveAsImage" v-model="saveAsImageEnabled" />
-                <label for="saveAsImage">{{ $t('chart.edit.toolbox.saveAsImage.label') }}</label>
-              </div>
+              <CInputToggleCard
+                v-model="saveAsImageEnabled"
+                :label="$t('chart.edit.toolbox.saveAsImage.label')"
+                :description="$t('chart.edit.toolbox.saveAsImage.description')"
+              />
             </Panel>
           </div>
 

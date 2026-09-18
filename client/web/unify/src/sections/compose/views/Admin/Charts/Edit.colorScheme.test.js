@@ -162,7 +162,7 @@ function mountEditor() {
         Button: ButtonStub,
         InputText: InputStub,
         Textarea: true,
-        ToggleSwitch: true,
+        CInputToggleCard: true,
         ProgressSpinner: true,
         CPermissionsButton: true,
       },
