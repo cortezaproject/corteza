@@ -54,7 +54,11 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
   statement of it. Skills and `dev_commit_create` point here rather than
   restating it.
 - **Tests**: run the touched package's suite (e.g. `cd client/web/unify && npx
-vitest run`) before committing behavior changes.
+vitest run`) before committing behavior changes. Baseline every suite you will
+  verify with, e2e included, **before** editing — a failure first seen
+  afterwards costs a revert and a second run to attribute, and an e2e suite is
+  minutes. When one does surface late, revert and re-run **that spec alone**;
+  never the whole set twice.
 - **i18n**: single merged `human-webapp` bundle — edit `locale/en/human-webapp/`;
   prefer verbose, explicit wording.
 - **Codegen**: `make codegen` (server first, then lib). Never hand-edit

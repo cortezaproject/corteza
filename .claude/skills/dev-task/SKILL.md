@@ -218,6 +218,10 @@ Review means exercising the claims, not reading the diff.
   regression.** Re-run against a settled server (`dev_server_status`) before
   believing one; a spec that still fails and cannot be reached from the change
   is its own task, named in `⚠️ NOT DONE`, not absorbed into this one.
+- **Attributing a late failure costs one spec, not the whole set.** Revert your
+  files, re-run that spec alone, restore — CLAUDE.md § Conventions, Tests. The
+  step-5 baseline is what makes this unnecessary; take it on every suite you
+  will verify with, e2e included.
 - **Re-run anything a subagent claimed.** Their transcripts are evidence, not
   proof.
 - For substantial work, consider a cold adversarial pass: a fresh agent, no

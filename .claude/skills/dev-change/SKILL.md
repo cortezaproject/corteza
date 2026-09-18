@@ -75,6 +75,10 @@ contract.
 If it is already failing, you need to know now: pre-existing breakage is not
 yours to debug, and you cannot tell it from your own once you have edited.
 
+Every suite step 5 will run, not only the unit tests — an e2e suite you baseline
+here costs one run; the same fact established after editing costs a revert and a
+second. CLAUDE.md § Conventions, Tests.
+
 ## 4. Make the change
 
 Ordinary Read/Edit. The tools do not do the thinking.
