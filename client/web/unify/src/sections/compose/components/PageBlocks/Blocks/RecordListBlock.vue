@@ -104,23 +104,11 @@
           @keydown.enter="commitSearch"
         />
       </div>
-
-      <!-- Back to the block's presort, once the user has sorted by columns -->
-      <Button
-        v-if="columnsSortable && multiSortMeta.length"
-        :label="$t('block.recordList.sort.reset')"
-        icon="pi pi-sort-alt-slash"
-        severity="secondary"
-        outlined
-        size="small"
-        class="shrink-0"
-        @click="resetSort"
-      />
     </div>
 
-    <!-- Active filters bar -->
+    <!-- Active filters bar, which also carries the way back from a user sort -->
     <div
-      v-if="activeFilterDisplay.length || drillDown"
+      v-if="filtersActive || sortResettable"
       class="flex items-center flex-wrap gap-2 px-3 py-2 border-b"
     >
       <!-- What a metric tile put on the list. It is the tile's whole filter, so
@@ -211,12 +199,25 @@
       </template>
 
       <Button
+        v-if="filtersActive"
         :label="$t('block.recordList.filter.reset')"
         icon="pi pi-filter-slash"
         severity="secondary"
         text
         size="small"
         @click="onFilterReset"
+      />
+
+      <!-- Back to the block's presort, once the user has sorted by columns -->
+      <Button
+        v-if="sortResettable"
+        :label="$t('block.recordList.sort.reset')"
+        icon="pi pi-sort-alt-slash"
+        severity="secondary"
+        text
+        size="small"
+        class="ml-auto"
+        @click="resetSort"
       />
     </div>
 
@@ -888,6 +889,7 @@ const allModuleFields = computed(() => {
 })
 
 const columnsSortable = computed(() => !options.value.hideSorting && !options.value.editable)
+const sortResettable = computed(() => columnsSortable.value && multiSortMeta.value.length > 0)
 
 // The block's presort as columns: what the headers show while the user has picked none
 const presortMeta = computed(() => parseSortExpression(options.value.presort))
@@ -2106,6 +2108,8 @@ const filterableFields = computed(() => {
     f => f.isFilterable && f.canReadRecordValue !== false,
   )
 })
+
+const filtersActive = computed(() => activeFilterDisplay.value.length > 0 || !!drillDown.value)
 
 // Active filters display
 const activeFilterDisplay = computed(() => {
