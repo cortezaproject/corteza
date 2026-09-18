@@ -1176,10 +1176,7 @@ recordList:
     deleted: Show deleted records
     existing: Show existing records
   sort:
-    clear: Clear the sort
-    current: 'Sorted by {fields}'
-    default: 'Sorted by the default order: {fields}'
-    reset: Reset to the default order
+    reset: Reset sort
     tooltip: Click to sort by this column. Ctrl-click (Cmd-click on a Mac) to add it to the current sort; click a sorted column again to reverse it, then once more to remove it.
   summaries:
     customSummaries:

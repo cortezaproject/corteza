@@ -104,30 +104,16 @@
           @keydown.enter="commitSearch"
         />
       </div>
-    </div>
 
-    <!-- The sort in force: the block's default, or the user's with a way back to it.
-         It names every key, including ones on columns the list does not show. -->
-    <div
-      v-if="recordListModule && columnsSortable && tableSortMeta.length"
-      class="flex items-center flex-wrap gap-2 px-3 py-1.5 border-b text-sm text-muted-color"
-    >
-      <i class="pi pi-sort-alt" aria-hidden="true" />
-      <span>
-        {{
-          multiSortMeta.length
-            ? $t('block.recordList.sort.current', { fields: sortSummary })
-            : $t('block.recordList.sort.default', { fields: sortSummary })
-        }}
-      </span>
+      <!-- Back to the block's presort, once the user has sorted by columns -->
       <Button
-        v-if="multiSortMeta.length"
-        :label="
-          presortMeta.length ? $t('block.recordList.sort.reset') : $t('block.recordList.sort.clear')
-        "
-        link
+        v-if="columnsSortable && multiSortMeta.length"
+        :label="$t('block.recordList.sort.reset')"
+        icon="pi pi-sort-alt-slash"
+        severity="secondary"
+        outlined
         size="small"
-        class="p-0"
+        class="shrink-0"
         @click="resetSort"
       />
     </div>
@@ -909,12 +895,6 @@ const presortMeta = computed(() => parseSortExpression(options.value.presort))
 // A copy each time, because PrimeVue edits the array it is handed in place
 const tableSortMeta = computed(() =>
   (multiSortMeta.value.length ? multiSortMeta.value : presortMeta.value).map(m => ({ ...m })),
-)
-
-const sortSummary = computed(() =>
-  tableSortMeta.value
-    .map(({ field, order }) => `${getFieldLabel({ name: field })} ${order === 1 ? '↑' : '↓'}`)
-    .join(', '),
 )
 
 // PrimeVue numbers every sorted key, including ones on columns the list does not
