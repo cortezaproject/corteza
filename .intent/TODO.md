@@ -239,3 +239,9 @@ commit. What it left open:
 - [x] ~~Dev-stack e2e prerequisite~~ — ruled 2026-07-24:
       `AUTH_REQUEST_RATE_LIMIT=0` set in the dev server env; documented in
       `.env.e2e.example` + `e2e.intent.md`. Full project suite green (14/14).
+- [x] ~~RecordListFilter builder miswiring~~ — fixed 2026-09-18:
+      `RecordListConfigurator` now passes `namespace` and no longer passes the
+      undeclared `show-reset`. The missing prop was never user-visible — the
+      field editors fall back to the `$namespace` provided by
+      `Namespace/View.vue` — so the only symptom was a required-prop warning.
+      DRIFT note resolved.

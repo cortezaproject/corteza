@@ -762,9 +762,9 @@
       "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/Common/RecordListFilter.vue": {
-      "h": "7c199cc6827e",
+      "h": "49c7b1e60f12",
       "doc": "client/web/unify/src/sections/compose/components/Common/Common.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-09-18"
     },
     "client/web/unify/src/sections/compose/components/CSidebarNamespaceNav.vue": {
       "h": "60bea785dfe5",
@@ -982,7 +982,7 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/RecordListBlock.vue": {
-      "h": "5d1bd28e6dff",
+      "h": "04fd07a26705",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-09-18"
     },
@@ -1077,9 +1077,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordListConfigurator.vue": {
-      "h": "0cee5b348590",
+      "h": "1a3b8d72426d",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-09-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/RecordOrganizerConfigurator.vue": {
       "h": "82a49a484693",
