@@ -127,6 +127,19 @@ describe('useGrowOnlyColumns', () => {
     expect(held(wrapper, 'name')).toBe('300px')
   })
 
+  it('keeps a click on a resize grip from reaching the header', async () => {
+    await show([{ name: 'x'.repeat(20), set: 'x'.repeat(15) }])
+    const sorted: string[] = []
+    const th = wrapper.find('th[data-field="set"]')
+    th.element.addEventListener('click', () => sorted.push('set'))
+
+    await th.find('.p-datatable-column-resizer').trigger('click')
+    expect(sorted).toEqual([])
+
+    await th.trigger('click')
+    expect(sorted).toEqual(['set'])
+  })
+
   it('does not take a click elsewhere in the header for a resize', async () => {
     await show([{ name: 'x'.repeat(20), set: 'x'.repeat(15) }])
 

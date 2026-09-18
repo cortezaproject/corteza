@@ -179,14 +179,33 @@ export function getTheme(theme: Theme) {
         padding-bottom: 0.5rem !important;
       }
 
+      /* A resizable header clips its content rather than itself, so the grip
+         can straddle the column boundary and be caught from either side */
+      .p-datatable-resizable-table > .p-datatable-thead > tr > th.p-datatable-resizable-column {
+        overflow: visible;
+      }
+
+      .p-datatable-resizable-table
+        > .p-datatable-thead
+        > tr
+        > th.p-datatable-resizable-column
+        > .p-datatable-column-header-content {
+        overflow: hidden;
+      }
+
       .p-datatable-column-resizer {
-        width: 1rem !important;
-        right: -0.5rem !important;
+        width: 1.25rem !important;
+        right: -0.625rem !important;
+        z-index: 1;
+      }
+
+      /* Frozen headers stay above the grips of columns scrolled under them */
+      .p-datatable-thead > tr > th.p-datatable-frozen-column {
+        z-index: 2;
       }
 
       /* Where a column ends: a faint rule that firms up while the header is
-         hovered and turns primary on the grip. The header cell clips the grip's
-         outer half, so the rule sits just inside the cell's edge. */
+         hovered and turns primary on the grip */
       .p-datatable-column-resizer::after {
         content: '';
         position: absolute;

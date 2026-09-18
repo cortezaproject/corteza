@@ -10,7 +10,8 @@ import { onScopeDispose, toValue, watch, type MaybeRefOrGetter, type WatchSource
  * and the column is held at the widest seen, as its header's min-width.
  *
  * Columns are the header cells carrying `data-field`. One the user drags to a
- * width of their own is theirs from then on.
+ * width of their own is theirs from then on, and a click on a resize grip is
+ * never taken for a sort.
  *
  * @example
  * const table = ref()
@@ -60,11 +61,22 @@ export function useGrowOnlyColumns(
     th.style.minWidth = ''
   }
 
+  function onGripClick(event: Event) {
+    const target = event.target as HTMLElement | null
+    if (target?.closest?.('.p-datatable-column-resizer')) event.stopPropagation()
+  }
+
+  function listen(el: HTMLElement | null | undefined, on: boolean) {
+    const method = on ? 'addEventListener' : 'removeEventListener'
+    el?.[method]?.('mousedown', onResizeStart, true)
+    el?.[method]?.('click', onGripClick, true)
+  }
+
   watch(
     () => toValue(root),
     (el, prev) => {
-      prev?.removeEventListener?.('mousedown', onResizeStart, true)
-      el?.addEventListener?.('mousedown', onResizeStart, true)
+      listen(prev, false)
+      listen(el, true)
     },
     { immediate: true, flush: 'post' },
   )
@@ -74,9 +86,7 @@ export function useGrowOnlyColumns(
   watch(sources, hold, { flush: 'pre' })
   watch(sources, hold, { flush: 'post' })
 
-  onScopeDispose(() => {
-    toValue(root)?.removeEventListener?.('mousedown', onResizeStart, true)
-  })
+  onScopeDispose(() => listen(toValue(root), false))
 
   return { hold }
 }
