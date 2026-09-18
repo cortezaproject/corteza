@@ -184,8 +184,33 @@ export function getTheme(theme: Theme) {
         right: -0.5rem !important;
       }
 
-      .p-datatable-column-resizer:hover {
-        background-color: var(--p-highlight-focus-background) !important;
+      /* Where a column ends: a faint rule that firms up while the header is
+         hovered and turns primary on the grip. The header cell clips the grip's
+         outer half, so the rule sits just inside the cell's edge. */
+      .p-datatable-column-resizer::after {
+        content: '';
+        position: absolute;
+        top: 30%;
+        bottom: 30%;
+        right: 50%;
+        width: 1px;
+        border-radius: 1px;
+        background: color-mix(in srgb, var(--p-text-muted-color) 35%, transparent);
+        transition: top 0.15s, bottom 0.15s, width 0.15s, background-color 0.15s, box-shadow 0.15s;
+      }
+
+      .p-datatable-thead:hover .p-datatable-column-resizer::after {
+        top: 20%;
+        bottom: 20%;
+        background: color-mix(in srgb, var(--p-text-muted-color) 60%, transparent);
+      }
+
+      .p-datatable-thead .p-datatable-column-resizer:hover::after {
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--p-primary-color);
+        box-shadow: -2px 0 6px color-mix(in srgb, var(--p-primary-color) 35%, transparent);
       }
 
       .right-sidebar {
