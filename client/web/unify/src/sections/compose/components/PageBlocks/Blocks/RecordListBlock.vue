@@ -371,7 +371,11 @@
         @row-click="onRowClick"
         class="record-list-table"
         :pt="{
-          headerCell: { class: 'bg-highlight-emphasis' },
+          column: {
+            headerCell: {
+              class: 'bg-emphasis text-muted-color font-semibold uppercase text-sm tracking-wide',
+            },
+          },
         }"
       >
         <template #empty>
@@ -2414,6 +2418,11 @@ function persistUserPresets() {
 
 :deep(.p-datatable-gridlines .p-datatable-thead > tr > th) {
   border-top: 0;
+}
+
+/* The sorted column's label reads primary, as in CResourceList */
+.record-list-table :deep(th.p-datatable-column-sorted) {
+  color: var(--p-primary-color);
 }
 
 :deep(.p-datatable-mask) {
