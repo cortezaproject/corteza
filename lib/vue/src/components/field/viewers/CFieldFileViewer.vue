@@ -172,49 +172,55 @@ function formatSize(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
 }
 
+let resolveSeq = 0
+
 async function resolveAttachments(ids) {
+  const seq = ++resolveSeq
+
   if (!ids.length || !$ComposeAPI || !namespaceID.value) {
     resolvedAttachments.value = []
     return
   }
 
   const baseURL = $ComposeAPI.baseURL || ''
-  const results = []
 
-  for (const attachmentID of ids) {
-    try {
-      const att = await $ComposeAPI.attachmentRead({
-        kind: 'record',
-        namespaceID: namespaceID.value,
-        attachmentID,
-      })
+  const results = await Promise.all(
+    ids.map(async attachmentID => {
+      try {
+        const att = await $ComposeAPI.attachmentRead({
+          kind: 'record',
+          namespaceID: namespaceID.value,
+          attachmentID,
+        })
 
-      const mime = att.meta?.original?.mimetype || ''
-      const url = att.url ? baseURL + att.url : ''
+        const mime = att.meta?.original?.mimetype || ''
+        const url = att.url ? baseURL + att.url : ''
 
-      results.push({
-        attachmentID: att.attachmentID,
-        name: att.name || attachmentID,
-        size: att.meta?.original?.size || 0,
-        isImage: mime.startsWith('image/'),
-        previewUrl: att.previewUrl ? baseURL + att.previewUrl : url,
-        originalUrl: url,
-        downloadUrl: url ? url + '&download=1' : '',
-      })
-    } catch {
-      results.push({
-        attachmentID,
-        name: attachmentID,
-        size: 0,
-        isImage: false,
-        previewUrl: '',
-        originalUrl: '',
-        downloadUrl: '',
-      })
-    }
-  }
+        return {
+          attachmentID: att.attachmentID,
+          name: att.name || attachmentID,
+          size: att.meta?.original?.size || 0,
+          isImage: mime.startsWith('image/'),
+          previewUrl: att.previewUrl ? baseURL + att.previewUrl : url,
+          originalUrl: url,
+          downloadUrl: url ? url + '&download=1' : '',
+        }
+      } catch {
+        return {
+          attachmentID,
+          name: attachmentID,
+          size: 0,
+          isImage: false,
+          previewUrl: '',
+          originalUrl: '',
+          downloadUrl: '',
+        }
+      }
+    }),
+  )
 
-  resolvedAttachments.value = results
+  // a newer set of IDs may have been asked for while these were loading
+  if (seq === resolveSeq) resolvedAttachments.value = results
 }
 
 watch(attachmentIDs, ids => resolveAttachments(ids), { immediate: true })
