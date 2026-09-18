@@ -18,7 +18,7 @@ chrome (topbar, per-section sidebar, global overlays) around the active section.
 ## Map
 
 - `config-check.js` — hard-fails boot when `window.HumanAPI` is missing (imported first by `main.js`)
-- `main.js` — createApp → `setupAndAuthenticate` → mount on `body`; nothing renders before auth resolves
+- `main.js` — createApp → `setupAndAuthenticate` → mount on `#app`; nothing renders before auth resolves
 - `App.vue` — shell chrome (own `App.intent.md`)
 - `router/`, `plugins/`, `utils/`, `sections/` — own intent doc each
 
@@ -26,3 +26,6 @@ chrome (topbar, per-section sidebar, global overlays) around the active section.
 
 - Boot order is a contract: config check, then auth, then API/plugins, then settings/theme, then mount. Reordering breaks auth redirects and theming.
 - Unauthenticated users must end up in the auth flow, never on a broken page.
+- The mount target is `index.html`'s `#app`, never `body`: mounting clears its
+  container, and `body` is shared ground — the Vite devtools overlay and a
+  deployment's `code-snippets.js` injections live there and would be wiped.

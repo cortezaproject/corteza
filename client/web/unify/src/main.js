@@ -14,7 +14,7 @@ setupAndAuthenticate(app)
     // redirect takes to land — and log a "Need to install with app.use" crash on
     // the way. Unauthenticated users go to the auth flow, never to that page.
     if (ready) {
-      app.mount('body')
+      app.mount('#app')
     }
   })
   .catch(err => {

@@ -92,9 +92,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/index.html": {
-      "h": "88b65acdaa92",
+      "h": "b26fa0b9b84d",
       "doc": "client/web/unify/unify.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-18"
     },
     "client/web/unify/playwright.config.ts": {
       "h": "0e481c3eb612",
@@ -117,9 +117,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/main.js": {
-      "h": "9a2a33cec628",
+      "h": "8149912bba2c",
       "doc": "client/web/unify/src/src.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-09-18"
     },
     "client/web/unify/src/plugins/index.js": {
       "h": "da8269f33081",
