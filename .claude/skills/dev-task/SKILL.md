@@ -13,6 +13,8 @@ Four rules govern everything below:
   would produce materially different work. Never ask "shall I proceed" — that is
   the human doing your job. `➡️ NEXT` follows the same test — offer the moves
   when there is something to weigh, name the next one when there is not.
+  Options arrive priced — CLAUDE.md § Conventions, Questions. An offer the human
+  cannot act on buys a round trip that decides nothing.
 - **Nothing is true because a report said so.** Not a subagent's transcript, not
   a green test, not your own earlier reasoning. Claims get re-run.
 - **A statement about what the software does is a claim, and a claim needs the

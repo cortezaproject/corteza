@@ -50,6 +50,11 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
 - **Reporting**: `/dev-task` and `/dev-change` reply in the standard block —
   sections, confidence grade, open things asked as an interview. The format is
   `.claude/reporting.md`.
+- **Questions**: a hand-back costs the human's turnaround, not yours — ~8 min
+  median, more than a full e2e run. So never ask what you could have priced:
+  every option carries its cost, its effort, and your confidence in that
+  number. Batch into the rounds the skill names rather than asking as things
+  occur to you.
 - **Commits**: see **[Commit convention](#commit-convention)** below — the one
   statement of it. Skills and `dev_commit_create` point here rather than
   restating it.
