@@ -14,29 +14,32 @@ throwaway worktree (Postgres 16, 2026-09-18); the method is at the end.
 
 ### Rulings taken
 
-| #   | Ruling                                                                                                                                           |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Scope is everywhere: record Record/User/File values, record system users, and user references on every other resource                            |
-| 2   | A resolved reference is a **label**, not the related object                                                                                      |
-| 3   | Sort means sort by what is displayed (the viewer's label), not by an arbitrary path                                                              |
-| 4   | Labels ride as a **typed sibling of `response`** in the envelope                                                                                 |
-| 5   | Opt-in is a **query parameter on every endpoint**                                                                                                |
-| 6   | Sorting is a **query-time join first**; a stored sort key only where a module is measured too big                                                |
-| 7   | The user label is **name → email → handle** everywhere; `username` is left out                                                                   |
-| 8   | A record's entry carries its label as a string **and** as its label field's raw values; the webapp formats the values itself                     |
-| 9   | Nested record labels stay as they are: lists follow each level's own `labelField` (the server mirrors this), the picker keeps `recordLabelField` |
-| 10  | Text sorts keep the database's collation, as today                                                                                               |
-| 11  | A deleted target's label is returned, marked deleted, and the webapp shows it as deleted                                                         |
+| #   | Ruling                                                                                                                                                                                                                                              |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Scope is **records**: record list and read carry labels for Record/User/File values and the record's system users, in one implementation shared with the agent tools. Other resources wait for a client that needs them (revised from "everywhere") |
+| 2   | A resolved reference is a **label**, not the related object                                                                                                                                                                                         |
+| 3   | Sort means sort by what is displayed (the viewer's label), not by an arbitrary path                                                                                                                                                                 |
+| 4   | Labels ride as a **typed sibling of `response`** in the envelope                                                                                                                                                                                    |
+| 5   | Opt-in is a **query parameter on every endpoint**                                                                                                                                                                                                   |
+| 6   | Sorting is a **query-time join first**; a stored sort key only where a module is measured too big                                                                                                                                                   |
+| 7   | The user label is **name → email → handle** everywhere; `username` is left out                                                                                                                                                                      |
+| 8   | A record's entry carries its label as a string **and** as its label field's raw values; the webapp formats the values itself                                                                                                                        |
+| 9   | Nested record labels stay as they are: lists follow each level's own `labelField` (the server mirrors this), the picker keeps `recordLabelField`                                                                                                    |
+| 10  | Every text sort — label sorts and today's String-column sorts — uses the ICU collation `und-x-icu` (revised from "as today")                                                                                                                        |
+| 11  | A deleted target's label is returned, marked deleted, and the webapp shows it as deleted                                                                                                                                                            |
+| 12  | The record count RecordList asks for is fixed before label sort                                                                                                                                                                                     |
 
 ---
 
 ## Verdict
 
-- **Labels in the response: moderate work, cheap at runtime.** There is one
-  choke point to emit them (`api.encode`), machine-readable reference metadata
-  for ~60 types already exists, and the agent tools already resolve labels for
-  records. With an ID-set filter, resolving a 50-row page costs 8–10 ms beside
-  a 75 ms list call.
+- **Labels in the response: moderate work, cheap at runtime — built for
+  records only.** There is one choke point to emit them (`api.encode`), and the
+  agent tools already resolve labels for records; REST and the agent tools
+  share one implementation. With an ID-set filter, resolving a 50-row page
+  costs 8–10 ms beside a 75 ms list call. Extending it to the other ~60
+  resource types is possible (their references are already machine-readable)
+  but waits for a client that needs it.
 - **The webapp keeps its formatting.** Record labels are drawn by the label
   field's own viewer (dates, numbers, select badges, translations), so a
   record's entry carries its label field's raw values as well as a string, and
@@ -130,7 +133,9 @@ GET /compose/namespace/{ns}/module/{m}/record/?refs=user,record
 ```
 
 `labels` is already a parameter name on 53 endpoints, so the switch is `refs`.
-`labels` (or no value) means every kind; a comma list limits the kinds.
+`labels` (or no value) means every kind; a comma list limits the kinds. It is
+declared on the record list and read endpoints in `server/compose/rest.yaml`
+only, so neither code generator needs a common-parameters feature.
 
 The envelope gains a sibling of `response`:
 
@@ -170,7 +175,7 @@ The envelope gains a sibling of `response`:
 | User (every user reference, including `deletedBy`) | name → email → handle, else absent. `username` is never set (no field in the admin user editor, 0 of 63 dev users). Masking applies: a masked name or email is not a label, so fall through to the next part                                                                                                                                                                                                                                                          |
 | Record                                             | `labelField` if it resolves, else the module's first field — the viewer's rule. When that field is itself a Record, the nested record gets its own entry, found through that field's own `labelField`, as the viewer recurses; three levels at most; `recordLabelField` is not followed (the picker keeps it). `values` holds only the label field. Deleted targets are included and marked. `label` is its first value, Select as the option's text, dates as stored |
 | Attachment                                         | `{name, url, previewUrl, mimetype, size}`                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Other resources                                    | The resource's display name (`name`, or `meta.name` for the 11 resources that keep it there), else its handle                                                                                                                                                                                                                                                                                                                                                         |
+| Other resources                                    | The resource's display name (`name`, or `meta.name` for the 11 resources that keep it there), else its handle — when refs reach them (later)                                                                                                                                                                                                                                                                                                                          |
 
 The webapp does not render `label`: it formats `values` through the same field
 viewers it uses today, so dates, numbers, select badges and translations stay
@@ -197,7 +202,11 @@ api.encode ──► collector.Resolve(ctx) ──► resolver registry, keyed b
 - **Collector.** A per-request set of IDs by kind (and by module for records).
   Nothing is collected unless `?refs` is present, so the default path costs a
   context lookup.
-- **Knowing what is a reference.** Generated models already mark references:
+- **Records first.** Ruling 1 builds only the record path: module fields of
+  kind Record/User/File plus the system user fields, collected in the record
+  controller and resolved by the same code the agent tools' `refs` uses today.
+  The typed-resource walker below is the route to the rest, when it is wanted.
+- **Knowing what is a reference (later).** Generated models already mark references:
   `&dal.Attribute{Ident: "CreatedBy", Type: &dal.TypeRef{RefModel:
 &dal.ModelRef{ResourceType: "corteza::system:user"}}}`
   (`server/compose/model/models.gen.go:1258`), reachable through each
@@ -283,12 +292,15 @@ that text (a `CASE` over the field's options), not by the stored value — plain
 Select columns sort by stored value today, the same mismatch; a Record label
 adds one join per level; a User label joins `users`.
 
-**Collation.** Text sorts keep the database's collation, as they do today
-(ruling 10). On the dev database that is `C.UTF-8`, byte order:
-`Banana < apple < cherry < zebra < Ćevapi`. ICU collations are there if this is
-revisited (`und-x-icu`: `apple < Banana < Čas < Ćevapi < cherry < zebra`;
-`sl-x-icu`: the Slovenian order), and an index built for a sort must use the
-collation the sort names.
+**Collation.** Every text sort names `COLLATE "und-x-icu"` (ruling 10) — the
+label sort and today's String-column sort alike, so two columns on one list
+order the same way. The dev database collates `C.UTF-8`, byte order:
+`Banana < apple < cherry < zebra < Ćevapi`; ICU gives
+`apple < Banana < Čas < Ćevapi < cherry < zebra`. It goes in the Postgres
+dialect's text sort expression: sqlite (the integration tests) has no ICU
+collation and keeps its own order, and mysql needs its own equivalent. An index
+built for a text sort must name the same collation. Existing String columns
+change order when this lands — visibly, as a fix.
 
 **Deleted targets** sort by their label like any other (ruling 11): the join
 does not filter on the target's `deleted_at`.
@@ -299,7 +311,8 @@ User or system-user column sends `label(field)`, and `parseSortExpression` maps
 `label(field)` back to the column so the header shows it as sorted.
 
 **Stored sort key, later.** Where a module is measured too big for the join, a
-per-reference label stored on the row with a `NULLS FIRST` index answers in
+per-reference label stored on the row with a `NULLS FIRST` index (in the same
+ICU collation) answers in
 0.1 ms at 1M. The cost moves to writes: every rename of a target rewrites every
 row pointing at it (measured above), a change of a field's `labelField`
 rewrites the module, and it needs a backfill. Build it only against a measured
@@ -412,14 +425,14 @@ sets stable").
 
 Effort is an estimate from what was read, not a commitment.
 
-| Phase | Work                                                                                                                                                                                                                                                                                                                                        | Size              |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| 0     | ID-set filter on `RecordFilter` → DAL `IN`; switch agent tools, webapp label batches and export to it                                                                                                                                                                                                                                       | S                 |
-| 1     | `refs` middleware, collector, `encode()` sibling, user resolver; record system users and User values; `TypeRef` walker for typed resources; common `refs` param in both generators; lib/js keeps `refs` and hands it to a shell callback; `useRefStore`; user viewer reads it; `formatUser` to the ruled order                              | M–L               |
-| 2     | Record entries (`label` + label-field `values`, nested entries, deleted marked), attachments; record and file viewers read the ref store; RecordList, record page, organizer, comments, calendar/map feeds and chart opt in; agent tools and export move to the same rules (`/intent-task`: `field.intent.md`, new `useRefStore.intent.md`) | M                 |
-| 3     | Other resource kinds (role, namespace, module, workflow, …); annotate plain-ID and JSON-nested references in cue                                                                                                                                                                                                                            | M                 |
-| 4     | `label(field)` sort: rdbms join, virtual cursor attribute, readability gate, rank fallback, Select-as-text, deleted targets included; RecordList sends it for reference columns and maps it back to the header                                                                                                                              | L                 |
-| 5     | Stored sort key for modules measured too big                                                                                                                                                                                                                                                                                                | L, only if needed |
+| Phase | Work                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Size |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| 0     | ID-set filter on `RecordFilter` → DAL `IN`; agent tools, webapp label batches and export use it. Webapp: dedupe in-flight user lookups (`b3ac01c23`), batch file lookups                                                                                                                                                                                                                                                                                                      | S    |
+| 1     | The record count RecordList asks for (`b072b2825`): stop walking the whole module in Go — count in SQL where read access allows it, or cap it                                                                                                                                                                                                                                                                                                                                 | M    |
+| 2     | `label(field)` sort: rdbms join, virtual cursor attribute, readability gate, rank fallback, Select-as-text, deleted targets included; `und-x-icu` on every text sort; RecordList sends it for reference columns and maps it back to the header                                                                                                                                                                                                                                | L    |
+| 3     | Record `refs`: `refs` on record list/read in `rest.yaml`, collector and `encode()` sibling, one resolver shared with the agent tools; entries with `label` + label-field `values`, nested, deleted marked; users (ruled order) and attachments; lib/js keeps `refs`; `useRefStore`; record, user and file viewers read it; RecordList, record page, organizer, comments, calendar/map feeds and chart opt in (`/intent-task`: `field.intent.md`, new `useRefStore.intent.md`) | M–L  |
+| later | Refs for other resources: common `refs` param in both generators, `TypeRef` walker, other kinds, cue annotations for plain-ID and JSON-nested references — when a client needs them                                                                                                                                                                                                                                                                                           | M–L  |
+| later | Stored sort key for modules measured too big                                                                                                                                                                                                                                                                                                                                                                                                                                  | L    |
 
 ---
 
