@@ -200,10 +200,10 @@
 
       <Button
         :label="$t('block.recordList.filter.reset')"
+        icon="pi pi-filter-slash"
         severity="secondary"
         text
         size="small"
-        class="ml-auto"
         @click="onFilterReset"
       />
     </div>
