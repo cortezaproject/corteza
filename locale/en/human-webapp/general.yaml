@@ -322,6 +322,7 @@ resourceList:
   noItems: No items to show
   notFound: Not found
   pagination:
+    first: Go to the first page
     next: Next
     prev: Previous
     recordsPerPage: Per Page

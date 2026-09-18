@@ -607,25 +607,14 @@
           </div>
         </div>
 
-        <!-- Prev/Next -->
-        <div class="flex items-center ml-auto gap-1">
-          <Button
-            icon="pi pi-chevron-left"
-            text
-            severity="secondary"
-            size="small"
-            :disabled="!hasPrevPage"
-            @click="goToPrevPage"
-          />
-          <Button
-            icon="pi pi-chevron-right"
-            text
-            severity="secondary"
-            size="small"
-            :disabled="!hasNextPage"
-            @click="goToNextPage"
-          />
-        </div>
+        <CPager
+          class="ml-auto"
+          :has-prev="hasPrevPage"
+          :has-next="hasNextPage"
+          @first="goToFirstPage"
+          @prev="goToPrevPage"
+          @next="goToNextPage"
+        />
       </div>
     </template>
 
@@ -696,7 +685,7 @@ import {
   useTableBusy,
   useUserResolver,
 } from '@planetcrust/human-vue'
-const { CFieldViewer, CInputSearch, CFieldPicker } = components
+const { CFieldViewer, CInputSearch, CFieldPicker, CPager } = components
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
 import { useReminderStore } from '@/sections/compose/stores/reminder'
@@ -1811,6 +1800,13 @@ function goToPrevPage() {
   if (pageCursors.value.length === 0) return
   pageCursors.value.pop()
   currentPageIndex.value = Math.max(0, currentPageIndex.value - 1)
+  fetchRecords()
+}
+
+function goToFirstPage() {
+  if (pageCursors.value.length === 0) return
+  pageCursors.value = []
+  currentPageIndex.value = 0
   fetchRecords()
 }
 

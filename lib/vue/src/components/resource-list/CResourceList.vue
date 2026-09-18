@@ -154,35 +154,16 @@
                 </div>
               </div>
 
-              <div class="flex items-center ml-auto gap-1">
-                <Button
-                  icon="pi pi-angle-double-left"
-                  text
-                  severity="secondary"
-                  size="small"
-                  :disabled="!hasPrevPage"
-                  @click="goToPage()"
-                />
-                <Button
-                  icon="pi pi-angle-left"
-                  :label="translations.prevPagination"
-                  text
-                  severity="secondary"
-                  size="small"
-                  :disabled="!hasPrevPage"
-                  @click="goToPage('prevPage')"
-                />
-                <Button
-                  :label="translations.nextPagination"
-                  icon="pi pi-angle-right"
-                  iconPos="right"
-                  text
-                  severity="secondary"
-                  size="small"
-                  :disabled="!hasNextPage"
-                  @click="goToPage('nextPage')"
-                />
-              </div>
+              <CPager
+                class="ml-auto"
+                :has-prev="hasPrevPage"
+                :has-next="hasNextPage"
+                :prev-label="translations.prevPagination"
+                :next-label="translations.nextPagination"
+                @first="goToPage()"
+                @prev="goToPage('prevPage')"
+                @next="goToPage('nextPage')"
+              />
             </div>
           </template>
         </DataTable>
@@ -211,6 +192,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CInputSearch from '../input/CInputSearch.vue'
+import CPager from './CPager.vue'
 import { useTableBusy } from '../../composables/useTableBusy'
 import { useGrowOnlyColumns } from '../../composables/useGrowOnlyColumns'
 
