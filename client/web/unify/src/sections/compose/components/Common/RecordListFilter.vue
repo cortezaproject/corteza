@@ -177,6 +177,7 @@
         <div class="flex items-center justify-between gap-2 p-3 border-t">
           <Button
             :label="$t('block.recordList.filter.reset')"
+            icon="pi pi-filter-slash"
             severity="secondary"
             text
             size="small"
