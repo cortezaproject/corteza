@@ -21,6 +21,7 @@ import (
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/envoyx"
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/payload"
 	"github.com/crusttech/human/server/pkg/revisions"
 	"github.com/crusttech/human/server/store"
 	systemEnvoy "github.com/crusttech/human/server/system/envoy"
@@ -110,6 +111,7 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 			ModuleID:    r.ModuleID,
 			Meta:        r.Meta,
 			Deleted:     filter.State(r.Deleted),
+			RecordID:    payload.ParseUint64s(r.RecordID),
 		}
 	)
 
@@ -243,6 +245,7 @@ func (ctrl *Record) Patch(ctx context.Context, req *request.RecordPatch) (interf
 	var (
 		f = types.RecordFilter{
 			Query:       req.Query,
+			RecordID:    payload.ParseUint64s(req.RecordID),
 			NamespaceID: req.NamespaceID,
 			ModuleID:    req.ModuleID,
 			Deleted:     filter.State(0),
@@ -331,6 +334,7 @@ func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete)
 	var (
 		f = types.RecordFilter{
 			Query:       r.Query,
+			RecordID:    payload.ParseUint64s(r.RecordID),
 			NamespaceID: r.NamespaceID,
 			ModuleID:    r.ModuleID,
 			Deleted:     filter.State(0),
@@ -348,6 +352,7 @@ func (ctrl *Record) BulkUndelete(ctx context.Context, r *request.RecordBulkUndel
 	var (
 		f = types.RecordFilter{
 			Query:       r.Query,
+			RecordID:    payload.ParseUint64s(r.RecordID),
 			NamespaceID: r.NamespaceID,
 			ModuleID:    r.ModuleID,
 			Deleted:     filter.State(1),
@@ -568,27 +573,27 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 					},
 
 					CheckExisting: func(ctx context.Context, idents ...[]string) (out []uint64, err error) {
-						qp := make([]string, 0, len(idents))
+						ids := make([]uint64, 0, len(idents))
 						for _, ident := range idents {
 							if len(ident) != 1 {
 								continue
 							}
 
-							rid := cast.ToUint64(ident[0])
-							if rid == 0 {
-								continue
+							if rid := cast.ToUint64(ident[0]); rid != 0 {
+								ids = append(ids, rid)
 							}
-
-							qp = append(qp, fmt.Sprintf("recordID='%d'", rid))
 						}
 
-						bong, _, err := dalutils.ComposeRecordsList(ctx, dal.Service(), mod, types.RecordFilter{
-							ModuleID:    mod.ID,
-							NamespaceID: mod.NamespaceID,
-							Query:       strings.Join(qp, " OR "),
-						})
-						if err != nil {
-							return
+						var bong types.RecordSet
+						if len(ids) > 0 {
+							bong, _, err = dalutils.ComposeRecordsList(ctx, dal.Service(), mod, types.RecordFilter{
+								ModuleID:    mod.ID,
+								NamespaceID: mod.NamespaceID,
+								RecordID:    ids,
+							})
+							if err != nil {
+								return
+							}
 						}
 
 						for _, ident := range idents {
@@ -756,6 +761,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 				"storer":      service.DefaultStore,
 				"dal":         dal.Service(),
 				"resolveRefs": r.GetResolveRefs(),
+				"recordIDs":   payload.ParseUint64s(r.RecordID),
 			},
 			Filter: map[string]envoyx.ResourceFilter{
 				composeEnvoy.ComposeRecordDatasourceAuxType: {

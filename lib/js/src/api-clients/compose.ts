@@ -2407,6 +2407,7 @@ export default class Compose {
       moduleID,
       summaries,
       query,
+      recordID,
       meta,
       deleted,
       limit,
@@ -2432,6 +2433,7 @@ export default class Compose {
     cfg.params = {
       summaries,
       query,
+      recordID,
       meta,
       deleted,
       limit,
@@ -2627,6 +2629,7 @@ export default class Compose {
       filename,
       ext,
       filter,
+      recordID,
       fields,
       timezone,
       multiValueDelimiter,
@@ -2657,6 +2660,7 @@ export default class Compose {
     }
     cfg.params = {
       filter,
+      recordID,
       fields,
       timezone,
       multiValueDelimiter,
@@ -2889,7 +2893,7 @@ export default class Compose {
 
   // Partially update record values
   async recordPatch(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, values, query } = (a as KV) || {}
+    const { namespaceID, moduleID, values, query, recordID } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2907,6 +2911,7 @@ export default class Compose {
     cfg.data = {
       values,
       query,
+      recordID,
     }
     return this.api()
       .request(cfg)
@@ -2935,7 +2940,7 @@ export default class Compose {
 
   // Delete record row from module section
   async recordBulkDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, truncate, query } = (a as KV) || {}
+    const { namespaceID, moduleID, truncate, query, recordID } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -2953,6 +2958,7 @@ export default class Compose {
     cfg.data = {
       truncate,
       query,
+      recordID,
     }
     return this.api()
       .request(cfg)
@@ -3075,7 +3081,7 @@ export default class Compose {
 
   // Undelete soft-deleted records from module section
   async recordBulkUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { namespaceID, moduleID, query } = (a as KV) || {}
+    const { namespaceID, moduleID, query, recordID } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
     }
@@ -3092,6 +3098,7 @@ export default class Compose {
     }
     cfg.data = {
       query,
+      recordID,
     }
     return this.api()
       .request(cfg)

@@ -88,6 +88,11 @@ type (
 		// Record filtering query
 		Query string
 
+		// RecordID GET parameter
+		//
+		// Only these records
+		RecordID []string
+
 		// Meta GET parameter
 		//
 		// Record meta data
@@ -215,6 +220,11 @@ type (
 		//
 		// Filtering condition
 		Filter string
+
+		// RecordID GET parameter
+		//
+		// Only these records
+		RecordID []string
 
 		// Fields GET parameter
 		//
@@ -375,6 +385,11 @@ type (
 		//
 		// Search query for records to operate on
 		Query string
+
+		// RecordID POST parameter
+		//
+		// Records to operate on
+		RecordID []string
 	}
 
 	RecordBulkDelete struct {
@@ -397,6 +412,11 @@ type (
 		//
 		// Search query for records to operate on
 		Query string
+
+		// RecordID POST parameter
+		//
+		// Records to operate on
+		RecordID []string
 	}
 
 	RecordDelete struct {
@@ -448,6 +468,11 @@ type (
 		//
 		// Search query for records to operate on
 		Query string
+
+		// RecordID POST parameter
+		//
+		// Records to operate on
+		RecordID []string
 	}
 
 	RecordUpload struct {
@@ -662,6 +687,7 @@ func (r RecordList) Auditable() map[string]interface{} {
 		"moduleID":          r.ModuleID,
 		"summaries":         r.Summaries,
 		"query":             r.Query,
+		"recordID":          r.RecordID,
 		"meta":              r.Meta,
 		"deleted":           r.Deleted,
 		"limit":             r.Limit,
@@ -690,6 +716,11 @@ func (r RecordList) GetSummaries() string {
 // Auditable returns all auditable/loggable parameters
 func (r RecordList) GetQuery() string {
 	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordList) GetRecordID() []string {
+	return r.RecordID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -742,6 +773,17 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["query"]; ok && len(val) > 0 {
 			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["recordID[]"]; ok {
+			r.RecordID, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["recordID"]; ok {
+			r.RecordID, err = val, nil
 			if err != nil {
 				return err
 			}
@@ -1123,6 +1165,7 @@ func (r RecordExport) Auditable() map[string]interface{} {
 		"filename":            r.Filename,
 		"ext":                 r.Ext,
 		"filter":              r.Filter,
+		"recordID":            r.RecordID,
 		"fields":              r.Fields,
 		"timezone":            r.Timezone,
 		"multiValueDelimiter": r.MultiValueDelimiter,
@@ -1154,6 +1197,11 @@ func (r RecordExport) GetExt() string {
 // Auditable returns all auditable/loggable parameters
 func (r RecordExport) GetFilter() string {
 	return r.Filter
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordExport) GetRecordID() []string {
+	return r.RecordID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -1190,6 +1238,17 @@ func (r *RecordExport) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["filter"]; ok && len(val) > 0 {
 			r.Filter, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["recordID[]"]; ok {
+			r.RecordID, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["recordID"]; ok {
+			r.RecordID, err = val, nil
 			if err != nil {
 				return err
 			}
@@ -1770,6 +1829,7 @@ func (r RecordPatch) Auditable() map[string]interface{} {
 		"moduleID":    r.ModuleID,
 		"values":      r.Values,
 		"query":       r.Query,
+		"recordID":    r.RecordID,
 	}
 }
 
@@ -1791,6 +1851,11 @@ func (r RecordPatch) GetValues() types.RecordValueSet {
 // Auditable returns all auditable/loggable parameters
 func (r RecordPatch) GetQuery() string {
 	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordPatch) GetRecordID() []string {
+	return r.RecordID
 }
 
 // Fill processes request and fills internal variables
@@ -1820,6 +1885,7 @@ func (r *RecordPatch) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
 		}
 	}
 
@@ -1843,6 +1909,13 @@ func (r *RecordPatch) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+
+		//if val, ok := req.Form["recordID[]"]; ok && len(val) > 0  {
+		//    r.RecordID, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	{
@@ -1878,6 +1951,7 @@ func (r RecordBulkDelete) Auditable() map[string]interface{} {
 		"moduleID":    r.ModuleID,
 		"truncate":    r.Truncate,
 		"query":       r.Query,
+		"recordID":    r.RecordID,
 	}
 }
 
@@ -1899,6 +1973,11 @@ func (r RecordBulkDelete) GetTruncate() bool {
 // Auditable returns all auditable/loggable parameters
 func (r RecordBulkDelete) GetQuery() string {
 	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordBulkDelete) GetRecordID() []string {
+	return r.RecordID
 }
 
 // Fill processes request and fills internal variables
@@ -1935,6 +2014,7 @@ func (r *RecordBulkDelete) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
 		}
 	}
 
@@ -1958,6 +2038,13 @@ func (r *RecordBulkDelete) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+
+		//if val, ok := req.Form["recordID[]"]; ok && len(val) > 0  {
+		//    r.RecordID, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	{
@@ -2110,6 +2197,7 @@ func (r RecordBulkUndelete) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"moduleID":    r.ModuleID,
 		"query":       r.Query,
+		"recordID":    r.RecordID,
 	}
 }
 
@@ -2126,6 +2214,11 @@ func (r RecordBulkUndelete) GetModuleID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r RecordBulkUndelete) GetQuery() string {
 	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordBulkUndelete) GetRecordID() []string {
+	return r.RecordID
 }
 
 // Fill processes request and fills internal variables
@@ -2155,6 +2248,7 @@ func (r *RecordBulkUndelete) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
 		}
 	}
 
@@ -2171,6 +2265,13 @@ func (r *RecordBulkUndelete) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+
+		//if val, ok := req.Form["recordID[]"]; ok && len(val) > 0  {
+		//    r.RecordID, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	{

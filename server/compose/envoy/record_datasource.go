@@ -304,79 +304,106 @@ func (ip *iteratorProvider) nextResolved(ctx context.Context, out datasource.Raw
 }
 
 func (ip *iteratorProvider) resolveReferences(ctx context.Context, ds dal.FullService) (err error) {
-	// @todo I'll need to chunk these up for to reduce DB query count...
+	for refField, refWrap := range ip.relMods {
+		if refWrap.modLvl1 == nil {
+			continue
+		}
 
-	for i, cacheRecord := range ip.rows {
+		var labels map[string]string
+		labels, err = refLabels(ctx, ds, refWrap, refIDs(ip.rows, refField))
+		if err != nil {
+			return
+		}
 
-		for refField, refWrap := range ip.relMods {
-			value := cacheRecord[refField]
-			if len(value.Values) == 0 {
-				continue
-			}
-
-			aux := []string{}
-			for _, v := range value.Values {
-				aux = append(aux, fmt.Sprintf("recordID=%s", v))
-			}
-
-			var relRecords types.RecordSet
-
-			resLab := refWrap.labelLvl1
-			qq := fmt.Sprintf("(%s)", strings.Join(aux, " OR "))
-			relRecords, _, err = dalutils.ComposeRecordsList(ctx, ds, refWrap.modLvl1, types.RecordFilter{
-				Query: qq,
-				Paging: filter.Paging{
-					Limit: uint(len(aux)),
-				},
-			})
-
-			if err != nil {
-				return err
-			}
-
-			// lvl 2 nesting; current max lvl
-			if refWrap.modLvl2 != nil {
-				resLab = refWrap.labelLvl2
-
-				// Iterate related records and collect lvl 2 identifiers
-				aux := []string{}
-				for _, rec := range relRecords {
-					for _, v := range rec.Values.FilterByName(refWrap.labelLvl1) {
-						aux = append(aux, fmt.Sprintf("recordID=%s", v.Value))
-					}
-				}
-
-				qq := fmt.Sprintf("(%s)", strings.Join(aux, " OR "))
-				relRecords, _, err = dalutils.ComposeRecordsList(ctx, ds, refWrap.modLvl2, types.RecordFilter{
-					Query: qq,
-					Paging: filter.Paging{
-						Limit: uint(len(aux)),
-					},
-				})
-
-				if err != nil {
-					return err
+		for i, row := range ip.rows {
+			for pos, v := range row[refField].Values {
+				if label, ok := labels[v]; ok {
+					row.SetValue(fmt.Sprintf("%s value", refField), uint(pos), label)
 				}
 			}
 
-			for i, rec := range relRecords {
-				if rec.Values == nil {
-					continue
-				}
-
-				v := rec.Values.Get(resLab, 0)
-				if v == nil {
-					continue
-				}
-
-				cacheRecord.SetValue(fmt.Sprintf("%s value", refField), uint(i), v.Value)
-			}
-
-			ip.rows[i] = cacheRecord
+			ip.rows[i] = row
 		}
 	}
 
 	return
+}
+
+// refIDs collects every record ID the rows reference through the field
+func refIDs(rows []datasource.RawRecord, field string) (out []uint64) {
+	seen := make(map[uint64]bool)
+	for _, row := range rows {
+		for _, v := range row[field].Values {
+			if id := cast.ToUint64(v); id > 0 && !seen[id] {
+				seen[id] = true
+				out = append(out, id)
+			}
+		}
+	}
+
+	return
+}
+
+// refLabels maps each referenced record ID to its label, following
+// recordLabelField one level down when the label field is itself a reference
+func refLabels(ctx context.Context, ds dal.FullService, ref refModWrap, ids []uint64) (out map[string]string, err error) {
+	lvl1, err := recordsByID(ctx, ds, ref.modLvl1, ids)
+	if err != nil || len(lvl1) == 0 {
+		return
+	}
+
+	out = make(map[string]string, len(lvl1))
+
+	if ref.modLvl2 == nil {
+		for _, rec := range lvl1 {
+			if v := rec.Values.Get(ref.labelLvl1, 0); v != nil {
+				out[strconv.FormatUint(rec.ID, 10)] = v.Value
+			}
+		}
+		return
+	}
+
+	nestedIDs := make([]uint64, 0, len(lvl1))
+	for _, rec := range lvl1 {
+		if v := rec.Values.Get(ref.labelLvl1, 0); v != nil {
+			nestedIDs = append(nestedIDs, cast.ToUint64(v.Value))
+		}
+	}
+
+	lvl2, err := recordsByID(ctx, ds, ref.modLvl2, nestedIDs)
+	if err != nil {
+		return
+	}
+
+	nested := make(map[string]string, len(lvl2))
+	for _, rec := range lvl2 {
+		if v := rec.Values.Get(ref.labelLvl2, 0); v != nil {
+			nested[strconv.FormatUint(rec.ID, 10)] = v.Value
+		}
+	}
+
+	for _, rec := range lvl1 {
+		if v := rec.Values.Get(ref.labelLvl1, 0); v != nil {
+			if label, ok := nested[v.Value]; ok {
+				out[strconv.FormatUint(rec.ID, 10)] = label
+			}
+		}
+	}
+
+	return
+}
+
+func recordsByID(ctx context.Context, ds dal.FullService, mod *types.Module, ids []uint64) (types.RecordSet, error) {
+	if mod == nil || len(ids) == 0 {
+		return nil, nil
+	}
+
+	rr, _, err := dalutils.ComposeRecordsList(ctx, ds, mod, types.RecordFilter{
+		RecordID: ids,
+		Paging:   filter.Paging{Limit: uint(len(ids))},
+	})
+
+	return rr, err
 }
 
 // @todo consider omitting these from the interface since they're not always needed

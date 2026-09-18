@@ -1113,6 +1113,7 @@ endpoints:
       get:
       - { name: summaries,         type: "string",         title: Record summaries }
       - { name: query,             type: "string",         title: "Record filtering query" }
+      - { name: recordID,          type: "[]string",       title: "Only these records" }
       - { name: meta,              type: "map[string]any", title: "Record meta data", parser: payload.ParseMeta }
       - { name: deleted,           type: "uint",           title: "Exclude (0, default), include (1) or return only (2) deleted records" }
       - { name: limit,             type: "uint",           title: "Limit" }
@@ -1181,6 +1182,10 @@ endpoints:
         type: string
         required: false
         title: Filtering condition
+      - name: recordID
+        type: "[]string"
+        required: false
+        title: Only these records
       - name: fields
         type: "[]string"
         required: true
@@ -1266,6 +1271,7 @@ endpoints:
       post:
       - { name: values, type: "types.RecordValueSet", title: Fields to update and their values }
       - { name: query, type: "string", title: Search query for records to operate on }
+      - { name: recordID, type: "[]string", title: Records to operate on }
   - name: bulkDelete
     method: DELETE
     title: Delete record row from module section
@@ -1280,6 +1286,10 @@ endpoints:
         type: string
         required: false
         title: Search query for records to operate on
+      - name: recordID
+        type: "[]string"
+        required: false
+        title: Records to operate on
   - name: delete
     method: DELETE
     title: Delete record row from module section
@@ -1310,6 +1320,10 @@ endpoints:
           type: string
           required: false
           title: Search query for records to operate on
+        - name: recordID
+          type: "[]string"
+          required: false
+          title: Records to operate on
   - name: upload
     path: "/attachment"
     method: POST

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"strconv"
-	"strings"
 
 	cmpService "github.com/crusttech/human/server/compose/service"
 	cmpTypes "github.com/crusttech/human/server/compose/types"
@@ -216,27 +215,20 @@ func nestedLabels(ctx context.Context, nsID uint64, lf *cmpTypes.ModuleField, na
 }
 
 // findRecordsByID loads a specific set of records in one search.
-//
-// The compose query language has no IN over recordID ("unsupported IN operator
-// on a single value field"), so an equality chain is what a batch looks like.
 func findRecordsByID(ctx context.Context, nsID, modID uint64, ids map[uint64]struct{}) cmpTypes.RecordSet {
 	if len(ids) == 0 {
 		return nil
 	}
 
-	var q strings.Builder
+	list := make([]uint64, 0, len(ids))
 	for id := range ids {
-		if q.Len() > 0 {
-			q.WriteString(" OR ")
-		}
-		q.WriteString("recordID = ")
-		q.WriteString(strconv.FormatUint(id, 10))
+		list = append(list, id)
 	}
 
 	set, _, err := cmpService.DefaultRecord.Search(ctx, cmpTypes.RecordFilter{
 		NamespaceID: nsID,
 		ModuleID:    modID,
-		Query:       q.String(),
+		RecordID:    list,
 		Paging:      filter.Paging{Limit: uint(len(ids))},
 	})
 	if err != nil {

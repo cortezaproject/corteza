@@ -271,9 +271,11 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 	}
 	module = moduleNode.Resource.(*types.Module)
 
-	// Get the iterator
+	// Get the iterator; recordIDs, when given, name the records to take
+	recordIDs, _ := p.Params["recordIDs"].([]uint64)
 	iter, _, err := dalutils.ComposeRecordsIterator(ctx, dl, module, types.RecordFilter{
 		Query:       rf.Query,
+		RecordID:    recordIDs,
 		ModuleID:    module.ID,
 		NamespaceID: namespace.ID,
 		Paging: filter.Paging{
