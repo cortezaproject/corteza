@@ -398,19 +398,15 @@
           :key="col.name"
           :field="col.name"
           :sortable="columnsSortable"
+          :pt="sortBadgePt"
         >
           <!-- The header slot renders in place of PrimeVue's built-in title span,
                so it has to carry that span's class or the labels lose their
                weight. The mark goes inside it: header items are laid out with a
-               flex gap that would otherwise push it away from the label. The
-               sort hint sits on the label alone so it never stacks with the
-               mark's own tooltip. -->
+               flex gap that would otherwise push it away from the label. -->
           <template #header>
             <span class="p-datatable-column-title">
-              <span v-tooltip.top="columnsSortable ? $t('block.recordList.sort.tooltip') : null">
-                {{ col.label }}
-              </span>
-              {{ ' ' }}
+              {{ col.label }}
               <span
                 v-if="showsRequiredMark(col)"
                 v-tooltip.top="$t('field.required-field')"
@@ -420,6 +416,18 @@
                 *
               </span>
             </span>
+          </template>
+
+          <!-- PrimeVue's own sort icons, drawn here so the icon can carry the sort hint -->
+          <template #sorticon="{ sorted, sortOrder, class: iconClass }">
+            <i
+              v-tooltip.top="{
+                value: $t('block.recordList.sort.tooltip'),
+                showDelay: 500,
+                class: 'max-w-sm',
+              }"
+              :class="['pi', sortIconClass(sorted, sortOrder), iconClass]"
+            />
           </template>
 
           <template #body="{ data }">
@@ -848,6 +856,16 @@ const allModuleFields = computed(() => {
 })
 
 const columnsSortable = computed(() => !options.value.hideSorting && !options.value.editable)
+
+// The sort-order badge on a header only means something with two or more sorted columns
+const sortBadgePt = computed(() =>
+  multiSortMeta.value.length < 2 ? { pcSortBadge: { root: { style: { display: 'none' } } } } : {},
+)
+
+function sortIconClass(sorted, sortOrder) {
+  if (!sorted) return 'pi-sort-alt'
+  return sortOrder > 0 ? 'pi-sort-amount-up-alt' : 'pi-sort-amount-down'
+}
 
 // Columns derived from block field config or module fields
 // localFieldNames (user runtime selection) takes precedence over block options
