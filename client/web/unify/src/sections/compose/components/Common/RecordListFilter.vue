@@ -254,6 +254,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useConfirm } from 'primevue/useconfirm'
 import { components } from '@planetcrust/human-vue'
 import {
   isBetweenOperator,
@@ -264,6 +265,7 @@ import {
 
 const { CFieldEditor } = components
 const { t } = useI18n()
+const confirm = useConfirm()
 
 const props = defineProps({
   module: { type: Object, required: true },
@@ -514,12 +516,49 @@ function onCancel() {
   popoverRef.value?.hide()
 }
 
-// Any close that did not commit discards the staged edits, so the panel only
-// ever shows the filter in effect. A commit's own close is safe: the
-// modelValue watcher is flush-pre and has already run by the time Popover
-// emits hide from its leave transition.
+// Staged edits differ from the filter in effect. A commit re-syncs through the
+// modelValue watcher, which is flush-pre and so has already run by the time
+// Popover emits hide from its leave transition — leaving nothing staged. That
+// makes this the one test that separates a dismissal from a commit.
+function hasStagedEdits() {
+  return JSON.stringify(cleanedFilter()) !== JSON.stringify(props.modelValue ?? [])
+}
+
+// Popover binds its outside-click listener as it opens, so reopening inside the
+// click that answered the prompt makes that same click dismiss it again. A
+// macrotask lands after the click has finished propagating.
+function reopen() {
+  const el = filterBtnRef.value?.$el ?? filterBtnRef.value
+  if (el) setTimeout(() => popoverRef.value?.show({ currentTarget: el }, el), 0)
+}
+
+// Closing any other way than committing would drop the edits, so ask first and
+// put the panel back if the answer is no. Cancel re-syncs before it hides, so
+// it reaches here with nothing staged and is never questioned.
 function onHide() {
-  syncFromModel()
+  if (!hasStagedEdits()) {
+    syncFromModel()
+    return
+  }
+
+  confirm.require({
+    header: t('block.recordList.filter.discard.header'),
+    message: t('block.recordList.filter.discard.message'),
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: t('block.recordList.filter.discard.keep'),
+      severity: 'secondary',
+      text: true,
+      size: 'small',
+    },
+    acceptProps: {
+      label: t('block.recordList.filter.discard.confirm'),
+      severity: 'danger',
+      size: 'small',
+    },
+    accept: () => syncFromModel(),
+    reject: reopen,
+  })
 }
 
 // --- Preset methods ---

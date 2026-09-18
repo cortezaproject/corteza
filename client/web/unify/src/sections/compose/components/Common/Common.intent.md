@@ -22,7 +22,7 @@ footnote shown next to every configurator input whose value gets interpolated.
 
 ## Map
 
-- RecordListFilter.vue — visual AND/OR filter-group builder over a module's fields; produces/consumes the record query filter used both at runtime (record list block filtering) and at design time (configurator presets). Requires `module` and `namespace` from either consumer: the field editors it mounts take the namespace as a prop, and fall back to the injected `$namespace` only where one is provided
+- RecordListFilter.vue — visual AND/OR filter-group builder over a module's fields; produces/consumes the record query filter used both at runtime (record list block filtering) and at design time (configurator presets). Requires `module` and `namespace` from either consumer: the field editors it mounts take the namespace as a prop, and fall back to the injected `$namespace` only where one is provided. Only Update filter and Reset Filter commit. Cancel discards staged edits outright; any other close prompts first and can put the panel back
 - InterpolationFootnote.vue — props `isRecordPage` (record pages additionally get `${record.values.x}`/`${recordID}`/`${ownerID}`; both kinds get `${userID}`/`${user.name}`) and `dependsOnPlacement` (adds a note that the value is authored away from the page it renders on, e.g. a namespace-level chart placed on either page kind); used by every block Configurator with an interpolated input, keyed off `!!page.moduleID && page.moduleID !== '0'`, and by Chart/Report/ReportEdit.vue
 
 ## When changing this
@@ -31,6 +31,10 @@ The same component serves runtime and builder contexts — verify both consumers
 when changing emitted filter shape. The filter output must remain a valid record
 query expression the backend accepts; field-kind-specific operators must track
 the module field kinds.
+Whether edits are staged is the only thing separating a dismissal from a commit
+— a commit has already re-synced through the flush-pre `modelValue` watcher by
+the time Popover emits hide. A watcher flush change would turn every commit into
+a discard prompt.
 InterpolationFootnote's variable list is a static hint, not derived from code —
 keep it in sync with what `evaluatePrefilter` (lib/record-filter.js) actually
 supports.

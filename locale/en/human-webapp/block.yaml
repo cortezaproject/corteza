@@ -886,6 +886,11 @@ recordList:
       and: AND
       or: OR
     deletedRecords: Deleted records
+    discard:
+      confirm: Discard changes
+      header: Discard filter changes?
+      keep: Keep editing
+      message: This filter has changes that have not been applied. Discarding them restores the filter that is currently in effect on the list.
     field: Filter field
     fieldPlaceholder: Pick a field
     fieldValue: Field value
