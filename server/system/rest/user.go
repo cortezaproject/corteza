@@ -274,15 +274,27 @@ func (ctrl User) SetPassword(ctx context.Context, r *request.UserSetPassword) (i
 }
 
 func (ctrl User) MembershipList(ctx context.Context, r *request.UserMembershipList) (interface{}, error) {
-	if mm, err := ctrl.role.Membership(ctx, r.UserID); err != nil {
+	// only for users that can be read
+	if _, err := ctrl.user.FindByID(ctx, r.UserID); err != nil {
 		return nil, err
-	} else {
-		rval := make([]string, len(mm))
-		for i := range mm {
-			rval[i] = payload.Uint64toa(mm[i].RoleID)
-		}
-		return rval, nil
 	}
+
+	mm, err := ctrl.role.Membership(ctx, r.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	rval := make([]string, 0, len(mm))
+	for i := range mm {
+		// skip roles that can not be read
+		if _, err = ctrl.role.FindByID(ctx, mm[i].RoleID); err != nil {
+			continue
+		}
+
+		rval = append(rval, payload.Uint64toa(mm[i].RoleID))
+	}
+
+	return rval, nil
 }
 
 func (ctrl User) MembershipAdd(ctx context.Context, r *request.UserMembershipAdd) (interface{}, error) {
