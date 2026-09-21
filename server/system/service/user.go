@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"go.uber.org/zap"
 	"io"
 	"mime/multipart"
 	"net/mail"
@@ -466,10 +468,12 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			return UserErrNotAllowedToUpdateSystem()
 		}
 
-		if upd.ID != internalAuth.GetIdentityFromContext(ctx).Identity() {
-			if !svc.ac.CanUpdateUser(ctx, u) {
-				return UserErrNotAllowedToUpdate()
-			}
+		// Users can update their own profile (name, handle, meta),
+		// everything else requires permissions to update the user
+		canUpdate := svc.ac.CanUpdateUser(ctx, u)
+
+		if !canUpdate && upd.ID != internalAuth.GetIdentityFromContext(ctx).Identity() {
+			return UserErrNotAllowedToUpdate()
 		}
 
 		// Test if stale (update has an older version of data)
@@ -478,13 +482,23 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 		}
 
 		// Assign changed values
-		u.Email = upd.Email
-		u.Username = upd.Username
 		u.Name = upd.Name
 		u.Handle = upd.Handle
-		u.UserGroupID = upd.UserGroupID
-		u.Kind = upd.Kind
 		u.UpdatedAt = now()
+
+		if canUpdate {
+			u.Email = upd.Email
+			u.Username = upd.Username
+			u.UserGroupID = upd.UserGroupID
+			u.Kind = upd.Kind
+		} else if ignored := ignoredOnSelfUpdate(u, upd); len(ignored) > 0 {
+			// values are kept as they are, leave a trace for the admins
+			logger.Default().Warn(
+				"ignoring changes of restricted fields on user self-update, permission to update the user is required",
+				zap.Uint64("userID", u.ID),
+				zap.Strings("fields", ignored),
+			)
+		}
 
 		if upd.Meta != nil {
 			// Only update meta when set
@@ -507,7 +521,7 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			return
 		}
 
-		if label.Changed(u.Labels, upd.Labels) {
+		if canUpdate && label.Changed(u.Labels, upd.Labels) {
 			if err = label.Update(ctx, svc.store, upd); err != nil {
 				return
 			}
@@ -1369,4 +1383,57 @@ func (svc user) generateUserAvatarInitial(ctx context.Context, u *types.User) (e
 	}
 
 	return nil
+}
+
+// ignoredOnSelfUpdate returns restricted fields the update tried to change
+//
+// Empty values are skipped, clients often send only part of the user
+func ignoredOnSelfUpdate(u, upd *types.User) (ff []string) {
+	if upd.Email != "" && upd.Email != u.Email {
+		ff = append(ff, "email")
+	}
+
+	if upd.Username != "" && upd.Username != u.Username {
+		ff = append(ff, "username")
+	}
+
+	if upd.UserGroupID != 0 && upd.UserGroupID != u.UserGroupID {
+		ff = append(ff, "userGroupID")
+	}
+
+	if upd.Kind != "" && upd.Kind != u.Kind {
+		ff = append(ff, "kind")
+	}
+
+	if len(upd.Labels) > 0 && label.Changed(u.Labels, upd.Labels) {
+		ff = append(ff, "labels")
+	}
+
+	return
+}
+
+// rbacUserScope returns user properties exposed to contextual role expressions
+//
+// Only properties users can not change by themselves are exposed
+func rbacUserScope(u *types.User) map[string]interface{} {
+	// Single-value labels are exposed as strings, multi-value as string slices.
+	ll := make(map[string]interface{}, len(u.Labels))
+	for k, v := range u.Labels {
+		if len(v.Values) > 0 {
+			ll[k] = v.Values
+		} else {
+			ll[k] = v.Val
+		}
+	}
+
+	email := ""
+	if u.EmailConfirmed {
+		// unconfirmed email could belong to someone else
+		email = u.Email
+	}
+
+	return map[string]interface{}{
+		"email":  email,
+		"labels": ll,
+	}
 }
