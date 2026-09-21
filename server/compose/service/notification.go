@@ -27,7 +27,12 @@ type (
 	//       Warning: API endpoints on compose should be kept so that we do not break backward compatibility)
 	notification struct {
 		actionlog actionlog.Recorder
+		ac        notificationAccessController
 		users     userFinder
+	}
+
+	notificationAccessController interface {
+		CanSendEmailNotifications(context.Context) bool
 	}
 
 	notificationUserFinder interface {
@@ -38,6 +43,7 @@ type (
 func Notification(uf userFinder) *notification {
 	return &notification{
 		actionlog: DefaultActionlog,
+		ac:        DefaultAccessControl,
 		users:     uf,
 	}
 }
@@ -49,6 +55,10 @@ func (svc notification) SendEmail(ctx context.Context, n *types.EmailNotificatio
 	)
 
 	err = func() error {
+		if !svc.ac.CanSendEmailNotifications(ctx) {
+			return NotificationErrNotAllowedToSend()
+		}
+
 		msg := mail.New()
 
 		if len(n.To) == 0 {

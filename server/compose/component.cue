@@ -25,6 +25,7 @@ component: schema.#component & {
 		"namespace.create": description:             "Create namespace"
 		"namespaces.search": description:            "List, search or filter namespaces"
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
+		"email-notifications.send": description:     "Send email notifications"
 	}
 }
 

@@ -497,6 +497,8 @@ resources:
           title: Access all settings
         resource-translations.manage:
           title: Manage resource translations
+        email-notifications.send:
+          title: Send email notifications
     chart:
       label: Charts
       operations:

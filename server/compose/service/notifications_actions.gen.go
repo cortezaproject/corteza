@@ -343,6 +343,40 @@ func NotificationErrInvalidReceipientFormat(mm ...*notificationActionProps) *err
 	return e
 }
 
+// NotificationErrNotAllowedToSend returns "compose:notification.notAllowedToSend" as *errors.Error
+//
+// This function is auto-generated.
+func NotificationErrNotAllowedToSend(mm ...*notificationActionProps) *errors.Error {
+	var p = &notificationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to send email notifications", nil),
+
+		errors.Meta("type", "notAllowedToSend"),
+		errors.Meta("resource", "compose:notification"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(notificationLogMetaKey{}, "failed to send email notification; insufficient permissions"),
+		errors.Meta(notificationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "notification.errors.notAllowedToSend"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // NotificationErrNoRecipients returns "compose:notification.noRecipients" as *errors.Error
 //
 // This function is auto-generated.

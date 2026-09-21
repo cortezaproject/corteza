@@ -37,6 +37,10 @@ errors:
   - error: invalidReceipientFormat
     message: "invalid recipient format ({{recipient}})"
 
+  - error: notAllowedToSend
+    message: "not allowed to send email notifications"
+    log: "failed to send email notification; insufficient permissions"
+
   - error: noRecipients
     message: "cannot send email message without recipients"
 
