@@ -223,6 +223,11 @@ func (svc pageLayout) lookup(ctx context.Context, namespaceID uint64, lookup fun
 			return err
 		}
 
+		if p.NamespaceID != namespaceID {
+			// Make sure page layout belongs to the right namespace
+			return PageLayoutErrNotFound()
+		}
+
 		p.DecodeTranslations(svc.services.locale.Locale().ResourceTranslations(locale.GetAcceptLanguageFromContext(ctx), p.ResourceTranslation()))
 
 		aProps.setPageLayout(p)

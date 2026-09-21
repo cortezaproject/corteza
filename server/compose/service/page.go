@@ -249,6 +249,11 @@ func (svc page) lookup(ctx context.Context, namespaceID uint64, lookup func(*pag
 			return err
 		}
 
+		if p.NamespaceID != namespaceID {
+			// Make sure page belongs to the right namespace
+			return PageErrNotFound()
+		}
+
 		// soft-deleted pages are excluded from all search paths; direct
 		// lookups must agree (undelete loads via updater, not here)
 		if p.DeletedAt != nil {

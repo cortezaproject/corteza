@@ -733,6 +733,11 @@ func (svc module) lookup(ctx context.Context, namespaceID uint64, lookup func(*m
 			return err
 		}
 
+		if m.NamespaceID != namespaceID {
+			// Make sure module belongs to the right namespace
+			return ModuleErrNotFound()
+		}
+
 		aProps.setModule(m)
 
 		// soft-deleted modules are excluded from all search paths; direct
