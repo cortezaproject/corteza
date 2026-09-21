@@ -61,6 +61,7 @@ type (
 		CanGrant(context.Context) bool
 
 		CanUpdatePage(context.Context, *types.Page) bool
+		CanManageResourceTranslations(context.Context) bool
 		CanDeletePage(context.Context, *types.Page) bool
 	}
 )
@@ -150,6 +151,21 @@ func (ctrl *Page) ListTranslations(ctx context.Context, r *request.PageListTrans
 }
 
 func (ctrl *Page) UpdateTranslations(ctx context.Context, r *request.PageUpdateTranslations) (interface{}, error) {
+	page, err := ctrl.page.FindByID(ctx, r.NamespaceID, r.PageID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ctrl.ac.CanUpdatePage(ctx, page) && !ctrl.ac.CanManageResourceTranslations(ctx) {
+		return nil, service.PageErrNotAllowedToUpdate()
+	}
+
+	// page and its layouts
+	layouts := strings.TrimSuffix(types.PageLayoutResourceTranslation(page.NamespaceID, page.ID, 0), "0")
+	if err = checkTranslatedResources(r.Translations, page.ResourceTranslation(), layouts); err != nil {
+		return nil, err
+	}
+
 	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 
