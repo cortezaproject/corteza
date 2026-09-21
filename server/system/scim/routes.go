@@ -1,8 +1,10 @@
 package scim
 
 import (
+	"crypto/subtle"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/system/service"
@@ -28,7 +30,10 @@ func Guard(opt options.SCIMOpt) func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authPrefix := "Bearer "
 			authHeader := r.Header.Get("Authorization")
-			if (len(authPrefix)+len(opt.Secret)) == len(authHeader) && opt.Secret == authHeader[len(authPrefix):] {
+
+			// secret that is not set must not let anyone in
+			if opt.Secret != "" && strings.HasPrefix(authHeader, authPrefix) &&
+				subtle.ConstantTimeCompare([]byte(opt.Secret), []byte(authHeader[len(authPrefix):])) == 1 {
 				// all good, auth header matches the secret
 				next.ServeHTTP(w, r)
 				return
