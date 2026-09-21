@@ -1955,6 +1955,11 @@ func (svc record) TriggerScript(ctx context.Context, namespaceID, moduleID, reco
 		return nil, nil, err
 	}
 
+	// record is passed to the script and returned to the caller
+	if !svc.ac.CanReadRecord(ctx, r) {
+		return nil, nil, RecordErrNotAllowedToRead()
+	}
+
 	original := r.Clone()
 	r.Values = values.Sanitizer().Run(m, rvs)
 	validated := values.Validator().Run(ctx, svc.store, m, r)
