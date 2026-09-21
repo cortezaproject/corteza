@@ -3,6 +3,8 @@ package compose
 import (
 	"encoding/json"
 	"github.com/crusttech/human/server/compose/rest/request"
+	"github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/tests/helpers"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
 	"github.com/steinfletcher/apitest"
 	"net/http"
@@ -15,6 +17,7 @@ func (h helper) apiSendEmailNotification(req request.NotificationEmailSend) *api
 
 	return h.apiInit().
 		Post("/notification/email").
+		Header("Accept", "application/json").
 		JSON(string(payload)).
 		Expect(h.t).
 		Status(http.StatusOK)
@@ -31,4 +34,30 @@ func TestEmailNotification(t *testing.T) {
 		Content:           sqlxTypes.JSONText(`{}`),
 		RemoteAttachments: []string{"file1", "file2"},
 	}).End()
+}
+
+func TestEmailNotificationForbidden(t *testing.T) {
+	h := newHelper(t)
+	helpers.DenyMe(h, types.ComponentRbacResource(), "email-notifications.send")
+
+	h.apiSendEmailNotification(request.NotificationEmailSend{
+		To:      []string{"foo+to@test.tld"},
+		Subject: "Subject!",
+		Content: sqlxTypes.JSONText(`{}`),
+	}).
+		Assert(helpers.AssertError("notification.errors.notAllowedToSend")).
+		End()
+}
+
+// Without SMTP server mock we can only verify that request gets past the access control
+func TestEmailNotificationAllowed(t *testing.T) {
+	h := newHelper(t)
+	helpers.AllowMe(h, types.ComponentRbacResource(), "email-notifications.send")
+
+	h.apiSendEmailNotification(request.NotificationEmailSend{
+		Subject: "Subject!",
+		Content: sqlxTypes.JSONText(`{}`),
+	}).
+		Assert(helpers.AssertError("notification.errors.noRecipients")).
+		End()
 }

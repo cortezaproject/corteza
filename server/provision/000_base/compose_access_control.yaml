@@ -10,6 +10,7 @@ allow:
       - settings.read
       - settings.manage
       - namespace.create
+      - email-notifications.send
       - namespaces.search
       - resource-translations.manage
 
@@ -131,6 +132,7 @@ allow:
       - settings.read
       - settings.manage
       - namespace.create
+      - email-notifications.send
       - namespaces.search
       - resource-translations.manage
 
