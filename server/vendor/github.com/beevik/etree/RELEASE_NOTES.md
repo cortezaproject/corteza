@@ -1,3 +1,53 @@
+Release 1.6.0
+=============
+
+**Changes**
+
+* Added new iterator versions of existing functions that return slices of
+  `Element` pointers: `ChildElementsSeq`, `SelectElementsSeq`,
+  `FindElementsSeq`, and `FindElementsPathSeq`.
+* Improved performance of functions that return a single element.
+* Because of its use of iterators, this package now requires go 1.23 or later.
+
+Release 1.5.1
+=============
+
+**Fixes**
+
+* Fixed a bug in `InsertChildAt`.
+
+Release 1.5.0
+=============
+
+**Changes**
+
+* Added `Element` function `CreateChild`, which calls a continuation function
+  after creating and adding a child element.
+
+**Fixes**
+
+* Removed a potential conflict between two `ReadSettings` values. When
+  `AttrSingleQuote` is true, `CanonicalAttrVal` is forced to be false.
+
+Release 1.4.1
+=============
+
+**Changes**
+
+* Minimal go version updated to 1.21.
+* Default-initialized CharsetReader causes same result as NewDocument().
+* When reading an XML document, attributes are parsed more efficiently.
+
+Release v1.4.0
+==============
+
+**New Features**
+
+* Add `AutoClose` option to `ReadSettings`.
+* Add `ValidateInput` to `ReadSettings`.
+* Add `NotNil` function to `Element`.
+* Add `NextSibling` and `PrevSibling` functions to `Element`.
+
 Release v1.3.0
 ==============
 

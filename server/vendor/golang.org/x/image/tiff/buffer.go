@@ -4,7 +4,12 @@
 
 package tiff
 
-import "io"
+import (
+	"fmt"
+	"io"
+	"math"
+	"slices"
+)
 
 // buffer buffers an io.Reader to satisfy io.ReaderAt.
 type buffer struct {
@@ -12,24 +17,19 @@ type buffer struct {
 	buf []byte
 }
 
+const fillChunkSize = 10 << 20 // 10 MB
+
 // fill reads data from b.r until the buffer contains at least end bytes.
 func (b *buffer) fill(end int) error {
 	m := len(b.buf)
-	if end > m {
-		if end > cap(b.buf) {
-			newcap := 1024
-			for newcap < end {
-				newcap *= 2
-			}
-			newbuf := make([]byte, end, newcap)
-			copy(newbuf, b.buf)
-			b.buf = newbuf
-		} else {
-			b.buf = b.buf[:end]
-		}
-		if n, err := io.ReadFull(b.r, b.buf[m:end]); err != nil {
-			end = m + n
-			b.buf = b.buf[:end]
+	for m < end {
+		next := min(end-m, fillChunkSize)
+		b.buf = slices.Grow(b.buf, next)
+		b.buf = b.buf[:m+next]
+		n, err := io.ReadFull(b.r, b.buf[m:m+next])
+		m += n
+		b.buf = b.buf[:m]
+		if err != nil {
 			return err
 		}
 	}
@@ -37,21 +37,34 @@ func (b *buffer) fill(end int) error {
 }
 
 func (b *buffer) ReadAt(p []byte, off int64) (int, error) {
-	o := int(off)
-	end := o + len(p)
-	if int64(end) != off+int64(len(p)) {
+	if off < 0 {
+		// Impossible in correct usage, but check for safety.
+		return 0, fmt.Errorf("invalid ReadAt offset %v (bug)", off)
+	}
+	end64 := off + int64(len(p))
+	if end64 < off || end64 > math.MaxInt {
 		return 0, io.ErrUnexpectedEOF
 	}
+	end := int(end64)
 
 	err := b.fill(end)
-	return copy(p, b.buf[o:end]), err
+	end = min(end, len(b.buf))
+	return copy(p, b.buf[min(int(off), end):end]), err
 }
 
 // Slice returns a slice of the underlying buffer. The slice contains
 // n bytes starting at offset off.
-func (b *buffer) Slice(off, n int) ([]byte, error) {
+func (b *buffer) Slice(off, n int64) ([]byte, error) {
+	if off < 0 || n < 0 {
+		// Impossible in correct usage, but check for safety.
+		return nil, fmt.Errorf("invalid negative input to Slice(%v, %v) (bug)", off, n)
+	}
 	end := off + n
-	if err := b.fill(end); err != nil {
+	if end < 0 || end > math.MaxInt {
+		// end is too large. Treat this as a read error.
+		return nil, io.ErrUnexpectedEOF
+	}
+	if err := b.fill(int(end)); err != nil {
 		return nil, err
 	}
 	return b.buf[off:end], nil

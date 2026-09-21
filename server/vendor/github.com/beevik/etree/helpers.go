@@ -10,37 +10,36 @@ import (
 	"unicode/utf8"
 )
 
-// A simple stack
-type stack struct {
-	data []interface{}
+type stack[E any] struct {
+	data []E
 }
 
-func (s *stack) empty() bool {
+func (s *stack[E]) empty() bool {
 	return len(s.data) == 0
 }
 
-func (s *stack) push(value interface{}) {
+func (s *stack[E]) push(value E) {
 	s.data = append(s.data, value)
 }
 
-func (s *stack) pop() interface{} {
+func (s *stack[E]) pop() E {
 	value := s.data[len(s.data)-1]
-	s.data[len(s.data)-1] = nil
+	var empty E
+	s.data[len(s.data)-1] = empty
 	s.data = s.data[:len(s.data)-1]
 	return value
 }
 
-func (s *stack) peek() interface{} {
+func (s *stack[E]) peek() E {
 	return s.data[len(s.data)-1]
 }
 
-// A fifo is a simple first-in-first-out queue.
-type fifo struct {
-	data       []interface{}
+type queue[E any] struct {
+	data       []E
 	head, tail int
 }
 
-func (f *fifo) add(value interface{}) {
+func (f *queue[E]) add(value E) {
 	if f.len()+1 >= len(f.data) {
 		f.grow()
 	}
@@ -50,33 +49,34 @@ func (f *fifo) add(value interface{}) {
 	}
 }
 
-func (f *fifo) remove() interface{} {
+func (f *queue[E]) remove() E {
 	value := f.data[f.head]
-	f.data[f.head] = nil
+	var empty E
+	f.data[f.head] = empty
 	if f.head++; f.head == len(f.data) {
 		f.head = 0
 	}
 	return value
 }
 
-func (f *fifo) len() int {
+func (f *queue[E]) len() int {
 	if f.tail >= f.head {
 		return f.tail - f.head
 	}
 	return len(f.data) - f.head + f.tail
 }
 
-func (f *fifo) grow() {
+func (f *queue[E]) grow() {
 	c := len(f.data) * 2
 	if c == 0 {
 		c = 4
 	}
-	buf, count := make([]interface{}, c), f.len()
+	buf, count := make([]E, c), f.len()
 	if f.tail >= f.head {
-		copy(buf[0:count], f.data[f.head:f.tail])
+		copy(buf[:count], f.data[f.head:f.tail])
 	} else {
 		hindex := len(f.data) - f.head
-		copy(buf[0:hindex], f.data[f.head:])
+		copy(buf[:hindex], f.data[f.head:])
 		copy(buf[hindex:count], f.data[:f.tail])
 	}
 	f.data, f.head, f.tail = buf, 0, count
