@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/crusttech/human/server/pkg/auth"
 	"reflect"
 
 	"github.com/crusttech/human/server/compose/service/event"
@@ -272,7 +273,7 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 
 		// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 		if !svc.ac.CanUpdatePageLayout(ctx, res) {
-			if res.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+			if !isPersonalPageLayout(ctx, pg, res) {
 				return pageLayoutUnchanged, PageLayoutErrNotAllowedToUpdate()
 			}
 		}
@@ -369,7 +370,7 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 func (svc pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
 	// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 	if !svc.ac.CanDeletePageLayout(ctx, m) {
-		if m.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+		if !isPersonalPageLayout(ctx, pg, m) {
 			return pageLayoutUnchanged, PageLayoutErrNotAllowedToDelete()
 		}
 	}
@@ -386,7 +387,7 @@ func (svc pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg 
 func (svc pageLayout) handleUndelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
 	// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 	if !svc.ac.CanDeletePageLayout(ctx, m) {
-		if m.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+		if !isPersonalPageLayout(ctx, pg, m) {
 			return pageLayoutUnchanged, PageLayoutErrNotAllowedToUndelete()
 		}
 	}
@@ -453,7 +454,7 @@ func (svc *pageLayout) onCreate(ctx context.Context, new *types.PageLayout) erro
 		}
 
 		if !svc.ac.CanCreatePageLayoutOnPage(ctx, pg) {
-			if new.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+			if !isPersonalPageLayout(ctx, pg, new) {
 				return PageLayoutErrNotAllowedToCreate()
 			}
 		}
@@ -603,4 +604,9 @@ func loadPageLayoutCombo(ctx context.Context, s interface {
 
 	_ = pageID
 	return
+}
+
+// isPersonalPageLayout checks if layout is a personal layout of the current user
+func isPersonalPageLayout(ctx context.Context, pg *types.Page, l *types.PageLayout) bool {
+	return pg != nil && pg.Meta.AllowPersonalLayouts && l.OwnedBy != 0 && l.OwnedBy == auth.GetIdentityFromContext(ctx).Identity()
 }
