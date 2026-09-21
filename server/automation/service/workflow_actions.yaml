@@ -103,6 +103,14 @@ errors:
     message: "not allowed to execute this workflow"
     log: "failed to execute {{workflow}}; insufficient permissions"
 
+  - error: notAllowedToSetRunAs
+    message: "not allowed to run this workflow as the selected user"
+    log: "failed to set run-as user on {{workflow}}; insufficient permissions"
+
+  - error: notAllowedToChangeOwner
+    message: "not allowed to change owner of this workflow"
+    log: "failed to change owner of {{workflow}}; insufficient permissions"
+
   - error: unknownWorkflowStep
     message: "unknown workflow step"
     log: "failed to execute {{workflow}}; unknown workflow step"

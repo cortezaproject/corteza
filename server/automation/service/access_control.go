@@ -6,7 +6,13 @@ import (
 	"fmt"
 
 	"github.com/crusttech/human/server/pkg/rbac"
+	sysTypes "github.com/crusttech/human/server/system/types"
 )
+
+// CanImpersonateUser checks if current user can impersonate the given user
+func (svc accessControl) CanImpersonateUser(ctx context.Context, u *sysTypes.User) bool {
+	return svc.can(ctx, "impersonate", u)
+}
 
 // EffectiveFor answers the caller's effective permissions on one resource,
 // addressed by its RBAC resource string.
