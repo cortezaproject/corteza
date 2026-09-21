@@ -530,6 +530,12 @@ func (svc *workflow) onExec(ctx context.Context, aProps *workflowActionProps, wo
 		return nil, 0, nil, WorkflowErrNotAllowedToExecute()
 	}
 
+	if p.Trace && !svc.ac.CanUpdateWorkflow(ctx, wf) {
+		// trace skips trigger checks and returns the whole scope,
+		// it is meant for users that design the workflow
+		return nil, 0, nil, WorkflowErrNotAllowedToUpdate()
+	}
+
 	if !wf.Enabled && !p.Trace {
 		return nil, 0, nil, WorkflowErrDisabled()
 	}
