@@ -628,10 +628,27 @@ func (svc *user) onUpdate(ctx context.Context, s store.Storer, upd, res *types.U
 		return UserErrNotAllowedToUpdateSystem()
 	}
 
-	if upd.ID != internalAuth.GetIdentityFromContext(ctx).Identity() {
-		if !svc.ac.CanUpdateUser(ctx, res) {
+	if !svc.ac.CanUpdateUser(ctx, res) {
+		if upd.ID != internalAuth.GetIdentityFromContext(ctx).Identity() {
 			return UserErrNotAllowedToUpdate()
 		}
+
+		if ignored := ignoredOnSelfUpdate(res, upd); len(ignored) > 0 {
+			// values are kept as they are, leave a trace for the admins
+			logger.Default().Warn(
+				"ignoring changes of restricted fields on user self-update, permission to update the user is required",
+				zap.Uint64("userID", res.ID),
+				zap.Strings("fields", ignored),
+			)
+		}
+
+		// Users can update their own profile (name, handle, meta),
+		// everything else requires permissions to update the user
+		upd.Email = res.Email
+		upd.Username = res.Username
+		upd.UserGroupID = res.UserGroupID
+		upd.Kind = res.Kind
+		upd.Labels = res.Labels
 	}
 
 	if _, err := mail.ParseAddress(upd.Email); err != nil {
@@ -673,6 +690,33 @@ func (svc *user) onUpdate(ctx context.Context, s store.Storer, upd, res *types.U
 
 	_ = svc.services.eventbus.WaitFor(ctx, event.UserAfterUpdate(upd, res))
 	return nil
+}
+
+// ignoredOnSelfUpdate returns restricted fields the update tried to change
+//
+// Empty values are skipped, clients often send only part of the user
+func ignoredOnSelfUpdate(u, upd *types.User) (ff []string) {
+	if upd.Email != "" && upd.Email != u.Email {
+		ff = append(ff, "email")
+	}
+
+	if upd.Username != "" && upd.Username != u.Username {
+		ff = append(ff, "username")
+	}
+
+	if upd.UserGroupID != 0 && upd.UserGroupID != u.UserGroupID {
+		ff = append(ff, "userGroupID")
+	}
+
+	if upd.Kind != "" && upd.Kind != u.Kind {
+		ff = append(ff, "kind")
+	}
+
+	if len(upd.Labels) > 0 && label.Changed(u.Labels, upd.Labels) {
+		ff = append(ff, "labels")
+	}
+
+	return
 }
 
 // checkUserGroup refuses a group that does not exist or is deleted; 0 is no group.
