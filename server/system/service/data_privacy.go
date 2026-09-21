@@ -5,6 +5,7 @@ import (
 	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/payload"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/service/event"
 	"github.com/crusttech/human/server/system/types"
@@ -251,6 +252,17 @@ func (svc dataPrivacy) UpdateRequestStatus(ctx context.Context, upd *types.DataP
 
 func (svc dataPrivacy) FindRequestComments(ctx context.Context, filter types.DataPrivacyRequestCommentFilter) (rr types.DataPrivacyRequestCommentSet, f types.DataPrivacyRequestCommentFilter, err error) {
 	err = func() error {
+		if len(filter.RequestID) == 0 {
+			return DataPrivacyErrInvalidID()
+		}
+
+		// comments can be read by users that can read the request
+		for _, requestID := range payload.ParseUint64s(filter.RequestID) {
+			if _, err = svc.FindRequestByID(ctx, requestID); err != nil {
+				return err
+			}
+		}
+
 		if rr, f, err = store.SearchDataPrivacyRequestComments(ctx, svc.store, filter); err != nil {
 			return err
 		}
