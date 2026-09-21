@@ -60,6 +60,10 @@ func (ctrl Attachment) Read(ctx context.Context, r *request.AttachmentRead) (int
 	}
 
 	a, err := ctrl.attachment.FindByID(ctx, r.NamespaceID, r.AttachmentID)
+	if err == nil && a.Kind != r.Kind {
+		return nil, service.AttachmentErrNotFound()
+	}
+
 	return makeAttachmentPayload(ctx, a, err)
 }
 
@@ -68,32 +72,47 @@ func (ctrl Attachment) Delete(ctx context.Context, r *request.AttachmentDelete) 
 		return nil, errors.Unauthorized("cannot delete attachment")
 	}
 
-	_, err := ctrl.attachment.FindByID(ctx, r.NamespaceID, r.AttachmentID)
+	a, err := ctrl.attachment.FindByID(ctx, r.NamespaceID, r.AttachmentID)
 	if err != nil {
 		return nil, err
+	} else if a.Kind != r.Kind {
+		return nil, service.AttachmentErrNotFound()
 	}
 
 	return api.OK(), ctrl.attachment.DeleteByID(ctx, r.NamespaceID, r.AttachmentID)
 }
 
 func (ctrl Attachment) Original(ctx context.Context, r *request.AttachmentOriginal) (interface{}, error) {
-	if err := ctrl.isAccessible(r.Kind, r.NamespaceID, r.AttachmentID, r.UserID, r.Sign); err != nil {
+	att, err := ctrl.attachment.FindForServing(ctx, r.NamespaceID, r.Kind, r.AttachmentID)
+	if err != nil {
+		return ctrl.notFound(), nil
+	}
+
+	if err = ctrl.isAccessible(att, r.UserID, r.Sign); err != nil {
 		return nil, err
 	}
 
-	return ctrl.serve(ctx, r.NamespaceID, r.AttachmentID, false, r.Download)
+	return ctrl.serve(att, false, r.Download)
 }
 
 func (ctrl Attachment) Preview(ctx context.Context, r *request.AttachmentPreview) (interface{}, error) {
-	if err := ctrl.isAccessible(r.Kind, r.NamespaceID, r.AttachmentID, r.UserID, r.Sign); err != nil {
+	att, err := ctrl.attachment.FindForServing(ctx, r.NamespaceID, r.Kind, r.AttachmentID)
+	if err != nil {
+		return ctrl.notFound(), nil
+	}
+
+	if err = ctrl.isAccessible(att, r.UserID, r.Sign); err != nil {
 		return nil, err
 	}
 
-	return ctrl.serve(ctx, r.NamespaceID, r.AttachmentID, true, false)
+	return ctrl.serve(att, true, false)
 }
 
-func (ctrl Attachment) isAccessible(kind string, namespaceID, attachmentID, userID uint64, signature string) error {
-	if kind == types.PageAttachment || kind == types.IconAttachment || kind == types.NamespaceAttachment {
+// isAccessible verifies the signature for non-public kinds
+//
+// Kind of the stored attachment decides, not the one from the request
+func (ctrl Attachment) isAccessible(att *types.Attachment, userID uint64, signature string) error {
+	if att.Kind == types.PageAttachment || att.Kind == types.IconAttachment || att.Kind == types.NamespaceAttachment {
 		// Public Attachments
 		return nil
 	}
@@ -106,27 +125,25 @@ func (ctrl Attachment) isAccessible(kind string, namespaceID, attachmentID, user
 		return errors.InvalidData("missing or invalid user ID")
 	}
 
-	if attachmentID == 0 {
-		return errors.InvalidData("missing or invalid attachment ID")
-	}
-
-	if !auth.DefaultSigner.Verify(signature, userID, namespaceID, attachmentID) {
+	if !auth.DefaultSigner.Verify(signature, userID, att.NamespaceID, att.ID) {
 		return errors.InvalidData("missing or invalid signature")
 	}
 
 	return nil
 }
 
-func (ctrl Attachment) serve(ctx context.Context, namespaceID, attachmentID uint64, preview, download bool) (interface{}, error) {
-	return func(w http.ResponseWriter, req *http.Request) {
-		att, err := ctrl.attachment.FindByID(ctx, namespaceID, attachmentID)
-		if err != nil {
-			// Simplify error handling for now
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
+func (ctrl Attachment) notFound() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
 
-		var fh io.ReadSeekCloser
+func (ctrl Attachment) serve(att *types.Attachment, preview, download bool) (interface{}, error) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		var (
+			fh  io.ReadSeekCloser
+			err error
+		)
 
 		if preview {
 			fh, err = ctrl.attachment.OpenPreview(att)
