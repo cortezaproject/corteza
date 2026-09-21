@@ -77,6 +77,11 @@ type (
 		//
 		// Note: if script/role is missing from map it will be allowed to execute the script
 		denyExec map[string]map[uint64]bool
+
+		// pairs of scripts & roles that are allowed to exec the script
+		//
+		// Note: if script is missing from map everyone (that is not denied) is allowed to execute the script
+		allowExec map[string]map[uint64]bool
 	}
 
 	ScriptArgs interface {
@@ -177,7 +182,8 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 
 		eventRegistry: eventbus.Service(),
 
-		denyExec: make(map[string]map[uint64]bool),
+		denyExec:  make(map[string]map[uint64]bool),
+		allowExec: make(map[string]map[uint64]bool),
 
 		userLookupCache: userLookupCacheMap{},
 
@@ -403,19 +409,38 @@ func (svc service) Exec(ctx context.Context, scriptName string, args ScriptArgs)
 
 // Check for any explicit denies for any of the user roles on the script
 func (svc service) canExec(ctx context.Context, script string) bool {
-	i := auth.GetIdentityFromContext(ctx)
+	var (
+		roles = auth.GetIdentityFromContext(ctx).Roles()
+	)
 
-	if svc.denyExec[script] == nil {
-		return true
-	}
-
-	for _, roleID := range i.Roles() {
-		if _, has := svc.denyExec[script][roleID]; has {
+	// deny always wins
+	for _, roleID := range roles {
+		if svc.denyExec[script][roleID] {
 			return false
 		}
 	}
 
-	return true
+	allowed, restricted := svc.allowExec[script]
+	if !restricted {
+		return true
+	}
+
+	for _, roleID := range roles {
+		if allowed[roleID] {
+			return true
+		}
+	}
+
+	// bypass roles are not limited by the allow list
+	for _, r := range auth.BypassRoles() {
+		for _, roleID := range roles {
+			if r.ID == roleID {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func (svc *service) loadServerScripts(ctx context.Context) {
@@ -467,6 +492,7 @@ func (svc *service) registerServerScripts(ctx context.Context, ss ...*ServerScri
 
 	// Reset security
 	svc.denyExec = make(map[string]map[uint64]bool)
+	svc.allowExec = make(map[string]map[uint64]bool)
 
 	// reset the cache
 	svc.userLookupCache = userLookupCacheMap{}
@@ -976,6 +1002,20 @@ func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScri
 		if err != nil {
 			err = fmt.Errorf("could not load security (run-as) user %q: %w", sec.RunAs, err)
 			return
+		}
+	}
+
+	if len(script.Security.Allow) > 0 {
+		// restrict the script right away so it stays restricted when roles fail to load
+		allowExec := make(map[uint64]bool)
+		svc.allowExec[script.Name] = allowExec
+
+		for _, role := range script.Security.Allow {
+			if r, err := svc.roles.FindByAny(sysUserCtx(), role); err != nil {
+				return fmt.Errorf("could not load security role: %s: %w", role, err)
+			} else {
+				allowExec[r.ID] = true
+			}
 		}
 	}
 
