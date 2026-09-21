@@ -12,11 +12,15 @@ import (
 	"image"
 	"image/color"
 	"io"
+
+	"golang.org/x/image/internal/safemath"
 )
 
 // ErrUnsupported means that the input BMP image uses a valid but unsupported
 // feature.
 var ErrUnsupported = errors.New("bmp: unsupported BMP image")
+
+var errInvalidPaletteIndex = errors.New("bmp: invalid palette index")
 
 func readUint16(b []byte) uint16 {
 	return uint16(b[0]) | uint16(b[1])<<8
@@ -26,28 +30,40 @@ func readUint32(b []byte) uint32 {
 	return uint32(b[0]) | uint32(b[1])<<8 | uint32(b[2])<<16 | uint32(b[3])<<24
 }
 
-// decodePaletted reads an 8 bit-per-pixel BMP image from r.
+// decodePaletted reads a 1, 2, 4 or 8 bit-per-pixel BMP image from r.
 // If topDown is false, the image rows will be read bottom-up.
-func decodePaletted(r io.Reader, c image.Config, topDown bool) (image.Image, error) {
-	paletted := image.NewPaletted(image.Rect(0, 0, c.Width, c.Height), c.ColorModel.(color.Palette))
+func decodePaletted(r io.Reader, c image.Config, topDown bool, bpp int) (image.Image, error) {
+	palette := c.ColorModel.(color.Palette)
+	paletted := image.NewPaletted(image.Rect(0, 0, c.Width, c.Height), palette)
 	if c.Width == 0 || c.Height == 0 {
 		return paletted, nil
 	}
-	var tmp [4]byte
 	y0, y1, yDelta := c.Height-1, -1, -1
 	if topDown {
 		y0, y1, yDelta = 0, c.Height, +1
 	}
+
+	pixelsPerByte := 8 / bpp
+	// Pad up to ensure each row is 4-bytes aligned.
+	bytesPerRow := ((c.Width+pixelsPerByte-1)/pixelsPerByte + 3) &^ 3
+	b := make([]byte, bytesPerRow)
+
 	for y := y0; y != y1; y += yDelta {
 		p := paletted.Pix[y*paletted.Stride : y*paletted.Stride+c.Width]
-		if _, err := io.ReadFull(r, p); err != nil {
+		if _, err := io.ReadFull(r, b); err != nil {
 			return nil, err
 		}
-		// Each row is 4-byte aligned.
-		if c.Width%4 != 0 {
-			_, err := io.ReadFull(r, tmp[:4-c.Width%4])
-			if err != nil {
-				return nil, err
+		byteIndex, bitIndex, mask := 0, 8, byte((1<<bpp)-1)
+		for pixIndex := 0; pixIndex < c.Width; pixIndex++ {
+			bitIndex -= bpp
+			paletteIndex := (b[byteIndex]) >> bitIndex & mask
+			if int(paletteIndex) >= len(palette) {
+				return nil, errInvalidPaletteIndex
+			}
+			p[pixIndex] = paletteIndex
+			if bitIndex == 0 {
+				byteIndex++
+				bitIndex = 8
 			}
 		}
 	}
@@ -118,8 +134,8 @@ func Decode(r io.Reader) (image.Image, error) {
 		return nil, err
 	}
 	switch bpp {
-	case 8:
-		return decodePaletted(r, c, topDown)
+	case 1, 2, 4, 8:
+		return decodePaletted(r, c, topDown, bpp)
 	case 24:
 		return decodeRGB(r, c, topDown)
 	case 32:
@@ -176,6 +192,16 @@ func decodeConfig(r io.Reader) (config image.Config, bitsPerPixel int, topDown b
 	if width < 0 || height < 0 {
 		return image.Config{}, 0, false, false, ErrUnsupported
 	}
+	if (width == 0) != (height == 0) {
+		// We'll take 0x0, but Nx0 or 0xN is suspicious.
+		return image.Config{}, 0, false, false, ErrUnsupported
+	}
+	// Check that the image fits in memory.
+	// This conservatively assumes 4 bytes per pixel,
+	// rather than using the actual pixel size.
+	if _, ok := safemath.Mul3(width, height, 4); !ok {
+		return image.Config{}, 0, false, false, ErrUnsupported
+	}
 	// We only support 1 plane and 8, 24 or 32 bits per pixel and no
 	// compression.
 	planes, bpp, compression := readUint16(b[26:28]), readUint16(b[28:30]), readUint32(b[30:34])
@@ -190,12 +216,12 @@ func decodeConfig(r io.Reader) (config image.Config, bitsPerPixel int, topDown b
 		return image.Config{}, 0, false, false, ErrUnsupported
 	}
 	switch bpp {
-	case 8:
+	case 1, 2, 4, 8:
 		colorUsed := readUint32(b[46:50])
-		// If colorUsed is 0, it is set to the maximum number of colors for the given bpp, which is 2^bpp.
+
 		if colorUsed == 0 {
-			colorUsed = 256
-		} else if colorUsed > 256 {
+			colorUsed = 1 << bpp
+		} else if colorUsed > (1 << bpp) {
 			return image.Config{}, 0, false, false, ErrUnsupported
 		}
 
@@ -212,7 +238,7 @@ func decodeConfig(r io.Reader) (config image.Config, bitsPerPixel int, topDown b
 			// Every 4th byte is padding.
 			pcm[i] = color.RGBA{b[4*i+2], b[4*i+1], b[4*i+0], 0xFF}
 		}
-		return image.Config{ColorModel: pcm, Width: width, Height: height}, 8, topDown, false, nil
+		return image.Config{ColorModel: pcm, Width: width, Height: height}, int(bpp), topDown, false, nil
 	case 24:
 		if offset != fileHeaderLen+infoLen {
 			return image.Config{}, 0, false, false, ErrUnsupported
