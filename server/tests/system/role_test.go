@@ -79,8 +79,24 @@ func (h helper) createRoleMember(userID, roleID uint64) *types.RoleMember {
 	return r
 }
 
+func TestRoleReadForbidden(t *testing.T) {
+	h := newHelper(t)
+	helpers.DenyMe(h, types.RoleRbacResource(0), "read")
+
+	u := h.repoMakeRole()
+
+	h.apiInit().
+		Get(fmt.Sprintf("/roles/%d", u.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("role.errors.notAllowedToRead")).
+		End()
+}
+
 func TestRoleRead(t *testing.T) {
 	h := newHelper(t)
+	helpers.AllowMe(h, types.RoleRbacResource(0), "read")
 
 	u := h.repoMakeRole()
 

@@ -25,6 +25,7 @@ type (
 		CanGrant(context.Context) bool
 
 		CanCreateRole(context.Context) bool
+		CanReadRole(context.Context, *types.Role) bool
 		CanUpdateRole(context.Context, *types.Role) bool
 		CanDeleteRole(context.Context, *types.Role) bool
 		CanManageMembersOnRole(context.Context, *types.Role) bool
@@ -58,6 +59,10 @@ func (Role) New() *Role {
 
 func (ctrl Role) Read(ctx context.Context, r *request.RoleRead) (interface{}, error) {
 	role, err := ctrl.role.FindByID(ctx, r.RoleID)
+	if err == nil && !ctrl.ac.CanReadRole(ctx, role) {
+		return nil, service.RoleErrNotAllowedToRead()
+	}
+
 	return ctrl.makePayload(ctx, role, err)
 }
 
