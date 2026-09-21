@@ -593,6 +593,12 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 			return WorkflowErrNotAllowedToExecute()
 		}
 
+		if p.Trace && !svc.ac.CanUpdateWorkflow(ctx, wf) {
+			// trace skips trigger checks and returns the whole scope,
+			// it is meant for users that design the workflow
+			return WorkflowErrNotAllowedToUpdate()
+		}
+
 		if !wf.Enabled && !p.Trace {
 			return WorkflowErrDisabled()
 		}
