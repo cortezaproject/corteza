@@ -2,12 +2,12 @@ package registry
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/crusttech/human/server/automation/service"
 	"github.com/crusttech/human/server/pkg/apigw/filter"
 	"github.com/crusttech/human/server/pkg/apigw/filter/proxy"
 	"github.com/crusttech/human/server/pkg/apigw/types"
+	pkgHttp "github.com/crusttech/human/server/pkg/http"
 )
 
 type (
@@ -70,7 +70,7 @@ func (r *Registry) Preload() {
 
 	// processers
 	r.Add("workflow", filter.NewWorkflow(r.cfg, NewWorkflow()))
-	r.Add("proxy", proxy.New(r.cfg, service.DefaultLogger, http.DefaultClient, secureStorageTodo{}))
+	r.Add("proxy", proxy.New(r.cfg, service.DefaultLogger, pkgHttp.RestrictedClient(), secureStorageTodo{}))
 	r.Add("payload", filter.NewPayload(r.cfg, service.DefaultLogger))
 	r.Add("eventDispatch", filter.NewEventDispatch(r.cfg))
 

@@ -161,6 +161,19 @@ func (app *HumanApp) Setup() (err error) {
 		app.Opt.HTTPClient.TlsInsecure,
 	)
 
+	// invalid value falls back to the default restriction and must not stop the server
+	restrictedNetworks, rnErr := http.ParseNetworkRestriction(app.Opt.HTTPClient.RestrictedNetworks)
+	if rnErr != nil {
+		app.Log.Warn("invalid HTTP_CLIENT_RESTRICTED_NETWORKS, using default", zap.Error(rnErr))
+	}
+
+	app.Log.Info("restricting networks for HTTP requests to user controlled destinations (HTTP_CLIENT_RESTRICTED_NETWORKS)", zap.String("restricted", string(restrictedNetworks)))
+	http.SetupRestricted(
+		app.Opt.HTTPClient.Timeout,
+		app.Opt.HTTPClient.TlsInsecure,
+		restrictedNetworks,
+	)
+
 	monitor.Setup(app.Log, app.Opt.Monitor)
 
 	if app.Opt.Eventbus.SchedulerEnabled {

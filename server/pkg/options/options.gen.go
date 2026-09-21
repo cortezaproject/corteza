@@ -18,8 +18,9 @@ type (
 	}
 
 	HTTPClientOpt struct {
-		TlsInsecure bool          `env:"HTTP_CLIENT_TLS_INSECURE"`
-		Timeout     time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
+		TlsInsecure        bool          `env:"HTTP_CLIENT_TLS_INSECURE"`
+		Timeout            time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
+		RestrictedNetworks string        `env:"HTTP_CLIENT_RESTRICTED_NETWORKS"`
 	}
 
 	HttpServerOpt struct {
@@ -329,7 +330,8 @@ func DB() (o *DBOpt) {
 // This function is auto-generated
 func HTTPClient() (o *HTTPClientOpt) {
 	o = &HTTPClientOpt{
-		Timeout: 30 * time.Second,
+		Timeout:            30 * time.Second,
+		RestrictedNetworks: "link-local",
 	}
 
 	// Custom defaults
