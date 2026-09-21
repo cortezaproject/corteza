@@ -5,6 +5,7 @@ import (
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	internalAuth "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
 )
@@ -154,8 +155,15 @@ func (svc *credentials) Delete(ctx context.Context, userID, credentialsID uint64
 			return CredentialsErrNotAllowedToManage()
 		}
 
-		if c, err = store.LookupCredentialByID(ctx, svc.store, credentialsID); err != nil {
+		if c, err = store.LookupCredentialByID(ctx, svc.store, credentialsID); errors.IsNotFound(err) {
+			return CredentialsErrNotFound()
+		} else if err != nil {
 			return
+		}
+
+		if c.OwnerID != u.ID {
+			// Make sure credentials belong to the user permissions were checked for
+			return CredentialsErrNotFound()
 		}
 
 		caProps.setCredentials(c)
