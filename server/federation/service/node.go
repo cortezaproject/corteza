@@ -505,7 +505,21 @@ func (svc node) FindBySharedNodeID(ctx context.Context, sharedNodeID uint64) (*t
 		return nil, NodeErrNotAllowedToManage()
 	}
 
+	if n != nil {
+		// all federated users share the same role, make sure they only get to their own node
+		u, _ := store.LookupUserByID(ctx, svc.store, auth.GetIdentityFromContext(ctx).Identity())
+		if u != nil && strings.HasPrefix(u.Handle, federatedUserHandlePrefix) && u.Handle != federatedUserHandle(n) {
+			return nil, NodeErrNotAllowedToManage()
+		}
+	}
+
 	return n, err
+}
+
+const federatedUserHandlePrefix = "federation_"
+
+func federatedUserHandle(n *types.Node) string {
+	return fmt.Sprintf("%s%d", federatedUserHandlePrefix, n.ID)
 }
 
 func (svc node) FindByID(ctx context.Context, nodeID uint64) (n *types.Node, err error) {
@@ -523,7 +537,7 @@ func (svc node) FindByID(ctx context.Context, nodeID uint64) (n *types.Node, err
 // Looks for existing user or crates a new one
 func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysTypes.User, error) {
 	// Generate handle for user that se this node
-	uHandle := fmt.Sprintf("federation_%d", n.ID)
+	uHandle := federatedUserHandle(n)
 
 	u, err := svc.sysUser.FindByHandle(ctx, uHandle)
 	if err == nil {
