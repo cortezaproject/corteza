@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"crypto/subtle"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -245,7 +246,8 @@ func (svc *node) onHandshakeInit(ctx context.Context, aProps *nodeActionProps, n
 		sharedNodeID,
 		NodeActionHandshakeInit,
 		func(ctx context.Context, n *types.Node) error {
-			if n.PairToken != pairToken {
+			// nodes without generated pair token must not be paired with an empty one
+			if n.PairToken == "" || subtle.ConstantTimeCompare([]byte(n.PairToken), []byte(pairToken)) != 1 {
 				return NodeErrPairingTokenInvalid()
 			}
 
