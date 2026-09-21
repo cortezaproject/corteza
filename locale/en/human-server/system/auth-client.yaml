@@ -3,6 +3,8 @@ errors:
   invalidID: invalid ID
   missingName: The auth client needs a name.
   notAllowedToCreate: not allowed to create auth clients
+  notAllowedToForceRoles: not allowed to force the selected roles
+  notAllowedToImpersonate: not allowed to impersonate the selected user
   notAllowedToDelete: not allowed to delete this auth client
   notAllowedToRead: not allowed to read this auth client
   notAllowedToSearch: not allowed to search or list auth clients

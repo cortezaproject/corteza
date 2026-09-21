@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	internalAuth "github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/payload"
+	"github.com/crusttech/human/server/pkg/slice"
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/errors"
@@ -26,6 +29,8 @@ type (
 		CanCreateAuthClient(context.Context) bool
 		CanReadAuthClient(context.Context, *types.AuthClient) bool
 		CanUpdateAuthClient(context.Context, *types.AuthClient) bool
+		CanImpersonateUser(context.Context, *types.User) bool
+		CanManageMembersOnRole(context.Context, *types.Role) bool
 		CanDeleteAuthClient(context.Context, *types.AuthClient) bool
 	}
 )
@@ -68,6 +73,10 @@ func (svc *authClient) beforeCreate(ctx context.Context, new *types.AuthClient) 
 		new.Security = &types.AuthClientSecurity{}
 	}
 
+	if err := svc.checkSecurity(ctx, nil, new.Security); err != nil {
+		return err
+	}
+
 	if new.Meta == nil {
 		new.Meta = &types.AuthClientMeta{}
 	}
@@ -80,6 +89,10 @@ func (svc *authClient) onRegenerateSecret(ctx context.Context, aProps *authClien
 
 	if client, err = svc.lookupByID(ctx, ID); err != nil {
 		return "", err
+	}
+
+	if !svc.ac.CanUpdateAuthClient(ctx, client) {
+		return "", AuthClientErrNotAllowedToUpdate()
 	}
 
 	aProps.setAuthClient(client)
@@ -118,7 +131,12 @@ func (svc *authClient) ExposeSecret(ctx context.Context, ID uint64) (secret stri
 		aaProps = &authClientActionProps{authClient: &types.AuthClient{ID: ID}}
 	)
 
+	// secret is as good as the client itself, reading the client is not enough
 	client, err = svc.lookupByID(ctx, ID)
+	if err == nil && !svc.ac.CanUpdateAuthClient(ctx, client) {
+		client, err = nil, AuthClientErrNotAllowedToUpdate()
+	}
+
 	if client != nil {
 		secret = client.Secret
 	}
@@ -260,6 +278,10 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 			}
 		}
 
+		if err = svc.checkSecurity(ctx, res.Security, upd.Security); err != nil {
+			return
+		}
+
 		if err = svc.services.eventbus.WaitFor(ctx, event.AuthClientBeforeUpdate(upd, res)); err != nil {
 			return
 		}
@@ -339,4 +361,37 @@ func (svc *authClient) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	}()
 
 	return svc.recordAction(ctx, aaProps, AuthClientActionDelete, err)
+}
+
+// checkSecurity makes sure current user is allowed to impersonate the user and to force the roles set on the client
+//
+// Client acts as the impersonated user and forces roles on everyone that signs in with it;
+// only changed values are checked so that existing clients can still be updated
+func (svc *authClient) checkSecurity(ctx context.Context, old, upd *types.AuthClientSecurity) error {
+	if upd == nil {
+		return nil
+	}
+
+	if old == nil {
+		old = &types.AuthClientSecurity{}
+	}
+
+	if upd.ImpersonateUser != 0 && upd.ImpersonateUser != old.ImpersonateUser && upd.ImpersonateUser != internalAuth.GetIdentityFromContext(ctx).Identity() {
+		if !svc.ac.CanImpersonateUser(ctx, &types.User{ID: upd.ImpersonateUser}) {
+			return AuthClientErrNotAllowedToImpersonate()
+		}
+	}
+
+	forced := slice.ToUint64BoolMap(payload.ParseUint64s(old.ForcedRoles))
+	for _, roleID := range payload.ParseUint64s(upd.ForcedRoles) {
+		if roleID == 0 || forced[roleID] {
+			continue
+		}
+
+		if !svc.ac.CanManageMembersOnRole(ctx, &types.Role{ID: roleID}) {
+			return AuthClientErrNotAllowedToForceRoles()
+		}
+	}
+
+	return nil
 }

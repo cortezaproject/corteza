@@ -865,6 +865,74 @@ func AuthClientErrNotAllowedToCreate(mm ...*authClientActionProps) *errors.Error
 	return e
 }
 
+// AuthClientErrNotAllowedToImpersonate returns "system:auth-client.notAllowedToImpersonate" as *errors.Error
+//
+// This function is auto-generated.
+func AuthClientErrNotAllowedToImpersonate(mm ...*authClientActionProps) *errors.Error {
+	var p = &authClientActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to impersonate the selected user", nil),
+
+		errors.Meta("type", "notAllowedToImpersonate"),
+		errors.Meta("resource", "system:auth-client"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authClientLogMetaKey{}, "failed to set impersonated user on authClient; insufficient permissions"),
+		errors.Meta(authClientPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.notAllowedToImpersonate"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthClientErrNotAllowedToForceRoles returns "system:auth-client.notAllowedToForceRoles" as *errors.Error
+//
+// This function is auto-generated.
+func AuthClientErrNotAllowedToForceRoles(mm ...*authClientActionProps) *errors.Error {
+	var p = &authClientActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to force the selected roles", nil),
+
+		errors.Meta("type", "notAllowedToForceRoles"),
+		errors.Meta("resource", "system:auth-client"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authClientLogMetaKey{}, "failed to set forced roles on authClient; insufficient permissions"),
+		errors.Meta(authClientPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth-client.errors.notAllowedToForceRoles"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // AuthClientErrNotAllowedToUpdate returns "system:auth-client.notAllowedToUpdate" as *errors.Error
 //
 // This function is auto-generated.

@@ -98,6 +98,14 @@ errors:
     message: "not allowed to create auth clients"
     log: "failed to create authClient; insufficient permissions"
 
+  - error: notAllowedToImpersonate
+    message: "not allowed to impersonate the selected user"
+    log: "failed to set impersonated user on authClient; insufficient permissions"
+
+  - error: notAllowedToForceRoles
+    message: "not allowed to force the selected roles"
+    log: "failed to set forced roles on authClient; insufficient permissions"
+
   - error: notAllowedToUpdate
     message: "not allowed to update this auth client"
     log: "failed to update {{authClient}}; insufficient permissions"
