@@ -530,6 +530,40 @@ func AttachmentErrNotAllowedToCreate(mm ...*attachmentActionProps) *errors.Error
 	return e
 }
 
+// AttachmentErrNotAllowedToDelete returns "system:attachment.notAllowedToDelete" as *errors.Error
+//
+// This function is auto-generated.
+func AttachmentErrNotAllowedToDelete(mm ...*attachmentActionProps) *errors.Error {
+	var p = &attachmentActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this attachment", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "system:attachment"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(attachmentLogMetaKey{}, "failed to delete attachment; insufficient permissions"),
+		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToDelete"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // AttachmentErrNotAllowedToCreateEmptyAttachment returns "system:attachment.notAllowedToCreateEmptyAttachment" as *errors.Error
 //
 // This function is auto-generated.
