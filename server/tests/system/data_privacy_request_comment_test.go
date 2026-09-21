@@ -52,12 +52,34 @@ func TestDataPrivacyRequestCommentList(t *testing.T) {
 	h.createSampleDataPrivacyRequestComment()
 	h.createSampleDataPrivacyRequestComment()
 
+	helpers.AllowMe(h, types.DataPrivacyRequestRbacResource(0), "read")
+
 	h.apiInit().
 		Get(fmt.Sprintf("/data-privacy/requests/%d/comments/", reqID)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Len(`$.response.set`, 2)).
+		End()
+}
+
+// Comments can only be listed by users that can read the request
+func TestDataPrivacyRequestCommentListForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearDataPrivacyRequests()
+	h.clearDataPrivacyRequestComments()
+
+	request := h.createSampleDataPrivacyRequest()
+	h.createSampleDataPrivacyRequestComment(request.ID)
+
+	helpers.DenyMe(h, types.DataPrivacyRequestRbacResource(0), "read")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/data-privacy/requests/%d/comments/", request.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("data-privacy.errors.notAllowedToRead")).
 		End()
 }
 
