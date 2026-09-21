@@ -165,6 +165,9 @@ func (svc notification) procEmailAttachments(ctx context.Context, message *gomai
 		return err
 	}
 
+	// URLs are controlled by the users, use client with network restrictions
+	client.Client = httpClient.RestrictedClient()
+
 	get := func(url string) error {
 		aProps := &notificationActionProps{attachmentURL: url}
 
