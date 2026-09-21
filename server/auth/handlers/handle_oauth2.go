@@ -21,6 +21,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/spf13/cast"
 
+	"github.com/crusttech/human/server/auth/oauth2"
 	"github.com/crusttech/human/server/auth/request"
 	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
@@ -55,7 +56,22 @@ func (h *AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 	}
 
 	if client != nil {
-		// No client validation is done at this point;
+		if redirectURI := req.Request.Form.Get("redirect_uri"); redirectURI != "" {
+			allowed := oauth2.AllowedRedirectURIs(client.RedirectURI, h.Opt.GetDefaultRedirectURIs())
+			if err = oauth2.ValidateRedirectURI(allowed, redirectURI); err != nil {
+				// oauth2 server redirects errors to the redirect URI from the request,
+				// stop here and never redirect to unverified URI
+				h.Log.Warn("invalid oauth2 redirect URI", zap.String("sent", redirectURI), zap.Strings("valid", allowed))
+				request.SetOauth2Client(req.Session, nil)
+
+				req.Status = http.StatusBadRequest
+				req.Template = TmplInternalError
+				req.Data["error"] = err
+				return nil
+			}
+		}
+
+		// No other client validation is done at this point;
 		// first, see if user is able to authenticate.
 		request.SetOauth2Client(req.Session, client)
 

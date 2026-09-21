@@ -3,7 +3,6 @@ package oauth2
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/logger"
@@ -43,17 +42,8 @@ func NewManager(opt options.AuthOpt, log *zap.Logger, cs oauth2.ClientStore, ts 
 	manager.SetRefreshTokenCfg(&rcfg)
 
 	manager.SetValidateURIHandler(func(baseURI, redirectURI string) (err error) {
-		if baseURI == "" {
-			log.Debug(
-				"redirect URI check for client is disabled (empty validation list)",
-				zap.String("sent", redirectURI),
-			)
-
-			return nil
-		}
-
 		var (
-			valid = strings.Split(baseURI, RedirectUriSeparator)
+			valid = AllowedRedirectURIs(baseURI, opt.GetDefaultRedirectURIs())
 		)
 
 		log.Debug(
@@ -62,13 +52,7 @@ func NewManager(opt options.AuthOpt, log *zap.Logger, cs oauth2.ClientStore, ts 
 			zap.Strings("valid", valid),
 		)
 
-		for _, baseURI = range valid {
-			if strings.HasPrefix(redirectURI, baseURI) {
-				return nil
-			}
-		}
-
-		return errors.ErrInvalidRedirectURI
+		return ValidateRedirectURI(valid, redirectURI)
 	})
 
 	return manager

@@ -29,6 +29,13 @@ func (app *HumanApp) initAuth(ctx context.Context) (err error) {
 		}
 	}
 
+	if app.DefaultAuthClient != nil && strings.TrimSpace(app.DefaultAuthClient.RedirectURI) == "" {
+		app.Log.Info(
+			"default auth client has no redirect URIs set, allowing defaults (AUTH_DEFAULT_REDIRECT_URIS)",
+			zap.Strings("allowed", app.Opt.Auth.GetDefaultRedirectURIs()),
+		)
+	}
+
 	app.oa2m = oauth2.NewManager(
 		app.Opt.Auth,
 		app.Log,
