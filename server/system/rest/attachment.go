@@ -26,12 +26,19 @@ type (
 
 	Attachment struct {
 		attachment service.AttachmentService
+		ac         attachmentAccessController
+	}
+
+	attachmentAccessController interface {
+		CanManageSettings(context.Context) bool
+		CanUpdateUser(context.Context, *types.User) bool
 	}
 )
 
 func (Attachment) New() *Attachment {
 	return &Attachment{
 		attachment: service.DefaultAttachment,
+		ac:         service.DefaultAccessControl,
 	}
 }
 
@@ -49,12 +56,35 @@ func (ctrl Attachment) Delete(ctx context.Context, r *request.AttachmentDelete) 
 		return nil, fmt.Errorf("Unauthorized")
 	}
 
-	_, err := ctrl.attachment.FindByID(ctx, r.AttachmentID)
+	a, err := ctrl.attachment.FindByID(ctx, r.AttachmentID)
 	if err != nil {
 		return nil, err
+	} else if a.Kind != r.Kind {
+		return nil, service.AttachmentErrNotFound()
+	}
+
+	if !ctrl.canDelete(ctx, a) {
+		return nil, service.AttachmentErrNotAllowedToDelete()
 	}
 
 	return api.OK(), ctrl.attachment.DeleteByID(ctx, r.AttachmentID)
+}
+
+// canDelete checks if current user can remove the attachment
+//
+// Avatars can be removed by their owner and by users that can update the owner,
+// everything else belongs to settings
+func (ctrl Attachment) canDelete(ctx context.Context, a *types.Attachment) bool {
+	switch a.Kind {
+	case types.AttachmentKindAvatar, types.AttachmentKindAvatarInitials:
+		if a.OwnerID == auth.GetIdentityFromContext(ctx).Identity() {
+			return true
+		}
+
+		return ctrl.ac.CanUpdateUser(ctx, &types.User{ID: a.OwnerID})
+	}
+
+	return ctrl.ac.CanManageSettings(ctx)
 }
 
 func (ctrl Attachment) Original(ctx context.Context, r *request.AttachmentOriginal) (interface{}, error) {

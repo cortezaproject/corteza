@@ -57,6 +57,10 @@ errors:
     message: "not allowed to create attachments"
     log: "failed to create attachment; insufficient permissions"
 
+  - error: notAllowedToDelete
+    message: "not allowed to delete this attachment"
+    log: "failed to delete attachment; insufficient permissions"
+
   - error: notAllowedToCreateEmptyAttachment
     message: "not allowed to create empty attachments"
     log: "failed to create attachment; empty file"

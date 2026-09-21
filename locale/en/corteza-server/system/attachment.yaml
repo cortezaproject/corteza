@@ -5,5 +5,6 @@ errors:
   invalidID: invalid ID
   notAllowedToCreate: not allowed to create attachments
   notAllowedToCreateEmptyAttachment: not allowed to create empty attachments
+  notAllowedToDelete: not allowed to delete this attachment
   notAllowedToListAttachments: not allowed to list attachments
   notFound: attachment not found
