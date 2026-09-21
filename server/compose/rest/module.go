@@ -52,6 +52,7 @@ type (
 		CanGrant(context.Context) bool
 
 		CanUpdateModule(context.Context, *types.Module) bool
+		CanManageResourceTranslations(context.Context) bool
 		CanDeleteModule(context.Context, *types.Module) bool
 		CanCreateRecordOnModule(context.Context, *types.Module) bool
 		CanCreateOwnedRecordOnModule(context.Context, *types.Module) bool
@@ -128,6 +129,25 @@ func (ctrl *Module) ListTranslations(ctx context.Context, r *request.ModuleListT
 }
 
 func (ctrl *Module) UpdateTranslations(ctx context.Context, r *request.ModuleUpdateTranslations) (interface{}, error) {
+	mod, err := ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ctrl.ac.CanUpdateModule(ctx, mod) && !ctrl.ac.CanManageResourceTranslations(ctx) {
+		return nil, service.ModuleErrNotAllowedToUpdate()
+	}
+
+	// module and its fields
+	allowed := []string{mod.ResourceTranslation()}
+	for _, f := range mod.Fields {
+		allowed = append(allowed, f.ResourceTranslation())
+	}
+
+	if err = checkTranslatedResources(r.Translations, allowed...); err != nil {
+		return nil, err
+	}
+
 	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 

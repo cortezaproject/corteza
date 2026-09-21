@@ -42,6 +42,7 @@ type (
 		CanGrant(context.Context) bool
 
 		CanUpdateChart(context.Context, *types.Chart) bool
+		CanManageResourceTranslations(context.Context) bool
 		CanDeleteChart(context.Context, *types.Chart) bool
 	}
 )
@@ -126,6 +127,19 @@ func (ctrl Chart) ListTranslations(ctx context.Context, r *request.ChartListTran
 }
 
 func (ctrl Chart) UpdateTranslations(ctx context.Context, r *request.ChartUpdateTranslations) (interface{}, error) {
+	chart, err := ctrl.chart.FindByID(ctx, r.NamespaceID, r.ChartID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ctrl.ac.CanUpdateChart(ctx, chart) && !ctrl.ac.CanManageResourceTranslations(ctx) {
+		return nil, service.ChartErrNotAllowedToUpdate()
+	}
+
+	if err = checkTranslatedResources(r.Translations, chart.ResourceTranslation()); err != nil {
+		return nil, err
+	}
+
 	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 

@@ -44,7 +44,8 @@ type (
 	}
 
 	pageLayoutAccessController interface {
-		// @todo
+		CanUpdatePageLayout(context.Context, *types.PageLayout) bool
+		CanManageResourceTranslations(context.Context) bool
 	}
 )
 
@@ -86,6 +87,19 @@ func (ctrl *PageLayout) ListTranslations(ctx context.Context, r *request.PageLay
 }
 
 func (ctrl *PageLayout) UpdateTranslations(ctx context.Context, r *request.PageLayoutUpdateTranslations) (interface{}, error) {
+	layout, err := ctrl.pageLayout.FindByID(ctx, r.NamespaceID, r.PageLayoutID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ctrl.ac.CanUpdatePageLayout(ctx, layout) && !ctrl.ac.CanManageResourceTranslations(ctx) {
+		return nil, service.PageLayoutErrNotAllowedToUpdate()
+	}
+
+	if err = checkTranslatedResources(r.Translations, layout.ResourceTranslation()); err != nil {
+		return nil, err
+	}
+
 	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 
