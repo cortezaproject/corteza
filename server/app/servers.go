@@ -161,9 +161,11 @@ func (app *HumanApp) mountHttpRoutes(r chi.Router) {
 			return
 		}
 
-		if app.Opt.SCIM.Secret == "" {
+		if app.Opt.SCIM.Secret == "" && !app.Opt.Environment.IsDevelopment() {
+			// requests are made as a service user, do not expose SCIM without a secret
 			app.Log.
-				Error("SCIM secret empty")
+				Error("SCIM secret empty (SCIM_SECRET), SCIM is disabled")
+			return
 		}
 
 		var (
