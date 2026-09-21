@@ -131,8 +131,12 @@ const isReferenceActive = computed(() => {
 const AGGREGATE_TYPES = ['FieldValueMap', 'WorkflowInputMap', 'Array']
 const isAggregate = computed(() => props.aggregate || AGGREGATE_TYPES.includes(props.type))
 
+const SELF_CONTAINED_TYPES = ['Worksheet', 'WorksheetName', 'GmailMessage']
+
 // Options support: map stored ID ↔ option object for CInputSelect
-const hasOptions = computed(() => props.options.length > 0)
+const hasOptions = computed(
+  () => props.options.length > 0 && !SELF_CONTAINED_TYPES.includes(props.type),
+)
 
 const displayValue = computed(() => {
   if (hasOptions.value && props.modelValue) {
