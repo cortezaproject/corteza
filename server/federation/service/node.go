@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"crypto/subtle"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -218,6 +219,10 @@ func (svc node) RegenerateNodeURI(ctx context.Context, nodeID uint64) (string, e
 		uri string
 	)
 
+	if err := svc.canManage(ctx, nodeID); err != nil {
+		return "", err
+	}
+
 	_, err := svc.updater(
 		ctx,
 		nodeID,
@@ -240,6 +245,10 @@ func (svc node) RegenerateNodeURI(ctx context.Context, nodeID uint64) (string, e
 }
 
 func (svc node) Update(ctx context.Context, upd *types.Node) (*types.Node, error) {
+	if err := svc.canManage(ctx, upd.ID); err != nil {
+		return nil, err
+	}
+
 	return svc.updater(ctx, upd.ID, NodeActionUpdate, func(ctx context.Context, n *types.Node) error {
 		n.Name = upd.Name
 		n.BaseURL = upd.BaseURL
@@ -253,6 +262,10 @@ func (svc node) Update(ctx context.Context, upd *types.Node) (*types.Node, error
 }
 
 func (svc node) DeleteByID(ctx context.Context, ID uint64) error {
+	if err := svc.canManage(ctx, ID); err != nil {
+		return err
+	}
+
 	_, err := svc.updater(ctx, ID, NodeActionDelete, func(ctx context.Context, n *types.Node) error {
 		n.DeletedAt = now()
 		n.DeletedBy = auth.GetIdentityFromContext(ctx).Identity()
@@ -263,6 +276,10 @@ func (svc node) DeleteByID(ctx context.Context, ID uint64) error {
 }
 
 func (svc node) UndeleteByID(ctx context.Context, ID uint64) error {
+	if err := svc.canManage(ctx, ID); err != nil {
+		return err
+	}
+
 	_, err := svc.updater(ctx, ID, NodeActionUndelete, func(ctx context.Context, n *types.Node) error {
 		n.DeletedAt = nil
 		n.DeletedBy = 0
@@ -322,15 +339,21 @@ func (svc node) HandshakeInit(ctx context.Context, nodeID uint64, pairToken stri
 	// 	return NodeErrNotAllowedToPair()
 	// }
 
+	// verify the token up front, updater marks the node as failed on errors
+	// and that must not be possible without a valid pair token
+	if n, err := loadNode(ctx, svc.store, sharedNodeID); err != nil {
+		return err
+	} else if n.PairToken == "" || subtle.ConstantTimeCompare([]byte(n.PairToken), []byte(pairToken)) != 1 {
+		// nodes without generated pair token must not be paired with an empty one
+		return NodeErrPairingTokenInvalid()
+	}
+
 	_, err := svc.updater(
 		ctx,
 		sharedNodeID,
 		NodeActionHandshakeInit,
 		func(ctx context.Context, n *types.Node) error {
 			// @todo need to check node status before we can proceed with initialization
-			if n.PairToken != pairToken {
-				return NodeErrPairingTokenInvalid()
-			}
 
 			n.SharedNodeID = sharedNodeID
 			n.AuthToken = authToken
@@ -408,6 +431,22 @@ func (svc node) HandshakeComplete(ctx context.Context, sharedNodeID uint64, toke
 	}, nil)
 
 	return err
+}
+
+// canManage checks if current user is allowed to manage the node
+//
+// Done before calling the updater that marks the node as failed on errors
+func (svc node) canManage(ctx context.Context, nodeID uint64) error {
+	n, err := loadNode(ctx, svc.store, nodeID)
+	if err != nil {
+		return err
+	}
+
+	if !svc.ac.CanManageNode(ctx, n) {
+		return NodeErrNotAllowedToManage()
+	}
+
+	return nil
 }
 
 func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*nodeActionProps) *nodeAction, fn, afterFn nodeUpdateHandler) (*types.Node, error) {
