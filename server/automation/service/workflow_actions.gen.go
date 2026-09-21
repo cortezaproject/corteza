@@ -852,6 +852,74 @@ func WorkflowErrNotAllowedToExecute(mm ...*workflowActionProps) *errors.Error {
 	return e
 }
 
+// WorkflowErrNotAllowedToSetRunAs returns "automation:workflow.notAllowedToSetRunAs" as *errors.Error
+//
+// This function is auto-generated.
+func WorkflowErrNotAllowedToSetRunAs(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to run this workflow as the selected user", nil),
+
+		errors.Meta("type", "notAllowedToSetRunAs"),
+		errors.Meta("resource", "automation:workflow"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(workflowLogMetaKey{}, "failed to set run-as user on {{workflow}}; insufficient permissions"),
+		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notAllowedToSetRunAs"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// WorkflowErrNotAllowedToChangeOwner returns "automation:workflow.notAllowedToChangeOwner" as *errors.Error
+//
+// This function is auto-generated.
+func WorkflowErrNotAllowedToChangeOwner(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to change owner of this workflow", nil),
+
+		errors.Meta("type", "notAllowedToChangeOwner"),
+		errors.Meta("resource", "automation:workflow"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(workflowLogMetaKey{}, "failed to change owner of {{workflow}}; insufficient permissions"),
+		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notAllowedToChangeOwner"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // WorkflowErrUnknownWorkflowStep returns "automation:workflow.unknownWorkflowStep" as *errors.Error
 //
 // This function is auto-generated.
