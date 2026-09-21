@@ -107,6 +107,7 @@ type (
 		ExternalRedirectURL      string        `env:"AUTH_EXTERNAL_REDIRECT_URL"`
 		ExternalCookieSecret     string        `env:"AUTH_EXTERNAL_COOKIE_SECRET"`
 		BaseURL                  string        `env:"AUTH_BASE_URL"`
+		DefaultRedirectURIs      string        `env:"AUTH_DEFAULT_REDIRECT_URIS"`
 		SessionCookieName        string        `env:"AUTH_SESSION_COOKIE_NAME"`
 		SessionCookiePath        string        `env:"AUTH_SESSION_COOKIE_PATH"`
 		SessionCookieDomain      string        `env:"AUTH_SESSION_COOKIE_DOMAIN"`

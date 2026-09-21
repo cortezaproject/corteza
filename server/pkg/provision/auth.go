@@ -295,12 +295,8 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.Storer, aut
 			Name: "Corteza Web Applications",
 		},
 		ValidGrant: "authorization_code",
-		RedirectURI: func() string {
-			// Disabling protection by redirection URL for now, it caused too much confusion on simple setups
-			//baseURL, _ := url.Parse(authOpt.BaseURL)
-			//return fmt.Sprintf("%s://%s", baseURL.Scheme, baseURL.Hostname())
-			return ""
-		}(),
+		// without redirect URIs, client is limited to AUTH_DEFAULT_REDIRECT_URIS
+		RedirectURI: "",
 
 		Secret:  string(rand.Bytes(64)),
 		Scope:   "profile api",
