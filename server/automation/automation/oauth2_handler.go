@@ -3,10 +3,10 @@ package automation
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"net/url"
 	"strings"
 
+	pkgHttp "github.com/cortezaproject/corteza/server/pkg/http"
 	"github.com/cortezaproject/corteza/server/pkg/http/auth"
 	"golang.org/x/oauth2"
 )
@@ -66,7 +66,7 @@ func (h oauth2Handler) authenticate(ctx context.Context, args *oauth2Authenticat
 		TokenUrl: u,
 	}
 
-	servicer, err := auth.NewOauth2(params, http.DefaultClient, secureStoragerTodo{})
+	servicer, err := auth.NewOauth2(params, pkgHttp.RestrictedClient(), secureStoragerTodo{})
 
 	if err != nil {
 		err = fmt.Errorf("could not init servicer: %s", err)

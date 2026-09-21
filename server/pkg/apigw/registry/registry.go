@@ -2,12 +2,12 @@ package registry
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/cortezaproject/corteza/server/automation/service"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/filter"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/filter/proxy"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	pkgHttp "github.com/cortezaproject/corteza/server/pkg/http"
 )
 
 type (
@@ -69,7 +69,7 @@ func (r *Registry) Preload() {
 
 	// processers
 	r.Add("workflow", filter.NewWorkflow(r.cfg, NewWorkflow()))
-	r.Add("proxy", proxy.New(r.cfg, service.DefaultLogger, http.DefaultClient, secureStorageTodo{}))
+	r.Add("proxy", proxy.New(r.cfg, service.DefaultLogger, pkgHttp.RestrictedClient(), secureStorageTodo{}))
 	r.Add("payload", filter.NewPayload(r.cfg, service.DefaultLogger))
 
 	// postfilters
