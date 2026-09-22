@@ -69,7 +69,15 @@ block its own navigation). The outer frame's host script owns the port and the
 API calls, and posts results to the shell only through `postMessage` with the
 shell's own origin.
 
-The host destroys the inner frame if it fires `load` a second time.
+The inner document starts with `<base href="about:srcdoc">` and a host script
+that cancels every link and form navigation except a `#fragment`, before the
+bridge and before any app script. Without the base a srcdoc document resolves
+links against the shell's URL, so `#section` would load the shell again inside
+the frame; without the script a stray link would end the app. The page's own
+click handlers still run — only the navigation is cancelled.
+
+The host destroys the inner frame if it fires `load` a second time: that is
+now only a page navigating itself by script.
 
 ## Bridge
 

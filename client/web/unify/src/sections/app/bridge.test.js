@@ -9,6 +9,7 @@ import {
   capLimit,
   dispatch,
   hostScriptSource,
+  INERT_NAVIGATION,
   labelFieldOf,
   recordLabels,
   referenceTargets,
@@ -134,6 +135,21 @@ describe('outer document', () => {
       bridgeScript: BRIDGE_SCRIPT,
       hostScript: hostScriptSource({ origin: 'https://human.test' }),
     })
+
+  it('gives the app its own address as base, and cancels navigation before any app script runs', () => {
+    const doc = buildOuterDocument({
+      source: '<script>app()</script>',
+      hostScript: '',
+      bridgeScript: 'BRIDGE',
+    })
+    const inner = JSON.parse(
+      doc.match(/window.__humanInner = (".*?")<\/script>/s)[1].replace(/<\\\//g, '</'),
+    )
+    expect(inner).toContain('<base href="about:srcdoc">')
+    expect(inner.indexOf(INERT_NAVIGATION)).toBeGreaterThan(-1)
+    expect(inner.indexOf(INERT_NAVIGATION)).toBeLessThan(inner.indexOf('BRIDGE'))
+    expect(inner.indexOf('BRIDGE')).toBeLessThan(inner.indexOf('app()'))
+  })
 
   it('denies itself child frames, which is what pins the app in place', () => {
     expect(build('<p>hello</p>')).toContain(

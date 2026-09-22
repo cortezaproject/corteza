@@ -40,6 +40,20 @@ window.SAMPLE = {
 })()
 </script>`
 
+// Every way a page can try to load another document.
+const LINKS = `
+<p>
+  <a id="anchor" href="#below">anchor</a>
+  <a id="site" href="https://example.com/">site</a>
+  <a id="mail" href="mailto:ana@example.com">mail</a>
+  <a id="handled" href="https://example.com/" onclick="document.getElementById('log').textContent = 'handled'">handled</a>
+</p>
+<form><button id="submit">submit</button></form>
+<button id="scripted" onclick="location.href = 'https://example.com/'">scripted</button>
+<p id="log"></p>
+<div style="height: 3000px"></div>
+<p id="below">below</p>`
+
 const probeSource = (version: number) =>
   PROBE.replace('__BRIDGE__', BRIDGE_SCRIPT.replace(/v: \d+ \}/, `v: ${version} }`))
 
@@ -52,20 +66,25 @@ type Probe = {
   storage: string
 }
 
-async function runProbe(page: Page, applicationID: string): Promise<Probe> {
-  await page.goto(`/app/${applicationID}`)
-  const out = page
+function appFrame(page: Page) {
+  return page
     .frameLocator('iframe[srcdoc]')
     .first()
     .frameLocator('iframe[sandbox="allow-scripts"]')
     .first()
-    .locator('#out')
+}
+
+async function runProbe(page: Page, applicationID: string): Promise<Probe> {
+  await page.goto(`/app/${applicationID}`)
+  const out = appFrame(page).locator('#out')
   await expect(out).not.toBeEmpty({ timeout: 20000 })
   return JSON.parse(await out.innerText())
 }
 
 const byName = (probe: Probe, name: string) =>
   probe.list.ok!.records.find(r => r.values.name === name)
+
+let linksApp = ''
 
 test.describe.serial('custom app gotchas', () => {
   let namespaceID = ''
@@ -153,11 +172,16 @@ test.describe.serial('custom app gotchas', () => {
 
           return { namespaceID, apps }
         },
-        { slug: SLUG, name: NAME, sources: { v1: probeSource(1), v2: probeSource(2) } },
+        {
+          slug: SLUG,
+          name: NAME,
+          sources: { v1: probeSource(1), v2: probeSource(2), links: LINKS },
+        },
       )
 
       namespaceID = made.namespaceID
       Object.assign(apps, made.apps)
+      linksApp = made.apps.links
     } finally {
       await context.close()
     }
@@ -240,5 +264,40 @@ test.describe.serial('custom app gotchas', () => {
     const probe: Probe = JSON.parse(await out.innerText())
     expect(probe.live).toBe(false)
     expect(probe.list.ok!.records[0].values.name).toBe('sample row')
+  })
+
+  test('an in-page anchor scrolls, and the app keeps running', async ({ page }) => {
+    test.skip(!linksApp, 'the links app was not created')
+    await page.goto(`/app/${linksApp}`)
+    const app = appFrame(page)
+    await app.locator('#anchor').click()
+    await expect
+      .poll(() => app.locator('body').evaluate(() => Math.round(scrollY)))
+      .toBeGreaterThan(1000)
+    await expect(page.locator('iframe[srcdoc]')).toHaveCount(1)
+  })
+
+  test('a link or form that leaves the page does nothing, and the app keeps running', async ({
+    page,
+  }) => {
+    test.skip(!linksApp, 'the links app was not created')
+    for (const id of ['site', 'mail', 'handled', 'submit']) {
+      await page.goto(`/app/${linksApp}`)
+      const app = appFrame(page)
+      await app.locator(`#${id}`).click()
+      await page.waitForTimeout(1000)
+      await expect(page.locator('iframe[srcdoc]'), id).toHaveCount(1)
+      if (id === 'handled') await expect(app.locator('#log')).toHaveText('handled')
+    }
+  })
+
+  test('a page that navigates itself by script is stopped', async ({ page }) => {
+    test.skip(!linksApp, 'the links app was not created')
+    await page.goto(`/app/${linksApp}`)
+    await appFrame(page).locator('#scripted').click()
+    await expect(page.locator('iframe[srcdoc]')).toHaveCount(0)
+    await expect(
+      page.getByText('This app tried to leave the sandbox and was stopped.'),
+    ).toBeVisible()
   })
 })

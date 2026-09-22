@@ -21,6 +21,20 @@ export const CSP_INNER =
   "connect-src 'none'; " +
   "form-action 'none'"
 
+// A link or form in the app that would load another document does nothing
+// instead. The page's own handlers still run; only the navigation is cancelled,
+// because a navigating frame is one the outer host has to remove.
+export const INERT_NAVIGATION = `(function () {
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest && e.target.closest('a[href]')
+    if (!a) return
+    var href = a.getAttribute('href') || ''
+    if (href.charAt(0) === '#') return
+    e.preventDefault()
+  }, true)
+  document.addEventListener('submit', function (e) { e.preventDefault() }, true)
+})()`
+
 // The most records one call may ask for.
 export const MAX_LIMIT = 500
 
@@ -100,10 +114,16 @@ export function hostScriptSource({ origin }) {
 
 // The whole outer document: the inner document as a string, then the host that
 // puts it in a sandboxed frame.
+//
+// The inner document's base is its own address: a srcdoc document otherwise
+// resolves links against the shell's URL, so `#section` would load the shell
+// again inside the frame instead of scrolling.
 export function buildOuterDocument({ source, hostScript, bridgeScript, cspInner = CSP_INNER }) {
   const inner = `<!doctype html>
 <meta charset="utf-8">
+<base href="about:srcdoc">
 <meta http-equiv="Content-Security-Policy" content="${cspInner}">
+<script>${INERT_NAVIGATION}</script>
 <script>${bridgeScript}</script>
 ${source}`
 
