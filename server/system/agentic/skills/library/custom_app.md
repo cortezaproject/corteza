@@ -2,6 +2,7 @@
 name: custom_app
 description: A custom app is one HTML document Human renders in a sandbox with no network and no storage — how to write one that runs both in a preview and inside Human, and how to deploy it.
 importance: high
+announce: Asked to build a page, dashboard, report view or small app for someone — even just a preview or an HTML artifact that uses Human data — the skill custom_app decides what that page may contain, and a page written without it cannot be deployed into Human.
 triggers:
   - system_application_create
   - system_application_update

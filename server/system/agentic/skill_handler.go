@@ -26,7 +26,33 @@ type skillHandler struct {
 func SkillHandler(reg toolRegistrar, lib skills.Registry) *skillHandler {
 	h := &skillHandler{reg: reg, lib: lib}
 	h.register()
+	h.announce()
 	return h
+}
+
+// instructionAdder is a registrar that also carries initialize instructions.
+type instructionAdder interface {
+	AddInstructions(text string)
+}
+
+// announce puts each skill that must be read before its tools are called into
+// the text a client gets at initialize. A skill found only through its trigger
+// tools arrives after the work it governs is already done — a custom app is
+// written long before system_application_source_set is called.
+func (h *skillHandler) announce() {
+	adder, ok := h.reg.(instructionAdder)
+	if !ok || h.lib == nil {
+		return
+	}
+
+	for _, s := range h.lib.All() {
+		if s.Announce == "" {
+			continue
+		}
+		adder.AddInstructions(fmt.Sprintf(
+			"%s Read it first with system_skill_lookup {\"skill\": %q}.", s.Announce, s.Name,
+		))
+	}
 }
 
 type skillItem struct {

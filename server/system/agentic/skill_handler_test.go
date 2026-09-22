@@ -90,3 +90,31 @@ func TestSkillLookupRejectsAnUnknownSkill(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "no such skill")
 }
+
+type announcingRegistrar struct {
+	stubRegistrar
+	said []string
+}
+
+func (a *announcingRegistrar) AddInstructions(text string) { a.said = append(a.said, text) }
+
+// Every announced skill reaches the initialize text by name, and nothing else
+// does; a registrar with no instructions to carry is left alone.
+func TestSkillHandlerAnnouncesSkills(t *testing.T) {
+	lib, err := skills.LoadLibrary()
+	require.NoError(t, err)
+
+	reg := &announcingRegistrar{}
+	SkillHandler(reg, lib)
+
+	announced := 0
+	for _, s := range lib.All() {
+		if s.Announce != "" {
+			announced++
+		}
+	}
+	require.Len(t, reg.said, announced)
+	require.Contains(t, strings.Join(reg.said, "\n"), `system_skill_lookup {"skill": "custom_app"}`)
+
+	require.NotPanics(t, func() { SkillHandler(&stubRegistrar{}, lib) })
+}

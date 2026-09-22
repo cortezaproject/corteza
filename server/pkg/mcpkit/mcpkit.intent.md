@@ -60,7 +60,9 @@ transports; they share nothing about what a tool does.
   `ServeStdio` for a client that launches the server as a child process. It also
   sets the initialize-time instructions string: load a tool's documentation
   before using it, look a skill up by tool name, and expect a per-session risk
-  cap.
+  cap. Paragraphs a registrant adds with `Registry.AddInstructions` follow it
+  in order; mcpkit carries that text without knowing what it says, which is how
+  the domain side announces a skill that must be read before any tool runs.
 - `toolkit/` — the argument, result and error plumbing every handler repeats.
   `JSONResult` is the only sanctioned path from a Go value to a tool result, so
   the size ceiling lives in one place.

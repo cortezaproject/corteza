@@ -30,6 +30,12 @@ const serverInstructions = "Every tool is listed and callable, but the listing s
 	"Each tool carries a risk of read, write or destructive, and a session may be capped at one of " +
 	"them: a call above the cap is refused until the client reconnects without it."
 
+// instructions is the server's own paragraph followed by whatever the
+// registry was given.
+func instructions(reg *Registry) string {
+	return strings.Join(append([]string{serverInstructions}, reg.Instructions()...), "\n\n")
+}
+
 type MCPServer struct {
 	server     *server.MCPServer
 	httpServer *server.StreamableHTTPServer
@@ -57,7 +63,7 @@ func NewMCPServer(reg *Registry, name, version string) *MCPServer {
 	m.server = server.NewMCPServer(
 		name,
 		version,
-		server.WithInstructions(serverInstructions),
+		server.WithInstructions(instructions(reg)),
 		server.WithToolCapabilities(true),
 		server.WithResourceCapabilities(true, false),
 		server.WithToolFilter(m.listFilter()),

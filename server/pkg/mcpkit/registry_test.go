@@ -30,3 +30,16 @@ func TestSelectCarriesGroupsAndRisk(t *testing.T) {
 	assert.Equal(t, []Group{GroupConfiguring}, defs[0].Groups)
 	assert.Equal(t, RiskDestructive, defs[0].Risk)
 }
+
+// What a registrant adds reaches the initialize text after the server's own
+// paragraph, in order; blank additions leave no empty paragraph behind.
+func TestInstructionsCarryRegistrantParagraphs(t *testing.T) {
+	reg := NewRegistry()
+	reg.AddInstructions("  first  ")
+	reg.AddInstructions("")
+	reg.AddInstructions("second")
+
+	assert.Equal(t, []string{"first", "second"}, reg.Instructions())
+	assert.Equal(t, serverInstructions+"\n\nfirst\n\nsecond", instructions(reg))
+	assert.Equal(t, serverInstructions, instructions(NewRegistry()))
+}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -27,8 +28,9 @@ type (
 	}
 
 	Registry struct {
-		tools     map[string]registeredTool
-		resources map[string]registeredResource
+		tools        map[string]registeredTool
+		resources    map[string]registeredResource
+		instructions []string
 	}
 
 	// RegisterOption adjusts how a tool is registered. These are
@@ -139,6 +141,20 @@ func (r *Registry) IsHidden(name string) bool {
 func (r *Registry) HasTool(name string) bool {
 	_, ok := r.tools[ResolveToolAlias(name)]
 	return ok
+}
+
+// AddInstructions appends a paragraph to what the server tells a client at
+// initialize, after its own. It is plain text: whatever registers tools may
+// say when to reach for them, and the server stays ignorant of what it says.
+func (r *Registry) AddInstructions(text string) {
+	if text = strings.TrimSpace(text); text != "" {
+		r.instructions = append(r.instructions, text)
+	}
+}
+
+// Instructions is every paragraph added, in the order it was added.
+func (r *Registry) Instructions() []string {
+	return append([]string(nil), r.instructions...)
 }
 
 func (r *Registry) RegisterResource(resource mcp.Resource, handler server.ResourceHandlerFunc) {

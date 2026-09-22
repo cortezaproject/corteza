@@ -78,3 +78,24 @@ body`)
 		t.Fatal("expected error for missing triggers")
 	}
 }
+
+// custom_app is written before any of its trigger tools runs, so it has to be
+// announced at initialize; a skill with no announce line stays out of it.
+func TestAnnounceIsParsedAndOptional(t *testing.T) {
+	reg, err := LoadLibrary()
+	if err != nil {
+		t.Fatalf("load library: %v", err)
+	}
+
+	byName := map[string]*Skill{}
+	for _, s := range reg.All() {
+		byName[s.Name] = s
+	}
+
+	if app := byName["custom_app"]; app == nil || app.Announce == "" {
+		t.Fatal("custom_app must carry an announce line")
+	}
+	if layout := byName["page_layout"]; layout == nil || layout.Announce != "" {
+		t.Fatal("page_layout carries no announce line")
+	}
+}

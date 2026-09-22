@@ -18,7 +18,10 @@ type (
 		Name        string
 		Description string
 		Triggers    []string
-		Body        string
+		// Announce is one sentence a client reads at initialize, for a skill
+		// that must be read before any of its trigger tools is called.
+		Announce string
+		Body     string
 	}
 
 	Registry interface {
@@ -35,6 +38,7 @@ type (
 		Name        string   `yaml:"name"`
 		Description string   `yaml:"description"`
 		Triggers    []string `yaml:"triggers"`
+		Announce    string   `yaml:"announce"`
 	}
 )
 
@@ -114,6 +118,7 @@ func parseSkill(data []byte) (*Skill, error) {
 		Name:        fm.Name,
 		Description: fm.Description,
 		Triggers:    fm.Triggers,
+		Announce:    strings.TrimSpace(fm.Announce),
 		Body:        body,
 	}, nil
 }
