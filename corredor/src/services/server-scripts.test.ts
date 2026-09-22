@@ -4,6 +4,10 @@ import { expect } from 'chai'
 import pino from 'pino'
 import ServerScripts from './server-scripts'
 import { Trigger } from '../scripts/trigger'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
+import Loader from '../loader'
 
 const baseScript = {
   src: 'path/to/script',
@@ -101,5 +105,45 @@ describe('scripts list', () => {
     it('should match all with no events', () => {
       expect(svc.list({ eventTypes: [] })).to.have.lengthOf(3)
     })
+  })
+})
+
+describe('scripts processing', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'corredor-test-'))
+  const valid = path.join(dir, 'valid.js')
+  const invalid = path.join(dir, 'invalid.js')
+
+  before(() => {
+    fs.writeFileSync(valid, 'exports.default = { exec () { return 42 } }')
+    fs.writeFileSync(invalid, 'exports.default = { iterator () { throw new Error() }, exec () {} }')
+  })
+
+  after(() => {
+    fs.rmSync(dir, { recursive: true, force: true })
+  })
+
+  it('gives only valid scripts their exec and keeps raw functions out of invalid ones', async () => {
+    const loader = {
+      searchPaths: [dir],
+      scripts: async () => [
+        { src: valid, name: 'valid', updatedAt: new Date(), triggers: [], errors: [] },
+        {
+          src: invalid,
+          name: 'invalid',
+          updatedAt: new Date(),
+          triggers: [],
+          errors: ['iterator not defined'],
+        },
+      ],
+    } as unknown as Loader
+
+    const svc = new ServerScripts({ ...svcCtorArgs, loader })
+    await svc.process()
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    const byName = Object.fromEntries(svc.list().map(s => [s.name, s]))
+    expect(byName.valid.exec).to.be.a('function')
+    expect(byName.invalid).to.not.have.property('exec')
+    expect(byName.invalid).to.not.have.property('iterator')
   })
 })

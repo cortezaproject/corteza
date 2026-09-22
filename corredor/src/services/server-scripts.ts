@@ -133,7 +133,14 @@ export default class ServerScripts {
         return scripts.filter(isValid)
       })
       .then(() => {
+        // Only a valid script gets its exec function; the raw export of an
+        // invalid one may carry functions where the list expects data
+        // (an iterator that failed to parse), which no gRPC response can hold.
         for (let s = 0; s < this.scripts.length; s++) {
+          if (!isValid(this.scripts[s])) {
+            continue
+          }
+
           const { src } = this.scripts[s]
           this.scripts[s] = { ...this.require(src), ...this.scripts[s] }
         }
