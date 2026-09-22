@@ -41,5 +41,5 @@ deployed outside the UI — no create/edit/delete here.
   rows, grouping, kind filter, banner state, relative time); keep the view thin
   and test the helpers, not the template.
 
-- Keep filtering client-side over the fetched set unless the script count outgrows it — no server round-trips after mount.
+- Keep filtering client-side over the fetched set unless the script count outgrows it — the banner's Refresh is the only server round-trip after mount.
 - Script errors surface inline per row — that visibility is the main point of the view; don't hide them behind a detail screen.
