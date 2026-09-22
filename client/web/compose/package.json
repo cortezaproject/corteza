@@ -31,7 +31,12 @@
   },
   "resolutions": {
     "cross-spawn": "^7.0.6",
-    "postcss": "^8.5.3"
+    "postcss": "^8.5.3",
+    "body-parser": "^1.20.6",
+    "on-headers": "^1.1.0",
+    "qs": "^6.16.0",
+    "**/express/path-to-regexp": "0.1.13",
+    "**/editorconfig/minimatch": "^9.0.9"
   },
   "dependencies": {
     "@cortezaproject/corteza-js": "^2026.9.0-dev.1",

@@ -31,7 +31,8 @@
     "postcss": "^8.5.3",
     "json5": "^2.2.3",
     "loader-utils": "^3.2.0",
-    "prosemirror-model": "^1.25.0"
+    "prosemirror-model": "^1.25.0",
+    "decode-uri-component": "^0.5.0"
   },
   "dependencies": {
     "@cortezaproject/corteza-js": "^2026.9.0-dev.1",
