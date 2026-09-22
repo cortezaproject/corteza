@@ -1,0 +1,104 @@
+# Contacts CRM fixture — the namespace a Claude-written custom app was designed
+# against (companies + contacts, with the messy rows a real list has). Imported
+# by dev/agent/seed.sh (local dev server only). Data model + records only.
+
+namespace:
+  contacts_crm:
+    name: Contacts CRM
+    enabled: true
+
+    modules:
+      companies:
+        name: Companies
+        fields:
+          name:
+            title: Name
+          industry:
+            title: Industry
+        source:
+          - from: companies.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: name
+                field: name
+              - column: industry
+                field: industry
+
+      contacts:
+        name: Contacts
+        fields:
+          first_name:
+            title: First name
+          last_name:
+            title: Last name
+          company:
+            title: Company
+            kind: Record
+            options:
+              module: companies
+          job_title:
+            title: Job title
+          email:
+            title: Email
+            kind: Email
+          phone:
+            title: Phone
+          mobile:
+            title: Mobile
+          contact_type:
+            title: Contact type
+            kind: Select
+            options:
+              options:
+                - value: primary
+                  text: Primary
+                - value: decision_maker
+                  text: Decision Maker
+                - value: technical
+                  text: Technical
+                - value: billing
+                  text: Billing
+                - value: other
+                  text: Other
+          is_active:
+            title: Active
+            kind: Bool
+          last_contacted:
+            title: Last contacted
+            kind: DateTime
+            options:
+              onlyDate: true
+          notes:
+            title: Notes
+            options:
+              multiLine: true
+        source:
+          - from: contacts.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: first_name
+                field: first_name
+              - column: last_name
+                field: last_name
+              - column: company
+                field: company
+              - column: job_title
+                field: job_title
+              - column: email
+                field: email
+              - column: phone
+                field: phone
+              - column: mobile
+                field: mobile
+              - column: contact_type
+                field: contact_type
+              - column: is_active
+                field: is_active
+              - column: last_contacted
+                field: last_contacted
+              - column: notes
+                field: notes

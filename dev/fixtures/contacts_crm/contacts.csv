@@ -1,0 +1,8 @@
+ID,first_name,last_name,company,job_title,email,phone,mobile,contact_type,is_active,last_contacted,notes
+c1,Marko,Zupan,co1,CTO,marko.zupan@alpinesystems.si,+386 1 234 5680,+386 41 555 201,decision_maker,1,2026-07-28,Main technical sponsor for the platform rollout.
+c2,Ana,Kovač,co1,Finance Manager,ana.kovac@alpinesystems.si,+386 1 234 5682,,billing,1,2026-06-15,Handles invoicing and PO approvals.
+c3,Lukas,Berger,co2,Head of Operations,l.berger@meridianretail.com,+43 1 555 0204,+43 664 555 0177,primary,1,2026-08-05,Primary contact from the intro call.
+c4,Petra,Novak,,Head of Procurement,p.novak@meridianretail.com,,,,,,
+c5,Test,Test,,,,,,,1,,
+c6,Marko,Duplicate,,Duplicate test,MARKO.ZUPAN@alpinesystems.si,,,,1,,
+c7,Nina,Horvat,co2,Store Manager,nina.horvat@meridianretail.com,+43 1 555 0210,,technical,0,2026-03-02,Left the project in spring.
