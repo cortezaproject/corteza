@@ -6,6 +6,7 @@ import CViewUser from './CViewUser.vue'
 import CViewAgent from './CViewAgent.vue'
 import CViewSelect from './CViewSelect.vue'
 import CViewFieldValueMap from './CViewFieldValueMap.vue'
+import CViewCorredorScript from './CViewCorredorScript.vue'
 
 /**
  * Maps input.type (from API function definition segments) to a read-only viewer component.
@@ -28,14 +29,15 @@ export const VIEWER_REGISTRY: Record<string, Component> = {
   ModuleSelector: CViewModule,
   Module: CViewModule,
 
-  // Corredor script viewers — the script name as stored
-  CorredorScriptSelector: CViewText,
-  CorredorScript: CViewText,
+  // Corredor script viewers — the script's own label over the stored name
+  CorredorScriptSelector: CViewCorredorScript,
+  CorredorScript: CViewCorredorScript,
 
   // Text viewers (default)
   Text: CViewText,
   String: CViewText,
   Number: CViewText,
+  Expression: CViewText,
 
   // Select/dropdown — handled specially (needs options prop)
   Select: CViewSelect,

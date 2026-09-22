@@ -2382,12 +2382,17 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/taq/components/builder/form/inputs/registry.corredorScript.test.ts": {
-      "h": "bc5c093f2674",
+      "h": "7df2a8566015",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-09-22"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/inputs/registry.expression.test.ts": {
+      "h": "34d0fb0a3767",
       "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/taq/components/builder/form/inputs/registry.ts": {
-      "h": "a6c595471324",
+      "h": "ba2e41d6af40",
       "doc": "client/web/unify/src/sections/taq/components/builder/form/inputs/registry.intent.md",
       "t": "2026-09-22"
     },
@@ -2401,10 +2406,25 @@
       "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
       "t": "2026-08-13"
     },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/corredor-scripts.ts": {
+      "h": "d7c93fbdfdb8",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-09-22"
+    },
     "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewAgent.vue": {
       "h": "7f63615f2e68",
       "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
       "t": "2026-07-23"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewCorredorScript.test.ts": {
+      "h": "bd399ff2ca29",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-09-22"
+    },
+    "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewCorredorScript.vue": {
+      "h": "c127067330d9",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-09-22"
     },
     "client/web/unify/src/sections/taq/components/builder/form/viewers/CViewFieldValueMap.vue": {
       "h": "ede1551899db",
@@ -2442,7 +2462,7 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/taq/components/builder/form/viewers/registry.ts": {
-      "h": "6c6537b49b94",
+      "h": "51414e91a91a",
       "doc": "client/web/unify/src/sections/taq/components/builder/form/viewers/registry.intent.md",
       "t": "2026-09-22"
     },
@@ -2536,10 +2556,15 @@
       "doc": "client/web/unify/src/sections/taq/composables/composables.intent.md",
       "t": "2026-08-18"
     },
-    "client/web/unify/src/sections/taq/composables/useSegmentForm.ts": {
-      "h": "3c99a9cae13d",
+    "client/web/unify/src/sections/taq/composables/useSegmentForm.placeholder.test.ts": {
+      "h": "bd0a3fda46e9",
       "doc": "client/web/unify/src/sections/taq/composables/composables.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-09-22"
+    },
+    "client/web/unify/src/sections/taq/composables/useSegmentForm.ts": {
+      "h": "115b0561986f",
+      "doc": "client/web/unify/src/sections/taq/composables/composables.intent.md",
+      "t": "2026-09-22"
     },
     "client/web/unify/src/sections/taq/index.js": {
       "h": "efb14212fd1a",

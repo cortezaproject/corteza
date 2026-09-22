@@ -25,8 +25,10 @@ step previews and the reference panel.
 ## When changing this
 
 - Add entries in the same change that extends the inputs registry.
-- `CorredorScriptSelector` / `CorredorScript` render through `CViewText`: the
-  stored value is the script name, which is what a preview shows.
+- `CorredorScriptSelector` / `CorredorScript` render through
+  `CViewCorredorScript`: a preview reads the script's label with the stored name
+  beneath it, and falls back to the name alone when the script is not deployed
+  here. One fetch serves every row.
 
 > **DRIFT:** nine editable types currently have no viewer entry — see the
 > DRIFT note in `../../builder.intent.md` for the list.

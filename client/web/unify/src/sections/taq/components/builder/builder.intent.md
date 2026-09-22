@@ -46,7 +46,7 @@ editing forms.
 - `form/inputs/CInputFieldValueMap.vue` — record field→value rows (module fields + system fields); per-field value-or-reference.
 - `form/inputs/CInputWorkflowInputMap.vue` — Run Workflow step: the selected workflow's declared inputs as value-or-reference rows (registered as `WorkflowInputMap`, alongside `Workflow`/`WorkflowSelector` → lib `CInputWorkflow`).
 - `form/viewers/registry.ts` — `input.type` → read-only viewer map used by `StepPreviewPopover`; falls back to `CViewText`.
-- `form/viewers/CView*.vue` — one viewer per input type: `Text`, `Select` (label lookup), `Namespace`/`Module`/`User`/`Agent` (ID → display name), `Reference` (chip), `FieldValueMap` (row summary).
+- `form/viewers/CView*.vue` — one viewer per input type: `Text`, `Select` (label lookup), `Namespace`/`Module`/`User`/`Agent` (ID → display name), `Reference` (chip), `FieldValueMap` (row summary), `CorredorScript` (the script's label over its stored name, one fetch shared by every row).
 
 ## When changing this
 
