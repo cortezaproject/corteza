@@ -82,6 +82,7 @@ trap 'rm -f "$body"' EXIT
 status=$(curl -s -m 30 -o "$body" -w '%{http_code}' -X "$method" \
   -H "Authorization: Bearer $token" \
   -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
   "$HUMAN_API$path" "$@")
 
 if errmsg=$(json_get error.message <"$body" 2>/dev/null); then
