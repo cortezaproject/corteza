@@ -395,6 +395,12 @@ What catches people out:
   `node dev/mcp/uiverify.mjs` with `baseURL` in its JSON argument;
   `npx playwright test` run from the worktree already reads the worktree's own
   `.env.e2e`.
+- **`up` also starts Corredor** when the checkout has `corredor/`: on the
+  slot's gRPC port (API port + 50000), before the server, with
+  `CORREDOR_ENABLED=true` and `CORREDOR_ADDR` written into the slot's
+  `server/.env`. It mounts `dev/fixtures/corredor` (scripts against the
+  `agent-sandbox` namespace — seed it) plus `corredor/usr/*`; log at
+  `.run/corredor.log`. `down` stops it last.
 - **`rm` refuses while the checkout is dirty.** It will not discard your work.
 - **A worktree needs no `cleanup.sh`** — `rm` drops its whole database, so
   nothing it created can outlive it.

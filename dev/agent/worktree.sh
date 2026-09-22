@@ -56,6 +56,34 @@ read -r PRIMARY_API PRIMARY_VITE <<<"$(
 
 slot_api() { echo $((PRIMARY_API + $1 * 100)); }
 slot_vite() { echo $((PRIMARY_VITE + $1)); }
+# Corredor's gRPC port: the slot's API port moved up by 50000 (1343 → 51343).
+slot_corredor() { echo $((50000 + $(slot_api "$1"))); }
+
+# corredor_port NAME — from the metadata, or derived for a worktree made
+# before the metadata carried it.
+corredor_port() {
+  local p
+  p="$(json_get corredor <"$(meta "$1")" 2>/dev/null || true)"
+  [[ -n "$p" ]] || p="$(slot_corredor "$(read_meta "$1" slot)")"
+  echo "$p"
+}
+
+# append_line FILE LINE — on a line of its own even when the file has no
+# trailing newline (the primary's .env ends mid-line).
+append_line() {
+  [[ ! -s "$1" || "$(tail -c1 "$1" | od -An -c | tr -d ' ')" == '\n' ]] || echo >>"$1"
+  printf '%s\n' "$2" >>"$1"
+}
+
+# set_env FILE KEY VALUE — the last uncommented KEY= line is the one the
+# server reads (see stack.sh), so an existing one is rewritten in place.
+set_env() {
+  if grep -qE "^[[:space:]]*$2=" "$1"; then
+    sed -i -E "s#^[[:space:]]*$2=.*#$2=$3#" "$1"
+  else
+    append_line "$1" "$2=$3"
+  fi
+}
 slot_db() { echo "$(db_name_base)_wt$1"; }
 
 # The primary's DB_DSN — the one connection string every worktree derives from.
@@ -285,7 +313,7 @@ cmd_new() {
   # that says so, and server/pkg/weburl builds every link a tool result hands
   # back from it; without it they all point at the API and 404.
   grep -q '^DOMAIN_WEBAPP=' "$path/server/.env" ||
-    printf 'DOMAIN_WEBAPP=localhost:%s\n' "$vite" >>"$path/server/.env"
+    append_line "$path/server/.env" "DOMAIN_WEBAPP=localhost:$vite"
   step server/.env "HTTP_ADDR=:$api DOMAIN_WEBAPP=localhost:$vite DB=$db"
 
   cat >"$path/client/web/unify/public/config.js" <<EOF
@@ -314,13 +342,13 @@ EOF
 
   python3 -c '
 import json, sys, time
-name, path, slot, api, vite, db, base, session, out = sys.argv[1:10]
+name, path, slot, api, vite, corredor, db, base, session, out = sys.argv[1:11]
 json.dump({
     "name": name, "path": path, "slot": int(slot), "branch": name, "base": base,
-    "api": int(api), "vite": int(vite), "db": db,
+    "api": int(api), "vite": int(vite), "corredor": int(corredor), "db": db,
     "session": session, "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
 }, open(out, "w"), indent=2)
-' "$name" "$path" "$slot" "$api" "$vite" "$db" "$base" "$AGENT_SESSION" "$(meta "$name")"
+' "$name" "$path" "$slot" "$api" "$vite" "$(slot_corredor "$slot")" "$db" "$base" "$AGENT_SESSION" "$(meta "$name")"
 
   trap - ERR
 
@@ -367,6 +395,43 @@ cmd_up() {
     (cd "$path/server" && go build -o build/dev-bin ./cmd/human)
   fi
 
+  # Corredor listens before the server boots: with CORREDOR_ENABLED=true the
+  # server's Connect() is a boot failure when nothing answers. A checkout
+  # without corredor/ leaves the server's Corredor settings as they are.
+  if [[ -f "$path/corredor/package.json" ]]; then
+    local cport
+    cport="$(corredor_port "$name")"
+    set_env "$path/server/.env" CORREDOR_ENABLED true
+    set_env "$path/server/.env" CORREDOR_ADDR "localhost:$cport"
+    mkdir -p "$path/.run/corredor-bundles"
+    if port_busy "$cport"; then
+      orphan_warning "$cport" "$path/.run/corredor.pid" corredor
+    else
+      start_svc "$path/.run/corredor.pid" "$path/.run/corredor.log" "$path/corredor" \
+        env CORREDOR_ENVIRONMENT=dev \
+        CORREDOR_ADDR="localhost:$cport" \
+        CORREDOR_SERVER_CERTIFICATES_ENABLED=false \
+        CORREDOR_LOG_PRETTY=true \
+        CORREDOR_EXT_SEARCH_PATHS="$path/dev/fixtures/corredor:$path/corredor/usr:$path/corredor/usr/*" \
+        CORREDOR_EXT_DEPENDENCIES_AUTO_UPDATE=false \
+        CORREDOR_BUNDLER_OUTPUT_PATH="$path/.run/corredor-bundles" \
+        CORREDOR_EXEC_CSERVERS_API_HOST="localhost:$api" \
+        CORREDOR_EXEC_CSERVERS_API_BASEURL_TEMPLATE='http://{host}/api/{service}' \
+        CORREDOR_EXEC_CTX_FRONTEND_BASEURL="http://localhost:$vite" \
+        pnpm serve
+      for ((i = 0; i < 100; i++)); do
+        port_busy "$cport" && break
+        sleep 0.3
+      done
+      if port_busy "$cport"; then
+        printf '  %s %-8s %s\n' "$(paint "$C_GREEN" "$G_OK")" corredor \
+          "grpc :$cport   $(paint "$C_DIM" "(log $path/.run/corredor.log)")"
+      else
+        warn "corredor did not come up on :$cport — the server will fail to boot; see $path/.run/corredor.log"
+      fi
+    fi
+  fi
+
   if port_busy "$api"; then
     orphan_warning "$api" "$path/.run/server.pid" server
   else
@@ -395,13 +460,18 @@ cmd_down() {
   [[ "${2:-}" == "--force" || "${1:-}" == "--force" ]] && force=1
   [[ "${1:-}" == "--force" ]] && name="$(resolve_name "")"
   path="$(read_meta "$name" path)"
-  local api vite
+  local api vite cport
   api="$(read_meta "$name" api)"
   vite="$(read_meta "$name" vite)"
-  for what in server webapp; do
+  cport="$(corredor_port "$name")"
+  for what in server webapp corredor; do
     local pidfile="$path/.run/$what.pid" port
     [[ -f "$pidfile" ]] || continue
-    if [[ "$what" == server ]]; then port="$api"; else port="$vite"; fi
+    case "$what" in
+      server) port="$api" ;;
+      webapp) port="$vite" ;;
+      corredor) port="$cport" ;;
+    esac
     local pid
     pid="$(cat "$pidfile")"
     # setsid made it a group leader, so the negative PID reaches the whole
@@ -434,7 +504,7 @@ cmd_down() {
   # The slot owns these ports, so anything still holding one is this
   # worktree's orphan — but only --force reaches for a pid nothing recorded.
   local stuck=0 holder
-  for p in "$(read_meta "$name" vite)" "$(read_meta "$name" api)"; do
+  for p in "$(read_meta "$name" vite)" "$(read_meta "$name" api)" "$cport"; do
     port_busy "$p" || continue
     holder="$(port_holder "$p")"
     if [[ -n "$force" && -n "$holder" ]]; then
@@ -464,7 +534,9 @@ cmd_list() {
     n="$(json_get name <"$f")"
     s=""
     port_busy "$(json_get api <"$f")" && s="server "
-    port_busy "$(json_get vite <"$f")" && s="${s}webapp"
+    port_busy "$(json_get vite <"$f")" && s="${s}webapp "
+    port_busy "$(corredor_port "$n")" && s="${s}corredor"
+    s="${s% }"
     printf '%-4s %-18s %-6s %-6s %-24s %s\n' \
       "$(json_get slot <"$f")" "$n" "$(json_get api <"$f")" \
       "$(json_get vite <"$f")" \
@@ -605,6 +677,7 @@ cmd_gc() {
     running=""
     port_busy "$(json_get api <"$f")" && running="serving"
     port_busy "$(json_get vite <"$f")" && running="serving"
+    port_busy "$(corredor_port "$name")" && running="serving"
 
     dirty="$(git -C "$path" status --porcelain 2>/dev/null |
       grep -v 'dev/agent/\.state$' || true)"
