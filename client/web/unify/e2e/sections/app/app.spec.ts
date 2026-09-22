@@ -58,3 +58,31 @@ test('an application that is not a custom one is refused', async ({ page }) => {
   await page.goto('/app/999')
   await expect(page).toHaveURL(/\/\?denied=app$/)
 })
+
+test('going from one custom application straight to another shows the second', async ({ page }) => {
+  await page.goto('/')
+  const tiles = page.locator('a[href^="/app/"]')
+  await tiles
+    .nth(1)
+    .waitFor({ timeout: 10000 })
+    .catch(() => {})
+  test.skip(
+    (await tiles.count()) < 2,
+    'fewer than two custom applications are offered to this user',
+  )
+
+  const second = await tiles.nth(1).getAttribute('href')
+
+  // The app menu is a router push from one app to the other: the view is not
+  // remounted in between, so the second has to load under it.
+  await tiles.nth(0).click()
+  await expect(page.locator('iframe[srcdoc]')).toBeVisible()
+  const firstTitle = await page.locator('#topbar-title').innerText()
+
+  await page.locator('[data-test-id="app-selector"]').click()
+  await page.locator(`a[href="${second}"]`).last().click()
+
+  await expect(page).toHaveURL(new RegExp(second!.replace(/\//g, '\\/') + '$'))
+  await expect(page.locator('#topbar-title')).not.toHaveText(firstTitle)
+  await expect(page.locator('iframe[srcdoc]')).toBeVisible()
+})

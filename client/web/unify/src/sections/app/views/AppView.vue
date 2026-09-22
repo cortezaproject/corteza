@@ -25,7 +25,7 @@
 
 <script setup>
 import { useApplicationsStore, useUserStore } from '@planetcrust/human-vue'
-import { inject, onBeforeUnmount, onMounted, ref } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { BRIDGE_SCRIPT } from '../bridge'
@@ -40,8 +40,6 @@ const $ComposeAPI = inject('$ComposeAPI')
 
 const applicationsStore = useApplicationsStore()
 const userStore = useUserStore()
-
-const applicationID = String(route.params.applicationID || '')
 
 const loading = ref(true)
 const problem = ref('')
@@ -188,8 +186,18 @@ async function resolveDeclared(meta) {
   }
 }
 
-onMounted(async () => {
-  window.addEventListener('message', onMessage)
+// One application per route, and the route changes without the view being
+// remounted when the user goes from one custom app straight to another.
+async function load(applicationID) {
+  loading.value = true
+  problem.value = ''
+  application.value = null
+  outerDocument.value = ''
+  frameHeight.value = '100%'
+  sourceMeta.value = {}
+  namespaceID.value = ''
+  moduleIDs.value = {}
+  userFields.value = {}
 
   try {
     application.value = await applicationsStore.findByID(applicationID)
@@ -230,7 +238,19 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  window.addEventListener('message', onMessage)
 })
+
+watch(
+  () => String(route.params.applicationID || ''),
+  applicationID => {
+    if (applicationID) load(applicationID)
+  },
+  { immediate: true },
+)
 
 onBeforeUnmount(() => {
   window.removeEventListener('message', onMessage)
