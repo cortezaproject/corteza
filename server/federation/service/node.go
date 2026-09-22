@@ -507,8 +507,9 @@ func (svc node) FindBySharedNodeID(ctx context.Context, sharedNodeID uint64) (*t
 
 	if n != nil {
 		// all federated users share the same role, make sure they only get to their own node
+		// matched by email since users can change their own handle
 		u, _ := store.LookupUserByID(ctx, svc.store, auth.GetIdentityFromContext(ctx).Identity())
-		if u != nil && strings.HasPrefix(u.Handle, federatedUserHandlePrefix) && u.Handle != federatedUserHandle(n) {
+		if u != nil && strings.HasSuffix(u.Email, federatedUserEmailSuffix) && u.Email != federatedUserEmail(n) {
 			return nil, NodeErrNotAllowedToManage()
 		}
 	}
@@ -516,10 +517,17 @@ func (svc node) FindBySharedNodeID(ctx context.Context, sharedNodeID uint64) (*t
 	return n, err
 }
 
-const federatedUserHandlePrefix = "federation_"
+const (
+	federatedUserHandlePrefix = "federation_"
+	federatedUserEmailSuffix  = "@federation.corteza"
+)
 
 func federatedUserHandle(n *types.Node) string {
 	return fmt.Sprintf("%s%d", federatedUserHandlePrefix, n.ID)
+}
+
+func federatedUserEmail(n *types.Node) string {
+	return fmt.Sprintf("%d%s", n.ID, federatedUserEmailSuffix)
 }
 
 func (svc node) FindByID(ctx context.Context, nodeID uint64) (n *types.Node, err error) {
@@ -547,7 +555,7 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysType
 
 	if service.UserErrNotFound().Is(err) {
 		user := &sysTypes.User{
-			Email:  strconv.FormatUint(n.ID, 10) + "@federation.corteza",
+			Email:  federatedUserEmail(n),
 			Handle: uHandle,
 		}
 
