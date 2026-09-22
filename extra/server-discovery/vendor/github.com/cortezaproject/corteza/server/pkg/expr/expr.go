@@ -14,6 +14,37 @@ func PathBase(path string) string {
 }
 
 func Assign(base TypedValue, path string, val TypedValue) (err error) {
+	if _, ok := base.(FlatStore); ok {
+		return assignFlat(base, path, val)
+	}
+	return assignPath(base, path, val)
+}
+
+func assignFlat(base TypedValue, key string, val TypedValue) error {
+	switch fa := base.(type) {
+	case FieldAssigner:
+		return fa.AssignFieldValue(key, val)
+	case DeepFieldAssigner:
+		return fa.AssignFieldValue(&flatPath{key: key}, val)
+	default:
+		return fmt.Errorf("cannot set on unexpected type: %T", base)
+	}
+}
+
+// flatPath is a single-segment Pather for flat key assignment — no path splitting.
+type flatPath struct {
+	key  string
+	done bool
+}
+
+func (p *flatPath) String() string { return p.key }
+func (p *flatPath) More() bool     { return !p.done }
+func (p *flatPath) IsLast() bool   { return true }
+func (p *flatPath) Get() string    { return p.key }
+func (p *flatPath) Rest() string   { return "" }
+func (p *flatPath) Next() error    { p.done = true; return nil }
+
+func assignPath(base TypedValue, path string, val TypedValue) (err error) {
 	pp := Path(path)
 	err = pp.Next()
 	if err != nil {
@@ -75,7 +106,6 @@ func Assign(base TypedValue, path string, val TypedValue) (err error) {
 	default:
 		return fmt.Errorf("%T does not support value assigning with '%s'", base, path)
 	}
-
 }
 
 func Select(base TypedValue, path string) (out TypedValue, err error) {

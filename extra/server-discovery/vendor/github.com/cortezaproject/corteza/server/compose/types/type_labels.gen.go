@@ -7,18 +7,21 @@ package types
 //
 // Definitions file that controls how this file is generated:
 // compose/types/types.yaml
+import (
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+)
 
 // SetLabel adds new label to label map
-func (m *Chart) SetLabel(key string, value string) {
+func (m *Chart) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
-		m.Labels = make(map[string]string)
+		m.Labels = make(map[string]labelTypes.LabelValue)
 	}
 
 	m.Labels[key] = value
 }
 
 // GetLabels adds new label to label map
-func (m Chart) GetLabels() map[string]string {
+func (m Chart) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 
@@ -33,16 +36,16 @@ func (m Chart) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
-func (m *Module) SetLabel(key string, value string) {
+func (m *Module) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
-		m.Labels = make(map[string]string)
+		m.Labels = make(map[string]labelTypes.LabelValue)
 	}
 
 	m.Labels[key] = value
 }
 
 // GetLabels adds new label to label map
-func (m Module) GetLabels() map[string]string {
+func (m Module) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 
@@ -57,16 +60,16 @@ func (m Module) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
-func (m *ModuleField) SetLabel(key string, value string) {
+func (m *ModuleField) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
-		m.Labels = make(map[string]string)
+		m.Labels = make(map[string]labelTypes.LabelValue)
 	}
 
 	m.Labels[key] = value
 }
 
 // GetLabels adds new label to label map
-func (m ModuleField) GetLabels() map[string]string {
+func (m ModuleField) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 
@@ -81,16 +84,16 @@ func (m ModuleField) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
-func (m *Namespace) SetLabel(key string, value string) {
+func (m *Namespace) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
-		m.Labels = make(map[string]string)
+		m.Labels = make(map[string]labelTypes.LabelValue)
 	}
 
 	m.Labels[key] = value
 }
 
 // GetLabels adds new label to label map
-func (m Namespace) GetLabels() map[string]string {
+func (m Namespace) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 
@@ -105,16 +108,16 @@ func (m Namespace) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
-func (m *Page) SetLabel(key string, value string) {
+func (m *Page) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
-		m.Labels = make(map[string]string)
+		m.Labels = make(map[string]labelTypes.LabelValue)
 	}
 
 	m.Labels[key] = value
 }
 
 // GetLabels adds new label to label map
-func (m Page) GetLabels() map[string]string {
+func (m Page) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 
@@ -129,16 +132,16 @@ func (m Page) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
-func (m *PageLayout) SetLabel(key string, value string) {
+func (m *PageLayout) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
-		m.Labels = make(map[string]string)
+		m.Labels = make(map[string]labelTypes.LabelValue)
 	}
 
 	m.Labels[key] = value
 }
 
 // GetLabels adds new label to label map
-func (m PageLayout) GetLabels() map[string]string {
+func (m PageLayout) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 

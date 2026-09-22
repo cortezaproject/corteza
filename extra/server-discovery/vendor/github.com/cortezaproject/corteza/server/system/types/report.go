@@ -10,6 +10,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"github.com/spf13/cast"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+
 )
 
 type (
@@ -22,7 +24,7 @@ type (
 		Sources   ReportDataSourceSet `json:"sources"`
 		Blocks    ReportBlockSet      `json:"blocks"`
 
-		Labels map[string]string `json:"labels,omitempty"`
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		OwnedBy   uint64     `json:"ownedBy"`
 		CreatedBy uint64     `json:"createdBy"`
@@ -137,7 +139,7 @@ type (
 		Deleted filter.State `json:"deleted"`
 
 		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

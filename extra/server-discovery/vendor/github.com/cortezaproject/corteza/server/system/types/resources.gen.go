@@ -26,6 +26,7 @@ const (
 	ResourceTranslationResourceType       = "corteza::system:resource-translation"
 	RoleResourceType                      = "corteza::system:role"
 	RoleMemberResourceType                = "corteza::system:role-member"
+	UserGroupResourceType                 = "corteza::system:user-group"
 	SettingValueResourceType              = "corteza::system:settings"
 	TemplateResourceType                  = "corteza::system:template"
 	UserResourceType                      = "corteza::system:user"
