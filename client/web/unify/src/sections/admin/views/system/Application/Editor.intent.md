@@ -9,7 +9,8 @@ depends-on:
   - lib/js
 touched-by:
   - client/web/unify/src/sections/admin/routes.js
-tests: []
+tests:
+  - client/web/unify/e2e/sections/admin/application-custom.spec.ts
 ---
 
 # Application Editor view
@@ -28,6 +29,15 @@ how it presents in the unified shell (display name, URL, listed flag, logo).
   preview resolves through `resolveAppLogoUrl` + the built-in icon map;
   only custom logos are clearable — built-in default icons are not.
 - Delete, permissions, unsaved guard; create redirects to edit.
+- Kind: "a section of Human or a link" (`unify.kind` empty) or "custom app"
+  (`'custom'`, its own HTML page). A custom app's URL is shown locked at
+  `app/<applicationID>` — the server stores exactly that on every update, and
+  creating one saves twice, since only the second save has an ID to put in it.
+- Custom app panel (custom kind, edit only): open the app; the namespace and
+  modules its page may read; the page's size and when it was last replaced; the
+  page itself, read only, with a copy button — or, with no page yet, how to
+  deploy one. The page is replaced only through
+  `system_application_source_set`; this view never writes it.
 
 ## Routes
 

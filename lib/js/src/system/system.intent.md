@@ -28,7 +28,7 @@ eventbus.
 
 - Every class constructs from a partial/raw API payload via `Apply`: IDs cast to strings (`NoID = '0'`), timestamps to `Date`, and unknown keys ignored — apps can pass API responses straight to constructors.
 - `User.meta` carries UI-relevant preferences (preferredLanguage, avatar fields, theme, security policy) — the shape is shared with the auth/profile screens.
-- `Application.meta.description` is the app's own blurb, the same `meta.description` every other described system resource carries. `unify` stays what it always was: how the app presents in the shell (display name, URL, listed flag, logo).
+- `Application.meta.description` is the app's own blurb, the same `meta.description` every other described system resource carries. `unify` stays what it always was: how the app presents in the shell (display name, URL, listed flag, logo) — plus `unify.kind`, `'custom'` for an application that is its own HTML page. `sourceMeta` describes that page without carrying it, and `ownerID` is an ID string like every other ID.
 - Classes are plain data holders + `toJSON`; no API calls happen in here.
 - `events.ts` is the one exception: `TriggerSystemServerScriptOnManual(api)` forwards a manual server-script event to the endpoint of its resource — `system:user` → `userTriggerScript`, `system:role` → `roleTriggerScript`, anything else → `automationTriggerScript` — reading the subject off the event's args, so an event without one still routes.
 

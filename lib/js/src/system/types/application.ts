@@ -20,12 +20,25 @@ interface Unify {
   config: string
   iconID: string
   logoID: string
+  // '' serves a shell section or a link; 'custom' serves the application's own
+  // HTML source in the app view.
+  kind?: string
+}
+
+// What is known about a custom application's source without loading it.
+interface SourceMeta {
+  hash?: string
+  size: number
+  namespace?: string
+  modules?: string[]
+  updatedAt?: string
+  updatedBy?: string
 }
 
 export class Application {
   public applicationID = undefined
   public name = ''
-  public ownerID?: number = 0
+  public ownerID = NoID
   public enabled = false
   public weight?: number = 0
 
@@ -40,12 +53,16 @@ export class Application {
     config: '',
     iconID: NoID,
     logoID: NoID,
+    kind: '',
   }
+
+  public sourceMeta?: SourceMeta = { size: 0 }
 
   public canGrant: boolean = true
   public canAccessApplication: boolean = true
   public canUpdateApplication: boolean = true
   public canDeleteApplication: boolean = true
+  public canManageSourceOnApplication: boolean = false
   public createdAt?: Date = undefined
   public updatedAt?: Date = undefined
   public deletedAt?: Date = undefined
@@ -55,10 +72,10 @@ export class Application {
   }
 
   apply(r?: PartialApplication): void {
-    Apply(this, r, HumanID, 'applicationID')
+    Apply(this, r, HumanID, 'applicationID', 'ownerID')
     Apply(this, r, String, 'name')
     Apply(this, r, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, r, Number, 'weight', 'ownerID')
+    Apply(this, r, Number, 'weight')
     Apply(
       this,
       r,
@@ -68,6 +85,7 @@ export class Application {
       'canAccessApplication',
       'canUpdateApplication',
       'canDeleteApplication',
+      'canManageSourceOnApplication',
     )
 
     if (r && IsOf(r, 'meta')) {
@@ -76,6 +94,10 @@ export class Application {
 
     if (r && IsOf(r, 'unify')) {
       this.unify = { ...this.unify, ...r.unify }
+    }
+
+    if (r && IsOf(r, 'sourceMeta')) {
+      this.sourceMeta = { size: 0, ...r.sourceMeta }
     }
   }
 

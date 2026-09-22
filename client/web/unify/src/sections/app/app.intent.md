@@ -46,7 +46,13 @@ in Human, and that nothing an app author writes can reach the viewer's token.
   app is offered and admitted on its own `access` grant.
 - `/app/:applicationID` for an application the user may not access, or that is
   not `kind: custom`, bounces to home with `denied` like any refused section.
-- `enabled: false` lands on the disabled screen like every application.
+- `enabled: false` lands on the disabled screen like every application, except
+  for whoever may change the app's page (`canManageSourceOnApplication`): they
+  get the app, with a banner saying it is a switched-off preview. The rule is
+  `preview.js`; `App.vue` applies it.
+- The app reads as its viewer, so a viewer needs the same rights to its
+  declared namespace, modules and records that a page over them would need —
+  and today also `namespaces.search`, which resolves the declared slug.
 
 ## Sandbox
 
@@ -141,6 +147,7 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
   data read lazily from `window.SAMPLE`) because the page usually carries its
   own copy too.
 - `bridge.test.js` — host allowlist, reshaping, error texts.
+- `preview.js` — who sees a switched-off custom app; `preview.test.js`.
 
 ## When changing this
 

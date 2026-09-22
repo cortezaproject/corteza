@@ -12,14 +12,25 @@
       {{ problem }}
     </Message>
 
-    <iframe
-      v-else
-      ref="frameRef"
-      :srcdoc="outerDocument"
-      :title="application?.name || $t('app.title')"
-      class="block w-full border-0"
-      :style="{ height: frameHeight }"
-    />
+    <template v-else>
+      <Message
+        v-if="application?.enabled === false"
+        severity="info"
+        :closable="false"
+        class="m-4"
+        data-test-id="custom-app-preview"
+      >
+        {{ $t('app.state.preview') }}
+      </Message>
+
+      <iframe
+        ref="frameRef"
+        :srcdoc="outerDocument"
+        :title="application?.name || $t('app.title')"
+        class="block w-full border-0"
+        :style="{ height: frameHeight }"
+      />
+    </template>
   </div>
 </template>
 

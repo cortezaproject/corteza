@@ -257,10 +257,29 @@ applications:
     title:
       create: Create application
       edit: Edit application
+    custom:
+      copied: Source copied to the clipboard
+      copy: Copy source
+      empty: No page has been stored for this custom app yet. Deploy one through the MCP tool system_application_source_set, for example from Claude with the Human connector.
+      modules: Modules the app may read
+      namespace: Namespace the app reads from
+      none: None
+      open: Open the app
+      previewNote: The app is switched off, so only people who may change its page see it, as a preview.
+      size: Size of the page
+      source: The page, as stored
+      title: Custom app
+      unreadable: 'The page could not be read: {reason}'
+      updated: Page last replaced
     unify:
       config:
         description: Application configuration (JSON)
         label: Configuration
+      kind:
+        custom: Custom app (its own HTML page)
+        description: A custom app shows its own HTML page inside Human, in a sandbox; anything else opens a section of Human or a link.
+        label: What this application opens
+        section: A section of Human or a link
       listed: Listed
       listedDescription: When listed, this application will be visible in the app selector for users to access
       logo:
@@ -274,6 +293,8 @@ applications:
       pinned: Pinned
       title: App selector
       url:
+        customDescription: A custom app always opens at its own address in Human, so this is set for you.
+        customPlaceholder: Set when the application is first saved
         description: Application URL
         label: URL
   list:

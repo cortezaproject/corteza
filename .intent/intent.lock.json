@@ -46,6 +46,11 @@
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-07-24"
     },
+    "client/web/unify/e2e/sections/admin/application-custom.spec.ts": {
+      "h": "c9a1d1d18c50",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-09-22"
+    },
     "client/web/unify/e2e/sections/admin/users.spec.ts": {
       "h": "c153f38175ff",
       "doc": "client/web/unify/e2e/e2e.intent.md",
@@ -122,9 +127,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/App.vue": {
-      "h": "9dfda3cccda3",
+      "h": "6ce39b891ec8",
       "doc": "client/web/unify/src/App.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
     },
     "client/web/unify/src/config-check.js": {
       "h": "b8ddb8e7274a",
@@ -387,9 +392,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/admin/views/system/Application/Editor.vue": {
-      "h": "25f8d58fe7d2",
+      "h": "2e9e53b3fc91",
       "doc": "client/web/unify/src/sections/admin/views/system/Application/Editor.intent.md",
-      "t": "2026-08-21"
+      "t": "2026-09-22"
     },
     "client/web/unify/src/sections/admin/views/system/Application/List.vue": {
       "h": "f311fd02e2f5",
@@ -641,8 +646,18 @@
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
+    "client/web/unify/src/sections/app/preview.js": {
+      "h": "9c6ca2c0dd40",
+      "doc": "client/web/unify/src/sections/app/app.intent.md",
+      "t": "2026-09-22"
+    },
+    "client/web/unify/src/sections/app/preview.test.js": {
+      "h": "5d8a03ede366",
+      "doc": "client/web/unify/src/sections/app/app.intent.md",
+      "t": "2026-09-22"
+    },
     "client/web/unify/src/sections/app/views/AppView.vue": {
-      "h": "83eb3fa7b71e",
+      "h": "67e12f1c377c",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
@@ -3546,10 +3561,15 @@
       "doc": "lib/js/src/system/system.intent.md",
       "t": "2026-09-14"
     },
-    "lib/js/src/system/types/application.ts": {
-      "h": "89b8a7006a9b",
+    "lib/js/src/system/types/application.test.ts": {
+      "h": "d9fca8c93e81",
       "doc": "lib/js/src/system/system.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
+    },
+    "lib/js/src/system/types/application.ts": {
+      "h": "342d93eec395",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-09-22"
     },
     "lib/js/src/system/types/authClient.ts": {
       "h": "8edca48cfb88",

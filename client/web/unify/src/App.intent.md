@@ -7,7 +7,8 @@ depends-on:
   - lib/vue
 touched-by:
   - client/web/unify/src/main.js
-tests: []
+tests:
+  - client/web/unify/e2e/sections/admin/application-custom.spec.ts
 ---
 
 # App.vue — shell chrome
@@ -22,7 +23,7 @@ from the section's declaration — App.vue must know no section specifics.
 - Topbar (app menu, search when discovery enabled, profile menu incl. section-contributed items, theme switch).
 - Per-section left sidebar: only when the section declares one; expand state remembered per section in localStorage, first visit uses `sidebarExpandedByDefault`; routes opt out via `meta.hideSidebar`.
 - Global overlays: app-list sidebar, notifications, agent sidebar, workflow prompts, permissions dialog, toasts, confirm dialog.
-- Disabled-app gate: section whose registry application is disabled shows the "app disabled" screen instead of content.
+- Disabled-app gate: section whose registry application is disabled shows the "app disabled" screen instead of content. One exception: a switched-off custom application stays open, as a preview, to whoever may change its page (`canManageSourceOnApplication`) — the rule is `previewsSwitchedOffApp` in `sections/app/preview.js`.
 
 ## Data touched
 

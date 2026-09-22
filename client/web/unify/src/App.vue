@@ -111,6 +111,7 @@
 
 <script setup>
 import { sectionById } from '@/sections'
+import { previewsSwitchedOffApp } from '@/sections/app/preview'
 import {
   components,
   providePermissions,
@@ -179,8 +180,13 @@ const activeSection = computed(() => sectionById(route.meta.section))
 
 // Usability gate: a section whose registry application is disabled (enabled=
 // false) shows the "disabled" screen, like the standalone apps did. Reactive
-// to route.path so it re-evaluates on client-side navigation.
-const appEnabled = computed(() => applicationsStore.isPathEnabled(route.path))
+// to route.path so it re-evaluates on client-side navigation. A switched-off
+// custom app stays open, as a preview, to whoever may change its page.
+const appEnabled = computed(
+  () =>
+    applicationsStore.isPathEnabled(route.path) ||
+    previewsSwitchedOffApp(applicationsStore.appForPath(route.path)),
+)
 
 // Identity used for per-webapp filtering (e.g. workflow prompt `meta.webapps`).
 // In the unified app the "current webapp" is the active section, so prompts

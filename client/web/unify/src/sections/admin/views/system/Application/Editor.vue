@@ -61,14 +61,44 @@
       <Panel :header="$t('system.applications.editor.unify.title')" toggleable :collapsed="false">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CFormGroup
+            :label="$t('system.applications.editor.unify.kind.label')"
+            :description="$t('system.applications.editor.unify.kind.description')"
+            input-id="unifyKind"
+            class="md:col-span-2"
+          >
+            <SelectButton
+              id="unifyKind"
+              v-model="application.unify.kind"
+              :options="kindOptions"
+              option-label="label"
+              option-value="value"
+              :allow-empty="false"
+              :disabled="!canEdit"
+            />
+          </CFormGroup>
+
+          <CFormGroup
             :label="$t('system.applications.editor.unify.name.label')"
             input-id="unifyName"
           >
             <InputText id="unifyName" v-model="application.unify.name" :disabled="!canEdit" />
           </CFormGroup>
 
-          <CFormGroup :label="$t('system.applications.editor.unify.url.label')" input-id="unifyUrl">
-            <InputText id="unifyUrl" v-model="application.unify.url" :disabled="!canEdit" />
+          <CFormGroup
+            :label="$t('system.applications.editor.unify.url.label')"
+            :description="
+              isCustom ? $t('system.applications.editor.unify.url.customDescription') : ''
+            "
+            input-id="unifyUrl"
+          >
+            <InputText
+              v-if="isCustom"
+              id="unifyUrl"
+              :model-value="customUrl"
+              :placeholder="$t('system.applications.editor.unify.url.customPlaceholder')"
+              disabled
+            />
+            <InputText v-else id="unifyUrl" v-model="application.unify.url" :disabled="!canEdit" />
           </CFormGroup>
 
           <CInputToggleCard
@@ -97,6 +127,93 @@
           </div>
         </div>
       </Panel>
+      <Panel
+        v-if="isEdit && isCustom"
+        :header="$t('system.applications.editor.custom.title')"
+        toggleable
+        :collapsed="false"
+      >
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <Button
+              :label="$t('system.applications.editor.custom.open')"
+              icon="pi pi-external-link"
+              severity="secondary"
+              size="small"
+              data-test-id="button-open-custom-app"
+              @click="router.push(`/${customUrl}`)"
+            />
+            <span v-if="!application.enabled" class="text-sm text-muted-color">
+              {{ $t('system.applications.editor.custom.previewNote') }}
+            </span>
+          </div>
+
+          <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <div>
+              <dt class="text-muted-color">
+                {{ $t('system.applications.editor.custom.namespace') }}
+              </dt>
+              <dd>{{ sourceMeta.namespace || $t('system.applications.editor.custom.none') }}</dd>
+            </div>
+            <div>
+              <dt class="text-muted-color">
+                {{ $t('system.applications.editor.custom.modules') }}
+              </dt>
+              <dd class="flex flex-wrap gap-1">
+                <Tag
+                  v-for="module in sourceMeta.modules || []"
+                  :key="module"
+                  :value="module"
+                  severity="secondary"
+                />
+                <span v-if="!(sourceMeta.modules || []).length">
+                  {{ $t('system.applications.editor.custom.none') }}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-muted-color">{{ $t('system.applications.editor.custom.size') }}</dt>
+              <dd>{{ sourceSizeLabel }}</dd>
+            </div>
+            <div>
+              <dt class="text-muted-color">
+                {{ $t('system.applications.editor.custom.updated') }}
+              </dt>
+              <dd>{{ sourceUpdatedLabel }}</dd>
+            </div>
+          </dl>
+
+          <Message v-if="sourceProblem" severity="warn" :closable="false">
+            {{ sourceProblem }}
+          </Message>
+          <Message v-else-if="!source" severity="info" :closable="false">
+            {{ $t('system.applications.editor.custom.empty') }}
+          </Message>
+          <div v-else class="flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-muted-color">
+                {{ $t('system.applications.editor.custom.source') }}
+              </span>
+              <Button
+                :label="$t('system.applications.editor.custom.copy')"
+                icon="pi pi-copy"
+                severity="secondary"
+                variant="text"
+                size="small"
+                @click="copySource"
+              />
+            </div>
+            <Textarea
+              id="customSource"
+              :model-value="source"
+              rows="16"
+              readonly
+              class="w-full font-mono text-xs"
+            />
+          </div>
+        </div>
+      </Panel>
+
       <Message v-if="!canEdit" severity="warn" :closable="false">
         {{ $t('general.editor.readOnly') }}
       </Message>
@@ -135,7 +252,7 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { system } from '@planetcrust/human-js'
+import { fmt, system } from '@planetcrust/human-js'
 import {
   components,
   useFileUpload,
@@ -189,6 +306,59 @@ const isCustomLogo = computed(() => {
 
 const isEdit = computed(() => !!route.params.applicationID)
 
+const kindOptions = computed(() => [
+  { label: t('system.applications.editor.unify.kind.section'), value: '' },
+  { label: t('system.applications.editor.unify.kind.custom'), value: 'custom' },
+])
+
+const isCustom = computed(() => application.value?.unify?.kind === 'custom')
+
+// The server stores a custom application's url as its app-view route; before
+// the application exists there is no ID to put in it.
+const customUrl = computed(() =>
+  application.value?.applicationID ? `app/${application.value.applicationID}` : '',
+)
+
+const source = ref('')
+const sourceProblem = ref('')
+const sourceMeta = computed(() => application.value?.sourceMeta || { size: 0 })
+
+const sourceSizeLabel = computed(() => {
+  const size = sourceMeta.value.size || 0
+  return size ? `${(size / 1024).toFixed(1)} KB` : t('system.applications.editor.custom.none')
+})
+
+const sourceUpdatedLabel = computed(() => {
+  const at = sourceMeta.value.updatedAt
+  return at
+    ? fmt.fullDateTime(at, { dateStyle: 'medium', timeStyle: 'short' })
+    : t('system.applications.editor.custom.none')
+})
+
+async function loadSource() {
+  source.value = ''
+  sourceProblem.value = ''
+  if (!isEdit.value || !isCustom.value) return
+
+  try {
+    const rsp = await $SystemAPI.applicationSourceRead({
+      applicationID: application.value.applicationID,
+    })
+    source.value = rsp.source || ''
+  } catch (e) {
+    sourceProblem.value = t('system.applications.editor.custom.unreadable', {
+      reason: e?.message || String(e),
+    })
+  }
+}
+
+function copySource() {
+  navigator.clipboard
+    ?.writeText(source.value)
+    .then(() => $toast.toastSuccess(t('system.applications.editor.custom.copied')))
+    .catch(() => {})
+}
+
 // Read-only is one condition, used by the fields, the banner and Save alike —
 // a form the user cannot save must not invite them to fill it in.
 const canEdit = computed(() => !isEdit.value || !!application.value?.canUpdateApplication)
@@ -226,6 +396,7 @@ async function loadApplication() {
     const raw = await applicationsStore.findByID(applicationID)
     application.value = new system.Application(raw)
     capture()
+    await loadSource()
   } catch (e) {
     $toast.toastErrorHandler(t('notification.application.fetch.error'))(e)
     router.push({ name: 'system.applications' })
@@ -260,9 +431,17 @@ async function handleSubmit({ valid }) {
       const raw = await applicationsStore.update(payload)
       application.value = new system.Application(raw)
       capture()
+      await loadSource()
       $toast.toastSuccess(t('notification.application.update.success'))
     } else {
-      const created = await applicationsStore.create(payload)
+      let created = await applicationsStore.create(payload)
+      // Only an update can set a custom application's url: it needs the ID.
+      if (created.unify?.kind === 'custom') {
+        created = await applicationsStore.update({
+          ...payload,
+          applicationID: created.applicationID,
+        })
+      }
       $toast.toastSuccess(t('notification.application.create.success'))
       markSaved()
       router.push({
