@@ -10,6 +10,7 @@ touched-by:
   - lib/vue/src/components/input/CInputModule.vue
 tests:
   - client/web/unify/src/sections/compose/stores/module.test.ts
+  - lib/vue/src/stores/useModuleStore.namespace.test.ts
 ---
 
 # useModuleStore
@@ -43,3 +44,9 @@ an agent's tool-access rules).
 - `load()` switches the active namespace; `loadFor()` caches a namespace
   WITHOUT switching (cache-first, no refetch per picker open).
 - Cached modules are frozen; replace, never mutate.
+- A module is built with the namespace the namespace store holds for it, so a
+  record built from that module answers for its namespace — compose event
+  constraint matching and the scripting context both read it there. When the
+  namespace store has nothing for that id the module keeps its namespace unset
+  rather than carrying a wrong one, so a caller that needs it either waits for
+  the namespace or supplies its own matcher.

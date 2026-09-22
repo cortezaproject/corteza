@@ -75,7 +75,9 @@ test in isolation.
   page can hand a script (`compose:record` only on a record page), and
   `triggerCanApply(trigger, { namespace, module })` whether its constraints
   can ever match there; constraint chips come from lib/vue's
-  `constraintChips`.
+  `constraintChips`. The dispatcher supplies the namespace and module rather
+  than reading them off the record, because a module knows its namespace only
+  when the namespace store held it as the module was cached.
 - `resource-translations.ts` — applies fetched resource-translation sets
   in-place onto modules/fields/pages/layouts/namespaces (`apply*Translations`).
   Owns the resource-ID string formats (`compose:module/{ns}/{mod}`,

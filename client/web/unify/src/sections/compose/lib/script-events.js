@@ -4,9 +4,9 @@ import { eventbus } from '@planetcrust/human-js'
  * Matches one trigger constraint of a Corredor script against the namespace and
  * the module the script is dispatched for.
  *
- * The event carries both because the module a record is built from does not know
- * the namespace it lives in: modules are cached per namespace and frozen, so the
- * namespace cannot be read off them and cannot be set on them either.
+ * The event carries both rather than reading them off the record: a module knows
+ * its namespace only when the namespace store held it at the time the module was
+ * cached, and a page can dispatch before that.
  *
  * Keep the property names in sync with server/compose/service/event.
  */

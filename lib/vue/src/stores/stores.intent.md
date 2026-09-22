@@ -32,7 +32,7 @@ re-create their own copies; per-store contracts live in the sidecar docs.
 - useAutomationStore.js — TAQ automations list + function/trigger catalog.
 - useChartStore.js — compose charts per active namespace, cache-first picker loads.
 - useChatbotStore.js — chatbot list cache.
-- useModuleStore.js — compose modules, multi-namespace cache with one "active" namespace.
+- useModuleStore.js — compose modules, multi-namespace cache with one "active" namespace; modules carry their namespace when the namespace store holds it.
 - useNamespaceStore.js — compose namespaces, preloaded by shell.
 - useNotificationsStore.ts — notification list, unread counts, realtime message handling.
 - usePageLayoutStore.js — compose page layouts per namespace.
