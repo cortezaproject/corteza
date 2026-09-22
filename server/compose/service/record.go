@@ -2105,7 +2105,7 @@ func (svc record) TriggerScript(ctx context.Context, namespaceID, moduleID, reco
 //	      filter: {
 //	        namespace: '122709101053521922',
 //	        module: '122709116471783426',
-//	        query: 'Status = "foo"',
+//	        query: "Status = 'foo'",
 //	        sort: 'Status DESC',
 //	        limit: 3,
 //	      },
