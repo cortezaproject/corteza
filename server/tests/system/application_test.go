@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	composeTypes "github.com/crusttech/human/server/compose/types"
 	ft "github.com/crusttech/human/server/pkg/flag/types"
 	"github.com/crusttech/human/server/pkg/id"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
@@ -678,6 +679,26 @@ func (h helper) repoMakeCustomApplication() *types.Application {
 	return res
 }
 
+// A namespace and modules for a custom app's declaration to name: storing a
+// page resolves what it declares, so the declaration has to be real.
+func (h helper) repoMakeComposeModules(handles ...string) string {
+	ctx := context.Background()
+	slug := "ns_" + rs()
+	ns := &composeTypes.Namespace{ID: id.Next(), Name: slug, Slug: slug, CreatedAt: time.Now()}
+	h.a.NoError(store.CreateComposeNamespace(ctx, service.DefaultStore, ns))
+
+	for _, handle := range handles {
+		h.a.NoError(store.CreateComposeModule(ctx, service.DefaultStore, &composeTypes.Module{
+			ID: id.Next(), NamespaceID: ns.ID, Name: handle, Handle: handle, CreatedAt: time.Now(),
+		}))
+	}
+
+	helpers.AllowMe(h, composeTypes.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, composeTypes.ModuleRbacResource(0, 0), "read")
+
+	return slug
+}
+
 func TestApplicationSourceSetForbidden(t *testing.T) {
 	h := newHelper(t)
 	app := h.repoMakeCustomApplication()
@@ -730,6 +751,7 @@ func TestApplicationSourceSetAndRead(t *testing.T) {
 	app := h.repoMakeCustomApplication()
 	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read", "access", "source.manage")
 	helpers.AllowMe(h, types.ComponentRbacResource(), "applications.search")
+	slug := h.repoMakeComposeModules("Lead", "Account")
 
 	src := "<title>T</title><script>const SAMPLE = {}</script>"
 	sum := sha256.Sum256([]byte(src))
@@ -737,13 +759,13 @@ func TestApplicationSourceSetAndRead(t *testing.T) {
 	h.apiInit().
 		Put(fmt.Sprintf("/application/%d/source", app.ID)).
 		Header("Accept", "application/json").
-		JSON(fmt.Sprintf(`{"source": %q, "namespace": "crm", "modules": ["Lead", "Account"]}`, src)).
+		JSON(fmt.Sprintf(`{"source": %q, "namespace": %q, "modules": ["Lead", "Account"]}`, src, slug)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Equal(`$.response.sourceMeta.hash`, hex.EncodeToString(sum[:]))).
 		Assert(jsonpath.Equal(`$.response.sourceMeta.size`, float64(len(src)))).
-		Assert(jsonpath.Equal(`$.response.sourceMeta.namespace`, "crm")).
+		Assert(jsonpath.Equal(`$.response.sourceMeta.namespace`, slug)).
 		Assert(jsonpath.Len(`$.response.sourceMeta.modules`, 2)).
 		Assert(jsonpath.NotPresent(`$.response.source`)).
 		End()
@@ -842,11 +864,12 @@ func TestApplicationSourceSet_writes(t *testing.T) {
 	h := newHelper(t)
 	app := h.repoMakeCustomApplication()
 	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read", "source.manage")
+	slug := h.repoMakeComposeModules("Lead", "Deal")
 
 	h.apiInit().
 		Put(fmt.Sprintf("/application/%d/source", app.ID)).
 		Header("Accept", "application/json").
-		JSON(`{"source": "<p>x</p>", "namespace": "crm", "modules": ["Lead"], "writes": ["Deal"]}`).
+		JSON(fmt.Sprintf(`{"source": "<p>x</p>", "namespace": %q, "modules": ["Lead"], "writes": ["Deal"]}`, slug)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("application.errors.undeclaredWrite")).
@@ -855,10 +878,54 @@ func TestApplicationSourceSet_writes(t *testing.T) {
 	h.apiInit().
 		Put(fmt.Sprintf("/application/%d/source", app.ID)).
 		Header("Accept", "application/json").
-		JSON(`{"source": "<p>x</p>", "namespace": "crm", "modules": ["Lead", "Deal"], "writes": ["Deal"]}`).
+		JSON(fmt.Sprintf(`{"source": "<p>x</p>", "namespace": %q, "modules": ["Lead", "Deal"], "writes": ["Deal"]}`, slug)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Equal(`$.response.sourceMeta.writes[0]`, "Deal")).
+		End()
+}
+
+func TestApplicationSourceSet_unknownDeclaration(t *testing.T) {
+	h := newHelper(t)
+	app := h.repoMakeCustomApplication()
+	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read", "source.manage")
+	slug := h.repoMakeComposeModules("Lead")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		JSON(`{"source": "<p>x</p>", "namespace": "nope", "modules": ["Lead"]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("application.errors.unknownNamespace")).
+		End()
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{"source": "<p>x</p>", "namespace": %q, "modules": ["Nope"]}`, slug)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("application.errors.unknownModule")).
+		End()
+}
+
+// What a viewer reads by: the IDs travel with the declaration.
+func TestApplicationSourceSet_resolvesTheDeclaration(t *testing.T) {
+	h := newHelper(t)
+	app := h.repoMakeCustomApplication()
+	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read", "source.manage")
+	slug := h.repoMakeComposeModules("Lead")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{"source": "<p>x</p>", "namespace": %q, "modules": ["Lead"]}`, slug)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response.sourceMeta.namespaceID`)).
+		Assert(jsonpath.Present(`$.response.sourceMeta.moduleIDs.Lead`)).
 		End()
 }

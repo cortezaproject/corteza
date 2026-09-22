@@ -53,13 +53,15 @@ type (
 	}
 
 	ApplicationSourceMeta struct {
-		Hash      string     `json:"hash,omitempty"`
-		Size      int        `json:"size"`
-		Namespace string     `json:"namespace,omitempty"`
-		Modules   []string   `json:"modules,omitempty"`
-		Writes    []string   `json:"writes,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
+		Hash        string            `json:"hash,omitempty"`
+		Size        int               `json:"size"`
+		Namespace   string            `json:"namespace,omitempty"`
+		Modules     []string          `json:"modules,omitempty"`
+		Writes      []string          `json:"writes,omitempty"`
+		NamespaceID uint64            `json:"namespaceID,string,omitempty"`
+		ModuleIDs   map[string]string `json:"moduleIDs,omitempty"`
+		UpdatedAt   *time.Time        `json:"updatedAt,omitempty"`
+		UpdatedBy   uint64            `json:"updatedBy,string,omitempty"`
 	}
 )
 
@@ -265,6 +267,13 @@ func (r ApplicationSourceMeta) Clone() *ApplicationSourceMeta {
 		copy(dup.Writes, r.Writes)
 	}
 
+	if r.ModuleIDs != nil {
+		dup.ModuleIDs = make(map[string]string, len(r.ModuleIDs))
+		for k, v := range r.ModuleIDs {
+			dup.ModuleIDs[k] = v
+		}
+	}
+
 	if r.UpdatedAt != nil {
 		v := *r.UpdatedAt
 		dup.UpdatedAt = &v
@@ -296,6 +305,14 @@ func (r ApplicationSourceMeta) Diff(cmp *ApplicationSourceMeta) []*revisions.Cha
 
 	if !reflect.DeepEqual(r.Writes, cmp.Writes) {
 		out = append(out, &revisions.Change{Key: "writes", Old: []any{cmp.Writes}, New: []any{r.Writes}})
+	}
+
+	if r.NamespaceID != cmp.NamespaceID {
+		out = append(out, &revisions.Change{Key: "namespaceID", Old: []any{cmp.NamespaceID}, New: []any{r.NamespaceID}})
+	}
+
+	if !reflect.DeepEqual(r.ModuleIDs, cmp.ModuleIDs) {
+		out = append(out, &revisions.Change{Key: "moduleIDs", Old: []any{cmp.ModuleIDs}, New: []any{r.ModuleIDs}})
 	}
 
 	if !reflect.DeepEqual(r.UpdatedAt, cmp.UpdatedAt) {

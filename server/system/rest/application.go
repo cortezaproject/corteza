@@ -9,6 +9,7 @@ import (
 	"github.com/crusttech/human/server/pkg/corredor"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/flag"
+	"github.com/crusttech/human/server/system/customapp"
 	"github.com/crusttech/human/server/system/rest/request"
 	"github.com/crusttech/human/server/system/service"
 	"github.com/crusttech/human/server/system/service/event"
@@ -193,6 +194,10 @@ func (ctrl *Application) SourceSet(ctx context.Context, r *request.ApplicationSo
 		Namespace: r.Namespace,
 		Modules:   r.Modules,
 		Writes:    r.Writes,
+	}
+
+	if err = customapp.Resolve(ctx, meta); err != nil {
+		return nil, err
 	}
 
 	if err = ctrl.application.SetSource(ctx, app, r.Source, meta); err != nil {

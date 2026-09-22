@@ -13,6 +13,7 @@ import (
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	"github.com/crusttech/human/server/pkg/weburl"
+	"github.com/crusttech/human/server/system/customapp"
 	sysService "github.com/crusttech/human/server/system/service"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -310,6 +311,10 @@ func (h *applicationHandler) sourceSet(ctx context.Context, req mcp.CallToolRequ
 		if meta.Writes, err = applicationStringList(raw); err != nil {
 			return nil, fmt.Errorf(`invalid writes: must be a JSON array of module handles, e.g. ["Lead"]: %w`, err)
 		}
+	}
+
+	if err = customapp.Resolve(ctx, meta); err != nil {
+		return nil, toolkit.Errf("application source set", err)
 	}
 
 	// SetSource reloads the application itself and writes the hash and size onto

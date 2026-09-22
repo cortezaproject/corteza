@@ -94,6 +94,18 @@ errors:
     message: 'not allowed to change the source of this application'
     log: 'failed to set source of {{application.name}}; insufficient permissions'
 
+  - error: declarationNotResolved
+    message: 'the namespace and modules the app declares must be resolved to IDs before the source is stored'
+    severity: warning
+
+  - error: unknownNamespace
+    message: 'the namespace this app declares does not exist, or you may not read it'
+    severity: warning
+
+  - error: unknownModule
+    message: 'a module this app declares does not exist in that namespace, or you may not read it'
+    severity: warning
+
   - error: undeclaredWrite
     message: 'a module the app may change must also be one it may read; add it to modules'
     severity: warning

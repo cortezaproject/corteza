@@ -72,6 +72,8 @@
         "namespace": "string",
         "modules": "string",
         "writes": "string",
+        "namespaceID": "uint64",
+        "moduleIDs": "map[string]string",
         "updatedAt": "time.Time",
         "updatedBy": "uint64"
       },

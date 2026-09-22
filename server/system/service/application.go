@@ -191,6 +191,13 @@ func (svc *application) onSetSource(ctx context.Context, aProps *applicationActi
 		}
 	}
 
+	// The caller resolves what the declaration names — this package cannot
+	// reach compose — and the invariant is kept here, where every caller meets
+	// it: a page that names a namespace carries the IDs its viewers read by.
+	if meta.Namespace != "" && (meta.NamespaceID == 0 || len(meta.ModuleIDs) != len(meta.Modules)) {
+		return ApplicationErrDeclarationNotResolved()
+	}
+
 	sum := sha256.Sum256([]byte(source))
 	meta.Hash = hex.EncodeToString(sum[:])
 	meta.Size = len(source)

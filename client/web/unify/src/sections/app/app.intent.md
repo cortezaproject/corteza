@@ -51,8 +51,11 @@ in Human, and that nothing an app author writes can reach the viewer's token.
   get the app, with a banner saying it is a switched-off preview. The rule is
   `preview.js`; `App.vue` applies it.
 - The app reads as its viewer, so a viewer needs the same rights to its
-  declared namespace, modules and records that a page over them would need —
-  and today also `namespaces.search`, which resolves the declared slug.
+  declared namespace, modules and records that a page over them would need, and
+  nothing beyond them: what the page declares is resolved to IDs when it is
+  stored (`sourceMeta.namespaceID`, `sourceMeta.moduleIDs`) and read by ID
+  afterwards. A page stored before that carries handles only, and the view
+  falls back to looking them up, which does need `namespaces.search`.
 
 ## Sandbox
 

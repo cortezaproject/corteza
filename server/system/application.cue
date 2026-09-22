@@ -30,6 +30,10 @@ _applicationDefs: {
 				{ name: "Modules", goType: "[]string", json: "modules,omitempty" },
 				// The declared modules the app may also create and change records in.
 				{ name: "Writes", goType: "[]string", json: "writes,omitempty" },
+				// The declaration resolved when the page was stored, so the app
+				// view needs no search to find what it names.
+				{ name: "NamespaceID", type: "uint64", json: "namespaceID,string,omitempty" },
+				{ name: "ModuleIDs", goType: "map[string]string", json: "moduleIDs,omitempty" },
 				{ name: "UpdatedAt", type: "time.Time", ptr: true, json: "updatedAt,omitempty" },
 				{ name: "UpdatedBy", type: "uint64", json: "updatedBy,string,omitempty" },
 			]}

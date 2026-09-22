@@ -780,6 +780,102 @@ func ApplicationErrNotAllowedToManageSource(mm ...*applicationActionProps) *erro
 	return e
 }
 
+// ApplicationErrDeclarationNotResolved returns "system:application.declarationNotResolved" as *errors.Error
+//
+// This function is auto-generated.
+func ApplicationErrDeclarationNotResolved(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("the namespace and modules the app declares must be resolved to IDs before the source is stored", nil),
+
+		errors.Meta("type", "declarationNotResolved"),
+		errors.Meta("resource", "system:application"),
+
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.declarationNotResolved"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApplicationErrUnknownNamespace returns "system:application.unknownNamespace" as *errors.Error
+//
+// This function is auto-generated.
+func ApplicationErrUnknownNamespace(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("the namespace this app declares does not exist, or you may not read it", nil),
+
+		errors.Meta("type", "unknownNamespace"),
+		errors.Meta("resource", "system:application"),
+
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.unknownNamespace"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApplicationErrUnknownModule returns "system:application.unknownModule" as *errors.Error
+//
+// This function is auto-generated.
+func ApplicationErrUnknownModule(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("a module this app declares does not exist in that namespace, or you may not read it", nil),
+
+		errors.Meta("type", "unknownModule"),
+		errors.Meta("resource", "system:application"),
+
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.unknownModule"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ApplicationErrUndeclaredWrite returns "system:application.undeclaredWrite" as *errors.Error
 //
 // This function is auto-generated.

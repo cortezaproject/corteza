@@ -209,31 +209,48 @@ async function onMessage(event) {
   }
 }
 
-// Handles and slugs are what the source declares; the endpoints take IDs.
+// The IDs a page is stored with, and the fields of each module it declares.
+//
+// A page stored before the declaration was resolved carries handles only, and
+// finding the namespace by slug then needs a search the viewer may not be
+// allowed; those pages keep working, the rest ask nothing extra of a viewer.
 async function resolveDeclared(meta) {
   if (!meta.namespace) return
 
-  const { set: namespaces = [] } = await $ComposeAPI.namespaceList({
-    slug: meta.namespace,
-    limit: 1,
-  })
-  const namespace = namespaces[0]
-  if (!namespace) return
-
-  namespaceID.value = namespace.namespaceID
+  namespaceID.value = meta.namespaceID || (await namespaceIDBySlug(meta.namespace))
+  if (!namespaceID.value) return
 
   for (const handle of meta.modules || []) {
-    const { set: modules = [] } = await $ComposeAPI.moduleList({
-      namespaceID: namespace.namespaceID,
-      handle,
-      limit: 1,
-    })
-    const module = modules[0]
+    const moduleID = meta.moduleIDs?.[handle] || (await moduleIDByHandle(handle))
+    if (!moduleID) continue
+
+    const module = await $ComposeAPI
+      .moduleRead({
+        namespaceID: namespaceID.value,
+        moduleID,
+      })
+      .catch(() => null)
     if (!module) continue
 
     moduleIDs.value[handle] = module.moduleID
     moduleFields.value[module.moduleID] = module.fields || []
   }
+}
+
+async function namespaceIDBySlug(slug) {
+  const { set = [] } = await $ComposeAPI.namespaceList({ slug, limit: 1 }).catch(() => ({}))
+  return set[0]?.namespaceID || ''
+}
+
+async function moduleIDByHandle(handle) {
+  const { set = [] } = await $ComposeAPI
+    .moduleList({
+      namespaceID: namespaceID.value,
+      handle,
+      limit: 1,
+    })
+    .catch(() => ({}))
+  return set[0]?.moduleID || ''
 }
 
 // One application per route, and the route changes without the view being
