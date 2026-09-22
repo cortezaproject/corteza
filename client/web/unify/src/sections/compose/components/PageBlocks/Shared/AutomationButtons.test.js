@@ -29,6 +29,7 @@ function mountButtons(props) {
     props: { namespace: NAMESPACE, page: PAGE, ...props },
     global: {
       stubs: { Button: { props: ['label'], template: '<button />' } },
+      directives: { tooltip: {} },
       provide: {
         $AutomationAPI: { ngAutomationExec: ngExec, workflowExec: wfExec },
         $ScriptBus: { Dispatch: dispatch },
@@ -195,5 +196,127 @@ describe('AutomationButtons script', () => {
     await press(wrapper)
 
     expect(wrapper.emitted('refresh')).toBeUndefined()
+  })
+})
+
+// A button naming a script the server does not offer, or asking for a resource
+// this page has not got, is marked rather than silently doing nothing.
+describe('AutomationButtons unrunnable script', () => {
+  const namespace = new compose.Namespace({ namespaceID: '1001', slug: 'agent-sandbox' })
+  const recordModule = new compose.Module(
+    { moduleID: '1002', namespaceID: '1001', handle: 'agent-contact', fields: [{ name: 'name' }] },
+    namespace,
+  )
+  const record = new compose.Record(recordModule, { recordID: '1003' })
+
+  const GREET = {
+    label: 'Greet',
+    script: '/client-scripts/Greet.js:default',
+    resourceType: 'compose:record',
+    variant: 'primary',
+  }
+
+  // The stub keeps the props the flag is made of, and the directive parks the
+  // tooltip where a test can read it.
+  const buttonStub = {
+    props: ['label', 'severity', 'outlined', 'loading', 'disabled', 'size'],
+    template: '<button :data-severity="severity" :data-outlined="String(!!outlined)" />',
+  }
+
+  const tooltip = {
+    mounted(el, { value }) {
+      if (value) el.setAttribute('data-tooltip', value)
+    },
+  }
+
+  let toastWarning
+
+  function mountFlagged(props, uiHooks) {
+    toastWarning = vi.fn()
+    dispatch = vi.fn(() => Promise.resolve(null))
+
+    return mount(AutomationButtons, {
+      props: { namespace, page: PAGE, ...props },
+      global: {
+        stubs: { Button: buttonStub },
+        directives: { tooltip },
+        provide: {
+          $AutomationAPI: { ngAutomationExec: vi.fn(), workflowExec: vi.fn() },
+          $ScriptBus: { Dispatch: dispatch },
+          $Auth: { user: { userID: '42' } },
+          $toast: { toastWarning },
+          $UIHooks: uiHooks,
+        },
+        mocks: { $t: k => k },
+      },
+    })
+  }
+
+  const registry = scripts => ({ FindByScript: name => scripts.find(s => s === name) })
+
+  it('flags a button naming a script the server does not offer', async () => {
+    const wrapper = mountFlagged({ buttons: [GREET], module: recordModule, record }, registry([]))
+
+    const button = wrapper.find('button')
+    expect(button.attributes('data-severity')).toBe('danger')
+    expect(button.attributes('data-outlined')).toBe('true')
+    expect(button.attributes('data-tooltip')).toBe('block.automation.scriptNotLoaded')
+  })
+
+  it('explains itself when the flagged button is pressed, and dispatches nothing', async () => {
+    const wrapper = mountFlagged({ buttons: [GREET], module: recordModule, record }, registry([]))
+    await press(wrapper)
+
+    expect(dispatch).not.toHaveBeenCalled()
+    expect(toastWarning).toHaveBeenCalledWith('block.automation.scriptNotLoaded')
+  })
+
+  it('flags a record-bound button on a page carrying no record', async () => {
+    const wrapper = mountFlagged({ buttons: [GREET] }, registry([GREET.script]))
+
+    const button = wrapper.find('button')
+    expect(button.attributes('data-severity')).toBe('danger')
+    expect(button.attributes('data-tooltip')).toBe('block.automation.noRecord')
+  })
+
+  it('flags a record-bound selection button of a record list', async () => {
+    const wrapper = mountFlagged(
+      { buttons: [GREET], module: recordModule, records: [record] },
+      registry([GREET.script]),
+    )
+
+    expect(wrapper.find('button').attributes('data-tooltip')).toBe('block.automation.noRecord')
+  })
+
+  it('leaves a button it can run alone', async () => {
+    const wrapper = mountFlagged(
+      { buttons: [GREET], module: recordModule, record },
+      registry([GREET.script]),
+    )
+
+    const button = wrapper.find('button')
+    expect(button.attributes('data-severity')).toBeUndefined()
+    expect(button.attributes('data-outlined')).toBe('false')
+    expect(button.attributes('data-tooltip')).toBeUndefined()
+
+    await press(wrapper)
+    expect(dispatch).toHaveBeenCalledTimes(1)
+  })
+
+  it('judges nothing when no script registry is installed', async () => {
+    const wrapper = mountFlagged({ buttons: [GREET], module: recordModule, record }, null)
+
+    expect(wrapper.find('button').attributes('data-severity')).toBeUndefined()
+    expect(wrapper.find('button').attributes('data-tooltip')).toBeUndefined()
+  })
+
+  it('leaves a workflow button unjudged, registry or not', async () => {
+    const wrapper = mountFlagged(
+      { buttons: [{ label: 'Go', workflowID: 'W1', resourceType: 'compose:record' }] },
+      registry([]),
+    )
+
+    expect(wrapper.find('button').attributes('data-severity')).toBeUndefined()
+    expect(wrapper.find('button').attributes('data-tooltip')).toBeUndefined()
   })
 })

@@ -272,9 +272,19 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/admin/views/automation/Script/Index.vue": {
-      "h": "34d68b28e2f2",
+      "h": "9b8d5ee51b3c",
       "doc": "client/web/unify/src/sections/admin/views/automation/Script/Index.intent.md",
-      "t": "2026-08-21"
+      "t": "2026-09-22"
+    },
+    "client/web/unify/src/sections/admin/views/automation/Script/script-inventory.js": {
+      "h": "3c529fcaf93a",
+      "doc": "client/web/unify/src/sections/admin/views/automation/Script/Script.intent.md",
+      "t": "2026-09-22"
+    },
+    "client/web/unify/src/sections/admin/views/automation/Script/script-inventory.test.js": {
+      "h": "90f280ffc855",
+      "doc": "client/web/unify/src/sections/admin/views/automation/Script/Script.intent.md",
+      "t": "2026-09-22"
     },
     "client/web/unify/src/sections/admin/views/automation/Session/List.vue": {
       "h": "eb0378814f65",
@@ -1017,9 +1027,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/AutomationConfigurator.vue": {
-      "h": "e1283de4dd3a",
+      "h": "ec0630756d63",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-07-27"
+      "t": "2026-09-22"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/CalendarConfigurator.vue": {
       "h": "a1e3b22707d9",
@@ -1117,22 +1127,22 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtons.test.js": {
-      "h": "371d0e4ba0a1",
+      "h": "9431b962bfa3",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtons.vue": {
-      "h": "f188051f5d1c",
+      "h": "98ee7bd4646a",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtonsEditor.test.js": {
-      "h": "db224b2b1d97",
+      "h": "feb12d41c599",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtonsEditor.vue": {
-      "h": "f065e4e418a9",
+      "h": "0c85af45bcd4",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-09-22"
     },
@@ -1272,12 +1282,12 @@
       "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/lib/script-events.js": {
-      "h": "e9678fe2f838",
+      "h": "8e20cdcef474",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/compose/lib/script-events.test.js": {
-      "h": "3658f2158967",
+      "h": "af8a47e6a009",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-09-22"
     },
@@ -1387,9 +1397,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/Builder.vue": {
-      "h": "58de1cba6773",
+      "h": "73259fa5ca07",
       "doc": "client/web/unify/src/sections/compose/views/Admin/Pages/Builder.intent.md",
-      "t": "2026-08-25"
+      "t": "2026-09-22"
     },
     "client/web/unify/src/sections/compose/views/Admin/Pages/Edit.layout-title.test.js": {
       "h": "1bcb39bc97b9",
@@ -4652,7 +4662,7 @@
       "t": "2026-09-22"
     },
     "lib/vue/src/corredor/index.ts": {
-      "h": "827675727a3f",
+      "h": "7955258089d1",
       "doc": "lib/vue/src/corredor/corredor.intent.md",
       "t": "2026-09-22"
     },
@@ -4663,6 +4673,16 @@
     },
     "lib/vue/src/corredor/script-bus.ts": {
       "h": "d16850633b3c",
+      "doc": "lib/vue/src/corredor/corredor.intent.md",
+      "t": "2026-09-22"
+    },
+    "lib/vue/src/corredor/script-display.test.ts": {
+      "h": "fcf0d73fd515",
+      "doc": "lib/vue/src/corredor/corredor.intent.md",
+      "t": "2026-09-22"
+    },
+    "lib/vue/src/corredor/script-display.ts": {
+      "h": "6a284d07c27a",
       "doc": "lib/vue/src/corredor/corredor.intent.md",
       "t": "2026-09-22"
     },
@@ -4692,7 +4712,7 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/index.ts": {
-      "h": "99e8b68b3a9d",
+      "h": "5f498fa838a7",
       "doc": "lib/vue/vue.intent.md",
       "t": "2026-09-22"
     },

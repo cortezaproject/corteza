@@ -70,7 +70,12 @@ test in isolation.
   namespace slug/name and module handle/name, the names the server's compose
   events match on — supplied by the dispatcher because a record's module
   carries no namespace here. `isScriptAbort(e)` recognises a script refusing
-  the action (`Aborted`).
+  the action (`Aborted`). `pageScriptResourceTypes(page)` /
+  `pageFitsResourceType(page, resourceType)` say which trigger resources a
+  page can hand a script (`compose:record` only on a record page), and
+  `triggerCanApply(trigger, { namespace, module })` whether its constraints
+  can ever match there; constraint chips come from lib/vue's
+  `constraintChips`.
 - `resource-translations.ts` — applies fetched resource-translation sets
   in-place onto modules/fields/pages/layouts/namespaces (`apply*Translations`).
   Owns the resource-ID string formats (`compose:module/{ns}/{mod}`,

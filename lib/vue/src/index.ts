@@ -28,6 +28,7 @@ export {
   UIHooksKey,
   UIHooksPlugin,
   WebappCtx,
+  constraintChips,
   loadClientScripts,
   registerServerScripts,
   wellKnownScriptPairs,

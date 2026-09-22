@@ -7,6 +7,11 @@ import AutomationButtonsEditor from './AutomationButtonsEditor.vue'
 
 // What GET /compose/automation/ answers with: one client and one server script
 // for compose, and one belonging to another app entirely.
+const CONTACT_CONSTRAINTS = [
+  { name: 'module', value: ['agent-contact'] },
+  { name: 'namespace', value: ['agent-sandbox'] },
+]
+
 const SCRIPTS = [
   {
     name: '/client-scripts/compose/agent-sandbox/ContactGreet.js:default',
@@ -17,6 +22,7 @@ const SCRIPTS = [
         eventTypes: ['onManual'],
         resourceTypes: ['compose:record'],
         uiProps: [{ name: 'app', value: 'compose' }],
+        constraints: CONTACT_CONSTRAINTS,
       },
     ],
   },
@@ -27,6 +33,18 @@ const SCRIPTS = [
       {
         eventTypes: ['onManual'],
         resourceTypes: ['compose:record'],
+        uiProps: [{ name: 'app', value: 'compose' }],
+        constraints: CONTACT_CONSTRAINTS,
+      },
+    ],
+  },
+  {
+    name: '/server-scripts/agent-sandbox/RebuildSpace.js:default',
+    label: 'Rebuild the space (server)',
+    triggers: [
+      {
+        eventTypes: ['onManual'],
+        resourceTypes: ['compose:namespace'],
         uiProps: [{ name: 'app', value: 'compose' }],
       },
     ],
@@ -44,16 +62,21 @@ const SCRIPTS = [
   },
 ]
 
+const NAMESPACE = { slug: 'agent-sandbox', name: 'Agent sandbox' }
+const CONTACT_MODULE = { handle: 'agent-contact', name: 'Contact' }
+const RECORD_PAGE = { pageID: '1', moduleID: '2', isRecordPage: true }
+const DASHBOARD_PAGE = { pageID: '3', moduleID: '0', isRecordPage: false }
+
 const passThrough = { template: '<div><slot /></div>' }
 const itemList = { name: 'CFormItemList', props: ['items'], template: '<div />' }
 
 let automationList
 
-function mountEditor(buttons = []) {
+function mountEditor(buttons = [], props = {}) {
   automationList = vi.fn(() => Promise.resolve({ set: SCRIPTS }))
 
   return mount(AutomationButtonsEditor, {
-    props: { buttons },
+    props: { buttons, ...props },
     global: {
       stubs: {
         CFormGroup: passThrough,
@@ -109,6 +132,9 @@ describe('AutomationButtonsEditor scripts tab', () => {
         resourceType: 'compose:record',
         description: 'Shows a toast in the browser',
         isScript: true,
+        constraints: CONTACT_CONSTRAINTS,
+        constraintChips: ['module = agent-contact', 'namespace = agent-sandbox'],
+        applies: true,
       },
       {
         script: '/server-scripts/agent-sandbox/ContactActivate.js:default',
@@ -116,6 +142,19 @@ describe('AutomationButtonsEditor scripts tab', () => {
         resourceType: 'compose:record',
         description: undefined,
         isScript: true,
+        constraints: CONTACT_CONSTRAINTS,
+        constraintChips: ['module = agent-contact', 'namespace = agent-sandbox'],
+        applies: true,
+      },
+      {
+        script: '/server-scripts/agent-sandbox/RebuildSpace.js:default',
+        label: 'Rebuild the space (server)',
+        resourceType: 'compose:namespace',
+        description: undefined,
+        isScript: true,
+        constraints: [],
+        constraintChips: [],
+        applies: true,
       },
     ])
   })
@@ -130,7 +169,10 @@ describe('AutomationButtonsEditor scripts tab', () => {
       scriptsTab(wrapper)
         .props('items')
         .map(i => i.script),
-    ).toEqual(['/server-scripts/agent-sandbox/ContactActivate.js:default'])
+    ).toEqual([
+      '/server-scripts/agent-sandbox/ContactActivate.js:default',
+      '/server-scripts/agent-sandbox/RebuildSpace.js:default',
+    ])
   })
 
   it('adds the picked script as a button that names it', async () => {
@@ -148,6 +190,83 @@ describe('AutomationButtonsEditor scripts tab', () => {
         scriptType: 'script',
       },
     ])
+  })
+
+  it('offers a record-bound script on a record page', async () => {
+    const wrapper = mountEditor([], {
+      page: RECORD_PAGE,
+      namespace: NAMESPACE,
+      module: CONTACT_MODULE,
+    })
+    await flushPromises()
+
+    expect(
+      scriptsTab(wrapper)
+        .props('items')
+        .map(i => i.script),
+    ).toEqual([
+      '/client-scripts/compose/agent-sandbox/ContactGreet.js:default',
+      '/server-scripts/agent-sandbox/ContactActivate.js:default',
+      '/server-scripts/agent-sandbox/RebuildSpace.js:default',
+    ])
+  })
+
+  it('leaves a record-bound script out on a page showing no record', async () => {
+    const wrapper = mountEditor([], { page: DASHBOARD_PAGE, namespace: NAMESPACE })
+    await flushPromises()
+
+    expect(
+      scriptsTab(wrapper)
+        .props('items')
+        .map(i => i.script),
+    ).toEqual(['/server-scripts/agent-sandbox/RebuildSpace.js:default'])
+  })
+
+  it('leaves a record-bound script out for a block that hands no record', async () => {
+    const wrapper = mountEditor([], {
+      page: RECORD_PAGE,
+      namespace: NAMESPACE,
+      canSupplyRecord: false,
+    })
+    await flushPromises()
+
+    expect(
+      scriptsTab(wrapper)
+        .props('items')
+        .map(i => i.script),
+    ).toEqual(['/server-scripts/agent-sandbox/RebuildSpace.js:default'])
+  })
+
+  it('lists a script the page contradicts, and refuses to add it', async () => {
+    const wrapper = mountEditor([], {
+      page: RECORD_PAGE,
+      namespace: NAMESPACE,
+      module: { handle: 'agent-deal', name: 'Deal' },
+    })
+    await flushPromises()
+
+    const items = scriptsTab(wrapper).props('items')
+
+    expect(items.map(i => i.applies)).toEqual([false, false, true])
+
+    scriptsTab(wrapper).vm.$emit('select', items[0])
+
+    expect(wrapper.emitted('update:buttons')).toBeUndefined()
+  })
+
+  it('adds a script whose constraints the page satisfies', async () => {
+    const wrapper = mountEditor([], {
+      page: RECORD_PAGE,
+      namespace: NAMESPACE,
+      module: CONTACT_MODULE,
+    })
+    await flushPromises()
+
+    scriptsTab(wrapper).vm.$emit('select', scriptsTab(wrapper).props('items')[0])
+
+    expect(wrapper.emitted('update:buttons')[0][0][0].script).toBe(
+      '/client-scripts/compose/agent-sandbox/ContactGreet.js:default',
+    )
   })
 
   it('still lists workflows and TAQs when no script can be read', async () => {

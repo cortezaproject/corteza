@@ -60,6 +60,10 @@ automation:
   pickStep: Pick a step
   pickWorkflow: Pick a workflow
   removeAll: Remove all
+  scriptNeverAppliesHere: This script is limited to another module or namespace, so it can
+    never run on this page
+  scriptNotLoaded: Script not loaded on this server — it may have been renamed, removed,
+    or it is not open to you
   searchPlaceholder: Filter available automations by name or description
   stepID: 'Starting step ID: {stepID}'
   tabs:

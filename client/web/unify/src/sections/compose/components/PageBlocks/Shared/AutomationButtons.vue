@@ -3,8 +3,10 @@
     <Button
       v-for="(btn, i) in buttons"
       :key="i"
+      v-tooltip.bottom="problemMessage(btn)"
       :label="evaluatedLabel(btn) || '-'"
-      :severity="mapVariant(btn.variant)"
+      :severity="problemOf(btn) ? 'danger' : mapVariant(btn.variant)"
+      :outlined="!!problemOf(btn)"
       :loading="processingIDs.includes(i)"
       :disabled="processingIDs.includes(i)"
       :size="size"
@@ -42,6 +44,7 @@ const $toast = inject('$toast', null)
 const $Auth = inject('$Auth', {})
 const $AutomationAPI = inject('$AutomationAPI', null)
 const $ScriptBus = inject('$ScriptBus', null)
+const $UIHooks = inject('$UIHooks', null)
 
 const processingIDs = ref([])
 
@@ -71,6 +74,28 @@ function evaluatedLabel(btn) {
   } catch {
     return btn.label
   }
+}
+
+// Why a configured script button cannot do its job here, empty when it can.
+//
+// The registry is the server's answer to what it will run: a script that is not
+// in it has been renamed, removed or refused to this user. A resource the page
+// does not carry is the other half — `buildScriptEvent` has nothing to send.
+// Without the registry nothing is judged: an app that installed no hooks knows
+// of no scripts at all.
+function problemOf(btn) {
+  if (!btn.script) return ''
+
+  if ($UIHooks && !$UIHooks.FindByScript(btn.script)) return 'scriptNotLoaded'
+
+  if (btn.resourceType === 'compose:record' && !(props.record && props.module)) return 'noRecord'
+
+  return ''
+}
+
+function problemMessage(btn) {
+  const problem = problemOf(btn)
+  return problem ? t(`block.automation.${problem}`) : undefined
 }
 
 // Every entry is a typed envelope: the exec endpoint decodes `input` into
@@ -135,6 +160,11 @@ function buildScriptEvent(btn) {
 // each where it belongs.
 async function dispatchScript(btn) {
   if (!$ScriptBus) return
+
+  if (problemOf(btn) === 'scriptNotLoaded') {
+    $toast?.toastWarning?.(t('block.automation.scriptNotLoaded'))
+    return
+  }
 
   const ev = buildScriptEvent(btn)
   if (!ev) return

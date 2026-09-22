@@ -4,16 +4,35 @@ scripts:
       name: Name
     filter:
       absoluteTime: Show absolute time
+      incClientScripts: Client scripts ({count})
       incScriptsWithErrors: Errors ({count})
       incScriptsWithIterator: Iterator ({count})
       incScriptsWithSecurity: Security ({count})
       incScriptsWithTriggers: Triggers ({count})
+      incServerScripts: Server scripts ({count})
       searchQuery: Search query
-    flags:
-      iterator: Iterator
-      security: Security
-      triggers: Triggers
+    groups:
+      root: Scripts outside any extension
+    iterator:
+      chip: iterator · {eventType} · {resourceType} · {action}
+      chipWithSchedule: iterator · {eventType} · {resourceType} · {action} · {schedule}
+    kind:
+      client: Client · {bundle}
+      clientWithoutBundle: Client
+      server: Server
     labelMissing: <label missing>
+    security:
+      allow: 'allow: {roles}'
+      deny: 'deny: {roles}'
+      runAs: run as {runAs}
+    status:
+      connected: Connected · scripts refreshed {relativeTime} ({absoluteTime})
+      connectedWithoutRefreshTime: Connected · the server has not recorded a script
+        refresh yet
+      disabled: Corredor is turned off on this server (CORREDOR_ENABLED)
+      refresh: Refresh
+      refreshTooltip: Fetch the script list from the server again
+      unreachable: Corredor is enabled but the server cannot reach it
     title: Corredor Scripts
 sessions:
   editor:

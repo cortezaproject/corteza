@@ -149,13 +149,33 @@
                 :items="filteredScripts"
                 :empty-message="$t('block.automation.noScripts')"
                 hide-remove
-                @select="addTriggerButton"
+                @select="addScriptButton"
               >
                 <template #default="{ item }">
-                  <span class="font-medium text-sm">{{ item.label }}</span>
-                  <p v-if="item.description" class="text-sm text-muted-color mt-1 mb-0">
-                    {{ item.description }}
-                  </p>
+                  <div :class="['flex flex-col', { 'opacity-50': !item.applies }]">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-medium text-sm">{{ item.label }}</span>
+                      <Tag
+                        v-if="item.resourceType"
+                        :value="item.resourceType"
+                        severity="info"
+                        class="text-xs"
+                      />
+                      <Tag
+                        v-for="(chip, i) in item.constraintChips"
+                        :key="i"
+                        :value="chip"
+                        severity="secondary"
+                        class="text-xs"
+                      />
+                    </div>
+                    <p v-if="item.description" class="text-sm text-muted-color mt-1 mb-0">
+                      {{ item.description }}
+                    </p>
+                    <p v-if="!item.applies" class="text-sm text-muted-color italic mt-1 mb-0">
+                      {{ $t('block.automation.scriptNeverAppliesHere') }}
+                    </p>
+                  </div>
                 </template>
               </CFormItemList>
             </TabPanel>
@@ -169,6 +189,8 @@
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { constraintChips } from '@planetcrust/human-vue'
+import { pageFitsResourceType, triggerCanApply } from '@/sections/compose/lib/script-events'
 
 const { t } = useI18n()
 
@@ -179,6 +201,13 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  // The page the block sits on and the resources it can hand a script. Left out,
+  // no script is held back: a caller that names no page states no context.
+  page: { type: Object, default: null },
+  namespace: { type: Object, default: null },
+  module: { type: Object, default: null },
+  // Whether the block hands a script the page's record; a record list never does.
+  canSupplyRecord: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['update:buttons'])
@@ -255,8 +284,23 @@ const filteredWorkflows = computed(() => {
   return triggers.filter(t => `${t.label} ${t.description || ''}`.toLowerCase().includes(q))
 })
 
+// Scripts this block may offer, each told how it stands against the page: one
+// whose resource the page cannot hand it is left out, one whose constraints the
+// page contradicts is shown and refused.
 const filteredScripts = computed(() => {
-  const triggers = availableTriggers.value.filter(t => t.script)
+  const triggers = availableTriggers.value
+    .filter(t => t.script)
+    .filter(t => !props.page || pageFitsResourceType(props.page, t.resourceType))
+    .filter(t => props.canSupplyRecord || t.resourceType !== 'compose:record')
+    .map(t => ({
+      ...t,
+      constraintChips: constraintChips(t.constraints),
+      applies: triggerCanApply(
+        { constraints: t.constraints },
+        { namespace: props.namespace, module: props.module },
+      ),
+    }))
+
   if (!searchQuery.value) return triggers
   const q = searchQuery.value.toLowerCase()
   return triggers.filter(t => `${t.label} ${t.description || ''}`.toLowerCase().includes(q))
@@ -316,6 +360,12 @@ function addTriggerButton(trigger) {
   emitButtons([...normalizedButtons.value, newButton])
 }
 
+// A script the page contradicts is listed so it can be recognised, not picked.
+function addScriptButton(trigger) {
+  if (trigger.applies === false) return
+  addTriggerButton(trigger)
+}
+
 function selectButton(index) {
   selectedIndex.value = selectedIndex.value === index ? -1 : index
 }
@@ -345,6 +395,7 @@ async function fetchScriptTriggers() {
           resourceType: (trigger.resourceTypes || [])[0],
           description: script.description,
           isScript: true,
+          constraints: trigger.constraints || [],
         })),
     )
   } catch (e) {

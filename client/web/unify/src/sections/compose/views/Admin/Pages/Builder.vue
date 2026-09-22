@@ -485,6 +485,10 @@
           <AutomationButtonsEditor
             :buttons="editingBlock.options.selectionButtons || []"
             :scope="scope"
+            :namespace="namespace"
+            :page="page"
+            :module="editingBlockModule"
+            :can-supply-record="false"
             @update:buttons="onSelectionButtonsUpdate"
           />
         </TabPanel>
@@ -729,6 +733,13 @@ const configuratorHeader = computed(() =>
 )
 
 const hasAutomationTab = computed(() => editingBlock.value?.kind === 'RecordList')
+
+// The module a record list block lists — what its selection buttons run against.
+const editingBlockModule = computed(() => {
+  const moduleID = editingBlock.value?.options?.moduleID
+  if (!moduleID || moduleID === '0') return null
+  return moduleStore.getByID(moduleID) || null
+})
 
 function onSelectionButtonsUpdate(next) {
   if (!editingBlock.value) return

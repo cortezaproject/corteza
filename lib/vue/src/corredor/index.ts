@@ -8,6 +8,8 @@ export type { ComposeCtxServices } from './compose-ctx'
 export { WebappCtx } from './webapp-ctx'
 export type { WebappCtxServices } from './webapp-ctx'
 export { consoleLogger } from './logger'
+export { constraintChips } from './script-display'
+export type { ScriptConstraint } from './script-display'
 export type { CtxLogger } from './logger'
 export { loadClientScripts, registerServerScripts } from './bundle-loader'
 export type {
