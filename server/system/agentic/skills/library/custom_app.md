@@ -46,6 +46,9 @@ it is in.
 - No `alert`, `confirm`, `prompt` (the sandbox suppresses them; `confirm` always
   answers false), no `window.open` or `target="_blank"`, no `<a download>`.
   Use in-page dialogs and in-page detail panes; exports are not available yet.
+- No links that leave the page — `mailto:`, `tel:`, another site or another
+  file. They work in a preview and do nothing in Human. Link only to `#anchors`
+  within the page, and show an email address or phone number as text.
 
 `system_application_source_set` refuses a document that breaks any rule above
 and says which; writing to them from the start saves the round trip.

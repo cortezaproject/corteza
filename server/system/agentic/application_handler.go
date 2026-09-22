@@ -685,6 +685,17 @@ func checkApplicationSource(source string) error {
 		return fmt.Errorf("the source offers a file through a download link, which the sandbox blocks; downloads are not available to a custom app yet, so leave the export out")
 	}
 
+	for _, m := range linkHref.FindAllStringSubmatch(source, -1) {
+		href := strings.TrimSpace(m[1] + m[2] + m[3])
+		if href == "" || strings.HasPrefix(href, "#") || strings.HasPrefix(strings.ToLower(href), "javascript:") {
+			continue
+		}
+		return fmt.Errorf(
+			"the source links to %s; in Human a link that leaves the page does nothing, though it works in a preview — the app is one document, so link only to #anchors within it, and show an email address or phone number as text",
+			href,
+		)
+	}
+
 	for _, m := range externalScript.FindAllStringSubmatch(source, -1) {
 		if !strings.HasPrefix(strings.ToLower(m[1]), "https://cdnjs.cloudflare.com/") {
 			return fmt.Errorf("the source loads a script from %s; the sandbox's script-src admits https://cdnjs.cloudflare.com only — load the library from there, pinned to an exact version", m[1])
@@ -708,6 +719,7 @@ func checkApplicationSource(source string) error {
 
 var (
 	newTab           = regexp.MustCompile(`(?i)target\s*=\s*["']?_blank`)
+	linkHref         = regexp.MustCompile(`(?i)<a\b[^>]*\shref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]*))`)
 	downloadLink     = regexp.MustCompile(`(?i)<a\b[^>]*\sdownload\b`)
 	downloadProperty = regexp.MustCompile(`\.download\s*=[^=]`)
 	externalScript   = regexp.MustCompile(`(?i)<script\b[^>]*\ssrc\s*=\s*["']?((?:https?:)?//[^"'\s>]+)`)

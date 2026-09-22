@@ -96,6 +96,10 @@ func TestApplicationSourceRefusesWhatTheSandboxCannotRun(t *testing.T) {
 		{"css import", `<style>@import url('https://fonts.googleapis.com/css2?family=Inter');</style>`, "inline it"},
 		{"css url", `<style>.hero { background: url(https://example.com/a.png) }</style>`, "data: URL"},
 		{"remote image", `<img src="https://example.com/logo.png" alt="">`, "img-src"},
+		{"mailto link", `<a href="mailto:ana@example.com">Ana</a>`, "leaves the page does nothing"},
+		{"tel link", `<a href='tel:+38612345'>call</a>`, "tel:+38612345"},
+		{"site link", `<a class="x" href=https://example.com>site</a>`, "leaves the page"},
+		{"file link", `<a href="details.html">more</a>`, "details.html"},
 	}
 
 	for _, c := range cases {
@@ -127,6 +131,9 @@ func TestApplicationSourceAllowsWhatOnlyResemblesARefusal(t *testing.T) {
 		`<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>`,
 		`<img src="data:image/png;base64,AAAA" alt="">`,
 		`<a href="#detail">Details</a>`,
+		`<a href="" onclick="open()">Open</a>`,
+		`<a href="javascript:void(0)">Toggle</a>`,
+		`<a name="top"></a>`,
 	} {
 		require.NoError(t, checkApplicationSource(source), source)
 	}
