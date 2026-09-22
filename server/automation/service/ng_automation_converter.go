@@ -702,6 +702,12 @@ func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.Ste
 		return nil, fmt.Errorf("unexpected %s on %s step", def.Kind, step.Kind)
 	}
 
+	// corredorExec is the one construct that can be disabled: it is listed
+	// while Corredor is off so the step reads as what it is, but never runs
+	if def.Disabled {
+		return nil, NgAutomationErrNotAllowedToExecuteCorredorStep()
+	}
+
 	var (
 		isIterator = def.Kind == types.FunctionKindIterator
 	)

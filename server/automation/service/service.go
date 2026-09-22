@@ -164,6 +164,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automation.LoopHandler(Registry(), DefaultWorkflow.services.parser)
 	automation.NgLoopHandler(ConstructLibrary(), DefaultWorkflow.services.parser)
 	automation.NgWorkflowHandler(ConstructLibrary(), DefaultWorkflow)
+	automation.NgCorredorHandler(ConstructLibrary(), corredor.Service(), c.Corredor.Enabled)
 	automation.CorredorHandler(Registry(), corredor.Service())
 	automation.EmailHandler(Registry())
 	automation.JwtHandler(Registry())
