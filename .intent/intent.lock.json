@@ -62,7 +62,7 @@
       "t": "2026-09-22"
     },
     "client/web/unify/e2e/sections/app/gotchas.spec.ts": {
-      "h": "7928dac3b475",
+      "h": "626f9b259faa",
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-09-22"
     },
@@ -392,7 +392,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/admin/views/system/Application/Editor.vue": {
-      "h": "2e9e53b3fc91",
+      "h": "df548f0a388d",
       "doc": "client/web/unify/src/sections/admin/views/system/Application/Editor.intent.md",
       "t": "2026-09-22"
     },
@@ -627,17 +627,17 @@
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/app/bridge.js": {
-      "h": "24d0156c8071",
+      "h": "74a63e991370",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/bridge.test.js": {
-      "h": "d00278536d6c",
+      "h": "a6ef725fdcac",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "c534ec5cf1b0",
+      "h": "692b7ed35dc4",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
@@ -657,7 +657,7 @@
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/views/AppView.vue": {
-      "h": "67e12f1c377c",
+      "h": "4f6198a52547",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
@@ -3567,7 +3567,7 @@
       "t": "2026-09-22"
     },
     "lib/js/src/system/types/application.ts": {
-      "h": "342d93eec395",
+      "h": "f7a563db351d",
       "doc": "lib/js/src/system/system.intent.md",
       "t": "2026-09-22"
     },

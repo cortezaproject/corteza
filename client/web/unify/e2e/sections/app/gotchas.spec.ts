@@ -54,6 +54,22 @@ const LINKS = `
 <div style="height: 3000px"></div>
 <p id="below">below</p>`
 
+// What a page that changes records finds out.
+const WRITES = `
+<pre id="out"></pre>
+<script>__BRIDGE__</script>
+<script>
+(async () => {
+  const settle = p => p.then(ok => ({ ok }), e => ({ error: String(e && e.message || e) }))
+  const out = {}
+  out.create = await settle(human.records.create({ module: 'e2e_probes', values: { name: 'written by the app', flag: true } }))
+  const id = out.create.ok && out.create.ok.record.recordID
+  out.update = id ? await settle(human.records.update({ module: 'e2e_probes', recordID: id, values: { flag: false } })) : { error: 'no record' }
+  out.readOnlyModule = await settle(human.records.create({ module: 'e2e_companies', values: { name: 'x' } }))
+  document.getElementById('out').textContent = JSON.stringify(out)
+})()
+</script>`
+
 const probeSource = (version: number) =>
   PROBE.replace('__BRIDGE__', BRIDGE_SCRIPT.replace(/v: \d+ \}/, `v: ${version} }`))
 
@@ -98,7 +114,7 @@ test.describe.serial('custom app gotchas', () => {
       await page.waitForFunction(() => (document.querySelector('#app') as any)?.__vue_app__)
 
       const made = await page.evaluate(
-        async ({ slug, name, sources }) => {
+        async ({ slug, name, sources, writable }) => {
           const app = (document.querySelector('#app') as any).__vue_app__
           const { $ComposeAPI: compose, $SystemAPI: system } = app.config.globalProperties
 
@@ -165,7 +181,10 @@ test.describe.serial('custom app gotchas', () => {
               applicationID: created.applicationID,
               source,
               namespace: slug,
-              modules: ['e2e_probes'],
+              // Only the writing app may read the second module; the others
+              // need one they cannot touch.
+              modules: version === 'writes' ? ['e2e_probes', 'e2e_companies'] : ['e2e_probes'],
+              writes: version === 'writes' ? writable : [],
             })
             apps[version] = created.applicationID
           }
@@ -175,7 +194,13 @@ test.describe.serial('custom app gotchas', () => {
         {
           slug: SLUG,
           name: NAME,
-          sources: { v1: probeSource(1), v2: probeSource(2), links: LINKS },
+          sources: {
+            v1: probeSource(1),
+            v2: probeSource(2),
+            links: LINKS,
+            writes: WRITES.replace('__BRIDGE__', BRIDGE_SCRIPT),
+          },
+          writable: ['e2e_probes'],
         },
       )
 
@@ -245,9 +270,14 @@ test.describe.serial('custom app gotchas', () => {
     expect(probe.undeclared.error).toBe('module "e2e_companies" is not declared for this app')
   })
 
-  test('writes are not part of the contract', async ({ page }) => {
+  // An app changes records only where it was deployed to; a page that declared
+  // none is refused before the viewer is asked anything.
+  test('an app that declared no writable module changes nothing', async ({ page }) => {
     const probe = await runProbe(page, apps.v2)
-    expect(probe.create.error).toBe('operation "records.create" is not available to an app')
+    expect(probe.create.error).toBe(
+      'module "e2e_probes" is not declared as one this app may change',
+    )
+    expect(page.getByRole('alertdialog')).toHaveCount(0)
   })
 
   test('the page reaches neither the network nor storage', async ({ page }) => {
@@ -299,5 +329,36 @@ test.describe.serial('custom app gotchas', () => {
     await expect(
       page.getByText('This app tried to leave the sandbox and was stopped.'),
     ).toBeVisible()
+  })
+
+  // A change asks the person first: the dialog belongs to Human, outside the
+  // sandbox, so the app can neither draw it nor answer it.
+  async function runWrites(page: Page, answer: RegExp) {
+    await page.goto(`/app/${apps.writes}`)
+    const dialog = page.getByRole('alertdialog')
+    await dialog.waitFor({ timeout: 20000 })
+    await dialog.getByRole('button', { name: answer }).click()
+    const out = appFrame(page).locator('#out')
+    await expect(out).not.toBeEmpty({ timeout: 20000 })
+    return JSON.parse(await out.innerText())
+  }
+
+  test('with the viewer agreeing, a record is created and changed in place', async ({ page }) => {
+    test.skip(!apps.writes, 'the writes app was not created')
+    const out = await runWrites(page, /Allow/)
+
+    expect(out.create.ok.record.values).toMatchObject({ name: 'written by the app', flag: true })
+    // The update names one field; the rest of the record stays as it was.
+    expect(out.update.ok.record.values).toMatchObject({ name: 'written by the app', flag: false })
+  })
+
+  test('a refusal stops the change, and a module it may only read is refused', async ({ page }) => {
+    test.skip(!apps.writes, 'the writes app was not created')
+    const out = await runWrites(page, /Do not allow/)
+
+    expect(out.create.error).toContain('did not agree')
+    expect(out.readOnlyModule.error).toBe(
+      'module "e2e_companies" is not declared as one this app may change',
+    )
   })
 })

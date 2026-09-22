@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { BRIDGE_SCRIPT } from './bridge'
 import {
   allowModule,
+  allowWrite,
+  toStoreValues,
   BRIDGE_VERSION,
   bridgeVersion,
   buildOuterDocument,
@@ -114,8 +116,8 @@ describe('operation dispatch', () => {
 
   it('refuses an operation that is not in the table', async () => {
     const ctx = context()
-    await expect(dispatch('records.create', {}, ctx)).rejects.toThrow(
-      'operation "records.create" is not available to an app',
+    await expect(dispatch('records.delete', {}, ctx)).rejects.toThrow(
+      'operation "records.delete" is not available to an app',
     )
   })
 
@@ -363,5 +365,111 @@ describe('record references', () => {
     const out = await dispatch('records.list', { module: 'agent-contact' }, ctx)
     expect(out.records[0].values).toEqual({ company: '100', active: false })
     expect(out.refs).toEqual({ 7: 'Dev Agent', 100: 'Acme' })
+  })
+})
+
+describe('changing records', () => {
+  const meta = { namespace: 'agent-sandbox', modules: ['agent-contact'], writes: ['agent-contact'] }
+  const fields = [
+    { name: 'name', kind: 'String' },
+    { name: 'active', kind: 'Bool' },
+    { name: 'amount', kind: 'Number' },
+    { name: 'tags', kind: 'String', multi: true },
+  ]
+
+  const writeContext = (over = {}) => ({
+    ...context(meta),
+    version: 2,
+    fields: () => fields,
+    consent: vi.fn().mockResolvedValue(true),
+    ...over,
+  })
+
+  it('refuses a module the app reads but was not given to change', async () => {
+    expect(allowWrite({ modules: ['a'], writes: [] }, 'a')).toBe(
+      'module "a" is not declared as one this app may change',
+    )
+    expect(allowWrite({ modules: ['a'], writes: ['a'] }, 'a')).toBe(null)
+    expect(allowWrite({ modules: [], writes: ['a'] }, 'a')).toBe(
+      'module "a" is not declared for this app',
+    )
+  })
+
+  it('writes values the way the webapp does, and refuses a field the module has not', () => {
+    expect(
+      toStoreValues({ name: 'Ana', active: true, amount: 12.5, tags: ['a', 'b'] }, fields),
+    ).toEqual([
+      { name: 'name', value: 'Ana' },
+      { name: 'active', value: '1' },
+      { name: 'amount', value: '12.5' },
+      { name: 'tags', value: 'a' },
+      { name: 'tags', value: 'b' },
+    ])
+    expect(toStoreValues({ active: false }, fields)).toEqual([{ name: 'active', value: '' }])
+    expect(() => toStoreValues({ nope: 'x' }, fields)).toThrow(
+      '"nope" is not a field of this module',
+    )
+  })
+
+  it('creates a record once the viewer has agreed', async () => {
+    const ctx = writeContext()
+    ctx.compose.recordCreate = vi
+      .fn()
+      .mockResolvedValue({ recordID: '9', values: [{ name: 'name', value: 'Ana' }] })
+
+    const out = await dispatch(
+      'records.create',
+      { module: 'agent-contact', values: { name: 'Ana' } },
+      ctx,
+    )
+
+    expect(ctx.consent).toHaveBeenCalledWith('agent-contact')
+    expect(ctx.compose.recordCreate.mock.calls[0][0]).toMatchObject({
+      moduleID: '2',
+      values: [{ name: 'name', value: 'Ana' }],
+    })
+    expect(out.record.values).toEqual({ name: 'Ana', active: false })
+  })
+
+  it('changes nothing when the viewer says no', async () => {
+    const ctx = writeContext({ consent: vi.fn().mockResolvedValue(false) })
+    ctx.compose.recordCreate = vi.fn()
+
+    await expect(
+      dispatch('records.create', { module: 'agent-contact', values: { name: 'Ana' } }, ctx),
+    ).rejects.toThrow('did not agree')
+    expect(ctx.compose.recordCreate).not.toHaveBeenCalled()
+  })
+
+  // The endpoint behind an update changes every record a filter matches, so an
+  // update with no record named must never reach it.
+  it('refuses an update that names no record, without calling the API', async () => {
+    const ctx = writeContext()
+    ctx.compose.recordPatch = vi.fn()
+
+    await expect(
+      dispatch('records.update', { module: 'agent-contact', values: { name: 'Ana' } }, ctx),
+    ).rejects.toThrow('needs the recordID')
+    expect(ctx.compose.recordPatch).not.toHaveBeenCalled()
+  })
+
+  it('changes only the named record and reads it back', async () => {
+    const ctx = writeContext()
+    ctx.compose.recordPatch = vi.fn().mockResolvedValue({})
+    ctx.compose.recordRead = vi
+      .fn()
+      .mockResolvedValue({ recordID: '9', values: [{ name: 'name', value: 'Bo' }] })
+
+    const out = await dispatch(
+      'records.update',
+      { module: 'agent-contact', recordID: '9', values: { name: 'Bo' } },
+      ctx,
+    )
+
+    expect(ctx.compose.recordPatch.mock.calls[0][0]).toMatchObject({
+      moduleID: '2',
+      recordID: ['9'],
+    })
+    expect(out.record.values.name).toBe('Bo')
   })
 })

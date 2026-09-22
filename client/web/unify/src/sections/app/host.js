@@ -282,6 +282,41 @@ export async function recordLabels(compose, namespaceID, targets) {
   return out
 }
 
+// Whether the app may change records in this module: the refusal text, or null.
+// Reading is not enough — changing is declared on its own.
+export function allowWrite(meta, module) {
+  const refusal = allowModule(meta, module)
+  if (refusal) return refusal
+  if (!(meta?.writes || []).includes(module)) {
+    return `module "${module}" is not declared as one this app may change`
+  }
+  return null
+}
+
+// The app's values as the store takes them: one entry per value, a repeated
+// field once per item, `true`/`false` as the webapp's own editors write them.
+export function toStoreValues(values, fields) {
+  const known = new Set((fields || []).map(f => f.name))
+  const out = []
+
+  for (const [name, value] of Object.entries(values || {})) {
+    if (!known.has(name)) {
+      throw new Error(`"${name}" is not a field of this module`)
+    }
+    for (const one of Array.isArray(value) ? value : [value]) {
+      out.push({ name, value: storeValue(one) })
+    }
+  }
+
+  return out
+}
+
+function storeValue(value) {
+  if (value === true) return '1'
+  if (value === false || value === null || value === undefined) return ''
+  return String(value)
+}
+
 // Whether the app may touch this module: the refusal text, or null.
 export function allowModule(meta, module) {
   if (!module) return 'no module was named'
@@ -306,6 +341,21 @@ function moduleIDFor(ctx, module) {
     throw new Error(`module "${module}" was not found in namespace "${ctx.meta?.namespace}"`)
   }
   return moduleID
+}
+
+function writableModuleIDFor(ctx, module) {
+  const refusal = allowWrite(ctx.meta, module)
+  if (refusal) throw new Error(refusal)
+  return moduleIDFor(ctx, module)
+}
+
+// The viewer is asked, in Human, before this app's first change; the app can
+// neither draw that question nor answer it.
+async function agreed(ctx, module) {
+  if (!ctx.consent) return
+  if (!(await ctx.consent(module))) {
+    throw new Error('the person using this app did not agree to it changing records')
+  }
 }
 
 function fieldsFor(ctx, moduleID) {
@@ -367,6 +417,45 @@ export async function dispatch(op, args = {}, ctx) {
         dimensions: args.dimensions,
         filter: args.filter,
       })
+    }
+
+    case 'records.create': {
+      const moduleID = writableModuleIDFor(ctx, args.module)
+      await agreed(ctx, args.module)
+      const record = await ctx.compose.recordCreate({
+        namespaceID: ctx.namespaceID,
+        moduleID,
+        values: toStoreValues(args.values, fieldsFor(ctx, moduleID)),
+      })
+      return { record: reshapeRecord(record, fieldsFor(ctx, moduleID), ctx.version) }
+    }
+
+    case 'records.update': {
+      const moduleID = writableModuleIDFor(ctx, args.module)
+      // The endpoint behind this changes every record a filter matches, so one
+      // record is named here and nothing else can widen it.
+      const recordID = String(args.recordID || '')
+      if (!recordID) {
+        throw new Error('records.update needs the recordID of the one record to change')
+      }
+      await agreed(ctx, args.module)
+
+      const values = toStoreValues(args.values, fieldsFor(ctx, moduleID))
+      if (!values.length) throw new Error('records.update needs at least one value to change')
+
+      await ctx.compose.recordPatch({
+        namespaceID: ctx.namespaceID,
+        moduleID,
+        recordID: [recordID],
+        values,
+      })
+
+      const record = await ctx.compose.recordRead({
+        namespaceID: ctx.namespaceID,
+        moduleID,
+        recordID,
+      })
+      return { record: reshapeRecord(record, fieldsFor(ctx, moduleID), ctx.version) }
     }
 
     case 'user':

@@ -1,3 +1,8 @@
+consent:
+  accept: Allow this app to make changes
+  header: This app wants to change records
+  message: '{name} wants to create and change records in {modules}. It does that as you, with your own permissions, and only in those modules. Nothing is changed until you allow it.'
+  reject: Do not allow
 state:
   empty: This application has no page stored for it yet. An administrator can add one from the application's settings.
   error: 'This application could not be opened: {reason}'

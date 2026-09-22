@@ -172,6 +172,20 @@
               </dd>
             </div>
             <div>
+              <dt class="text-muted-color">{{ $t('system.applications.editor.custom.writes') }}</dt>
+              <dd class="flex flex-wrap gap-1">
+                <Tag
+                  v-for="module in sourceMeta.writes || []"
+                  :key="module"
+                  :value="module"
+                  severity="warn"
+                />
+                <span v-if="!(sourceMeta.writes || []).length">
+                  {{ $t('system.applications.editor.custom.readOnly') }}
+                </span>
+              </dd>
+            </div>
+            <div>
               <dt class="text-muted-color">{{ $t('system.applications.editor.custom.size') }}</dt>
               <dd>{{ sourceSizeLabel }}</dd>
             </div>

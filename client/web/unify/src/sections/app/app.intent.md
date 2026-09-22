@@ -101,7 +101,7 @@ was written for — changing what an existing version returns breaks deployed
 apps, so a change to a value's shape is a new version, never an edit to an old
 one.
 
-Operations in this slice (all read):
+Operations:
 
 | op               | args                                            | result                                          |
 | ---------------- | ----------------------------------------------- | ----------------------------------------------- |
@@ -110,6 +110,8 @@ Operations in this slice (all read):
 | `records.report` | `{module, metrics, dimensions, filter?}`        | what `recordReport` returns                     |
 | `user`           | —                                               | `{userID, name, email}`                         |
 | `theme`          | —                                               | `{dark: bool, colors: {primary, body-bg, ...}}` |
+| `records.create` | `{module, values}`                              | `{record}`                                      |
+| `records.update` | `{module, recordID, values}`                    | `{record}`                                      |
 | `resize`         | `{height}`                                      | `true` — the shell sets the frame height        |
 
 Rules the host enforces, whatever the app asks:
@@ -132,7 +134,17 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
 - A reference's target module need not be declared to be labelled. The
   reference is part of a declared record and Human's own viewers show its label
   there; the app gets that label and nothing else from the target.
-- No write, no delete, no attachment in this slice.
+- A change (`records.create`, `records.update`) needs three things, and the
+  order is the permission story: the module is in `sourceMeta.writes` (a subset
+  of `modules`, declared when the page was deployed); the viewer agreed, once
+  per app while it is open, through a Human dialog the app cannot draw or
+  answer; and the viewer's own permissions allow it, since every call runs as
+  them. A value names a field the module has, and is written the way the
+  webapp's own editors write it (`true` as `'1'`, `false` as empty).
+- `records.update` changes exactly the one record it names and only the fields
+  it lists; it refuses to run without a `recordID`, because the endpoint under
+  it changes every record a filter matches.
+- No delete, no attachment, no owner change.
 
 ## Map
 
@@ -156,7 +168,9 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
   `frame-src 'none'` each reopen a way for app code to reach the viewer's
   session or ship data out; do it only with a ruling in this doc.
 - New operations are added to the table above first. Every write operation
-  needs its own permission story before it exists.
+  needs its own permission story before it exists; the one above is
+  declaration, then the viewer's agreement, then the viewer's permissions, and
+  a new one is measured against all three.
 - The reshape of `values` is the app-facing contract; the MCP tool's
   `[{name, value}]` shape is not what apps see.
 

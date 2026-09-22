@@ -31,6 +31,7 @@ interface SourceMeta {
   size: number
   namespace?: string
   modules?: string[]
+  writes?: string[]
   updatedAt?: string
   updatedBy?: string
 }

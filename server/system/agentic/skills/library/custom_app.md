@@ -108,6 +108,8 @@ Operations, all read-only:
 | `human.records.report` | `{module, metrics, dimensions, filter?}`        | the report rows                      |
 | `human.user`           | —                                               | `{userID, name, email}`              |
 | `human.theme`          | —                                               | `{dark, colors}`                     |
+| `human.records.create` | `{module, values}`                              | `{record}`                           |
+| `human.records.update` | `{module, recordID, values}`                    | `{record}`                           |
 | `human.resize`         | `height`                                        | `true` — the shell resizes the frame |
 
 - `module` is a handle and carries no namespace: the app reads the namespace it
@@ -128,8 +130,22 @@ createdAt, updatedAt}`. `values` is an object keyed by field name, multi-value
 - The snippet's `v: 2` is the contract a page is written against. Keep it as it
   is; a page with `v: 1` gets the older, string-only values.
 - `limit` is capped at 500.
-- Creating, updating, deleting a record, and downloading a file, are not
-  available yet. Do not write an app that needs them.
+- Changing records is off unless the app was deployed with `writes` naming the
+  modules it may change; every one of them must be in `modules` too. Leave
+  `writes` out for a read-only app.
+  - `human.records.create({module, values})` and
+    `human.records.update({module, recordID, values})`. `values` is an object
+    keyed by field name, in the same shape reading gives you — `true`/`false`
+    and numbers, not strings. An update changes only the fields it lists, and
+    always exactly one record.
+  - Human asks the person once, while the app is open, before the first change.
+    A refusal comes back as an error; say so in the page rather than retrying.
+  - Every change runs as the person using the app, under their permissions, so
+    a refusal from the server is theirs and its message is worth showing.
+  - Give `window.SAMPLE` a `records.create` and `records.update` too, returning
+    the record as if it had been saved, so the preview works.
+- Deleting a record, changing its owner, and downloading a file are not
+  available. Do not write an app that needs them.
 
 Two modes, and the app always says which one it is in. `await human.ready` is
 `true` when the bridge answered within 600 ms and `false` in a preview. Show a
@@ -146,7 +162,8 @@ When the user is happy with the preview:
    `app/<applicationID>` for you. Pass `enabled: true` for it to reach anyone.
 2. `system_application_source_set` with `source` (the file exactly as
    previewed), `namespace` and `modules` — the allowlist the bridge enforces, so
-   a module missing here makes the app refuse its own data.
+   a module missing here makes the app refuse its own data — plus `writes` if
+   the page changes records.
 3. Compare the returned `size` and `hash` with what you sent, then give the user
    the returned `url`.
 

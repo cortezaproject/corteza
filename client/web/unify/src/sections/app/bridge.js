@@ -60,7 +60,9 @@ window.human = window.human || (function () {
     records: {
       list: function (a) { return call('records.list', a) },
       read: function (a) { return call('records.read', a) },
-      report: function (a) { return call('records.report', a) }
+      report: function (a) { return call('records.report', a) },
+      create: function (a) { return call('records.create', a) },
+      update: function (a) { return call('records.update', a) }
     },
     user: function () { return call('user', {}) },
     theme: function () { return call('theme', {}) },

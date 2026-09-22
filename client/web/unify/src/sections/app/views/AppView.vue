@@ -37,6 +37,7 @@
 <script setup>
 import { useApplicationsStore, useUserStore } from '@planetcrust/human-vue'
 import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useConfirm } from 'primevue/useconfirm'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { BRIDGE_SCRIPT } from '../bridge'
@@ -45,6 +46,7 @@ import { bridgeVersion, buildOuterDocument, dispatch, hostScriptSource } from '.
 const { t } = useI18n()
 const route = useRoute()
 
+const confirm = useConfirm()
 const $Auth = inject('$Auth')
 const $SystemAPI = inject('$SystemAPI')
 const $ComposeAPI = inject('$ComposeAPI')
@@ -126,8 +128,38 @@ async function refs(records) {
   return out
 }
 
+// What the viewer has been asked about this app, for as long as it is open.
+// An app may not ask again after a refusal, and is asked once after an answer.
+let consented = null
+
+function askToChangeRecords() {
+  if (consented !== null) return Promise.resolve(consented)
+
+  return new Promise(resolve => {
+    const answer = value => {
+      consented = value
+      resolve(value)
+    }
+
+    confirm.require({
+      header: t('app.consent.header'),
+      message: t('app.consent.message', {
+        name: application.value?.name || '',
+        modules: (sourceMeta.value.writes || []).join(', '),
+      }),
+      icon: 'pi pi-pencil',
+      rejectProps: { label: t('app.consent.reject'), severity: 'secondary', text: true },
+      acceptProps: { label: t('app.consent.accept') },
+      accept: () => answer(true),
+      reject: () => answer(false),
+      onHide: () => answer(consented === true),
+    })
+  })
+}
+
 const ctx = {
   compose: $ComposeAPI,
+  consent: askToChangeRecords,
   get meta() {
     return sourceMeta.value
   },
@@ -213,6 +245,7 @@ async function load(applicationID) {
   outerDocument.value = ''
   frameHeight.value = '100%'
   sourceMeta.value = {}
+  consented = null
   namespaceID.value = ''
   moduleIDs.value = {}
   moduleFields.value = {}

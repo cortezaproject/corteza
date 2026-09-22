@@ -263,6 +263,7 @@ applications:
       empty: No page has been stored for this custom app yet. Deploy one through the MCP tool system_application_source_set, for example from Claude with the Human connector.
       modules: Modules the app may read
       namespace: Namespace the app reads from
+      readOnly: None — this app only reads
       none: None
       open: Open the app
       previewNote: The app is switched off, so only people who may change its page see it, as a preview.
@@ -271,6 +272,7 @@ applications:
       title: Custom app
       unreadable: 'The page could not be read: {reason}'
       updated: Page last replaced
+      writes: Modules the app may change
     unify:
       config:
         description: Application configuration (JSON)
