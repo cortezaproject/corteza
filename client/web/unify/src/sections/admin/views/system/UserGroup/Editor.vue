@@ -104,6 +104,15 @@
             </CFormList>
           </CFormGroup>
         </div>
+
+        <CManualScriptButtons
+          v-if="isEdit"
+          resource-type="system:user-group"
+          ui-page="user-group/editor"
+          ui-slot="infoFooter"
+          container-class="flex flex-wrap justify-end gap-2 mt-4"
+          @click="handleScriptButton"
+        />
       </Panel>
 
       <Panel
@@ -184,7 +193,7 @@ import UserGroupRoles from '@/sections/admin/components/UserGroup/UserGroupRoles
 import UserGroupDeleteBlocked from '@/sections/admin/components/UserGroup/UserGroupDeleteBlocked.vue'
 import { userGroupDeleteBlockers } from '@/sections/admin/components/UserGroup/deleteBlockers'
 
-const { CInputDelete, CInputUserGroup, CViewContainer } = components
+const { CInputDelete, CInputUserGroup, CManualScriptButtons, CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -192,6 +201,25 @@ const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $ScriptBus = inject('$ScriptBus', null)
+
+async function handleScriptButton(button) {
+  if (!$ScriptBus || !userGroup.value) return
+
+  try {
+    await $ScriptBus.Dispatch(
+      {
+        ...system.SystemEvent(),
+        resourceType: button.resourceType,
+        args: { userGroup: userGroup.value },
+      },
+      button.script,
+    )
+  } catch (e) {
+    console.error('Automation script failed:', e)
+    $toast.toastErrorHandler(t('notification.automation.scriptFailed'))(e)
+  }
+}
 
 // State
 const loading = ref(false)

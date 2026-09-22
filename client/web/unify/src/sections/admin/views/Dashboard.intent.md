@@ -22,6 +22,7 @@ workflows and namespaces exist, in what state, and how each grew over time.
 - Four stat cards (users/roles/workflows/namespaces) with per-status breakdown pills; card totals are computed as active + each excluded status because default API listings return active items only.
 - Clicking a card loads a stacked created-per-month chart with a cumulative line; the full item list is fetched lazily per card and cached for the page's lifetime.
 - Errors degrade to zero counts and console errors — never block rendering. Sets the topbar title via the `#topbar-title` teleport.
+- Corredor manual scripts for `system` bound to ui page `dashboard`, slot `toolbar`, render as `CManualScriptButtons` above the stat cards; a click dispatches a `system` event on `$ScriptBus`.
 
 ## Routes
 

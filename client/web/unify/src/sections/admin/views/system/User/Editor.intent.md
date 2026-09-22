@@ -30,10 +30,11 @@ memberships, avatar, external auth links, and lifecycle.
   memberships save as a diff via `roleMemberAdd/Remove`.
 - Suspend/unsuspend, revoke all sessions (disabled for yourself), delete;
   unsaved-changes guard on leave.
-- Corredor manual scripts for `system:user` bound to ui page `user/editor`,
-  slot `infoFooter`, render as `CManualScriptButtons` under the basic
-  information panel (edit only); a click dispatches the script on `$ScriptBus`
-  with the user as the event's subject.
+- Corredor manual scripts for `system:user` bound to ui page `user/editor`
+  render as `CManualScriptButtons` in two slots: `infoFooter` under the basic
+  information panel, `passwordFooter` under the security panel's password
+  fields (raised by `UserSecurity` as `script`); both edit only, and a click
+  dispatches the script on `$ScriptBus` with the user as the event's subject.
 
 ## Routes
 

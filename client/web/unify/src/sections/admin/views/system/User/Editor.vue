@@ -113,6 +113,7 @@
       >
         <UserSecurity
           :user="user"
+          @script="handleScriptButton"
           v-model:passwords="passwords"
           :disabled="!canEdit"
           @update:mfa="(key, val) => (user.meta.securityPolicy.mfa[key] = val)"

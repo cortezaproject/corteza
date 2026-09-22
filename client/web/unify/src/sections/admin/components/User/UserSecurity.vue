@@ -52,13 +52,21 @@
         @update:modelValue="val => $emit('update:mfa', 'enforcedTOTP', val)"
       />
     </div>
+
+    <CManualScriptButtons
+      resource-type="system:user"
+      ui-page="user/editor"
+      ui-slot="passwordFooter"
+      container-class="flex flex-wrap justify-end gap-2"
+      @click="$emit('script', $event)"
+    />
   </div>
 </template>
 
 <script setup>
 import { components } from '@planetcrust/human-vue'
 
-const { CInputToggleCard } = components
+const { CInputToggleCard, CManualScriptButtons } = components
 
 defineProps({
   disabled: { type: Boolean, default: false },
@@ -68,7 +76,7 @@ defineProps({
   },
 })
 
-defineEmits(['update:mfa'])
+defineEmits(['update:mfa', 'script'])
 
 const passwords = defineModel('passwords', {
   type: Object,

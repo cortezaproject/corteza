@@ -4,6 +4,14 @@
   </Teleport>
 
   <div class="flex flex-col h-full p-3 sm:p-6 gap-4 sm:gap-10 overflow-y-auto min-w-0">
+    <CManualScriptButtons
+      resource-type="system"
+      ui-page="dashboard"
+      ui-slot="toolbar"
+      container-class="flex flex-wrap justify-end gap-2"
+      @click="handleScriptButton"
+    />
+
     <!-- Stat cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
       <div
@@ -54,12 +62,29 @@
 <script setup>
 import { ref, inject, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { system } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
 
-const { CChart } = components
+const { CChart, CManualScriptButtons } = components
 const { t } = useI18n()
 
 const $SystemAPI = inject('$SystemAPI')
+const $ScriptBus = inject('$ScriptBus', null)
+const $toast = inject('$toast', null)
+
+async function handleScriptButton(button) {
+  if (!$ScriptBus) return
+
+  try {
+    await $ScriptBus.Dispatch(
+      { ...system.SystemEvent(), resourceType: button.resourceType, args: {} },
+      button.script,
+    )
+  } catch (e) {
+    console.error('Automation script failed:', e)
+    $toast?.toastErrorHandler?.(t('notification.automation.scriptFailed'))(e)
+  }
+}
 const $ComposeAPI = inject('$ComposeAPI')
 const $AutomationAPI = inject('$AutomationAPI')
 

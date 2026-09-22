@@ -32,6 +32,10 @@ mode) its members and attached roles.
   unsaved-changes guard on leave. Delete counts members and child groups first
   and opens `UserGroupDeleteBlocked` instead of the confirm while either
   remains.
+- Corredor manual scripts for `system:user-group` bound to ui page
+  `user-group/editor`, slot `infoFooter`, render as `CManualScriptButtons`
+  under the basic information panel (edit only); a click dispatches the
+  script on `$ScriptBus` with the group as the event's subject.
 
 ## Routes
 

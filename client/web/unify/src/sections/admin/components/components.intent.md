@@ -20,7 +20,7 @@ via props.
 
 ## Map
 
-- `User/` — user editor panels: UserAvatar (avatar preview/upload/remove), UserExternalAuth (linked external identity providers), UserRoles (role-membership editor), UserSecurity (password + MFA management).
+- `User/` — user editor panels: UserAvatar (avatar preview/upload/remove), UserExternalAuth (linked external identity providers), UserRoles (role-membership editor), UserSecurity (password + MFA management; hosts the `user/editor` / `passwordFooter` Corredor script slot and re-emits a button click as `script` for the editor to dispatch).
 - `Role/` — RoleMembers (role membership editor), RolePermissionClone (dialog that clones another role's permission rules; emits `cloned`).
 - `UserGroup/` — UserGroupMembers, UserGroupRoles: group membership and group-role assignment panels. A user is in exactly one group, so UserGroupMembers never removes anyone: a row moves its user to another group, and adding a user from another group moves them here. Every move is confirmed with a sentence naming both groups, and adding and moving both need `members.manage` on the group. UserGroupDeleteBlocked is the dialog the editor and list show instead of a delete confirm while a group still has members or child groups; `deleteBlockers.js` counts both the way the server does.
 - `Template/` — template editor tooling: CCodeEditor (template body code editor), CTemplatePreview (render preview with variables/options JSON), CTemplateToolbox (snippet/partial helper).
