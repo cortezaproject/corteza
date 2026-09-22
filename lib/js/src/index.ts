@@ -9,7 +9,7 @@
 export { NoID } from './cast'
 
 // Markdown renderer (shared by chat surfaces — agent chat, chatbot inbox, embeddable widget)
-export { renderMarkdown } from './markdown'
+export { renderMarkdown, sanitizeHtml } from './markdown'
 
 // Event bus for client-side event handling
 export * as eventbus from './eventbus'

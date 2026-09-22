@@ -3492,14 +3492,14 @@
       "t": "2026-07-23"
     },
     "lib/js/src/index.ts": {
-      "h": "6a56430a6a42",
+      "h": "715eba713395",
       "doc": "lib/js/js.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
     },
     "lib/js/src/markdown.ts": {
-      "h": "210067baf389",
+      "h": "55867dd1c7ed",
       "doc": "lib/js/js.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
     },
     "lib/js/src/shared/index.ts": {
       "h": "9bc5dd27c070",
@@ -4407,14 +4407,19 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/notifications/types/NotificationRecord.vue": {
-      "h": "beacc97de88b",
+      "h": "27097914d3b5",
       "doc": "lib/vue/src/components/notifications/notifications.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
+    },
+    "lib/vue/src/components/notifications/types/NotificationSimple.test.ts": {
+      "h": "d07fa66d7ae2",
+      "doc": "lib/vue/src/components/notifications/notifications.intent.md",
+      "t": "2026-09-22"
     },
     "lib/vue/src/components/notifications/types/NotificationSimple.vue": {
-      "h": "beacc97de88b",
+      "h": "27097914d3b5",
       "doc": "lib/vue/src/components/notifications/notifications.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
     },
     "lib/vue/src/components/permissions/CPermissionsButton.vue": {
       "h": "c65f3ebafac1",
@@ -4462,9 +4467,14 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/prompts/kinds/base.vue": {
-      "h": "c3566a076362",
+      "h": "3e3ed5f9c507",
       "doc": "lib/vue/src/components/prompts/prompts.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
+    },
+    "lib/vue/src/components/prompts/kinds/CPromptAlert.test.ts": {
+      "h": "a89a5f7c605b",
+      "doc": "lib/vue/src/components/prompts/prompts.intent.md",
+      "t": "2026-09-22"
     },
     "lib/vue/src/components/prompts/kinds/CPromptAlert.vue": {
       "h": "2170687d7d54",

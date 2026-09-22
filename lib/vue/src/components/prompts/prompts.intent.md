@@ -8,7 +8,8 @@ depends-on:
   - lib/js
 touched-by:
   - client/web/unify/src/App.vue
-tests: []
+tests:
+  - lib/vue/src/components/prompts/kinds/CPromptAlert.test.ts
 ---
 
 # prompts/
@@ -47,3 +48,8 @@ modal), collect input, and resume/cancel the workflow through
 Adding a prompt kind = server support + `definitions.ts` entry + `kinds/`
 component (registered in `kinds/index.ts`). Prompt payloads are
 `automation.Vars` — always unwrap via `pVal`, never index `@value` inline.
+
+A kind renders `message` as HTML, and a workflow author wrote it for somebody
+else to read, so `base.vue` sanitises it once for every kind. A kind that shows
+any other author-written value as HTML sanitises it the same way; the server
+stores a prompt payload as it came.

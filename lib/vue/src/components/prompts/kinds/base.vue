@@ -1,4 +1,5 @@
 <script>
+import { sanitizeHtml } from '@planetcrust/human-js'
 import { pType, pVal, variantToSeverity } from '../utils'
 
 export default {
@@ -15,8 +16,10 @@ export default {
   },
 
   computed: {
+    // Every kind renders this as HTML, and a workflow author wrote it: what
+    // reaches the person it is shown to carries no script.
     message() {
-      return this.pVal('message', '')
+      return sanitizeHtml(this.pVal('message', ''))
     },
 
     label() {

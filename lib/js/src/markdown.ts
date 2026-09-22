@@ -51,6 +51,18 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
   return defaultLinkRender(tokens, idx, options, env, self)
 }
 
+// Author-written HTML, made safe to render as it is.
+//
+// Where renderMarkdown turns source into HTML, this one only takes HTML apart:
+// a value someone typed into a workflow prompt or a notification is shown the
+// way it was written, minus anything that would run.
+export function sanitizeHtml(html: string): string {
+  if (!html) return ''
+  return DOMPurify.sanitize(html, {
+    ADD_ATTR: ['target', 'rel'],
+  })
+}
+
 export function renderMarkdown(source: string): string {
   if (!source) return ''
   const html = md.render(source)

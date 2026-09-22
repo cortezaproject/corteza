@@ -7,7 +7,8 @@ depends-on:
   - lib/vue/src/stores/useNotificationsStore.ts
   - lib/vue/src/stores/useRightSidebarStore.ts
 touched-by: []
-tests: []
+tests:
+  - lib/vue/src/components/notifications/types/NotificationSimple.test.ts
 ---
 
 # notifications/
@@ -30,7 +31,11 @@ websocket delivery live in `useNotificationsStore`; this folder is the view.
   `mark-read`/`mark-unread`/`delete` and resolves record links via `$ComposeAPI`.
 - `types/` — per-kind bodies (NotificationSimple, NotificationRecord). Nothing
   renders them: NotificationItem draws the body itself and only branches on
-  `kind === 'record'` for the open-record action.
+  `kind === 'record'` for the open-record action. They show the description as
+  HTML and therefore sanitise it: a notification is written by one person for
+  another and the server stores what it was given, so whichever component
+  draws it answers for what runs. `NotificationItem` shows it as text, which
+  answers for itself.
 
 ## When changing this
 
