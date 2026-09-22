@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/crusttech/human/server/pkg/eventbus"
 	"github.com/crusttech/human/server/pkg/slice"
@@ -14,6 +15,12 @@ type (
 	automationListSetPayload struct {
 		Filter Filter    `json:"filter"`
 		Set    []*Script `json:"set"`
+
+		// Whether Corredor is enabled on this server, whether the gRPC
+		// connection is ready, and when the server scripts were last fetched
+		Enabled     bool       `json:"enabled"`
+		Connected   bool       `json:"connected"`
+		RefreshedAt *time.Time `json:"refreshedAt"`
 	}
 )
 
@@ -107,6 +114,7 @@ func GenericListHandler(ctx context.Context, svc *service, f Filter, resourcePre
 
 	p = &automationListSetPayload{}
 	p.Set, p.Filter, err = svc.Find(ctx, f)
+	p.Enabled, p.Connected, p.RefreshedAt = svc.Status()
 	return p, err
 }
 

@@ -17,6 +17,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
@@ -210,6 +211,28 @@ func (svc *service) Connect(ctx context.Context) (err error) {
 func (svc *service) connect(ctx context.Context) (err error) {
 	if svc.conn, err = NewConnection(ctx, svc.opt, svc.log); err != nil {
 		return
+	}
+
+	return
+}
+
+// Status reports whether Corredor is enabled, whether its connection is
+// ready, and when the server scripts were last fetched (nil until the first
+// successful fetch)
+func (svc *service) Status() (enabled, connected bool, refreshedAt *time.Time) {
+	enabled = svc.opt.Enabled
+	if !enabled {
+		return
+	}
+
+	connected = svc.conn != nil && svc.conn.GetState() == connectivity.Ready
+
+	svc.sScriptsL.Lock()
+	defer svc.sScriptsL.Unlock()
+
+	if !svc.sScriptsTS.IsZero() {
+		ts := svc.sScriptsTS
+		refreshedAt = &ts
 	}
 
 	return
