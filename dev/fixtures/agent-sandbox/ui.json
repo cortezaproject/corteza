@@ -87,6 +87,33 @@
           "title": "Contact",
           "xywh": [0, 0, 48, 40],
           "options": {}
+        },
+        {
+          "kind": "Automation",
+          "title": "Automation",
+          "xywh": [0, 40, 48, 8],
+          "options": {
+            "buttons": [
+              {
+                "label": "Greet contact (client)",
+                "variant": "primary",
+                "resourceType": "compose:record",
+                "script": "/client-scripts/compose/agent-sandbox/ContactGreet.js:default",
+                "scriptType": "script",
+                "enabled": true
+              },
+              {
+                "label": "Activate contact (server)",
+                "variant": "primary",
+                "resourceType": "compose:record",
+                "script": "/server-scripts/agent-sandbox/ContactActivate.js:default",
+                "scriptType": "script",
+                "enabled": true
+              }
+            ],
+            "sealed": false,
+            "magnifyOption": ""
+          }
         }
       ]
     },
