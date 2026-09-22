@@ -9,7 +9,8 @@ depends-on:
 touched-by:
   - lib/vue
   - client/web/unify
-tests: []
+tests:
+  - lib/js/src/system/events.test.ts
 ---
 
 # System resource classes
@@ -29,6 +30,7 @@ eventbus.
 - `User.meta` carries UI-relevant preferences (preferredLanguage, avatar fields, theme, security policy) — the shape is shared with the auth/profile screens.
 - `Application.meta.description` is the app's own blurb, the same `meta.description` every other described system resource carries. `unify` stays what it always was: how the app presents in the shell (display name, URL, listed flag, logo).
 - Classes are plain data holders + `toJSON`; no API calls happen in here.
+- `events.ts` is the one exception: `TriggerSystemServerScriptOnManual(api)` forwards a manual server-script event to the endpoint of its resource — `system:user` → `userTriggerScript`, `system:role` → `roleTriggerScript`, anything else → `automationTriggerScript` — reading the subject off the event's args, so an event without one still routes.
 
 ## When changing this
 

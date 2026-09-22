@@ -64,8 +64,8 @@ export function RoleEvent(role: Role, eventType = onManual): Event {
 export function TriggerSystemServerScriptOnManual(api: TriggerEndpoints) {
   return (ev: Event, script: string): Promise<unknown> => {
     const params = { script, args: ev.args }
-    const { userID } = ev.args?.user as User
-    const { roleID } = ev.args?.role as Role
+    const { userID } = (ev.args?.user || {}) as User
+    const { roleID } = (ev.args?.role || {}) as Role
 
     switch (ev.resourceType) {
       case 'system':

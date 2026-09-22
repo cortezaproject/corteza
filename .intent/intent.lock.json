@@ -3481,10 +3481,15 @@
       "doc": "lib/js/src/shared/shared.intent.md",
       "t": "2026-08-26"
     },
-    "lib/js/src/system/events.ts": {
-      "h": "0e120fd570bc",
+    "lib/js/src/system/events.test.ts": {
+      "h": "c68672c5ae86",
       "doc": "lib/js/src/system/system.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
+    },
+    "lib/js/src/system/events.ts": {
+      "h": "09de0d6868c6",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-09-22"
     },
     "lib/js/src/system/index.ts": {
       "h": "d235f69d307a",
