@@ -36,7 +36,7 @@ func TestNodeSyncIsolation(t *testing.T) {
 		}
 
 		nodeA, userA = makeNode(id.Next())
-		nodeB, _     = makeNode(id.Next())
+		nodeB, userB = makeNode(id.Next())
 
 		asNodeA = auth.SetIdentityToContext(ctx, userA)
 	)
@@ -47,6 +47,14 @@ func TestNodeSyncIsolation(t *testing.T) {
 
 	_, err = service.DefaultNode.FindBySharedNodeID(asNodeA, nodeB.SharedNodeID)
 	h.a.Error(err, "node A must not be able to act as node B")
+
+	// users can rename themselves, this must not help
+	userB.Handle = "renamed"
+	h.noError(store.UpdateUser(ctx, service.DefaultStore, userB))
+	userA.Handle = fmt.Sprintf("federation_%d", nodeB.ID)
+	h.noError(store.UpdateUser(ctx, service.DefaultStore, userA))
+	_, err = service.DefaultNode.FindBySharedNodeID(asNodeA, nodeB.SharedNodeID)
+	h.a.Error(err, "node A must not be able to act as node B after renaming")
 
 	// users that are not federated (administrators) are limited by permissions only
 	n, err = service.DefaultNode.FindBySharedNodeID(h.secCtx(), nodeB.SharedNodeID)
