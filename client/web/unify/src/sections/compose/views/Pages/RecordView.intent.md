@@ -17,6 +17,7 @@ tests:
   - client/web/unify/src/sections/compose/views/Pages/RecordView.layout.test.js
   - client/web/unify/src/sections/compose/views/Pages/RecordView.title.test.js
   - client/web/unify/src/sections/compose/views/Pages/RecordView.admin-tools.test.js
+  - client/web/unify/e2e/sections/compose/corredor-record-scripts.spec.ts
 ---
 
 # Record View (public record page)

@@ -8,6 +8,7 @@ depends-on:
 touched-by: []
 tests:
   - client/web/unify/src/sections/taq/components/builder/form/inputs/registry.corredorScript.test.ts
+  - client/web/unify/e2e/sections/taq/corredor-step.spec.ts
 ---
 
 # TAQ step-config input registry

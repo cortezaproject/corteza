@@ -11,6 +11,7 @@ touched-by:
   - client/web/unify/src/sections/taq/views/Builder.vue
 tests:
   - client/web/unify/src/sections/taq/components/builder/NodePicker.disabled.test.js
+  - client/web/unify/e2e/sections/taq/corredor-step.spec.ts
 ---
 
 # TAQ builder panels & forms

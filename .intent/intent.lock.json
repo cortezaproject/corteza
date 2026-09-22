@@ -46,10 +46,25 @@
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-07-24"
     },
+    "client/web/unify/e2e/sections/admin/corredor-admin-slots.spec.ts": {
+      "h": "ff5b8bc7d97c",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-09-22"
+    },
+    "client/web/unify/e2e/sections/admin/corredor-scripts.spec.ts": {
+      "h": "c1b41731e585",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-09-22"
+    },
     "client/web/unify/e2e/sections/admin/users.spec.ts": {
       "h": "c153f38175ff",
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-07-24"
+    },
+    "client/web/unify/e2e/sections/compose/corredor-record-scripts.spec.ts": {
+      "h": "07cb11bcb7f6",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-09-22"
     },
     "client/web/unify/e2e/sections/compose/translations.spec.ts": {
       "h": "8370f8e92ecd",
@@ -90,6 +105,11 @@
       "h": "79902432a334",
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-09-18"
+    },
+    "client/web/unify/e2e/sections/taq/corredor-step.spec.ts": {
+      "h": "f966db793972",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-09-22"
     },
     "client/web/unify/eslint.config.js": {
       "h": "bb961567d66b",

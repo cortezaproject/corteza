@@ -7,7 +7,8 @@ depends-on:
   - lib/vue/src/components/chart/CChart.vue
 touched-by:
   - client/web/unify/src/sections/admin/routes.js
-tests: []
+tests:
+  - client/web/unify/e2e/sections/admin/corredor-admin-slots.spec.ts
 ---
 
 # Dashboard view

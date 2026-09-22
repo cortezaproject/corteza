@@ -10,6 +10,7 @@ touched-by:
   - client/web/unify/src/sections/admin/routes.js
 tests:
   - client/web/unify/src/sections/admin/views/automation/Script/script-inventory.test.js
+  - client/web/unify/e2e/sections/admin/corredor-scripts.spec.ts
 ---
 
 # Script Index view

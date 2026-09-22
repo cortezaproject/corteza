@@ -39,3 +39,8 @@ to the specs to run.
 - New specs must be referenced from the `tests:` field of the intent doc(s)
   they verify — an unreferenced spec is invisible to `intent affected`.
 - CI cannot run these yet (no boot/seed story) — see .intent/TODO.md.
+- The `corredor-*` specs need more than a stack: Corredor must be serving
+  `dev/fixtures/corredor` (what `worktree.sh up` starts) and the `agent-sandbox`
+  fixture must be seeded. Each gates on the admin script inventory and skips
+  with the command that fixes it, so a checkout without Corredor reports
+  skipped rather than broken.

@@ -20,6 +20,7 @@ tests:
   - client/web/unify/src/sections/compose/components/PageBlocks/Blocks/MetricBlock.test.js
   - client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtons.test.js
   - client/web/unify/src/sections/compose/components/PageBlocks/Shared/AutomationButtonsEditor.test.js
+  - client/web/unify/e2e/sections/compose/corredor-record-scripts.spec.ts
 ---
 
 # Page blocks

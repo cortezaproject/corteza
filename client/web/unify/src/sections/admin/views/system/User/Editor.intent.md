@@ -12,7 +12,8 @@ depends-on:
   - lib/js
   - lib/vue
 touched-by: []
-tests: []
+tests:
+  - client/web/unify/e2e/sections/admin/corredor-admin-slots.spec.ts
 ---
 
 # User Editor view
