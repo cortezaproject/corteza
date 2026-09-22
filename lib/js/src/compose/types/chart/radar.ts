@@ -71,7 +71,7 @@ export default class RadarChart extends BaseChart {
       legend: {
         show: !l?.isHidden,
         type: l?.isScrollable ? 'scroll' : 'plain',
-        top: (l?.position?.isDefault ? undefined : l?.position?.top) || undefined,
+        top: (l?.position?.isDefault ? 'top' : l?.position?.top) || undefined,
         right: (l?.position?.isDefault ? undefined : l?.position?.right) || undefined,
         bottom: (l?.position?.isDefault ? undefined : l?.position?.bottom) || undefined,
         left: (l?.position?.isDefault ? l?.align || 'center' : l?.position?.left) || 'auto',
