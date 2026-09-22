@@ -38,6 +38,7 @@ namespace:
             kind: Record
             options:
               module: companies
+              labelField: name
           job_title:
             title: Job title
           email:
