@@ -156,14 +156,16 @@ type (
 	// A button runs one of three things: AutomationID for a TAQ, WorkflowID for
 	// a workflow with an onManual trigger, or Script for a Corredor script.
 	AutomationButton struct {
-		Label        string `json:"label"`
-		Enabled      bool   `json:"enabled"`
-		ResourceType string `json:"resourceType"`
-		Script       string `json:"script"`
-		WorkflowID   string `json:"workflowID"`
-		AutomationID string `json:"automationID"`
-		StepID       string `json:"stepID"`
-		Variant      string `json:"variant"`
+		Label         string `json:"label"`
+		Enabled       bool   `json:"enabled"`
+		ResourceType  string `json:"resourceType"`
+		Script        string `json:"script"`
+		WorkflowID    string `json:"workflowID"`
+		AutomationID  string `json:"automationID"`
+		StepID        string `json:"stepID"`
+		TriggerHandle string `json:"triggerHandle"`
+		ScriptType    string `json:"scriptType"`
+		Variant       string `json:"variant"`
 	}
 
 	ContentBlockOptions struct {

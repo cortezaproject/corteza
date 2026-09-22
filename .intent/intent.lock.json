@@ -1302,7 +1302,7 @@
       "t": "2026-08-25"
     },
     "client/web/unify/src/sections/compose/lib/script-events.js": {
-      "h": "8e20cdcef474",
+      "h": "29089e9e782d",
       "doc": "client/web/unify/src/sections/compose/lib/lib.intent.md",
       "t": "2026-09-22"
     },
@@ -3156,6 +3156,11 @@
       "doc": "lib/js/src/compose/compose.intent.md",
       "t": "2026-07-23"
     },
+    "lib/js/src/compose/types/page-block/button.test.ts": {
+      "h": "35598b2b16b2",
+      "doc": "lib/js/src/compose/compose.intent.md",
+      "t": "2026-09-22"
+    },
     "lib/js/src/compose/types/page-block/calendar/feed-record.ts": {
       "h": "32842b4910c7",
       "doc": "lib/js/src/compose/compose.intent.md",
@@ -3307,9 +3312,9 @@
       "t": "2026-07-23"
     },
     "lib/js/src/compose/types/page-block/types.ts": {
-      "h": "d1eec1eed842",
+      "h": "c6d29c484ffb",
       "doc": "lib/js/src/compose/compose.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
     },
     "lib/js/src/compose/types/page-layout.ts": {
       "h": "dd595b76191b",
@@ -4857,9 +4862,14 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/stores/useModuleStore.js": {
-      "h": "df51098917cc",
+      "h": "638edc15057b",
       "doc": "lib/vue/src/stores/useModuleStore.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-09-22"
+    },
+    "lib/vue/src/stores/useModuleStore.namespace.test.ts": {
+      "h": "81ae8ebee0c7",
+      "doc": "lib/vue/src/stores/stores.intent.md",
+      "t": "2026-09-22"
     },
     "lib/vue/src/stores/useNamespaceStore.js": {
       "h": "e3cc3bcdf2ed",

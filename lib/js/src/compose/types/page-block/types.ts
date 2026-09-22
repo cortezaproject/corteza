@@ -13,6 +13,12 @@ export class Button {
   // Used when referring to a specific step (triggered by onManual trigger)
   public stepID?: string = undefined
 
+  // Handle of the TAQ trigger this button was configured from
+  public triggerHandle?: string = undefined
+
+  // What the button runs: 'taq', 'workflow' or 'script'
+  public scriptType?: string = undefined
+
   // resource type (copied from ui hook or from trigger)
   public resourceType?: string = undefined
 
@@ -26,7 +32,17 @@ export class Button {
 
   constructor(b: Partial<Button>) {
     Apply(this, b, Boolean, 'enabled')
-    Apply(this, b, String, 'label', 'variant', 'script', 'resourceType')
+    Apply(
+      this,
+      b,
+      String,
+      'label',
+      'variant',
+      'script',
+      'resourceType',
+      'triggerHandle',
+      'scriptType',
+    )
     Apply(this, b, HumanID, 'workflowID', 'stepID', 'automationID')
   }
 }
