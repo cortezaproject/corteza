@@ -79,6 +79,23 @@ func TestApplicationSourceRefusesWhatTheSandboxCannotRun(t *testing.T) {
 		{"window fetch", `<script>window.fetch('/api/compose')</script>`, "connect-src"},
 		{"xhr", `<script>const r = new XMLHttpRequest()</script>`, "connect-src"},
 		{"websocket", `<script>const s = new WebSocket('wss://example.com')</script>`, "connect-src"},
+		{"local storage", `<script>try { localStorage.setItem('tab', 'a') } catch {}</script>`, "SecurityError"},
+		{"session storage", `<script>sessionStorage.getItem('x')</script>`, "SecurityError"},
+		{"indexed db", `<script>indexedDB.open('db')</script>`, "SecurityError"},
+		{"cookie", `<script>document.cookie = 'a=1'</script>`, "SecurityError"},
+		{"alert", `<script>alert('saved')</script>`, "in-page dialog"},
+		{"window confirm", `<script>if (window.confirm('Sure?')) go()</script>`, "always answers false"},
+		{"prompt", `<script>const n = prompt('Name?')</script>`, "in-page dialog"},
+		{"window open", `<script>window.open('https://example.com')</script>`, "no new windows"},
+		{"new tab link", `<a href="https://example.com" target="_blank">x</a>`, "no new windows"},
+		{"download link", `<a href="data:text/csv,a" download="x.csv">Export</a>`, "download"},
+		{"download property", `<script>a.download = 'x.csv'; a.click()</script>`, "download"},
+		{"script elsewhere", `<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>`, "cdn.jsdelivr.net"},
+		{"protocol-relative script", `<script src="//unpkg.com/x"></script>`, "cdnjs"},
+		{"web font", `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter">`, "system font"},
+		{"css import", `<style>@import url('https://fonts.googleapis.com/css2?family=Inter');</style>`, "inline it"},
+		{"css url", `<style>.hero { background: url(https://example.com/a.png) }</style>`, "data: URL"},
+		{"remote image", `<img src="https://example.com/logo.png" alt="">`, "img-src"},
 	}
 
 	for _, c := range cases {
@@ -96,6 +113,23 @@ func TestApplicationSourceRefusesWhatTheSandboxCannotRun(t *testing.T) {
 func TestApplicationSourceAllowsIdentifiersThatOnlyEndInARefusedName(t *testing.T) {
 	require.NoError(t, checkApplicationSource(`<script>const prefetch = () => {}; prefetch()</script>`))
 	require.NoError(t, checkApplicationSource(`<script>function importRows () {}</script>`))
+}
+
+// What only looks like a refused call is the page's own: a method of that name
+// on some object, a library from the one admitted host, an image carried as
+// data.
+func TestApplicationSourceAllowsWhatOnlyResemblesARefusal(t *testing.T) {
+	for _, source := range []string{
+		`<script>dialog.confirm(); modal.alert(); form.prompt()</script>`,
+		`<script>function showAlert () {}; showAlert()</script>`,
+		`<script>panel.open(); const open = () => {}; open()</script>`,
+		`<script>row.downloadCount = 3; if (a.download == b) {}</script>`,
+		`<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>`,
+		`<img src="data:image/png;base64,AAAA" alt="">`,
+		`<a href="#detail">Details</a>`,
+	} {
+		require.NoError(t, checkApplicationSource(source), source)
+	}
 }
 
 func TestApplicationSourceRefusesAnEmptyDocument(t *testing.T) {

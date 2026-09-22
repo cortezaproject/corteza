@@ -40,12 +40,16 @@ it is in.
   them or use `data:` URIs.
 - No `fetch`, `XMLHttpRequest` or `WebSocket`. The sandbox is served with
   `connect-src 'none'`, so they fail with nothing to render. Data comes from
-  `human.*` only, and `system_application_source_set` refuses a document that
-  uses them.
-- No `localStorage`, `sessionStorage`, cookies or IndexedDB — the frame's origin
-  is opaque and they throw.
-- No `alert`, `confirm`, `prompt`, no links that open a new tab, no
-  `<a download>`. Use in-page dialogs and in-page detail panes.
+  `human.*` only.
+- No `localStorage`, `sessionStorage`, cookies or IndexedDB — not even inside a
+  `try` — the frame's origin is opaque and they throw. Keep state in variables.
+- No `alert`, `confirm`, `prompt` (the sandbox suppresses them; `confirm` always
+  answers false), no `window.open` or `target="_blank"`, no `<a download>`.
+  Use in-page dialogs and in-page detail panes; exports are not available yet.
+
+`system_application_source_set` refuses a document that breaks any rule above
+and says which; writing to them from the start saves the round trip.
+
 - Keep it under 60 KB. Deploying sends the whole file as one tool argument, and
   the hard limit is 256 KB.
 
