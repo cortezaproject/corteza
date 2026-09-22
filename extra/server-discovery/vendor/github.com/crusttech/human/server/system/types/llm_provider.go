@@ -10,6 +10,7 @@ type (
 		Handle        string       `json:"handle"`
 		Status        string       `json:"status"`
 		Provider      string       `json:"provider"`
+		Query         string       `json:"query"`
 		Deleted       filter.State `json:"deleted"`
 
 		Check func(*LlmProvider) (bool, error) `json:"-"`

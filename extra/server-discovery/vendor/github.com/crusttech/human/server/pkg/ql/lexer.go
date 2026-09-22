@@ -10,6 +10,8 @@ type (
 	RuneReader interface {
 		read() rune
 		unread()
+		peek() rune
+		peekAt(offset int) rune
 	}
 
 	TokenConsumers interface {
@@ -96,6 +98,17 @@ func (s *Lexer) peek() rune {
 		return eof
 	}
 	return rune(bb[0])
+}
+
+// peekAt looks ahead without consuming, offset runes past the next one.
+// peekAt(0) is peek. UnreadRune is only valid straight after a ReadRune, so a
+// consumer that has to decide on what follows looks rather than rewinds.
+func (s *Lexer) peekAt(offset int) rune {
+	bb, err := s.r.Peek(offset + 1)
+	if err != nil || len(bb) <= offset {
+		return eof
+	}
+	return rune(bb[offset])
 }
 
 // unread places the previously read rune back on the reader.

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/crusttech/human/server/pkg/ast"
 	"github.com/crusttech/human/server/pkg/expr"
@@ -118,6 +119,8 @@ func (p *PagingCursor) Set(k string, v interface{}, d bool) {
 }
 
 func (p *PagingCursor) SetModifier(k string, v interface{}, d bool, m string, kk ...string) {
+	v = utcTime(v)
+
 	for i, key := range p.keys {
 		if key == k {
 			p.values[i] = v
@@ -130,6 +133,29 @@ func (p *PagingCursor) SetModifier(k string, v interface{}, d bool, m string, kk
 	p.kk = append(p.kk, kk)
 	p.modifier = append(p.modifier, m)
 	p.desc = append(p.desc, d)
+}
+
+// utcTime moves a time value to UTC so it survives the cursor's JSON round trip.
+//
+// RFC3339 writes a zone offset as hours and minutes only. A zone whose offset
+// carries seconds — every LMT zone, and so Go's zero time rendered anywhere
+// east or west of Greenwich — comes back shifted by those seconds, and the
+// cursor's `column = value` test then never matches the row it was built from.
+// That test is what walks a block of rows sharing one value, so losing it makes
+// paging skip the whole block ascending and repeat it forever descending.
+func utcTime(v interface{}) interface{} {
+	switch t := v.(type) {
+	case time.Time:
+		return t.UTC()
+	case *time.Time:
+		if t == nil {
+			return v
+		}
+		utc := t.UTC()
+		return &utc
+	}
+
+	return v
 }
 
 func (p *PagingCursor) Keys() []string {
@@ -195,13 +221,13 @@ func (p *PagingCursor) String() string {
 // MarshalJSON serializes cursor struct as JSON and encodes it as base64 + adds quotes to be treated as JSON string
 func (p *PagingCursor) MarshalJSON() ([]byte, error) {
 	buf, err := json.Marshal(struct {
-		K  []string
-		KK [][]string
-		V  []interface{}
-		M  []string
-		D  []bool
-		R  bool
-		LT bool
+		K   []string
+		KK  [][]string
+		V   []interface{}
+		M   []string
+		D   []bool
+		R   bool
+		LT  bool
 		Arb json.RawMessage `json:",omitempty"`
 	}{
 		p.keys,
@@ -233,13 +259,13 @@ func (p *PagingCursor) Encode() string {
 func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	var (
 		aux struct {
-			K  []string
-			KK [][]string
-			V  []pagingCursorValue
-			M  []string
-			D  []bool
-			R  bool
-			LT bool
+			K   []string
+			KK  [][]string
+			V   []pagingCursorValue
+			M   []string
+			D   []bool
+			R   bool
+			LT  bool
 			Arb json.RawMessage `json:",omitempty"`
 		}
 

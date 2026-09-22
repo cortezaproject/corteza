@@ -18,8 +18,9 @@ type (
 	}
 
 	HTTPClientOpt struct {
-		TlsInsecure bool          `env:"HTTP_CLIENT_TLS_INSECURE"`
-		Timeout     time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
+		TlsInsecure        bool          `env:"HTTP_CLIENT_TLS_INSECURE"`
+		Timeout            time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
+		RestrictedNetworks string        `env:"HTTP_CLIENT_RESTRICTED_NETWORKS"`
 	}
 
 	HttpServerOpt struct {
@@ -44,6 +45,7 @@ type (
 		WebappBaseUrl          string `env:"HTTP_WEBAPP_BASE_URL"`
 		WebappBaseDir          string `env:"HTTP_WEBAPP_BASE_DIR"`
 		SslTerminated          bool   `env:"HTTP_SSL_TERMINATED"`
+		CorsAllowedOrigins     string `env:"HTTP_CORS_ALLOWED_ORIGINS"`
 		AssetsPath             string `env:"HTTP_SERVER_ASSETS_PATH"`
 		WebConsoleEnabled      bool   `env:"HTTP_SERVER_WEB_CONSOLE_ENABLED"`
 		WebConsoleUsername     string `env:"HTTP_SERVER_WEB_CONSOLE_USERNAME"`
@@ -106,6 +108,7 @@ type (
 		ExternalRedirectURL      string        `env:"AUTH_EXTERNAL_REDIRECT_URL"`
 		ExternalCookieSecret     string        `env:"AUTH_EXTERNAL_COOKIE_SECRET"`
 		BaseURL                  string        `env:"AUTH_BASE_URL"`
+		DefaultRedirectURIs      string        `env:"AUTH_DEFAULT_REDIRECT_URIS"`
 		SessionCookieName        string        `env:"AUTH_SESSION_COOKIE_NAME"`
 		SessionCookiePath        string        `env:"AUTH_SESSION_COOKIE_PATH"`
 		SessionCookieDomain      string        `env:"AUTH_SESSION_COOKIE_DOMAIN"`
@@ -327,7 +330,8 @@ func DB() (o *DBOpt) {
 // This function is auto-generated
 func HTTPClient() (o *HTTPClientOpt) {
 	o = &HTTPClientOpt{
-		Timeout: 30 * time.Second,
+		Timeout:            30 * time.Second,
+		RestrictedNetworks: "link-local",
 	}
 
 	// Custom defaults
@@ -369,6 +373,7 @@ func HttpServer() (o *HttpServerOpt) {
 		WebappBaseUrl:          "/",
 		WebappBaseDir:          "./webapp/public",
 		SslTerminated:          isSecure(),
+		CorsAllowedOrigins:     "http://*,https://*",
 		WebConsoleEnabled:      false,
 		WebConsoleUsername:     "admin",
 		WebConsolePassword:     string(rand.Bytes(32)),

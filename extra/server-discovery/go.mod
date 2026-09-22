@@ -1,6 +1,6 @@
 module github.com/crusttech/human/extra/server-discovery
 
-go 1.24.1
+go 1.25.0
 
 require (
 	github.com/crusttech/human/server v0.0.0-00010101000000-000000000000
@@ -49,10 +49,10 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tidwall/btree v1.3.1 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/crypto v0.47.0 // indirect
-	golang.org/x/net v0.49.0 // indirect
-	golang.org/x/oauth2 v0.34.0 // indirect
-	golang.org/x/text v0.33.0 // indirect
+	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
+	golang.org/x/oauth2 v0.36.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	moul.io/zapfilter v1.7.0 // indirect
 )

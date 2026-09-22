@@ -47,7 +47,7 @@ func (l *Lang) Scan(value any) error {
 		v = string(value.([]byte))
 	}
 
-	l.Tag = language.Make(v)
+	l.Tag = locale.MakeTag(v)
 	return nil
 }
 
@@ -90,7 +90,7 @@ outer:
 		}
 
 		out = append(out, &ResourceTranslation{
-			Lang:     Lang{Tag: language.Make(b.Lang)},
+			Lang:     Lang{Tag: locale.MakeTag(b.Lang)},
 			Resource: b.Resource,
 			K:        b.Key,
 			Message:  b.Msg,
@@ -146,7 +146,7 @@ func (set ResourceTranslationSet) FilterResource(res string) (out ResourceTransl
 func FromLocale(ll locale.ResourceTranslationSet) (out ResourceTranslationSet) {
 	for _, l := range ll {
 		out = append(out, &ResourceTranslation{
-			Lang:     Lang{Tag: language.Make(l.Lang)},
+			Lang:     Lang{Tag: locale.MakeTag(l.Lang)},
 			Resource: l.Resource,
 			K:        l.Key,
 			Message:  l.Msg,

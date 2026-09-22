@@ -10,6 +10,7 @@ type (
 		Route        string   `json:"route"`
 		Endpoint     string   `json:"endpoint"`
 		Method       string   `json:"method"`
+		Query        string   `json:"query"`
 
 		Deleted  filter.State `json:"deleted"`
 		Disabled filter.State `json:"disabled"`

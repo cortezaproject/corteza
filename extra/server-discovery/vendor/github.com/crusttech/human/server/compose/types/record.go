@@ -99,6 +99,9 @@ type (
 		NamespaceID uint64             `json:"namespaceID,string"`
 		Query       string             `json:"query"`
 
+		// RecordID limits the result to these records
+		RecordID []uint64 `json:"-"`
+
 		Meta map[string]any `json:"meta,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
@@ -141,6 +144,22 @@ const (
 )
 
 func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
+	if len(f.RecordID) > 0 {
+		// copied, since c is usually the module's own constraint map
+		withIDs := make(map[string][]any, len(c)+1)
+		for k, v := range c {
+			withIDs[k] = v
+		}
+
+		ids := make([]any, len(f.RecordID))
+		for i, id := range f.RecordID {
+			ids[i] = id
+		}
+
+		withIDs["ID"] = ids
+		c = withIDs
+	}
+
 	return filter.Generic(
 		// combine constraints with namespace and module
 		filter.WithConstraints(c),

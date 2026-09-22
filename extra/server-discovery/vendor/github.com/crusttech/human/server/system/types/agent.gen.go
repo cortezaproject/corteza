@@ -46,13 +46,9 @@ type (
 	}
 
 	AgentBehavior struct {
-		SystemPrompt        string              `json:"systemPrompt,omitempty"`
-		Guardrails          []string            `json:"guardrails,omitempty"`
-		InjectSystemContext bool                `json:"injectSystemContext"`
-		KnowledgeBases      KnowledgeBaseIDList `json:"knowledgeBases,omitempty"`
-		TreatyCLEnabled     *bool               `json:"treatyCLEnabled"`
-		TreatyCLTemperature int                 `json:"tclTemperature,omitempty"`
-		TreatyCLArticles    []string            `json:"tclArticles,omitempty"`
+		SystemPrompt   string              `json:"systemPrompt,omitempty"`
+		Guardrails     []string            `json:"guardrails,omitempty"`
+		KnowledgeBases KnowledgeBaseIDList `json:"knowledgeBases,omitempty"`
 	}
 
 	AgentExecution struct {
@@ -76,6 +72,7 @@ type (
 
 	AgentAccess struct {
 		Tools     []AgentAccessTool     `json:"tools,omitempty"`
+		Allow     []AgentAccessAllow    `json:"allow,omitempty"`
 		TAQs      []AgentAccessTAQ      `json:"taqs,omitempty"`
 		Workflows []AgentAccessWorkflow `json:"workflows,omitempty"`
 	}
@@ -99,18 +96,21 @@ type (
 	AgentAccessTAQ struct {
 		ID          uint64            `json:"id,string"`
 		Description string            `json:"description,omitempty"`
+		Permission  string            `json:"permission,omitempty"`
 		Params      map[string]string `json:"params,omitempty"`
 	}
 
 	AgentAccessWorkflow struct {
 		ID          uint64 `json:"id,string"`
 		Description string `json:"description,omitempty"`
+		Permission  string `json:"permission,omitempty"`
 	}
 
 	AgentAccessTool struct {
 		Name        string                 `json:"name"`
 		Group       string                 `json:"group,omitempty"`
 		MaxRisk     string                 `json:"maxRisk,omitempty"`
+		Permission  string                 `json:"permission,omitempty"`
 		Description string                 `json:"description"`
 		Allow       []AgentAccessAllow     `json:"allow"`
 		Context     AgentAccessToolContext `json:"context,omitempty"`
@@ -285,16 +285,6 @@ func (r AgentBehavior) Clone() *AgentBehavior {
 		copy(dup.Guardrails, r.Guardrails)
 	}
 
-	if r.TreatyCLEnabled != nil {
-		v := *r.TreatyCLEnabled
-		dup.TreatyCLEnabled = &v
-	}
-
-	if r.TreatyCLArticles != nil {
-		dup.TreatyCLArticles = make([]string, len(r.TreatyCLArticles))
-		copy(dup.TreatyCLArticles, r.TreatyCLArticles)
-	}
-
 	return &dup
 }
 
@@ -311,24 +301,8 @@ func (r AgentBehavior) Diff(cmp *AgentBehavior) []*revisions.Change {
 		out = append(out, &revisions.Change{Key: "guardrails", Old: []any{cmp.Guardrails}, New: []any{r.Guardrails}})
 	}
 
-	if r.InjectSystemContext != cmp.InjectSystemContext {
-		out = append(out, &revisions.Change{Key: "injectSystemContext", Old: []any{cmp.InjectSystemContext}, New: []any{r.InjectSystemContext}})
-	}
-
 	if !reflect.DeepEqual(r.KnowledgeBases, cmp.KnowledgeBases) {
 		out = append(out, &revisions.Change{Key: "knowledgeBases", Old: []any{cmp.KnowledgeBases}, New: []any{r.KnowledgeBases}})
-	}
-
-	if !reflect.DeepEqual(r.TreatyCLEnabled, cmp.TreatyCLEnabled) {
-		out = append(out, &revisions.Change{Key: "treatyCLEnabled", Old: []any{cmp.TreatyCLEnabled}, New: []any{r.TreatyCLEnabled}})
-	}
-
-	if r.TreatyCLTemperature != cmp.TreatyCLTemperature {
-		out = append(out, &revisions.Change{Key: "tclTemperature", Old: []any{cmp.TreatyCLTemperature}, New: []any{r.TreatyCLTemperature}})
-	}
-
-	if !reflect.DeepEqual(r.TreatyCLArticles, cmp.TreatyCLArticles) {
-		out = append(out, &revisions.Change{Key: "tclArticles", Old: []any{cmp.TreatyCLArticles}, New: []any{r.TreatyCLArticles}})
 	}
 
 	return out
@@ -445,6 +419,13 @@ func (r AgentAccess) Clone() *AgentAccess {
 		}
 	}
 
+	if r.Allow != nil {
+		dup.Allow = make([]AgentAccessAllow, len(r.Allow))
+		for i := range r.Allow {
+			dup.Allow[i] = *r.Allow[i].Clone()
+		}
+	}
+
 	if r.TAQs != nil {
 		dup.TAQs = make([]AgentAccessTAQ, len(r.TAQs))
 		for i := range r.TAQs {
@@ -469,6 +450,10 @@ func (r AgentAccess) Diff(cmp *AgentAccess) []*revisions.Change {
 	}
 	if !reflect.DeepEqual(r.Tools, cmp.Tools) {
 		out = append(out, &revisions.Change{Key: "tools", Old: []any{cmp.Tools}, New: []any{r.Tools}})
+	}
+
+	if !reflect.DeepEqual(r.Allow, cmp.Allow) {
+		out = append(out, &revisions.Change{Key: "allow", Old: []any{cmp.Allow}, New: []any{r.Allow}})
 	}
 
 	if !reflect.DeepEqual(r.TAQs, cmp.TAQs) {
@@ -592,6 +577,10 @@ func (r AgentAccessTAQ) Diff(cmp *AgentAccessTAQ) []*revisions.Change {
 		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
 	}
 
+	if r.Permission != cmp.Permission {
+		out = append(out, &revisions.Change{Key: "permission", Old: []any{cmp.Permission}, New: []any{r.Permission}})
+	}
+
 	if !reflect.DeepEqual(r.Params, cmp.Params) {
 		out = append(out, &revisions.Change{Key: "params", Old: []any{cmp.Params}, New: []any{r.Params}})
 	}
@@ -618,6 +607,10 @@ func (r AgentAccessWorkflow) Diff(cmp *AgentAccessWorkflow) []*revisions.Change 
 
 	if r.Description != cmp.Description {
 		out = append(out, &revisions.Change{Key: "description", Old: []any{cmp.Description}, New: []any{r.Description}})
+	}
+
+	if r.Permission != cmp.Permission {
+		out = append(out, &revisions.Change{Key: "permission", Old: []any{cmp.Permission}, New: []any{r.Permission}})
 	}
 
 	return out
@@ -655,6 +648,10 @@ func (r AgentAccessTool) Diff(cmp *AgentAccessTool) []*revisions.Change {
 
 	if r.MaxRisk != cmp.MaxRisk {
 		out = append(out, &revisions.Change{Key: "maxRisk", Old: []any{cmp.MaxRisk}, New: []any{r.MaxRisk}})
+	}
+
+	if r.Permission != cmp.Permission {
+		out = append(out, &revisions.Change{Key: "permission", Old: []any{cmp.Permission}, New: []any{r.Permission}})
 	}
 
 	if r.Description != cmp.Description {
