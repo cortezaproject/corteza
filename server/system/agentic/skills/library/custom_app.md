@@ -53,6 +53,12 @@ it is in.
 `system_application_source_set` refuses a document that breaks any rule above
 and says which; writing to them from the start saves the round trip.
 
+Asked for something in that list, build the page anyway with the nearest thing
+that works inside Human and say in one line what you did instead — a copyable
+table rather than a CSV download, an address shown as text rather than a mail
+link, a filter that resets when the page is closed. Do not stop to ask; a page
+that does most of it is worth more than a question.
+
 - Keep it under 60 KB. Deploying sends the whole file as one tool argument, and
   the hard limit is 256 KB.
 
