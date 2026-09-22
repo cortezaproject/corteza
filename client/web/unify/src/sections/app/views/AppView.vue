@@ -100,6 +100,21 @@ function userInfo() {
   }
 }
 
+// The names behind a set of user IDs.
+async function userLabels(ids) {
+  const wanted = [...new Set(ids)].filter(id => id && id !== '0')
+  if (!wanted.length) return {}
+
+  await userStore.resolveUsers(wanted).catch(() => {})
+
+  const out = {}
+  for (const id of wanted) {
+    const user = userStore.findByID(id)
+    if (user) out[id] = user.name || user.username || user.email || id
+  }
+  return out
+}
+
 // User IDs a listing carries, mapped to the name a person would see.
 async function refs(records) {
   const ids = new Set()
@@ -116,16 +131,7 @@ async function refs(records) {
     }
   }
 
-  if (!ids.size) return {}
-
-  await userStore.resolveUsers([...ids]).catch(() => {})
-
-  const out = {}
-  for (const id of ids) {
-    const user = userStore.findByID(id)
-    if (user) out[id] = user.name || user.username || user.email || id
-  }
-  return out
+  return userLabels([...ids])
 }
 
 // What the viewer has been asked about this app, for as long as it is open.
@@ -174,6 +180,7 @@ const ctx = {
   },
   fields: moduleID => moduleFields.value[moduleID] || [],
   refs,
+  userLabels,
   user: userInfo,
   theme: themeInfo,
   // The sandbox blocks a download of its own, so the shell hands the file over.

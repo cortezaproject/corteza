@@ -357,6 +357,32 @@ function moduleIDFor(ctx, module) {
   return moduleID
 }
 
+// A breakdown grouped by a reference comes back keyed by the target's bare ID;
+// these are the labels a person would see in their place.
+export async function dimensionRefs(ctx, moduleID, dimension, rows) {
+  const field = (ctx.fields?.(moduleID) || []).find(f => f.name === dimension)
+  if (!field) return {}
+
+  const ids = new Set(
+    (Array.isArray(rows) ? rows : []).map(row => row?.dimension_0).filter(id => id && id !== '0'),
+  )
+  if (!ids.size) return {}
+
+  if (field.kind === 'User') return ctx.userLabels ? ctx.userLabels([...ids]) : {}
+
+  if (field.kind === 'Record' && field.options?.moduleID) {
+    return recordLabels(ctx.compose, ctx.namespaceID, {
+      [field.options.moduleID]: {
+        ids,
+        labelField: field.options.labelField || '',
+        recordLabelField: field.options.recordLabelField || '',
+      },
+    })
+  }
+
+  return {}
+}
+
 function writableModuleIDFor(ctx, module) {
   const refusal = allowWrite(ctx.meta, module)
   if (refusal) throw new Error(refusal)
@@ -424,13 +450,19 @@ export async function dispatch(op, args = {}, ctx) {
 
     case 'records.report': {
       const moduleID = moduleIDFor(ctx, args.module)
-      return ctx.compose.recordReport({
+      const rows = await ctx.compose.recordReport({
         namespaceID: ctx.namespaceID,
         moduleID,
         metrics: args.metrics,
         dimensions: args.dimensions,
         filter: args.filter,
       })
+
+      // Contract 1 was handed the rows as they come; from 2 a breakdown by a
+      // reference carries the labels too, the way a listing does.
+      if (ctx.version < 2) return rows
+
+      return { rows, refs: await dimensionRefs(ctx, moduleID, args.dimensions, rows) }
     }
 
     case 'records.create': {

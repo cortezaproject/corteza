@@ -632,12 +632,12 @@
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/bridge.test.js": {
-      "h": "13c2fe8edead",
+      "h": "42652e6fca4a",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "d7a31a49e0c6",
+      "h": "6ef15c086590",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
@@ -657,7 +657,7 @@
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/views/AppView.vue": {
-      "h": "0252700fa5c0",
+      "h": "63d4265a5183",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },

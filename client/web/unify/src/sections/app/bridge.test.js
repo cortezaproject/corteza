@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { BRIDGE_SCRIPT } from './bridge'
 import {
   allowModule,
+  dimensionRefs,
   downloadName,
   MAX_DOWNLOAD,
   allowWrite,
@@ -496,5 +497,67 @@ describe('handing the viewer a file', () => {
       dispatch('download', { name: 'big.csv', text: 'x'.repeat(MAX_DOWNLOAD + 1) }, ctx),
     ).rejects.toThrow('at most')
     expect(ctx.download).not.toHaveBeenCalled()
+  })
+})
+
+describe('a breakdown grouped by a reference', () => {
+  const company = {
+    name: 'company',
+    kind: 'Record',
+    options: { moduleID: '9', labelField: 'name' },
+  }
+  const owner = { name: 'owner', kind: 'User' }
+  const rows = [
+    { count: 2, dimension_0: '100' },
+    { count: 1, dimension_0: null },
+  ]
+
+  const reportContext = fields => ({
+    ...context(),
+    version: 2,
+    fields: () => fields,
+    userLabels: vi.fn().mockResolvedValue({ 100: 'Dev Agent' }),
+    compose: {
+      recordReport: vi.fn().mockResolvedValue(rows),
+      moduleRead: vi.fn().mockResolvedValue({ fields: [{ name: 'name', kind: 'String' }] }),
+      recordList: vi.fn().mockResolvedValue({
+        set: [{ recordID: '100', values: [{ name: 'name', value: 'Acme' }] }],
+      }),
+    },
+  })
+
+  it('names the records a report groups by', async () => {
+    expect(await dimensionRefs(reportContext([company]), '2', 'company', rows)).toEqual({
+      100: 'Acme',
+    })
+  })
+
+  it('names the people a report groups by', async () => {
+    expect(await dimensionRefs(reportContext([owner]), '2', 'owner', rows)).toEqual({
+      100: 'Dev Agent',
+    })
+  })
+
+  it('leaves a breakdown by something else alone', async () => {
+    const ctx = reportContext([{ name: 'status', kind: 'Select' }])
+    expect(await dimensionRefs(ctx, '2', 'status', rows)).toEqual({})
+    expect(ctx.compose.recordList).not.toHaveBeenCalled()
+  })
+
+  it('hands contract 2 the rows with their labels, and contract 1 the rows alone', async () => {
+    const ctx = reportContext([company])
+    const out = await dispatch(
+      'records.report',
+      { module: 'agent-contact', dimensions: 'company' },
+      ctx,
+    )
+    expect(out).toEqual({ rows, refs: { 100: 'Acme' } })
+
+    const old = await dispatch(
+      'records.report',
+      { module: 'agent-contact', dimensions: 'company' },
+      { ...ctx, version: 1 },
+    )
+    expect(old).toEqual(rows)
   })
 })

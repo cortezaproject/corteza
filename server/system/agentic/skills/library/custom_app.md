@@ -112,7 +112,7 @@ Operations, all read-only:
 | ---------------------- | ----------------------------------------------- | -------------------------------------------- |
 | `human.records.list`   | `{module, filter?, sort?, limit?, pageCursor?}` | `{records, refs, nextPageCursor}`            |
 | `human.records.read`   | `{module, recordID}`                            | `{record, refs}`                             |
-| `human.records.report` | `{module, metrics, dimensions, filter?}`        | the report rows                              |
+| `human.records.report` | `{module, metrics, dimensions, filter?}`        | `{rows, refs}`                               |
 | `human.user`           | —                                               | `{userID, name, email}`                      |
 | `human.theme`          | —                                               | `{dark, colors}`                             |
 | `human.records.create` | `{module, values}`                              | `{record}`                                   |
@@ -138,6 +138,8 @@ createdAt, updatedAt}`. `values` is an object keyed by field name, multi-value
 - The snippet's `v: 2` is the contract a page is written against. Keep it as it
   is; a page with `v: 1` gets the older, string-only values.
 - `limit` is capped at 500.
+- A report grouped by a Record or User field comes back keyed by bare IDs, with
+  `refs` naming them — show the name, never the ID.
 - Changing records is off unless the app was deployed with `writes` naming the
   modules it may change; every one of them must be in `modules` too. Leave
   `writes` out for a read-only app.
