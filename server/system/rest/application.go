@@ -192,6 +192,7 @@ func (ctrl *Application) SourceSet(ctx context.Context, r *request.ApplicationSo
 	meta := &types.ApplicationSourceMeta{
 		Namespace: r.Namespace,
 		Modules:   r.Modules,
+		Writes:    r.Writes,
 	}
 
 	if err = ctrl.application.SetSource(ctx, app, r.Source, meta); err != nil {

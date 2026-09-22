@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"slices"
 	"strconv"
 
 	"github.com/crusttech/human/server/pkg/actionlog"
@@ -182,6 +183,12 @@ func (svc *application) onSetSource(ctx context.Context, aProps *applicationActi
 
 	if meta == nil {
 		meta = &types.ApplicationSourceMeta{}
+	}
+
+	for _, w := range meta.Writes {
+		if !slices.Contains(meta.Modules, w) {
+			return ApplicationErrUndeclaredWrite()
+		}
 	}
 
 	sum := sha256.Sum256([]byte(source))

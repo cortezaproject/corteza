@@ -835,3 +835,30 @@ func TestApplicationUpdate_customURL(t *testing.T) {
 		Assert(jsonpath.Equal(`$.response.unify.url`, "somewhere/else")).
 		End()
 }
+
+// An app changes records only in modules it also reads: the writes list is a
+// subset of the modules one, and it travels with the rest of the declaration.
+func TestApplicationSourceSet_writes(t *testing.T) {
+	h := newHelper(t)
+	app := h.repoMakeCustomApplication()
+	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read", "source.manage")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		JSON(`{"source": "<p>x</p>", "namespace": "crm", "modules": ["Lead"], "writes": ["Deal"]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("application.errors.undeclaredWrite")).
+		End()
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		JSON(`{"source": "<p>x</p>", "namespace": "crm", "modules": ["Lead", "Deal"], "writes": ["Deal"]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.sourceMeta.writes[0]`, "Deal")).
+		End()
+}

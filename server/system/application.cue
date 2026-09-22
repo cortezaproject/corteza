@@ -28,6 +28,8 @@ _applicationDefs: {
 				{ name: "Size", type: "int", json: "size" },
 				{ name: "Namespace", type: "string", json: "namespace,omitempty" },
 				{ name: "Modules", goType: "[]string", json: "modules,omitempty" },
+				// The declared modules the app may also create and change records in.
+				{ name: "Writes", goType: "[]string", json: "writes,omitempty" },
 				{ name: "UpdatedAt", type: "time.Time", ptr: true, json: "updatedAt,omitempty" },
 				{ name: "UpdatedBy", type: "uint64", json: "updatedBy,string,omitempty" },
 			]}

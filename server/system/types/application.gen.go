@@ -57,6 +57,7 @@ type (
 		Size      int        `json:"size"`
 		Namespace string     `json:"namespace,omitempty"`
 		Modules   []string   `json:"modules,omitempty"`
+		Writes    []string   `json:"writes,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
 	}
@@ -259,6 +260,11 @@ func (r ApplicationSourceMeta) Clone() *ApplicationSourceMeta {
 		copy(dup.Modules, r.Modules)
 	}
 
+	if r.Writes != nil {
+		dup.Writes = make([]string, len(r.Writes))
+		copy(dup.Writes, r.Writes)
+	}
+
 	if r.UpdatedAt != nil {
 		v := *r.UpdatedAt
 		dup.UpdatedAt = &v
@@ -286,6 +292,10 @@ func (r ApplicationSourceMeta) Diff(cmp *ApplicationSourceMeta) []*revisions.Cha
 
 	if !reflect.DeepEqual(r.Modules, cmp.Modules) {
 		out = append(out, &revisions.Change{Key: "modules", Old: []any{cmp.Modules}, New: []any{r.Modules}})
+	}
+
+	if !reflect.DeepEqual(r.Writes, cmp.Writes) {
+		out = append(out, &revisions.Change{Key: "writes", Old: []any{cmp.Writes}, New: []any{r.Writes}})
 	}
 
 	if !reflect.DeepEqual(r.UpdatedAt, cmp.UpdatedAt) {

@@ -296,6 +296,7 @@ func (h *applicationHandler) sourceSet(ctx context.Context, req mcp.CallToolRequ
 	if app.SourceMeta != nil {
 		meta.Namespace = app.SourceMeta.Namespace
 		meta.Modules = app.SourceMeta.Modules
+		meta.Writes = app.SourceMeta.Writes
 	}
 	if v, ok := toolkit.OptStr(args, "namespace"); ok {
 		meta.Namespace = v
@@ -303,6 +304,11 @@ func (h *applicationHandler) sourceSet(ctx context.Context, req mcp.CallToolRequ
 	if raw, ok := args["modules"]; ok && raw != nil {
 		if meta.Modules, err = applicationStringList(raw); err != nil {
 			return nil, fmt.Errorf(`invalid modules: must be a JSON array of module handles, e.g. ["Lead","Deal"]: %w`, err)
+		}
+	}
+	if raw, ok := args["writes"]; ok && raw != nil {
+		if meta.Writes, err = applicationStringList(raw); err != nil {
+			return nil, fmt.Errorf(`invalid writes: must be a JSON array of module handles, e.g. ["Lead"]: %w`, err)
 		}
 	}
 

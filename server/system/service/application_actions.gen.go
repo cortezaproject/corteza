@@ -780,6 +780,38 @@ func ApplicationErrNotAllowedToManageSource(mm ...*applicationActionProps) *erro
 	return e
 }
 
+// ApplicationErrUndeclaredWrite returns "system:application.undeclaredWrite" as *errors.Error
+//
+// This function is auto-generated.
+func ApplicationErrUndeclaredWrite(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("a module the app may change must also be one it may read; add it to modules", nil),
+
+		errors.Meta("type", "undeclaredWrite"),
+		errors.Meta("resource", "system:application"),
+
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.undeclaredWrite"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ApplicationErrNotCustom returns "system:application.notCustom" as *errors.Error
 //
 // This function is auto-generated.

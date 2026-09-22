@@ -150,6 +150,7 @@ func (h *applicationHandler) register() {
 			mcp.WithString("new_string", mcp.Description("Patch mode: what old_string becomes. Pass an empty string to delete the matched text. Required whenever old_string is given.")),
 			mcp.WithString("namespace", mcp.Description("Handle of the compose namespace the app reads from. Omit in patch mode to keep the stored one.")),
 			mcp.WithString("modules", mcp.Description(`JSON array of module handles the app may query, as strings, e.g. ["Lead","Deal"]. This is the allowlist the bridge enforces; a module left out is refused at runtime. Omit in patch mode to keep the stored list.`)),
+			mcp.WithString("writes", mcp.Description(`JSON array of the declared module handles the app may also create and change records in, e.g. ["Lead"]; every one must be in modules too. Leave it out for a read-only app. Each viewer is asked once, in Human, before the app's first change, and changes run with that viewer's own permissions. Omit in patch mode to keep the stored list.`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
 			hmcp.NeedsFullDocs(),

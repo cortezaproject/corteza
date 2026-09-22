@@ -3659,7 +3659,7 @@ export default class System {
 
   // Replace the HTML source of a custom application
   async applicationSourceSet(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { applicationID, source, namespace, modules } = (a as KV) || {}
+    const { applicationID, source, namespace, modules, writes } = (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
     }
@@ -3677,6 +3677,7 @@ export default class System {
       source,
       namespace,
       modules,
+      writes,
     }
     return this.api()
       .request(cfg)

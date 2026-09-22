@@ -71,6 +71,7 @@
         "size": "int",
         "namespace": "string",
         "modules": "string",
+        "writes": "string",
         "updatedAt": "time.Time",
         "updatedBy": "uint64"
       },

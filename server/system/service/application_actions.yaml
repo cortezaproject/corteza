@@ -94,6 +94,10 @@ errors:
     message: 'not allowed to change the source of this application'
     log: 'failed to set source of {{application.name}}; insufficient permissions'
 
+  - error: undeclaredWrite
+    message: 'a module the app may change must also be one it may read; add it to modules'
+    severity: warning
+
   - error: notCustom
     message: 'this application is not a custom application'
     severity: warning

@@ -200,6 +200,11 @@ type (
 		//
 		// Module handles the app may read through the bridge
 		Modules []string
+
+		// Writes POST parameter
+		//
+		// Declared module handles the app may also create and change records in
+		Writes []string
 	}
 
 	ApplicationUpload struct {
@@ -922,6 +927,7 @@ func (r ApplicationSourceSet) Auditable() map[string]interface{} {
 		"source":        r.Source,
 		"namespace":     r.Namespace,
 		"modules":       r.Modules,
+		"writes":        r.Writes,
 	}
 }
 
@@ -943,6 +949,11 @@ func (r ApplicationSourceSet) GetNamespace() string {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationSourceSet) GetModules() []string {
 	return r.Modules
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceSet) GetWrites() []string {
+	return r.Writes
 }
 
 // Fill processes request and fills internal variables
@@ -1006,6 +1017,13 @@ func (r *ApplicationSourceSet) Fill(req *http.Request) (err error) {
 
 		//if val, ok := req.Form["modules[]"]; ok && len(val) > 0  {
 		//    r.Modules, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+
+		//if val, ok := req.Form["writes[]"]; ok && len(val) > 0  {
+		//    r.Writes, err = val, nil
 		//    if err != nil {
 		//        return err
 		//    }
