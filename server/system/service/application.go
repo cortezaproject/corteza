@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"strconv"
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
@@ -138,7 +139,19 @@ func (svc *application) beforeUpdate(ctx context.Context, upd, res *types.Applic
 		res.Unify = upd.Unify
 	}
 
+	// The app view serves a custom application at its own ID, and the launcher
+	// finds it through this url; any other value leaves a tile that opens
+	// nothing.
+	if res.Unify != nil && res.Unify.Kind == ApplicationKindCustom {
+		res.Unify.Url = CustomApplicationPath(res.ID)
+	}
+
 	return nil
+}
+
+// CustomApplicationPath is where the app view serves a custom application.
+func CustomApplicationPath(ID uint64) string {
+	return "app/" + strconv.FormatUint(ID, 10)
 }
 
 // onSetSource replaces a custom application's HTML and the meta the app view

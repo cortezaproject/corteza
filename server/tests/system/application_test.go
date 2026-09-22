@@ -808,3 +808,30 @@ func TestApplicationCreate_owner(t *testing.T) {
 	require.NotNil(t, res)
 	require.Equal(t, h.cUser.ID, res.OwnerID)
 }
+
+// A custom application is served at its own ID; whatever url an update sends,
+// the one stored is the one the launcher can open.
+func TestApplicationUpdate_customURL(t *testing.T) {
+	h := newHelper(t)
+	app := h.repoMakeApplication()
+	helpers.AllowMe(h, types.ApplicationRbacResource(0), "update")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d", app.ID)).
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{"name": %q, "unify": {"kind": "custom", "url": "somewhere/else"}}`, app.Name)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.unify.url`, fmt.Sprintf("app/%d", app.ID))).
+		End()
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d", app.ID)).
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{"name": %q, "unify": {"kind": "", "url": "somewhere/else"}}`, app.Name)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(jsonpath.Equal(`$.response.unify.url`, "somewhere/else")).
+		End()
+}

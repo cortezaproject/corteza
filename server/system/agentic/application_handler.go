@@ -143,7 +143,7 @@ func (h *applicationHandler) create(ctx context.Context, req mcp.CallToolRequest
 	// cannot be known until the record exists. Nothing below this layer fills it
 	// in — the service and REST both take the unify block as given.
 	if customApplicationNeedsURL(app) {
-		app.Unify.Url = customApplicationPath(app.ID)
+		app.Unify.Url = sysService.CustomApplicationPath(app.ID)
 		if app, err = sysService.DefaultApplication.Update(ctx, app); err != nil {
 			return nil, toolkit.Errf("custom application url", err)
 		}
@@ -195,7 +195,7 @@ func (h *applicationHandler) update(ctx context.Context, req mcp.CallToolRequest
 	}
 
 	if customApplicationNeedsURL(app) {
-		app.Unify.Url = customApplicationPath(app.ID)
+		app.Unify.Url = sysService.CustomApplicationPath(app.ID)
 	}
 
 	app, err = sysService.DefaultApplication.Update(ctx, app)
@@ -574,12 +574,6 @@ func customApplicationNeedsURL(app *sysTypes.Application) bool {
 		app.Unify != nil &&
 		app.Unify.Kind == sysService.ApplicationKindCustom &&
 		app.Unify.Url == ""
-}
-
-// customApplicationPath is the unify URL of a custom application: the app
-// view's route, relative, the way the selector stores every local URL.
-func customApplicationPath(id uint64) string {
-	return "app/" + strconv.FormatUint(id, 10)
 }
 
 // applyApplicationSourcePatch replaces the one occurrence of oldString in the

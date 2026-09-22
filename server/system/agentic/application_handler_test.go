@@ -169,7 +169,7 @@ func TestCustomApplicationNeedsURL(t *testing.T) {
 	assert.False(t, customApplicationNeedsURL(custom("app/7")), "an explicit url is the caller's")
 	assert.False(t, customApplicationNeedsURL(&sysTypes.Application{ID: 42, Unify: &sysTypes.ApplicationUnify{}}))
 	assert.False(t, customApplicationNeedsURL(&sysTypes.Application{ID: 42}))
-	assert.Equal(t, "app/42", customApplicationPath(42))
+	assert.Equal(t, "app/42", sysService.CustomApplicationPath(42))
 }
 
 func TestApplicationHandlerRegistersTheSourceTools(t *testing.T) {
