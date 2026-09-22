@@ -6,6 +6,9 @@ import (
 	"testing"
 
 	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/errors"
+	"github.com/crusttech/human/server/pkg/eventbus"
+	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/system/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -115,3 +118,42 @@ func TestService_canExecAllow(t *testing.T) {
 		require.False(t, svc.canExec(as(clientRoleID), broken.Name))
 	})
 }
+
+// A caller gets an error it can act on: a refusal is unauthorized, a script
+// that is not there is not found, and a missing name is invalid input
+func TestService_ExecErrorKinds(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = auth.SetIdentityToContext(context.Background(), auth.Authenticated(1, 42))
+
+		svc = service{
+			opt:      options.CorredorOpt{Enabled: true},
+			log:      zap.NewNop(),
+			sScripts: ScriptSet{{Name: "/server-scripts/known.js:default"}},
+			explicit: map[string]map[string]bool{
+				"/server-scripts/known.js:default":     {"system": true},
+				"/server-scripts/notloaded.js:default": {"system": true},
+			},
+			denyExec:  map[string]map[uint64]bool{"/server-scripts/known.js:default": {42: true}},
+			allowExec: map[string]map[uint64]bool{},
+		}
+
+		args = &testScriptArgs{resourceType: "system", eventType: "onManual"}
+	)
+
+	req.True(errors.IsInvalidData(svc.Exec(ctx, "", args)), "empty script name")
+	req.True(errors.IsNotFound(svc.Exec(ctx, "/server-scripts/unregistered.js:default", args)), "unregistered script")
+	req.True(errors.IsNotFound(svc.Exec(ctx, "/server-scripts/notloaded.js:default", args)), "registered but not loaded")
+	req.True(errors.IsUnauthorized(svc.Exec(ctx, "/server-scripts/known.js:default", args)), "denied script")
+}
+
+type testScriptArgs struct {
+	resourceType string
+	eventType    string
+}
+
+func (a testScriptArgs) ResourceType() string                { return a.resourceType }
+func (a testScriptArgs) EventType() string                   { return a.eventType }
+func (testScriptArgs) Match(eventbus.ConstraintMatcher) bool { return true }
+func (testScriptArgs) Encode() (map[string][]byte, error)    { return nil, nil }
+func (testScriptArgs) Decode(map[string][]byte) error        { return nil }

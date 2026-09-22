@@ -338,19 +338,19 @@ func (svc service) ExecIterator(ctx context.Context, scriptName string) error {
 	}
 
 	if script = svc.sScripts.FindByName(scriptName); script == nil {
-		return fmt.Errorf("nonexistent script (%q)", scriptName)
+		return errors.NotFound("nonexistent script (%q)", scriptName)
 	}
 
 	if !svc.canExec(ctx, scriptName) {
-		return fmt.Errorf("permission to execute %s denied", scriptName)
+		return errors.Unauthorized("permission to execute %s denied", scriptName)
 	}
 
 	if script.Iterator == nil {
-		return fmt.Errorf("not an itrator script")
+		return errors.InvalidData("not an iterator script")
 	}
 
 	if finder, ok := svc.iteratorProviders[script.Iterator.ResourceType]; !ok {
-		return fmt.Errorf("unknown resource finder: %s", script.Iterator.ResourceType)
+		return errors.Internal("unknown resource finder: %s", script.Iterator.ResourceType)
 	} else {
 		if script.Security != nil {
 			runAs = script.Security.RunAs
@@ -404,23 +404,23 @@ func (svc service) Exec(ctx context.Context, scriptName string, args ScriptArgs)
 	)
 
 	if len(scriptName) == 0 {
-		return fmt.Errorf("script name not provided (%q)", scriptName)
+		return errors.InvalidData("script name not provided (%q)", scriptName)
 	}
 
 	if _, ok = svc.explicit[scriptName]; !ok {
-		return fmt.Errorf("unregistered explicit script %q", scriptName)
+		return errors.NotFound("unregistered explicit script %q", scriptName)
 	}
 
 	if _, ok = svc.explicit[scriptName][res]; !ok {
-		return fmt.Errorf("unregistered explicit script %q for resource %q", scriptName, res)
+		return errors.NotFound("unregistered explicit script %q for resource %q", scriptName, res)
 	}
 
 	if script = svc.sScripts.FindByName(scriptName); script == nil {
-		return fmt.Errorf("nonexistent script (%q)", scriptName)
+		return errors.NotFound("nonexistent script (%q)", scriptName)
 	}
 
 	if !svc.canExec(ctx, scriptName) {
-		return fmt.Errorf("permission to execute %s denied", scriptName)
+		return errors.Unauthorized("permission to execute %s denied", scriptName)
 	}
 
 	if script.Security != nil {
