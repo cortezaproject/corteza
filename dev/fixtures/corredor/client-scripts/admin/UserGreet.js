@@ -2,7 +2,7 @@ export default {
   label: 'Greet user (client)',
   description: 'Logs the user being edited to the browser console',
 
-  triggers ({ on }) {
+  triggers({ on }) {
     return on('manual')
       .for('system:user')
       .uiProp('app', 'admin')
@@ -10,7 +10,7 @@ export default {
       .uiProp('slot', 'infoFooter')
   },
 
-  exec ({ $user }) {
+  exec({ $user }) {
     console.info('Corredor fixture: hello', $user.email)
   },
 }
