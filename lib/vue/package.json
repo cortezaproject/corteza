@@ -52,7 +52,7 @@
     "@tiptap/suggestion": "^3.4.2",
     "@tiptap/vue-2": "^3.4.2",
     "bootstrap-vue": "2.23.1",
-    "echarts": "5.6.0",
+    "echarts": "6.1.0",
     "fuzzysort": "^3.1.0",
     "html-parse-stringify": "^3.0.1",
     "i18next": "^23.16.8",

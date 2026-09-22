@@ -39,7 +39,7 @@
     "@fortawesome/vue-fontawesome": "^2.0.10",
     "@panter/vue-i18next": "^0.15.0",
     "bootstrap-vue": "2.23.1",
-    "echarts": "5.6.0",
+    "echarts": "6.1.0",
     "i18next": "^23.16.8",
     "i18next-browser-languagedetector": "^3.0.2",
     "lodash": "^4.17.21",
