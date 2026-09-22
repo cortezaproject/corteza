@@ -36,12 +36,8 @@ var (
 
 	// one client for the lifetime of the process, only transport is reconfigured;
 	// keeps restrictions in place for everyone that got the client before the setup
-	restrictedClient = &http.Client{
-		Transport: restrictedRoundTripper{},
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
+	// redirects are followed, every hop is dialed through the restricted transport
+	restrictedClient = &http.Client{Transport: restrictedRoundTripper{}}
 
 	restrictedTransport atomic.Pointer[http.Transport]
 
