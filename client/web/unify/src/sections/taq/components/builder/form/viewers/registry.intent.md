@@ -25,6 +25,8 @@ step previews and the reference panel.
 ## When changing this
 
 - Add entries in the same change that extends the inputs registry.
+- `CorredorScriptSelector` / `CorredorScript` render through `CViewText`: the
+  stored value is the script name, which is what a preview shows.
 
 > **DRIFT:** nine editable types currently have no viewer entry — see the
 > DRIFT note in `../../builder.intent.md` for the list.

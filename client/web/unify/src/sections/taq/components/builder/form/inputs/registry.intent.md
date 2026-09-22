@@ -6,7 +6,8 @@ owner: fe
 depends-on:
   - lib/vue
 touched-by: []
-tests: []
+tests:
+  - client/web/unify/src/sections/taq/components/builder/form/inputs/registry.corredorScript.test.ts
 ---
 
 # TAQ step-config input registry
@@ -31,6 +32,9 @@ builder's step-config forms.
 - Keep inputs and viewers registries in sync when adding a type.
 - Shared inputs come from lib/vue; only TAQ-specific editors live beside this
   file.
+- `CorredorScriptSelector` / `CorredorScript` (the `corredorExec` step's script
+  argument) map to lib/vue `CInputCorredorScript`; the viewer registry shows the
+  raw script name for both.
 
 > **DRIFT:** nine of this registry's types have no viewer counterpart — see
 > the DRIFT note in `../../builder.intent.md` for the list.

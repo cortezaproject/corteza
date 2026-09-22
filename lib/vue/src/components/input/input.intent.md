@@ -17,6 +17,7 @@ touched-by:
 tests:
   - lib/vue/src/components/input/CInputModuleField.test.ts
   - lib/vue/src/components/input/CInputPickers.descriptions.test.ts
+  - lib/vue/src/components/input/CInputCorredorScript.test.ts
 ---
 
 # Shared input components
@@ -31,10 +32,11 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 ## Map
 
 - Selector contract: v-model holds the entity ID (string), or an array of them where the selector offers `multiple`; props `placeholder`, `disabled`; options are self-fetched with search.
-- A dropdown option is two lines wherever the resource carries a description: the name, then the description muted beneath it, guarded so an option without one stays a single line. Agent, Chart, KnowledgeBase, LLM, Module, Namespace, Role, UserGroup and Workflow read it from `meta.description`; TAQ (NgAutomation) from a top-level `description`. `CInputPickers.descriptions.test.ts` is the sweep that holds the set together.
+- A dropdown option is two lines wherever the resource carries a description: the name, then the description muted beneath it, guarded so an option without one stays a single line. Agent, Chart, KnowledgeBase, LLM, Module, Namespace, Role, UserGroup and Workflow read it from `meta.description`; CorredorScript from a top-level `description`; TAQ (NgAutomation) from a top-level `description`. `CInputPickers.descriptions.test.ts` is the sweep that holds the set together.
 - `CInputUser`, `CInputRole`, `CInputUserGroup`, `CInputAgent`, `CInputLLM`, `CInputLabel`, `CInputKnowledgeBase` — SystemAPI-backed selectors (User/Role/UserGroup support exclusion lists; User/Role support a `multiple` mode rendering picked entities as chips; User hands an `option` slot to its dropdown so a caller can add a line under a user without replacing the selector; Label/KnowledgeBase can create inline).
 - `CInputModel` — model selector scoped to an LLM provider (SystemAPI).
 - `CInputTAQ`, `CInputWorkflow` — AutomationAPI-backed selectors.
+- `CInputCorredorScript` — manual `system` Corredor server scripts the caller may run (SystemAPI automation list); the value is the script name, and the Select is editable so a name that is not listed (a script deployed later, or one the caller cannot list) can still be typed. It declares no `options` prop: step forms pass `options=[]` to every input, which would otherwise replace the fetched list.
 - `CInputNamespace`, `CInputModule`, `CInputChart` — store-backed compose selectors (module/chart scoped by `namespaceID` prop).
 - `CInputRecord` — record selector; needs `namespaceID` + `moduleID`, label via `labelField`/`recordLabelField`, narrows with `prefilter`/`queryFields` (ComposeAPI + record/module stores).
 - `CInputSelect` — thin PrimeVue Select wrapper: `options`, `optionLabel`, `loading`, `showClear`, `hideSearch`.

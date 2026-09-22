@@ -25,6 +25,8 @@ const PICKERS: Array<[string, string, string]> = [
   ['CInputWorkflow.vue', 'option.meta.description', 'option.meta?.description'],
   // NgAutomation keeps its description as a top-level field, not under meta.
   ['CInputTAQ.vue', 'option.description', 'option.description'],
+  // A Corredor script, as the automation list returns it, is described at the top level too.
+  ['CInputCorredorScript.vue', 'option.description', 'option.description'],
 ]
 
 const read = (file: string) => readFileSync(join(HERE, file), 'utf8')

@@ -47,7 +47,11 @@
             <div
               v-for="node in filteredNodes"
               :key="node.id"
-              class="node-item p-3 rounded-border border border-surface cursor-pointer transition-colors hover:bg-emphasis"
+              class="node-item p-3 rounded-border border border-surface transition-colors"
+              :class="
+                node.disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-emphasis'
+              "
+              :aria-disabled="node.disabled"
               @click="selectNode(node)"
             >
               <div class="flex items-center gap-3">
@@ -58,6 +62,9 @@
                   <div class="font-medium text-color">{{ node.label }}</div>
                   <div class="text-sm text-muted-color truncate" :title="node.description">
                     {{ node.description }}
+                  </div>
+                  <div v-if="node.disabled" class="node-disabled-hint text-xs text-muted-color">
+                    {{ disabledHint(node) }}
                   </div>
                 </div>
               </div>
@@ -231,6 +238,7 @@ const availableCategories = computed(() => {
           kind: fn.kind,
           group: fn.groups?.[0] || 'System',
           weight: fn.meta?.weight || 0,
+          disabled: fn.disabled === true,
         })
       })
   }
@@ -291,7 +299,15 @@ const filteredNodes = computed(() => {
   })
 })
 
+// A construct the server lists but cannot run here is shown, never added.
+function disabledHint(node) {
+  return node.ref === 'corredorExec'
+    ? t('builder.nodePicker.disabled.corredor')
+    : t('builder.nodePicker.disabled.generic')
+}
+
 function selectNode(node) {
+  if (node.disabled) return
   emit('select', node)
   emit('close')
 }

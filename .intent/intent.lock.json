@@ -2361,10 +2361,15 @@
       "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
       "t": "2026-08-13"
     },
+    "client/web/unify/src/sections/taq/components/builder/form/inputs/registry.corredorScript.test.ts": {
+      "h": "bc5c093f2674",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-09-22"
+    },
     "client/web/unify/src/sections/taq/components/builder/form/inputs/registry.ts": {
-      "h": "9826f2dba635",
+      "h": "a6c595471324",
       "doc": "client/web/unify/src/sections/taq/components/builder/form/inputs/registry.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-09-22"
     },
     "client/web/unify/src/sections/taq/components/builder/form/InputSchemaEditor.vue": {
       "h": "2efc4e50b018",
@@ -2417,14 +2422,19 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/taq/components/builder/form/viewers/registry.ts": {
-      "h": "243b71c2b2d8",
+      "h": "6c6537b49b94",
       "doc": "client/web/unify/src/sections/taq/components/builder/form/viewers/registry.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
+    },
+    "client/web/unify/src/sections/taq/components/builder/NodePicker.disabled.test.js": {
+      "h": "755cb6c26bc6",
+      "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
+      "t": "2026-09-22"
     },
     "client/web/unify/src/sections/taq/components/builder/NodePicker.vue": {
-      "h": "1443d99caa32",
+      "h": "e0ea3925a63c",
       "doc": "client/web/unify/src/sections/taq/components/builder/builder.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
     },
     "client/web/unify/src/sections/taq/components/builder/ReferencePanel.vue": {
       "h": "0650387bae6d",
@@ -4091,6 +4101,16 @@
       "doc": "lib/vue/src/components/input/input.intent.md",
       "t": "2026-08-13"
     },
+    "lib/vue/src/components/input/CInputCorredorScript.test.ts": {
+      "h": "d6c0b4243204",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-09-22"
+    },
+    "lib/vue/src/components/input/CInputCorredorScript.vue": {
+      "h": "8dd9594a16f0",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-09-22"
+    },
     "lib/vue/src/components/input/CInputCron.vue": {
       "h": "20241f76b68b",
       "doc": "lib/vue/src/components/input/input.intent.md",
@@ -4152,9 +4172,9 @@
       "t": "2026-08-24"
     },
     "lib/vue/src/components/input/CInputPickers.descriptions.test.ts": {
-      "h": "774736a42722",
+      "h": "988d2281731b",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-08-24"
+      "t": "2026-09-22"
     },
     "lib/vue/src/components/input/CInputRecord.vue": {
       "h": "9841f53af87c",
@@ -4242,9 +4262,9 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/components/input/index.ts": {
-      "h": "07386bcdfd75",
+      "h": "d2ae6fd755ff",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-22"
     },
     "lib/vue/src/components/loader/CLoaderLogo.vue": {
       "h": "5b257053930e",

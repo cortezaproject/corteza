@@ -109,6 +109,9 @@ nodePicker:
     triggers: Triggers
     triggersGeneral: General
     triggersRecord: Record
+  disabled:
+    corredor: Corredor is turned off on this server (CORREDOR_ENABLED), so this step cannot run
+    generic: This step is turned off on this server, so it cannot be added to an automation
   noResults: No nodes found matching "{query}"
   nodes:
     branches:

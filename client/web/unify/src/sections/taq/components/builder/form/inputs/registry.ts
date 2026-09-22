@@ -11,6 +11,7 @@ import {
   CInputSwitch,
   CInputCron,
   CInputWorkflow,
+  CInputCorredorScript,
 } from '@planetcrust/human-vue/src/components/input'
 import CInputFieldValueMap from './CInputFieldValueMap.vue'
 import CInputWorkflowInputMap from './CInputWorkflowInputMap.vue'
@@ -44,6 +45,10 @@ export const INPUT_REGISTRY: Record<string, Component> = {
   // Workflow selectors
   WorkflowSelector: CInputWorkflow,
   Workflow: CInputWorkflow,
+
+  // Corredor script selectors (value is the script name)
+  CorredorScriptSelector: CInputCorredorScript,
+  CorredorScript: CInputCorredorScript,
 
   // Text inputs
   Text: InputText,

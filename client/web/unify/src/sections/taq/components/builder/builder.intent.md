@@ -9,7 +9,8 @@ depends-on:
   - lib/vue/src/components/field
 touched-by:
   - client/web/unify/src/sections/taq/views/Builder.vue
-tests: []
+tests:
+  - client/web/unify/src/sections/taq/components/builder/NodePicker.disabled.test.js
 ---
 
 # TAQ builder panels & forms
@@ -25,7 +26,7 @@ editing forms.
 
 ## Map
 
-- `NodePicker.vue` — the step palette dialog: triggers and function steps from the catalog, grouped (`groups[0]`) with fixed group icons, searchable; emits the chosen node type.
+- `NodePicker.vue` — the step palette dialog: triggers and function steps from the catalog, grouped (`groups[0]`) with fixed group icons, searchable; emits the chosen node type. A construct the catalog marks `disabled` (today only `corredorExec`, while `CORREDOR_ENABLED` is off) is listed greyed with a hint and cannot be picked, so a step's absence is never mistaken for a missing feature.
 - `ConfigSidebar.vue` — right drawer for the selected node: inline label/description edit, `TriggerForm`/`FunctionForm` dispatch, agent-trigger `InputSchemaEditor`, gateway type switch, drag-reorderable branch list with per-path `ConditionBuilder`; relays all changes as events and exposes `applyReference()`.
 - `ReferencePanel.vue` — accordion of upstream sources (invoker/runner, trigger properties, step results); expandable typed values (e.g. ComposeRecord loads module fields) emit `{scope, source}` selections.
 - `RunModal.vue` — pre-run input: renders only supported trigger property types, prefills from constraint values, emits the run scope.

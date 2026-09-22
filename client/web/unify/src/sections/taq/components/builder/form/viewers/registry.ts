@@ -28,6 +28,10 @@ export const VIEWER_REGISTRY: Record<string, Component> = {
   ModuleSelector: CViewModule,
   Module: CViewModule,
 
+  // Corredor script viewers — the script name as stored
+  CorredorScriptSelector: CViewText,
+  CorredorScript: CViewText,
+
   // Text viewers (default)
   Text: CViewText,
   String: CViewText,
