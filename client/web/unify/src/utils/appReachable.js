@@ -12,7 +12,9 @@ import { sectionAllows } from '@/router/sectionAccess'
 // straight back home.
 //
 // A url no section serves — an address elsewhere, or an app this shell does not
-// host — has no section to speak for it, so it answers for itself.
+// host — has no section to speak for it, so it answers for itself. So does a
+// custom application at `app/<id>`: the section serving it is keyed to no
+// application of its own.
 //
 // `sectionFor` is passed in rather than imported so the rule can be exercised
 // without a router around it.
@@ -22,7 +24,9 @@ export function appReachable(app, { sectionFor, applications }) {
   if (!path) return false
 
   const section = isAppUrlLocal(raw) ? sectionFor('/' + path) : null
-  if (section) return sectionAllows(section, applications)
+  // A per-application section speaks for no application but the one in the
+  // url, which is this one — so the tile is judged by its own grant after all.
+  if (section) return sectionAllows(section, applications, app)
 
   return !!app.canAccessApplication
 }

@@ -1,0 +1,70 @@
+// The in-page bridge, prefixed to a custom app's source.
+//
+// The same text the MCP skill hands an app author, so a page written to the
+// skill already carries a copy of it: the snippet claims `window.human` only
+// when nothing has, and the two copies together leave one object and send one
+// handshake. No top-level `const`/`let` for the same reason — a second
+// evaluation of a lexical declaration is a SyntaxError that takes the page
+// with it.
+//
+// With no port inside 600 ms the page is running outside Human (an artifact
+// preview), and calls fall back to whatever the page put in `window.SAMPLE`.
+export const BRIDGE_SCRIPT = `
+window.human = window.human || (function () {
+  var port = null
+  var seq = 0
+  var waiting = {}
+
+  var ready = new Promise(function (resolve) {
+    var timer = setTimeout(function () { resolve(false) }, 600)
+
+    addEventListener('message', function (e) {
+      if (e.source !== parent || !e.data || e.data.type !== 'human:port' || !e.ports[0]) return
+      clearTimeout(timer)
+      port = e.ports[0]
+      port.onmessage = function (m) {
+        var w = waiting[m.data.id]
+        if (!w) return
+        delete waiting[m.data.id]
+        if (m.data.error) w.reject(new Error(m.data.error))
+        else w.resolve(m.data.result)
+      }
+      resolve(true)
+    })
+
+    try {
+      parent.postMessage({ type: 'human:hello', v: 1 }, '*')
+    } catch (err) {
+      resolve(false)
+    }
+  })
+
+  function call (op, args) {
+    return ready.then(function (live) {
+      if (!live) {
+        var sample = window.SAMPLE
+        if (sample && sample[op]) return sample[op](args)
+        return Promise.reject(new Error('not connected'))
+      }
+      return new Promise(function (resolve, reject) {
+        var id = ++seq
+        waiting[id] = { resolve: resolve, reject: reject }
+        port.postMessage({ id: id, op: op, args: args })
+      })
+    })
+  }
+
+  return {
+    ready: ready,
+    call: call,
+    records: {
+      list: function (a) { return call('records.list', a) },
+      read: function (a) { return call('records.read', a) },
+      report: function (a) { return call('records.report', a) }
+    },
+    user: function () { return call('user', {}) },
+    theme: function () { return call('theme', {}) },
+    resize: function (height) { return call('resize', { height: height }) }
+  }
+})()
+`

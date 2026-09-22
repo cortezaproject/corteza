@@ -22,8 +22,10 @@ beyond this app belongs in `lib/vue` / `lib/js` instead.
   judged by the section it lands in (the same rule the router's gate applies,
   so what is offered and what is admitted cannot drift); a url no section
   serves — an address elsewhere, or an app served outside the shell — has no
-  section to speak for it and is judged by its own `canAccessApplication`.
-  `enabled` is CAppList's own check and is applied on top of both.
+  section to speak for it and is judged by its own `canAccessApplication`. So
+  is a custom application at `app/<id>`, whose section (`perApp`) is keyed to no
+  application of its own. `enabled` is CAppList's own check and is applied on
+  top of all three.
 - `documentTitle.js` — the browser tab title.
 
 ## When changing this

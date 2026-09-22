@@ -31,7 +31,15 @@ describe('section access contract', () => {
 
   it('leaves exactly one section reachable without a permission', () => {
     // More than one ungated section is a hole; none is a lock-out, since a user
-    // with no applications would have nowhere to be redirected to.
-    expect(sections.filter(s => s.app === null).map(s => s.id)).toEqual(['home'])
+    // with no applications would have nowhere to be redirected to. A `perApp`
+    // section declares `app: null` too, and is gated on the application named
+    // in its route rather than on nothing.
+    expect(sections.filter(s => s.app === null && !s.perApp).map(s => s.id)).toEqual(['home'])
+  })
+
+  it('gates a per-application section on the route, not on an application of its own', () => {
+    // `perApp` with a url of its own would be two gates on one entry, and the
+    // section's would be the one that answers.
+    expect(sections.filter(s => s.perApp && s.app !== null).map(s => s.id)).toEqual([])
   })
 })

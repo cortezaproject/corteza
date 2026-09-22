@@ -21,6 +21,7 @@ consumes via a fixed contract; adding a section = drop a folder + register it in
 
 - `id` — unique section id; also used as `route.meta.section` on its routes.
 - `app` — **required.** The `unify.url` of the registry application that gates entry: the router admits the user only if they hold `access` on it. `null` marks a section every authenticated user reaches (home alone, where a user with no applications lands). A section declaring neither is denied — the omission fails closed, and `sections.access.test.js` catches it.
+- `perApp` — optional. Marks a section that serves one registry application per route rather than being keyed to one: it declares `app: null` and the gate asks the application named in the route instead (`app` alone). Both the router and the app menu take this branch, so a tile is offered on the same grant that admits it.
 - `routes` — flat route list; paths prefixed with the section's base, route names namespaced (`<id>.` prefix). Uniqueness is convention-only, nothing enforces it.
 - `sidebar` — optional left-sidebar component; routes may opt out with `meta.hideSidebar`.
 - `topbar` — optional topbar setting overrides merged over `ui.topbar` settings.
@@ -30,7 +31,7 @@ consumes via a fixed contract; adding a section = drop a folder + register it in
 ## Map
 
 - `index.js` — section registry: ordered `sections` list, flattened `routes`, `sectionById()`.
-- `home`, `agentic`, `workflow`, `taq`, `admin`, `compose`, `chatbot`, `project`, `one` — the sections (order = app-list order). `project` is WIP in parts; its locked contracts live in `project/project.intent.md`. `one` ships switched off (see Access).
+- `home`, `agentic`, `workflow`, `taq`, `admin`, `compose`, `chatbot`, `project`, `app`, `one` — the sections (order = app-list order). `project` is WIP in parts; its locked contracts live in `project/project.intent.md`. `app` is the per-application section (see `app/app.intent.md`). `one` ships switched off (see Access).
 
 ## Access
 
@@ -44,6 +45,11 @@ The gate is the router's, not a view's: it resolves before the section's view
 mounts, so a refused section issues no requests. It is a usability boundary, not
 the security one — every endpoint behind it enforces its own permissions.
 
+A `perApp` section has no registry application to ask either question of. Its
+routes each name one, and that application answers both: `read` puts it in the
+menu, `access` opens it. There is nothing to provision for such a section — the
+applications it serves are created by users.
+
 A third state is the application being switched off. `enabled: false` is not a
 permission: the section stays registered and routable, and entry lands on the
 disabled screen rather than the view. A section may therefore ship complete and
@@ -53,4 +59,4 @@ without offering it to the ones that do not.
 ## When changing this
 
 - Contract changes here ripple into App.vue, the router, and every section — update all of them together.
-- A new section must declare `app`, and its registry application must exist in `server/provision/101_applications/`.
+- A new section must declare `app`, and its registry application must exist in `server/provision/101_applications/` — unless it is `perApp`, which provisions nothing.

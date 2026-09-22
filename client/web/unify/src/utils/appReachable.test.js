@@ -7,11 +7,18 @@ import { appReachable } from './appReachable'
 const SECTIONS = {
   home: { id: 'home', app: null },
   admin: { id: 'admin', app: 'admin/' },
+  app: { id: 'app', app: null, perApp: true },
 }
 
 // /admin/system/labels resolves to the admin section, like the real router.
 const sectionFor = path =>
-  path === '/' ? SECTIONS.home : path.startsWith('/admin') ? SECTIONS.admin : null
+  path === '/'
+    ? SECTIONS.home
+    : path.startsWith('/admin')
+      ? SECTIONS.admin
+      : path.startsWith('/app/')
+        ? SECTIONS.app
+        : null
 
 const reachable = (app, allowed = []) =>
   appReachable(app, {
@@ -50,6 +57,14 @@ describe('app menu reachability', () => {
     const other = { unify: { url: 'unregistered/' } }
     expect(reachable({ ...other, canAccessApplication: true }, ['admin/'])).toBe(true)
     expect(reachable({ ...other, canAccessApplication: false }, ['admin/'])).toBe(false)
+  })
+
+  it('judges a custom application by its own access, though a section serves it', () => {
+    // The app section is keyed to no application, so there is nothing for it
+    // to answer with but the grant on the application in the url itself.
+    const custom = { unify: { url: 'app/1234', kind: 'custom' } }
+    expect(reachable({ ...custom, canAccessApplication: true })).toBe(true)
+    expect(reachable({ ...custom, canAccessApplication: false })).toBe(false)
   })
 
   it('withholds an application with no url', () => {

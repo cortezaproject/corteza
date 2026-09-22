@@ -5,13 +5,27 @@ const SECTIONS = {
   home: { id: 'home', app: null },
   admin: { id: 'admin', app: 'admin/' },
   compose: { id: 'compose', app: 'compose/' },
+  // Gated on the application named in the route, not on one of its own.
+  app: { id: 'app', app: null, perApp: true },
   // A section that forgot to declare one.
   rogue: { id: 'rogue' },
 }
 
+// The applications the route-named lookup can find, by id.
+const CUSTOM_APPS = {
+  mine: { unify: { kind: 'custom' }, canAccessApplication: true },
+  theirs: { unify: { kind: 'custom' }, canAccessApplication: false },
+  section: { unify: { kind: 'section' }, canAccessApplication: true },
+}
+
 function guardWith(allowed, { ready = vi.fn().mockResolvedValue(undefined) } = {}) {
   const canAccessApp = vi.fn(url => allowed.includes(url))
-  const applications = { ready, canAccessApp }
+  const findByID = vi.fn(async id => {
+    // The list is read-filtered, so one the user cannot read is not there.
+    if (!CUSTOM_APPS[id]) throw new Error('not found')
+    return CUSTOM_APPS[id]
+  })
+  const applications = { ready, canAccessApp, findByID }
   const guard = makeSectionAccessGuard({
     useApplications: () => applications,
     sectionById: id => SECTIONS[id] || null,
@@ -19,7 +33,13 @@ function guardWith(allowed, { ready = vi.fn().mockResolvedValue(undefined) } = {
   return { guard, applications }
 }
 
-const to = (section, path = '/' + section) => ({ meta: { section }, path })
+const to = (section, path = '/' + section) => ({ meta: { section }, path, params: {} })
+
+const toApp = applicationID => ({
+  meta: { section: 'app' },
+  path: '/app/' + applicationID,
+  params: { applicationID },
+})
 
 describe('section access guard', () => {
   it('admits a section the user may access', async () => {
@@ -51,6 +71,29 @@ describe('section access guard', () => {
       name: 'home',
       query: { denied: '/stray' },
     })
+  })
+
+  it('admits a custom application the user may access', async () => {
+    const { guard, applications } = guardWith([])
+    expect(await guard(toApp('mine'))).toBe(true)
+    // The section names no application of its own, so its url is never asked.
+    expect(applications.canAccessApp).not.toHaveBeenCalled()
+  })
+
+  it('refuses a custom application the user may not access', async () => {
+    const { guard } = guardWith([])
+    expect(await guard(toApp('theirs'))).toEqual({ name: 'home', query: { denied: 'app' } })
+  })
+
+  it('refuses an application that is not a custom one', async () => {
+    // A registry entry pointing at a section has no source to render.
+    const { guard } = guardWith([])
+    expect(await guard(toApp('section'))).toEqual({ name: 'home', query: { denied: 'app' } })
+  })
+
+  it('refuses an application the user cannot even read', async () => {
+    const { guard } = guardWith([])
+    expect(await guard(toApp('unknown'))).toEqual({ name: 'home', query: { denied: 'app' } })
   })
 
   it('waits for the application list before deciding', async () => {
