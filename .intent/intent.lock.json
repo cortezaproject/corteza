@@ -617,17 +617,17 @@
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/app/bridge.js": {
-      "h": "71087cb739a0",
+      "h": "24d0156c8071",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/bridge.test.js": {
-      "h": "dceb2fde0af1",
+      "h": "1720513166ce",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "166a1ba418a4",
+      "h": "ef2a6c534c56",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
@@ -637,7 +637,7 @@
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/views/AppView.vue": {
-      "h": "278b9c46d6b3",
+      "h": "83eb3fa7b71e",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },

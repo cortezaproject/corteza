@@ -3,10 +3,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { BRIDGE_SCRIPT } from './bridge'
 import {
   allowModule,
+  BRIDGE_VERSION,
+  bridgeVersion,
   buildOuterDocument,
   capLimit,
   dispatch,
   hostScriptSource,
+  labelFieldOf,
+  recordLabels,
+  referenceTargets,
   reshapeRecord,
 } from './host'
 
@@ -163,5 +168,184 @@ describe('in-page bridge', () => {
 
     expect(first).toBeTypeOf('object')
     expect(sandbox.human).toBe(first)
+  })
+})
+
+describe('bridge contract version', () => {
+  it('reads the number the handshake in the page sends', () => {
+    expect(bridgeVersion(`parent.postMessage({ type: 'human:hello', v: 1 }, '*')`)).toBe(1)
+    expect(bridgeVersion(`parent.postMessage({ type: "human:hello", v:2 }, '*')`)).toBe(2)
+  })
+
+  it('treats a handshake that names no number as the first contract', () => {
+    expect(bridgeVersion(`parent.postMessage({ type: 'human:hello' }, '*')`)).toBe(1)
+  })
+
+  it('gives a page with no bridge of its own the current contract', () => {
+    expect(bridgeVersion('<h1>hi</h1>')).toBe(BRIDGE_VERSION)
+  })
+
+  it('ships the copy the shell prefixes at the current contract', () => {
+    expect(bridgeVersion(BRIDGE_SCRIPT)).toBe(BRIDGE_VERSION)
+  })
+})
+
+describe('typed values (contract 2)', () => {
+  const fields = [
+    { name: 'active', kind: 'Bool' },
+    { name: 'archived', kind: 'Bool' },
+    { name: 'amount', kind: 'Number' },
+    { name: 'scores', kind: 'Number', multi: true },
+    { name: 'name', kind: 'String' },
+  ]
+  const record = {
+    recordID: '1',
+    values: [
+      { name: 'active', value: '1' },
+      { name: 'archived', value: null },
+      { name: 'amount', value: '12.50' },
+      { name: 'scores', value: '3' },
+      { name: 'scores', value: '4' },
+      { name: 'name', value: 'Alice' },
+    ],
+  }
+
+  it('makes a Bool true or false and always present, and a Number a number', () => {
+    expect(reshapeRecord(record, fields, 2).values).toEqual({
+      active: true,
+      archived: false,
+      amount: 12.5,
+      scores: [3, 4],
+      name: 'Alice',
+    })
+  })
+
+  it('gives a Bool the store holds nothing for false, not absent', () => {
+    expect(reshapeRecord({ values: [] }, fields, 2).values).toEqual({
+      active: false,
+      archived: false,
+    })
+  })
+
+  it('leaves the first contract exactly as it was', () => {
+    expect(reshapeRecord(record, fields, 1).values).toEqual({
+      active: '1',
+      amount: '12.50',
+      scores: ['3', '4'],
+      name: 'Alice',
+    })
+  })
+})
+
+describe('record references', () => {
+  const company = { name: 'company', kind: 'Record', options: { moduleID: '9' } }
+
+  it('picks the named label field, else the first field', () => {
+    const module = { fields: [{ name: 'name' }, { name: 'code' }] }
+    expect(labelFieldOf(module, 'code').name).toBe('code')
+    expect(labelFieldOf(module, '').name).toBe('name')
+    expect(labelFieldOf(module, 'gone').name).toBe('name')
+    expect(labelFieldOf(null, 'x')).toBe(null)
+  })
+
+  it('collects what each record points at, by target module', () => {
+    const targets = referenceTargets(
+      [company],
+      [
+        { values: [{ name: 'company', value: '100' }] },
+        { values: [{ name: 'company', value: '0' }] },
+        {
+          values: [
+            { name: 'company', value: '100' },
+            { name: 'other', value: '5' },
+          ],
+        },
+      ],
+    )
+    expect(Object.keys(targets)).toEqual(['9'])
+    expect([...targets['9'].ids]).toEqual(['100'])
+  })
+
+  const compose = (modules, records) => ({
+    moduleRead: vi.fn(({ moduleID }) =>
+      modules[moduleID] ? Promise.resolve(modules[moduleID]) : Promise.reject(new Error('no')),
+    ),
+    recordList: vi.fn(({ moduleID, recordID }) =>
+      Promise.resolve({
+        set: (records[moduleID] || []).filter(r => recordID.includes(r.recordID)),
+      }),
+    ),
+  })
+
+  it('labels a referenced record by its label field, in one call per module', async () => {
+    const api = compose(
+      { 9: { fields: [{ name: 'name', kind: 'String' }] } },
+      { 9: [{ recordID: '100', values: [{ name: 'name', value: 'Acme' }] }] },
+    )
+    const labels = await recordLabels(
+      api,
+      '1',
+      referenceTargets([company], [{ values: [{ name: 'company', value: '100' }] }]),
+    )
+    expect(labels).toEqual({ 100: 'Acme' })
+    expect(api.recordList).toHaveBeenCalledTimes(1)
+    expect(api.recordList.mock.calls[0][0]).toMatchObject({
+      moduleID: '9',
+      recordID: ['100'],
+      limit: 1,
+    })
+  })
+
+  it('follows a label that is itself a reference one level further', async () => {
+    const api = compose(
+      {
+        9: { fields: [{ name: 'owner', kind: 'Record', options: { moduleID: '8' } }] },
+        8: { fields: [{ name: 'title', kind: 'String' }] },
+      },
+      {
+        9: [{ recordID: '100', values: [{ name: 'owner', value: '200' }] }],
+        8: [{ recordID: '200', values: [{ name: 'title', value: 'Globex' }] }],
+      },
+    )
+    const labels = await recordLabels(
+      api,
+      '1',
+      referenceTargets([company], [{ values: [{ name: 'company', value: '100' }] }]),
+    )
+    expect(labels).toEqual({ 100: 'Globex' })
+  })
+
+  it('leaves a record the viewer cannot read unlabelled, and does not fail', async () => {
+    const api = compose({}, {})
+    const labels = await recordLabels(
+      api,
+      '1',
+      referenceTargets([company], [{ values: [{ name: 'company', value: '100' }] }]),
+    )
+    expect(labels).toEqual({})
+    expect(api.recordList).not.toHaveBeenCalled()
+  })
+
+  it('puts record labels beside user labels in what records.list returns', async () => {
+    const ctx = context()
+    ctx.version = 2
+    ctx.fields = () => [company, { name: 'active', kind: 'Bool' }]
+    ctx.refs = vi.fn().mockResolvedValue({ 7: 'Dev Agent' })
+    ctx.compose.moduleRead = vi
+      .fn()
+      .mockResolvedValue({ fields: [{ name: 'name', kind: 'String' }] })
+    ctx.compose.recordList = vi
+      .fn()
+      .mockResolvedValueOnce({
+        set: [{ recordID: '1', ownedBy: '7', values: [{ name: 'company', value: '100' }] }],
+        filter: {},
+      })
+      .mockResolvedValueOnce({
+        set: [{ recordID: '100', values: [{ name: 'name', value: 'Acme' }] }],
+      })
+
+    const out = await dispatch('records.list', { module: 'agent-contact' }, ctx)
+    expect(out.records[0].values).toEqual({ company: '100', active: false })
+    expect(out.refs).toEqual({ 7: 'Dev Agent', 100: 'Acme' })
   })
 })

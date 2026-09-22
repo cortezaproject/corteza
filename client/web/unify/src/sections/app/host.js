@@ -24,6 +24,24 @@ export const CSP_INNER =
 // The most records one call may ask for.
 export const MAX_LIMIT = 500
 
+// The bridge contract a page gets when it names none. See app.intent.md, Bridge.
+export const BRIDGE_VERSION = 2
+
+// The most referenced records one call resolves into `refs`.
+export const MAX_REFS = 500
+
+// The contract a page was written against, read from the handshake its own copy
+// of the bridge sends. The shell prefixes its copy to every page, so the
+// handshake that arrives always carries the shell's number; the source is the
+// only place that says what the author wrote. A page with no copy of its own
+// relied on the shell's, which is the current one.
+export function bridgeVersion(source) {
+  const text = String(source || '')
+  const hello = text.match(/human:hello['"]?\s*,\s*v\s*:\s*(\d+)/)
+  if (hello) return Number(hello[1])
+  return /human:hello/.test(text) ? 1 : BRIDGE_VERSION
+}
+
 // A string as a JS literal safe to sit inside a `<script>` body: `</script`
 // anywhere in it would end the element it is written into.
 function embed(value) {
@@ -107,16 +125,27 @@ ${source}`
 
 // The app-facing shape of a record: `values` keyed by field name, a repeated
 // field as an array, a field with nothing in it absent.
-export function reshapeRecord(record) {
+//
+// From contract 2 a value also takes its field's type: a Bool is `true` or
+// `false` and always present — the store keeps false as nothing at all, which
+// an app cannot tell from unset — and a Number is a number.
+export function reshapeRecord(record, fields = [], version = 1) {
   const values = {}
+  const kinds = version >= 2 ? kindsOf(fields) : {}
 
   for (const { name, value } of record?.values || []) {
     if (value === null || value === undefined || value === '') continue
+    const typed = typedValue(kinds[name], value)
+    if (typed === undefined) continue
     if (name in values) {
-      values[name] = Array.isArray(values[name]) ? [...values[name], value] : [values[name], value]
+      values[name] = Array.isArray(values[name]) ? [...values[name], typed] : [values[name], typed]
     } else {
-      values[name] = value
+      values[name] = typed
     }
+  }
+
+  for (const [name, kind] of Object.entries(kinds)) {
+    if (kind === 'Bool' && !(name in values)) values[name] = false
   }
 
   return {
@@ -126,6 +155,111 @@ export function reshapeRecord(record) {
     createdAt: record?.createdAt,
     updatedAt: record?.updatedAt,
   }
+}
+
+function kindsOf(fields) {
+  const kinds = {}
+  for (const field of fields || []) kinds[field.name] = field.kind
+  return kinds
+}
+
+function typedValue(kind, value) {
+  switch (kind) {
+    case 'Bool':
+      return value === '1' || value === 'true' || value === true
+    case 'Number': {
+      const n = Number(value)
+      return Number.isFinite(n) ? n : undefined
+    }
+    default:
+      return value
+  }
+}
+
+// The field whose value stands in for a referenced record: the one the
+// reference names, else the target's first field — what the webapp's viewers
+// and the MCP tools show in its place.
+export function labelFieldOf(module, named) {
+  const fields = module?.fields || []
+  return (named && fields.find(f => f.name === named)) || fields[0] || null
+}
+
+// Every record a set of records points at, grouped by the module it lives in.
+export function referenceTargets(fields, records) {
+  const targets = {}
+
+  for (const field of fields || []) {
+    if (field.kind !== 'Record') continue
+    const moduleID = field.options?.moduleID
+    if (!moduleID || moduleID === '0') continue
+
+    const target = (targets[moduleID] ||= {
+      ids: new Set(),
+      labelField: field.options?.labelField || '',
+      recordLabelField: field.options?.recordLabelField || '',
+    })
+
+    for (const record of records || []) {
+      for (const { name, value } of record?.values || []) {
+        if (name === field.name && value && value !== '0') target.ids.add(value)
+      }
+    }
+  }
+
+  return targets
+}
+
+// Labels for the records `targets` names, two levels deep when a label is
+// itself a reference. Runs as the viewer: a record they may not read stays
+// unlabelled, which reads the same as it did before.
+export async function recordLabels(compose, namespaceID, targets) {
+  const out = {}
+  let budget = MAX_REFS
+
+  const load = async (moduleID, ids) => {
+    const wanted = [...ids].slice(0, budget)
+    if (!wanted.length) return { module: null, records: [] }
+    budget -= wanted.length
+
+    const module = await compose.moduleRead({ namespaceID, moduleID }).catch(() => null)
+    if (!module) return { module: null, records: [] }
+
+    const { set = [] } = await compose
+      .recordList({ namespaceID, moduleID, recordID: wanted, limit: wanted.length })
+      .catch(() => ({}))
+    return { module, records: set }
+  }
+
+  const valueOf = (record, name) =>
+    (record.values || []).find(v => v.name === name && v.value !== '' && v.value != null)?.value
+
+  for (const [moduleID, target] of Object.entries(targets || {})) {
+    if (!target.ids.size || budget <= 0) continue
+
+    const { module, records } = await load(moduleID, target.ids)
+    const field = labelFieldOf(module, target.labelField)
+    if (!field) continue
+
+    let nested = {}
+    if (field.kind === 'Record' && field.options?.moduleID) {
+      const ids = new Set(records.map(r => valueOf(r, field.name)).filter(Boolean))
+      const inner = await load(field.options.moduleID, ids)
+      const innerField = labelFieldOf(inner.module, target.recordLabelField)
+      if (innerField && innerField.kind !== 'Record') {
+        for (const r of inner.records) {
+          const label = valueOf(r, innerField.name)
+          if (label) nested[r.recordID] = label
+        }
+      }
+    }
+
+    for (const record of records) {
+      const value = valueOf(record, field.name)
+      if (value) out[record.recordID] = nested[value] || value
+    }
+  }
+
+  return out
 }
 
 // Whether the app may touch this module: the refusal text, or null.
@@ -154,6 +288,20 @@ function moduleIDFor(ctx, module) {
   return moduleID
 }
 
+function fieldsFor(ctx, moduleID) {
+  return ctx.fields?.(moduleID) || []
+}
+
+// User and record labels together. A reference is part of the declared record
+// it sits on, and Human's own viewers show its label there, so a target module
+// the app did not declare is still labelled — only the label, and only what the
+// viewer may read.
+async function refsFor(ctx, fields, records) {
+  const users = ctx.refs ? await ctx.refs(records) : {}
+  const labels = await recordLabels(ctx.compose, ctx.namespaceID, referenceTargets(fields, records))
+  return { ...users, ...labels }
+}
+
 // Every operation an app can reach. Runs in the shell, as the viewer, under
 // the viewer's permissions.
 export async function dispatch(op, args = {}, ctx) {
@@ -168,9 +316,10 @@ export async function dispatch(op, args = {}, ctx) {
         limit: capLimit(args.limit),
         pageCursor: args.pageCursor,
       })
+      const fields = fieldsFor(ctx, moduleID)
       return {
-        records: set.map(reshapeRecord),
-        refs: ctx.refs ? await ctx.refs(set) : {},
+        records: set.map(r => reshapeRecord(r, fields, ctx.version)),
+        refs: await refsFor(ctx, fields, set),
         nextPageCursor: filter.nextPage || null,
       }
     }
@@ -182,9 +331,10 @@ export async function dispatch(op, args = {}, ctx) {
         moduleID,
         recordID: args.recordID,
       })
+      const fields = fieldsFor(ctx, moduleID)
       return {
-        record: reshapeRecord(record),
-        refs: ctx.refs ? await ctx.refs([record]) : {},
+        record: reshapeRecord(record, fields, ctx.version),
+        refs: await refsFor(ctx, fields, [record]),
       }
     }
 

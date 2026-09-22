@@ -65,7 +65,7 @@ written to be idempotent, so include it and the second copy is a no-op:
             waiting.delete(m.data.id); m.data.error ? w.reject(new Error(m.data.error)) : w.resolve(m.data.result) }
           resolve(true)
         })
-        try { parent.postMessage({ type: 'human:hello', v: 1 }, '*') } catch { resolve(false) }
+        try { parent.postMessage({ type: 'human:hello', v: 2 }, '*') } catch { resolve(false) }
       })
       const call = (op, args) => ready.then(live => {
         if (!live) {
@@ -108,8 +108,18 @@ Operations, all read-only:
   `module "<x>" is not declared for this app`.
 - A record arrives as `{recordID, values: {Field: value | [values]}, ownedBy,
 createdAt, updatedAt}`. `values` is an object keyed by field name, multi-value
-  fields as arrays, missing fields absent — not the `[{name, value}]` list the
-  MCP tools return. `refs` maps user and record IDs to labels.
+  fields as arrays — not the `[{name, value}]` list the MCP tools return, and
+  not their string-only values:
+  - a Bool field is `true` or `false` and always present;
+  - a Number field is a number;
+  - a DateTime is an ISO string (`YYYY-MM-DD` for a date-only field);
+  - a Record or User field is the ID, and `refs` maps it to the label a person
+    would see — look it up there rather than showing the ID;
+  - any other field is a string, and absent when it is empty.
+- Write `SAMPLE` in that same shape: `true`/`false` and numbers, not the `"1"`
+  and `"12.50"` the MCP tools show you.
+- The snippet's `v: 2` is the contract a page is written against. Keep it as it
+  is; a page with `v: 1` gets the older, string-only values.
 - `limit` is capped at 500.
 - Creating, updating, deleting a record, and downloading a file, are not
   available yet. Do not write an app that needs them.

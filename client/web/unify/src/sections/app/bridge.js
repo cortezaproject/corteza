@@ -33,7 +33,7 @@ window.human = window.human || (function () {
     })
 
     try {
-      parent.postMessage({ type: 'human:hello', v: 1 }, '*')
+      parent.postMessage({ type: 'human:hello', v: 2 }, '*')
     } catch (err) {
       resolve(false)
     }

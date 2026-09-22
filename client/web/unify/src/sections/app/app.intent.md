@@ -72,10 +72,19 @@ The host destroys the inner frame if it fires `load` a second time.
 
 ## Bridge
 
-Transport: the app posts `{type: 'human:hello', v: 1}` to its parent; the host
-answers with `{type: 'human:port'}` carrying one `MessagePort`. Every call after
-that goes over the port as `{id, op, args}` and is answered with
+Transport: the app posts `{type: 'human:hello', v: <n>}` to its parent; the
+host answers with `{type: 'human:port'}` carrying one `MessagePort`. Every call
+after that goes over the port as `{id, op, args}` and is answered with
 `{id, result}` or `{id, error}`; `error` is a string naming what was refused.
+
+Contract version: `n` is the contract the page was written against. The shell
+prefixes its own copy of the bridge, so the handshake that arrives always
+carries the shell's number; the version is therefore read from the source (the
+`human:hello` its own copy sends). A handshake with no number is 1; a page with
+no copy of its own gets the current contract, 2. A page keeps the contract it
+was written for — changing what an existing version returns breaks deployed
+apps, so a change to a value's shape is a new version, never an edit to an old
+one.
 
 Operations in this slice (all read):
 
@@ -95,8 +104,19 @@ Rules the host enforces, whatever the app asks:
 - `limit` is capped at 500.
 - A record arrives as `{recordID, values: {Field: value | [values]}, ownedBy,
 createdAt, updatedAt}` — `values` is a plain object keyed by field name,
-  multi-value fields as arrays, missing fields absent. `refs` maps user and
-  record IDs to labels the way the MCP tools do.
+  multi-value fields as arrays, an empty value absent.
+  - Contract 1: every value is the string the store holds.
+  - Contract 2: a Bool is `true`/`false` and always present (the store keeps
+    false as nothing, which an app cannot tell from unset); a Number is a
+    number. Everything else is as in 1.
+- `refs` maps user and record IDs to labels, in every contract (it only gains
+  keys). A record's label follows the MCP tools and the webapp's viewers: the
+  reference's `labelField`, else the target module's first field, one further
+  level when that field is itself a reference; at most 500 per call, one list
+  call per target module, as the viewer.
+- A reference's target module need not be declared to be labelled. The
+  reference is part of a declared record and Human's own viewers show its label
+  there; the app gets that label and nothing else from the target.
 - No write, no delete, no attachment in this slice.
 
 ## Map

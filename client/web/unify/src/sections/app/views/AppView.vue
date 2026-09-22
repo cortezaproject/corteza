@@ -29,7 +29,7 @@ import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { BRIDGE_SCRIPT } from '../bridge'
-import { buildOuterDocument, dispatch, hostScriptSource } from '../host'
+import { bridgeVersion, buildOuterDocument, dispatch, hostScriptSource } from '../host'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -53,8 +53,11 @@ const frameHeight = ref('100%')
 const sourceMeta = ref({})
 const namespaceID = ref('')
 const moduleIDs = ref({})
-// User-kind fields per module, so a listing's user IDs can be labelled.
-const userFields = ref({})
+// Each declared module's fields, keyed by module ID: they type the values and
+// say which of them are user or record references.
+const moduleFields = ref({})
+// The bridge contract the page was written against.
+const version = ref(1)
 
 const frameRef = ref(null)
 
@@ -89,7 +92,9 @@ async function refs(records) {
   const ids = new Set()
 
   for (const record of records) {
-    const fields = userFields.value[record.moduleID] || []
+    const fields = (moduleFields.value[record.moduleID] || [])
+      .filter(field => field.kind === 'User')
+      .map(field => field.name)
     for (const id of [record.ownedBy, record.createdBy]) {
       if (id && id !== '0') ids.add(id)
     }
@@ -121,6 +126,10 @@ const ctx = {
   get moduleIDs() {
     return moduleIDs.value
   },
+  get version() {
+    return version.value
+  },
+  fields: moduleID => moduleFields.value[moduleID] || [],
   refs,
   user: userInfo,
   theme: themeInfo,
@@ -180,9 +189,7 @@ async function resolveDeclared(meta) {
     if (!module) continue
 
     moduleIDs.value[handle] = module.moduleID
-    userFields.value[module.moduleID] = (module.fields || [])
-      .filter(field => field.kind === 'User')
-      .map(field => field.name)
+    moduleFields.value[module.moduleID] = module.fields || []
   }
 }
 
@@ -197,7 +204,8 @@ async function load(applicationID) {
   sourceMeta.value = {}
   namespaceID.value = ''
   moduleIDs.value = {}
-  userFields.value = {}
+  moduleFields.value = {}
+  version.value = 1
 
   try {
     application.value = await applicationsStore.findByID(applicationID)
@@ -226,6 +234,7 @@ async function load(applicationID) {
     }
 
     sourceMeta.value = meta || {}
+    version.value = bridgeVersion(source)
     await resolveDeclared(sourceMeta.value)
 
     outerDocument.value = buildOuterDocument({
