@@ -21,6 +21,7 @@ the intent system's rules).
 - `client/web/chatbot-widget` — embeddable chatbot widget (separate Vite build)
 - `lib/js` — API clients + shared JS (codegen from server rest.yaml)
 - `lib/vue` — shared Vue component library (`@planetcrust/human-vue`); one-way dependency: apps import it, never the reverse
+- `corredor` — Corredor, the automation script runner (`@planetcrust/human-corredor`): the Node/gRPC service the server calls to run server scripts and to bundle client scripts, with a Corteza-compatible script API; `dev/fixtures/corredor` is the extension the dev harness mounts
 - `server` — Go backend (system, compose, automation, federation components; cue-driven codegen)
 - `def` — cue definitions driving server codegen
 - `locale` — translation sources; unify uses the single merged `human-webapp` bundle

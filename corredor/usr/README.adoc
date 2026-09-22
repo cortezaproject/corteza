@@ -1,0 +1,62 @@
+= User scripts
+
+Extensions live under the paths listed in `CORREDOR_EXT_SEARCH_PATHS`
+(default: `usr` and `usr/*`, relative to the package root).
+
+== Structure
+
+[source]
+----
+usr/
+    my-extension/
+        package.json <1>
+
+        server-scripts/ <2>
+            index.js
+            deals/
+                on-create.js
+
+        client-scripts/
+            admin/ <3>
+                index.js
+            compose/ <3>
+                index.js
+----
+<1> Optional list of dependencies. Corredor installs these on start
+    and on change when `CORREDOR_EXT_DEPENDENCIES_AUTO_UPDATE` is on.
+<2> Server scripts, any directory structure, `*.js`.
+<3> Each first-level directory under `client-scripts` is one bundle;
+    bundles are packed with webpack and served to the client apps.
+
+Files ending in `.test.js` are skipped. `node_modules` is never descended into.
+
+== Server & client scripts
+
+[source,javascript]
+----
+export default {
+  label: 'Example',
+  description: 'What this script does',
+  * triggers ({ on, before, every, at }) {
+    yield on('manual')
+      .for('compose')
+
+    yield before('update')
+      .for('compose:record')
+      // 1 arg  => unnamed value
+      // 2 args => name + value (operator is =)
+      // 3 args => name + operator + value
+      .where('module', ['mod1', 'mod2'])
+
+    // makes onInterval, w/o explicit .at(...) defaults to system
+    yield every('0 0 * * *')
+
+    // makes onTimestamp, w/o explicit .at(...) defaults to system
+    yield at('2017-10-10T20:10:12')
+  },
+
+  async exec (args, ctx) {
+    //
+  }
+}
+----

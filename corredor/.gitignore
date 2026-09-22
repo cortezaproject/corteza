@@ -1,0 +1,22 @@
+.DS_Store
+node_modules
+dist
+*.log
+.env
+coverage
+.nyc_output
+
+# Generated certificate pairs (see certs/Makefile)
+certs/ca
+certs/client
+certs/server
+
+# Editor directories and files
+.idea
+.vscode
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*

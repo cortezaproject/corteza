@@ -47,13 +47,11 @@ commit. What it left open:
     The 28 mid-sized are judged case by case. Ninety-three docs averaging three
     files each would be boilerplate, and a thin intent doc is worse than none
     because it reads as maintained.
-  - **Project-only exclusion: `**/project*.go`, not `**/project_*.go`.** The
-    originally proposed glob was wrong — it matches only the snake_case files
-    and misses `system/rest/project.go`, `system/service/projectTask.go` and
-    nine more hand-written camelCase ones. Verified 2026-08-04: `project*.go`
-    catches 81 hand-written files across `system/{service,types,rest,rest/request,rest/handlers}`
-    and `store/tests`, with no false positives — every match is project-feature
-    code. Generated files need no glob; `**/*.gen.*` already excludes them.
+  - **Project-only exclusion: `**/project*.go`, not `\*\*/project\_*.go`.** The
+originally proposed glob was wrong — it matches only the snake_case files
+and misses `system/rest/project.go`, `system/service/projectTask.go`and
+nine more hand-written camelCase ones. Verified 2026-08-04:`project*.go`catches 81 hand-written files across`system/{service,types,rest,rest/request,rest/handlers}`and`store/tests`, with no false positives — every match is project-feature
+code. Generated files need no glob; `\*\*/*.gen.\*` already excludes them.
   - **Top-level dirs in scope:** system, compose, automation, federation, pkg,
     store, app, auth, cmd, discovery. Out: devdocs, docs, build, var, assets,
     webapp, webconsole — artifacts or generated output.
@@ -245,3 +243,9 @@ commit. What it left open:
       field editors fall back to the `$namespace` provided by
       `Namespace/View.vue` — so the only symptom was a required-prop warning.
       DRIFT note resolved.
+
+## From the Corredor parity change (2026-09-22)
+
+- [ ] **`corredor/` is not a covered root.** The ported script runner has no
+      intent doc and `.intent/config.mjs` does not list it; add both once its
+      shape settles.

@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["es2020", "esnext.asynciterable"],
+    "typeRoots": ["./node_modules/@types"],
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "pretty": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "allowJs": true,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true
+
+    // Unused-symbol and implicit-return checks live in eslint.config.mjs, scoped to src/:
+    // the @planetcrust/human-js TypeScript sources this program pulls in do not satisfy them.
+  },
+
+  "include": ["./src/**/*"],
+
+  "exclude": ["./src/**/*.test.ts", "node_modules", "usr"]
+}

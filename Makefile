@@ -58,7 +58,7 @@ lint:
 
 fresh:
 	@echo "---Fresh install---"
-	@rm -rf node_modules lib/*/node_modules client/web/*/node_modules
+	@rm -rf node_modules lib/*/node_modules client/web/*/node_modules corredor/node_modules
 	@pnpm install
 
 audit:

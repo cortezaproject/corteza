@@ -1,4 +1,5 @@
 packages:
+  - 'corredor'
   - 'lib/*'
   - 'client/web/*'
   - 'server/webconsole'
