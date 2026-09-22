@@ -50,10 +50,11 @@ export const INPUT_REGISTRY: Record<string, Component> = {
   CorredorScriptSelector: CInputCorredorScript,
   CorredorScript: CInputCorredorScript,
 
-  // Text inputs
+  // Typed values — a plain text box, which is also where an unmapped type lands
   Text: InputText,
   String: InputText,
   Number: InputText,
+  Expression: InputText,
 
   // Array/List inputs
   Array: CInputArray,
@@ -83,4 +84,12 @@ export const INPUT_REGISTRY: Record<string, Component> = {
  */
 export function resolveInputComponent(type: string): Component {
   return INPUT_REGISTRY[type] || InputText
+}
+
+/**
+ * Whether a type's value is typed in rather than picked from a list — true for
+ * every type whose editor is a plain text box, unmapped ones included.
+ */
+export function isTypedValueInput(type: string): boolean {
+  return resolveInputComponent(type) === InputText
 }

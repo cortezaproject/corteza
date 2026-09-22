@@ -70,6 +70,7 @@ fieldValueMap:
   selectField: Select field
   selectModuleFirst: Select a module first
 form:
+  enterPlaceholder: Enter {field}
   referenceToggle: Use value from a previous step
   selectFirst: Select {field} first
   selectPlaceholder: Select {field}

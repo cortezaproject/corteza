@@ -35,7 +35,15 @@ builder's step-config forms.
   file.
 - `CorredorScriptSelector` / `CorredorScript` (the `corredorExec` step's script
   argument) map to lib/vue `CInputCorredorScript`; the viewer registry shows the
-  raw script name for both.
+  script's label over the stored name.
+- `Expression` is the catalog's free-typed value, used for anything from a
+  script's arguments to a user's email, so it maps to a plain text box rather
+  than to the expression editor the compose configurators use: the form writes
+  what is typed as a literal, and nothing evaluates it.
+- `isTypedValueInput(type)` answers whether a type is typed in rather than
+  picked, by asking this registry which component it resolves to. The step form
+  words its placeholder from that, so an unmapped type reads as typed without
+  anyone listing it twice.
 
 > **DRIFT:** nine of this registry's types have no viewer counterpart — see
 > the DRIFT note in `../../builder.intent.md` for the list.

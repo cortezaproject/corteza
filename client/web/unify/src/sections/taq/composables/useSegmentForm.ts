@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { isTypedValueInput } from '@/sections/taq/components/builder/form/inputs/registry'
 
 /**
  * Composable that provides shared segment form logic.
@@ -139,9 +140,12 @@ export function useSegmentForm(options: {
               label: element.input.label,
               placeholder:
                 element.input.placeholder ||
-                t('builder.form.selectPlaceholder', {
-                  field: element.input.label || element.input.argument,
-                }),
+                t(
+                  isTypedValueInput(element.input.type)
+                    ? 'builder.form.enterPlaceholder'
+                    : 'builder.form.selectPlaceholder',
+                  { field: element.input.label || element.input.argument },
+                ),
               disabledPlaceholder,
               disabled,
               argument: element.input.argument,
