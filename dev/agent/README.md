@@ -145,6 +145,18 @@ DOM as it is; use a visibility assertion when visibility is the question.
 
 ## API gotchas (learned the hard way)
 
+- **The dev watcher rebuilds on `.go` writes only.** A skill in
+  `server/system/agentic/skills/library/*.md` is `go:embed`ded, so editing it
+  changes nothing on the running server until some `.go` file is written; a
+  `touch` is not a write.
+- **A fixture directory must be named after its namespace slug.** `seed.sh`
+  imports the directory, then looks the namespace up by the directory name; a
+  mismatch reports "namespace not found" after the import has already created
+  modules with no records behind them. `seed.sh --force <slug>` cleans it up.
+- **`TOOLS.md` is a golden file.** `dev_commit_create` runs prettier on
+  Markdown, which pads the table and makes `TestToolsMatrix` fail; commit it
+  with `skipFormat`.
+
 - **Trailing slash matters** on collection endpoints: `/system/users/` works,
   `/system/users` is a 404 (chi routing).
 - **`DOMAIN_WEBAPP` is where MCP tool results say to go.** `server/pkg/weburl`
