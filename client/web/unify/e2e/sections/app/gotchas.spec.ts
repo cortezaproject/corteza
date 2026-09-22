@@ -42,6 +42,7 @@ window.SAMPLE = {
 
 // Every way a page can try to load another document.
 const LINKS = `
+<script>__BRIDGE__</script>
 <p>
   <a id="anchor" href="#below">anchor</a>
   <a id="site" href="https://example.com/">site</a>
@@ -50,6 +51,7 @@ const LINKS = `
 </p>
 <form><button id="submit">submit</button></form>
 <button id="scripted" onclick="location.href = 'https://example.com/'">scripted</button>
+<button id="download" onclick="human.download('probe.csv', 'a,b')">download</button>
 <p id="log"></p>
 <div style="height: 3000px"></div>
 <p id="below">below</p>`
@@ -197,7 +199,7 @@ test.describe.serial('custom app gotchas', () => {
           sources: {
             v1: probeSource(1),
             v2: probeSource(2),
-            links: LINKS,
+            links: LINKS.replace('__BRIDGE__', BRIDGE_SCRIPT),
             writes: WRITES.replace('__BRIDGE__', BRIDGE_SCRIPT),
           },
           writable: ['e2e_probes'],
@@ -360,5 +362,19 @@ test.describe.serial('custom app gotchas', () => {
     expect(out.readOnlyModule.error).toBe(
       'module "e2e_companies" is not declared as one this app may change',
     )
+  })
+
+  // The sandbox saves no file of its own; Human does it for the app.
+  test('an app hands the viewer a file', async ({ page }) => {
+    test.skip(!linksApp, 'the links app was not created')
+    await page.goto(`/app/${linksApp}`)
+    const app = appFrame(page)
+    await app.locator('#download').waitFor({ timeout: 20000 })
+
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 20000 }),
+      app.locator('#download').click(),
+    ])
+    expect(download.suggestedFilename()).toBe('probe.csv')
   })
 })

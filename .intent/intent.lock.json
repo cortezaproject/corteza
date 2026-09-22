@@ -62,7 +62,7 @@
       "t": "2026-09-22"
     },
     "client/web/unify/e2e/sections/app/gotchas.spec.ts": {
-      "h": "626f9b259faa",
+      "h": "f9aab1a162c0",
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-09-22"
     },
@@ -627,17 +627,17 @@
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/app/bridge.js": {
-      "h": "74a63e991370",
+      "h": "e05ebf793836",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/bridge.test.js": {
-      "h": "a6ef725fdcac",
+      "h": "13c2fe8edead",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "692b7ed35dc4",
+      "h": "d7a31a49e0c6",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },
@@ -657,7 +657,7 @@
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/views/AppView.vue": {
-      "h": "f46901caa24f",
+      "h": "0252700fa5c0",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-22"
     },

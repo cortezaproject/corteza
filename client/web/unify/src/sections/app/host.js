@@ -41,6 +41,20 @@ export const MAX_LIMIT = 500
 // The bridge contract a page gets when it names none. See app.intent.md, Bridge.
 export const BRIDGE_VERSION = 2
 
+// The largest file an app may hand the viewer.
+export const MAX_DOWNLOAD = 5 * 1024 * 1024
+
+// A file name of the app's choosing, reduced to one: no path of its own, no
+// leading dot, and a name when it offers none.
+export function downloadName(name) {
+  const cleaned = String(name || '')
+    .replace(/[\\/]/g, '-')
+    .replace(/^\.+/, '')
+    .trim()
+    .slice(0, 120)
+  return cleaned || 'download.txt'
+}
+
 // The most referenced records one call resolves into `refs`.
 export const MAX_REFS = 500
 
@@ -456,6 +470,17 @@ export async function dispatch(op, args = {}, ctx) {
         recordID,
       })
       return { record: reshapeRecord(record, fieldsFor(ctx, moduleID), ctx.version) }
+    }
+
+    case 'download': {
+      const text = String(args.text ?? '')
+      if (text.length > MAX_DOWNLOAD) {
+        throw new Error(
+          `a download is at most ${MAX_DOWNLOAD} characters; this one is ${text.length}`,
+        )
+      }
+      ctx.download(downloadName(args.name), text)
+      return true
     }
 
     case 'user':

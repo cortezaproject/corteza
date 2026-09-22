@@ -64,6 +64,7 @@ window.human = window.human || (function () {
       create: function (a) { return call('records.create', a) },
       update: function (a) { return call('records.update', a) }
     },
+    download: function (name, text) { return call('download', { name: name, text: text }) },
     user: function () { return call('user', {}) },
     theme: function () { return call('theme', {}) },
     resize: function (height) { return call('resize', { height: height }) }

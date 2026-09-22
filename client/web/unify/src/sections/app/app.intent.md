@@ -115,6 +115,7 @@ Operations:
 | `theme`          | —                                               | `{dark: bool, colors: {primary, body-bg, ...}}` |
 | `records.create` | `{module, values}`                              | `{record}`                                      |
 | `records.update` | `{module, recordID, values}`                    | `{record}`                                      |
+| `download`       | `{name, text}`                                  | `true` — the shell saves the file               |
 | `resize`         | `{height}`                                      | `true` — the shell sets the frame height        |
 
 Rules the host enforces, whatever the app asks:
@@ -147,6 +148,8 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
 - `records.update` changes exactly the one record it names and only the fields
   it lists; it refuses to run without a `recordID`, because the endpoint under
   it changes every record a filter matches.
+- `download` hands the viewer a file the sandbox could not save itself: at most
+  5 MB of text, under a name reduced to one file name.
 - No delete, no attachment, no owner change.
 
 ## Map

@@ -176,6 +176,17 @@ const ctx = {
   refs,
   user: userInfo,
   theme: themeInfo,
+  // The sandbox blocks a download of its own, so the shell hands the file over.
+  download: (name, text) => {
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = name
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  },
   resize: height => {
     const asked = Number(height)
     frameHeight.value = Number.isFinite(asked) && asked > 0 ? `${Math.floor(asked)}px` : '100%'

@@ -687,7 +687,7 @@ func checkApplicationSource(source string) error {
 	}
 
 	if downloadLink.MatchString(source) || downloadProperty.MatchString(source) {
-		return fmt.Errorf("the source offers a file through a download link, which the sandbox blocks; downloads are not available to a custom app yet, so leave the export out")
+		return fmt.Errorf("the source offers a file through a download link, which the sandbox blocks; hand the file to human.download(name, text) instead and Human saves it")
 	}
 
 	for _, m := range linkHref.FindAllStringSubmatch(source, -1) {

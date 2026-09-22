@@ -45,7 +45,8 @@ it is in.
   `try` — the frame's origin is opaque and they throw. Keep state in variables.
 - No `alert`, `confirm`, `prompt` (the sandbox suppresses them; `confirm` always
   answers false), no `window.open` or `target="_blank"`, no `<a download>`.
-  Use in-page dialogs and in-page detail panes; exports are not available yet.
+  Use in-page dialogs and in-page detail panes, and `human.download(name, text)`
+  for an export — up to 5 MB of text, which Human saves for the person.
 - No links that leave the page — `mailto:`, `tel:`, another site or another
   file. They work in a preview and do nothing in Human. Link only to `#anchors`
   within the page, and show an email address or phone number as text.
@@ -54,10 +55,10 @@ it is in.
 and says which; writing to them from the start saves the round trip.
 
 Asked for something in that list, build the page anyway with the nearest thing
-that works inside Human and say in one line what you did instead — a copyable
-table rather than a CSV download, an address shown as text rather than a mail
-link, a filter that resets when the page is closed. Do not stop to ask; a page
-that does most of it is worth more than a question.
+that works inside Human and say in one line what you did instead — an address
+shown as text rather than a mail link, a filter that resets when the page is
+closed. Do not stop to ask; a page that does most of it is worth more than a
+question.
 
 - Keep it under 60 KB. Deploying sends the whole file as one tool argument, and
   the hard limit is 256 KB.
@@ -107,16 +108,17 @@ or two of the messy ones.
 
 Operations, all read-only:
 
-| call                   | args                                            | result                               |
-| ---------------------- | ----------------------------------------------- | ------------------------------------ |
-| `human.records.list`   | `{module, filter?, sort?, limit?, pageCursor?}` | `{records, refs, nextPageCursor}`    |
-| `human.records.read`   | `{module, recordID}`                            | `{record, refs}`                     |
-| `human.records.report` | `{module, metrics, dimensions, filter?}`        | the report rows                      |
-| `human.user`           | —                                               | `{userID, name, email}`              |
-| `human.theme`          | —                                               | `{dark, colors}`                     |
-| `human.records.create` | `{module, values}`                              | `{record}`                           |
-| `human.records.update` | `{module, recordID, values}`                    | `{record}`                           |
-| `human.resize`         | `height`                                        | `true` — the shell resizes the frame |
+| call                   | args                                            | result                                       |
+| ---------------------- | ----------------------------------------------- | -------------------------------------------- |
+| `human.records.list`   | `{module, filter?, sort?, limit?, pageCursor?}` | `{records, refs, nextPageCursor}`            |
+| `human.records.read`   | `{module, recordID}`                            | `{record, refs}`                             |
+| `human.records.report` | `{module, metrics, dimensions, filter?}`        | the report rows                              |
+| `human.user`           | —                                               | `{userID, name, email}`                      |
+| `human.theme`          | —                                               | `{dark, colors}`                             |
+| `human.records.create` | `{module, values}`                              | `{record}`                                   |
+| `human.records.update` | `{module, recordID, values}`                    | `{record}`                                   |
+| `human.download`       | `(name, text)`                                  | `true` — Human saves the file for the person |
+| `human.resize`         | `height`                                        | `true` — the shell resizes the frame         |
 
 - `module` is a handle and carries no namespace: the app reads the namespace it
   declared when it was deployed. A module it did not declare is refused with
@@ -150,8 +152,8 @@ createdAt, updatedAt}`. `values` is an object keyed by field name, multi-value
     a refusal from the server is theirs and its message is worth showing.
   - Give `window.SAMPLE` a `records.create` and `records.update` too, returning
     the record as if it had been saved, so the preview works.
-- Deleting a record, changing its owner, and downloading a file are not
-  available. Do not write an app that needs them.
+- Deleting a record and changing its owner are not available. Do not write an
+  app that needs them.
 
 Two modes, and the app always says which one it is in. `await human.ready` is
 `true` when the bridge answered within 600 ms and `false` in a preview. Show a

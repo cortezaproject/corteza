@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { BRIDGE_SCRIPT } from './bridge'
 import {
   allowModule,
+  downloadName,
+  MAX_DOWNLOAD,
   allowWrite,
   toStoreValues,
   BRIDGE_VERSION,
@@ -471,5 +473,28 @@ describe('changing records', () => {
       recordID: ['9'],
     })
     expect(out.record.values.name).toBe('Bo')
+  })
+})
+
+describe('handing the viewer a file', () => {
+  it('keeps the app to one file name', () => {
+    expect(downloadName('leads.csv')).toBe('leads.csv')
+    expect(downloadName('../../etc/passwd')).toBe('-..-etc-passwd')
+    expect(downloadName('  ')).toBe('download.txt')
+    expect(downloadName('.bashrc')).toBe('bashrc')
+  })
+
+  it('passes the file to the shell, which is the only one that can save it', async () => {
+    const ctx = { ...context(), download: vi.fn() }
+    await expect(dispatch('download', { name: 'a/b.csv', text: 'x,y' }, ctx)).resolves.toBe(true)
+    expect(ctx.download).toHaveBeenCalledWith('a-b.csv', 'x,y')
+  })
+
+  it('refuses one too large to be worth handing over', async () => {
+    const ctx = { ...context(), download: vi.fn() }
+    await expect(
+      dispatch('download', { name: 'big.csv', text: 'x'.repeat(MAX_DOWNLOAD + 1) }, ctx),
+    ).rejects.toThrow('at most')
+    expect(ctx.download).not.toHaveBeenCalled()
   })
 })
