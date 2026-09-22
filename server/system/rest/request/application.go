@@ -173,6 +173,35 @@ type (
 		UpdatedAt *time.Time
 	}
 
+	ApplicationSourceRead struct {
+		// ApplicationID PATH parameter
+		//
+		// Application ID
+		ApplicationID uint64 `json:",string"`
+	}
+
+	ApplicationSourceSet struct {
+		// ApplicationID PATH parameter
+		//
+		// Application ID
+		ApplicationID uint64 `json:",string"`
+
+		// Source POST parameter
+		//
+		// The whole HTML document
+		Source string
+
+		// Namespace POST parameter
+		//
+		// Namespace the app may read through the bridge
+		Namespace string
+
+		// Modules POST parameter
+		//
+		// Module handles the app may read through the bridge
+		Modules []string
+	}
+
 	ApplicationUpload struct {
 		// Upload POST parameter
 		//
@@ -829,6 +858,158 @@ func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "applicationID")
+		r.ApplicationID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewApplicationSourceRead request
+func NewApplicationSourceRead() *ApplicationSourceRead {
+	return &ApplicationSourceRead{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceRead) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"applicationID": r.ApplicationID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceRead) GetApplicationID() uint64 {
+	return r.ApplicationID
+}
+
+// Fill processes request and fills internal variables
+func (r *ApplicationSourceRead) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "applicationID")
+		r.ApplicationID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewApplicationSourceSet request
+func NewApplicationSourceSet() *ApplicationSourceSet {
+	return &ApplicationSourceSet{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceSet) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"applicationID": r.ApplicationID,
+		"source":        r.Source,
+		"namespace":     r.Namespace,
+		"modules":       r.Modules,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceSet) GetApplicationID() uint64 {
+	return r.ApplicationID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceSet) GetSource() string {
+	return r.Source
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceSet) GetNamespace() string {
+	return r.Namespace
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceSet) GetModules() []string {
+	return r.Modules
+}
+
+// Fill processes request and fills internal variables
+func (r *ApplicationSourceSet) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["source"]; ok && len(val) > 0 {
+				r.Source, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["namespace"]; ok && len(val) > 0 {
+				r.Namespace, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["source"]; ok && len(val) > 0 {
+			r.Source, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["namespace"]; ok && len(val) > 0 {
+			r.Namespace, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		//if val, ok := req.Form["modules[]"]; ok && len(val) > 0  {
+		//    r.Modules, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	{

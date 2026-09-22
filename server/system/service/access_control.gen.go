@@ -197,6 +197,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
+			"type": types.ApplicationResourceType,
+			"any":  types.ApplicationRbacResource(0),
+			"op":   "source.manage",
+		},
+		{
 			"type": types.ApigwRouteResourceType,
 			"any":  types.ApigwRouteRbacResource(0),
 			"op":   "read",
@@ -1261,6 +1266,13 @@ func (svc accessControl) CanUpdateApplication(ctx context.Context, r *types.Appl
 // This function is auto-generated
 func (svc accessControl) CanDeleteApplication(ctx context.Context, r *types.Application) bool {
 	return svc.can(ctx, "delete", r)
+}
+
+// CanManageSourceOnApplication checks if current user can replace the html source of a custom application
+//
+// This function is auto-generated
+func (svc accessControl) CanManageSourceOnApplication(ctx context.Context, r *types.Application) bool {
+	return svc.can(ctx, "source.manage", r)
 }
 
 // CanReadApigwRoute checks if current user can read api gateway route
@@ -2949,10 +2961,11 @@ func rbacResourceOperations(r string) map[string]bool {
 	switch rbac.ResourceType(r) {
 	case types.ApplicationResourceType:
 		return map[string]bool{
-			"read":   true,
-			"access": true,
-			"update": true,
-			"delete": true,
+			"read":          true,
+			"access":        true,
+			"update":        true,
+			"delete":        true,
+			"source.manage": true,
 		}
 	case types.ApigwRouteResourceType:
 		return map[string]bool{

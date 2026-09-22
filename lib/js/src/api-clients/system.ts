@@ -3618,6 +3618,91 @@ export default class System {
     return `/application/${applicationID}`
   }
 
+  // Read the HTML source of a custom application
+  async applicationSourceRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { applicationID } = (a as KV) || {}
+    if (!applicationID) {
+      throw Error('field applicationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.applicationSourceReadEndpoint({
+        applicationID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  applicationSourceReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.applicationSourceRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  applicationSourceReadEndpoint(a: KV): string {
+    const { applicationID } = a || {}
+    return `/application/${applicationID}/source`
+  }
+
+  // Replace the HTML source of a custom application
+  async applicationSourceSet(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { applicationID, source, namespace, modules } = (a as KV) || {}
+    if (!applicationID) {
+      throw Error('field applicationID is empty')
+    }
+    if (!source) {
+      throw Error('field source is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.applicationSourceSetEndpoint({
+        applicationID,
+      }),
+    }
+    cfg.data = {
+      source,
+      namespace,
+      modules,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  applicationSourceSetCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.applicationSourceSet(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  applicationSourceSetEndpoint(a: KV): string {
+    const { applicationID } = a || {}
+    return `/application/${applicationID}/source`
+  }
+
   // Upload application assets
   async applicationUpload(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { upload } = (a as KV) || {}

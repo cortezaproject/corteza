@@ -2,9 +2,12 @@ package system
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -666,4 +669,142 @@ func TestApplicationFlags_Flow1(t *testing.T) {
 		h.a.Len(ff, 1)
 		h.a.True(ff[0].Active)
 	})
+}
+
+func (h helper) repoMakeCustomApplication() *types.Application {
+	res := h.repoMakeApplication()
+	res.Unify.Kind = service.ApplicationKindCustom
+	h.a.NoError(store.UpdateApplication(context.Background(), service.DefaultStore, res))
+	return res
+}
+
+func TestApplicationSourceSetForbidden(t *testing.T) {
+	h := newHelper(t)
+	app := h.repoMakeCustomApplication()
+	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		FormData("source", "<b>hi</b>").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("application.errors.notAllowedToManageSource")).
+		End()
+}
+
+func TestApplicationSourceSet_notCustom(t *testing.T) {
+	h := newHelper(t)
+	app := h.repoMakeApplication()
+	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read", "source.manage")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		FormData("source", "<b>hi</b>").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("application.errors.notCustom")).
+		End()
+}
+
+func TestApplicationSourceSet_tooLarge(t *testing.T) {
+	h := newHelper(t)
+	app := h.repoMakeCustomApplication()
+	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read", "source.manage")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		FormData("source", strings.Repeat("x", service.ApplicationSourceMaxSize+1)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("application.errors.sourceTooLarge")).
+		End()
+}
+
+// The source round-trips through its own endpoint, its meta rides the resource,
+// and neither the read nor the list payload ever carries the HTML.
+func TestApplicationSourceSetAndRead(t *testing.T) {
+	h := newHelper(t)
+	app := h.repoMakeCustomApplication()
+	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read", "access", "source.manage")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "applications.search")
+
+	src := "<title>T</title><script>const SAMPLE = {}</script>"
+	sum := sha256.Sum256([]byte(src))
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{"source": %q, "namespace": "crm", "modules": ["Lead", "Account"]}`, src)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.sourceMeta.hash`, hex.EncodeToString(sum[:]))).
+		Assert(jsonpath.Equal(`$.response.sourceMeta.size`, float64(len(src)))).
+		Assert(jsonpath.Equal(`$.response.sourceMeta.namespace`, "crm")).
+		Assert(jsonpath.Len(`$.response.sourceMeta.modules`, 2)).
+		Assert(jsonpath.NotPresent(`$.response.source`)).
+		End()
+
+	h.apiInit().
+		Get(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.source`, src)).
+		End()
+
+	h.apiInit().
+		Get(fmt.Sprintf("/application/%d", app.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(jsonpath.NotPresent(`$.response.source`)).
+		End()
+
+	h.apiInit().
+		Get("/application/").
+		Query("name", app.Name).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(jsonpath.NotPresent(`$.response.set[0].source`)).
+		Assert(jsonpath.Present(`$.response.set[0].sourceMeta.hash`)).
+		End()
+}
+
+func TestApplicationSourceReadForbidden(t *testing.T) {
+	h := newHelper(t)
+	app := h.repoMakeCustomApplication()
+	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/application/%d/source", app.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("application.errors.notAllowedToRead")).
+		End()
+}
+
+// A created application records who made it, so a rule scoped to the author
+// has something to test.
+func TestApplicationCreate_owner(t *testing.T) {
+	h := newHelper(t)
+	helpers.AllowMe(h, types.ComponentRbacResource(), "application.create")
+	name := rs()
+
+	h.apiInit().
+		Post("/application/").
+		FormData("name", name).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res := h.lookupApplicationByName(name)
+	require.NotNil(t, res)
+	require.Equal(t, h.cUser.ID, res.OwnerID)
 }

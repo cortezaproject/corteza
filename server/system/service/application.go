@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 
 	"github.com/crusttech/human/server/pkg/actionlog"
 	a "github.com/crusttech/human/server/pkg/auth"
@@ -26,8 +28,16 @@ type (
 		CanReadApplication(context.Context, *types.Application) bool
 		CanUpdateApplication(context.Context, *types.Application) bool
 		CanDeleteApplication(context.Context, *types.Application) bool
+		CanManageSourceOnApplication(context.Context, *types.Application) bool
 	}
 )
+
+// ApplicationKindCustom marks an application whose UI is its own HTML source,
+// shown by the app view in a sandbox, rather than a shell section or a link.
+const ApplicationKindCustom = "custom"
+
+// ApplicationSourceMaxSize caps the HTML a custom application may hold.
+const ApplicationSourceMaxSize = 256 * 1024
 
 // Application is a default application service initializer
 func Application(s store.Storer, ac applicationAccessController, al actionlog.Recorder, eb eventDispatcher) *application {
@@ -108,6 +118,10 @@ func (svc *application) beforeCreate(ctx context.Context, new *types.Application
 		new.Unify = &types.ApplicationUnify{}
 	}
 
+	if new.OwnerID == 0 {
+		new.OwnerID = a.GetIdentityFromContext(ctx).Identity()
+	}
+
 	return nil
 }
 
@@ -125,6 +139,49 @@ func (svc *application) beforeUpdate(ctx context.Context, upd, res *types.Applic
 	}
 
 	return nil
+}
+
+// onSetSource replaces a custom application's HTML and the meta the app view
+// reads instead of the source. The whole document is replaced every time;
+// the store keeps no history of it.
+func (svc *application) onSetSource(ctx context.Context, aProps *applicationActionProps, app *types.Application, source string, meta *types.ApplicationSourceMeta) (err error) {
+	if app == nil || app.ID == 0 {
+		return ApplicationErrInvalidID()
+	}
+
+	if app, err = loadApplication(ctx, svc.store, app.ID); err != nil {
+		return err
+	}
+
+	aProps.setApplication(app)
+
+	if !svc.ac.CanManageSourceOnApplication(ctx, app) {
+		return ApplicationErrNotAllowedToManageSource()
+	}
+
+	if app.Unify == nil || app.Unify.Kind != ApplicationKindCustom {
+		return ApplicationErrNotCustom()
+	}
+
+	if len(source) > ApplicationSourceMaxSize {
+		return ApplicationErrSourceTooLarge()
+	}
+
+	if meta == nil {
+		meta = &types.ApplicationSourceMeta{}
+	}
+
+	sum := sha256.Sum256([]byte(source))
+	meta.Hash = hex.EncodeToString(sum[:])
+	meta.Size = len(source)
+	meta.UpdatedAt = now()
+	meta.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+
+	app.Source = source
+	app.SourceMeta = meta
+	app.UpdatedAt = now()
+
+	return store.UpdateApplication(ctx, svc.store, app)
 }
 
 func (svc *application) Delete(ctx context.Context, ID uint64) (err error) {

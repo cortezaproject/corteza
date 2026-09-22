@@ -491,6 +491,25 @@ func ApplicationActionUnflag(props ...*applicationActionProps) *applicationActio
 	return a
 }
 
+// ApplicationActionSourceSet returns "system:application.sourceSet" action
+//
+// This function is auto-generated.
+func ApplicationActionSourceSet(props ...*applicationActionProps) *applicationAction {
+	a := &applicationAction{
+		timestamp: time.Now(),
+		resource:  "system:application",
+		action:    "sourceSet",
+		log:       "replaced source of application {{application}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors
@@ -717,6 +736,104 @@ func ApplicationErrNotAllowedToCreate(mm ...*applicationActionProps) *errors.Err
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
 		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notAllowedToCreate"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApplicationErrNotAllowedToManageSource returns "system:application.notAllowedToManageSource" as *errors.Error
+//
+// This function is auto-generated.
+func ApplicationErrNotAllowedToManageSource(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to change the source of this application", nil),
+
+		errors.Meta("type", "notAllowedToManageSource"),
+		errors.Meta("resource", "system:application"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(applicationLogMetaKey{}, "failed to set source of {{application.name}}; insufficient permissions"),
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notAllowedToManageSource"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApplicationErrNotCustom returns "system:application.notCustom" as *errors.Error
+//
+// This function is auto-generated.
+func ApplicationErrNotCustom(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("this application is not a custom application", nil),
+
+		errors.Meta("type", "notCustom"),
+		errors.Meta("resource", "system:application"),
+
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notCustom"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApplicationErrSourceTooLarge returns "system:application.sourceTooLarge" as *errors.Error
+//
+// This function is auto-generated.
+func ApplicationErrSourceTooLarge(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("application source exceeds the size limit", nil),
+
+		errors.Meta("type", "sourceTooLarge"),
+		errors.Meta("resource", "system:application"),
+
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.sourceTooLarge"),
 
 		errors.StackSkip(1),
 	)

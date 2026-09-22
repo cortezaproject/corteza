@@ -32,6 +32,7 @@ type (
 		Reorder(ctx context.Context, order []uint64) (err error)
 		Flag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error
 		Unflag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error
+		SetSource(ctx context.Context, app *types.Application, source string, meta *types.ApplicationSourceMeta) error
 	}
 
 	applicationAccessController interface {
@@ -40,15 +41,24 @@ type (
 		CanAccessApplication(context.Context, *types.Application) bool
 		CanUpdateApplication(context.Context, *types.Application) bool
 		CanDeleteApplication(context.Context, *types.Application) bool
+		CanManageSourceOnApplication(context.Context, *types.Application) bool
 	}
 
 	applicationPayload struct {
 		*types.Application
 
-		CanGrant             bool `json:"canGrant"`
-		CanAccessApplication bool `json:"canAccessApplication"`
-		CanUpdateApplication bool `json:"canUpdateApplication"`
-		CanDeleteApplication bool `json:"canDeleteApplication"`
+		CanGrant                     bool `json:"canGrant"`
+		CanAccessApplication         bool `json:"canAccessApplication"`
+		CanUpdateApplication         bool `json:"canUpdateApplication"`
+		CanDeleteApplication         bool `json:"canDeleteApplication"`
+		CanManageSourceOnApplication bool `json:"canManageSourceOnApplication"`
+	}
+
+	// The one response that carries a custom application's HTML.
+	applicationSourcePayload struct {
+		ApplicationID uint64                       `json:"applicationID,string"`
+		Source        string                       `json:"source"`
+		SourceMeta    *types.ApplicationSourceMeta `json:"sourceMeta,omitempty"`
 	}
 
 	applicationSetPayload struct {
@@ -154,6 +164,44 @@ func (ctrl *Application) Read(ctx context.Context, r *request.ApplicationRead) (
 	return ctrl.makePayload(ctx, app, err)
 }
 
+// SourceRead hands out the HTML to whoever may open the application; the
+// list and read payloads never carry it.
+func (ctrl *Application) SourceRead(ctx context.Context, r *request.ApplicationSourceRead) (interface{}, error) {
+	app, err := ctrl.application.FindByID(ctx, r.ApplicationID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ctrl.ac.CanAccessApplication(ctx, app) {
+		return nil, service.ApplicationErrNotAllowedToRead()
+	}
+
+	return &applicationSourcePayload{
+		ApplicationID: app.ID,
+		Source:        app.Source,
+		SourceMeta:    app.SourceMeta,
+	}, nil
+}
+
+func (ctrl *Application) SourceSet(ctx context.Context, r *request.ApplicationSourceSet) (interface{}, error) {
+	app, err := ctrl.application.FindByID(ctx, r.ApplicationID)
+	if err != nil {
+		return nil, err
+	}
+
+	meta := &types.ApplicationSourceMeta{
+		Namespace: r.Namespace,
+		Modules:   r.Modules,
+	}
+
+	if err = ctrl.application.SetSource(ctx, app, r.Source, meta); err != nil {
+		return nil, err
+	}
+
+	app, err = ctrl.application.FindByID(ctx, r.ApplicationID)
+	return ctrl.makePayload(ctx, app, err)
+}
+
 func (ctrl *Application) Upload(ctx context.Context, r *request.ApplicationUpload) (interface{}, error) {
 	file, err := r.Upload.Open()
 	if err != nil {
@@ -236,6 +284,8 @@ func (ctrl Application) makePayload(ctx context.Context, m *types.Application, e
 		CanAccessApplication: ctrl.ac.CanAccessApplication(ctx, m),
 		CanUpdateApplication: ctrl.ac.CanUpdateApplication(ctx, m),
 		CanDeleteApplication: ctrl.ac.CanDeleteApplication(ctx, m),
+
+		CanManageSourceOnApplication: ctrl.ac.CanManageSourceOnApplication(ctx, m),
 	}, nil
 }
 

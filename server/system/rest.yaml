@@ -1606,6 +1606,41 @@ endpoints:
                 title: Last update (or creation) date,
               }
 
+      - name: sourceRead
+        method: GET
+        title: Read the HTML source of a custom application
+        path: '/{applicationID}/source'
+        parameters:
+          path:
+            - type: uint64
+              name: applicationID
+              required: true
+              title: Application ID
+
+      - name: sourceSet
+        method: PUT
+        title: Replace the HTML source of a custom application
+        path: '/{applicationID}/source'
+        parameters:
+          path:
+            - type: uint64
+              name: applicationID
+              required: true
+              title: Application ID
+          post:
+            - name: source
+              type: string
+              required: true
+              title: The whole HTML document
+            - name: namespace
+              type: string
+              required: false
+              title: Namespace the app may read through the bridge
+            - name: modules
+              type: '[]string'
+              required: false
+              title: Module handles the app may read through the bridge
+
       - name: upload
         path: '/upload'
         method: POST
@@ -3297,7 +3332,11 @@ endpoints:
             - { type: '[]string', name: 'status', title: 'Filter by status' }
             - { type: 'string', name: 'query', title: 'Search query' }
             - { type: '[]string', name: 'tags', title: 'Filter by tags' }
-            - { type: 'string', name: 'source', title: 'Filter by source ("catalog", "local", or "" for all)' }
+            - {
+                type: 'string',
+                name: 'source',
+                title: 'Filter by source ("catalog", "local", or "" for all)',
+              }
             - {
                 type: 'uint',
                 name: 'deleted',
@@ -3441,7 +3480,11 @@ endpoints:
                 title: 'Labels',
                 parser: 'label.ParseStrings',
               }
-            - { type: 'uint64', name: 'projectID', title: 'Project to scope the configured connection to' }
+            - {
+                type: 'uint64',
+                name: 'projectID',
+                title: 'Project to scope the configured connection to',
+              }
 
       - name: updateConfiguration
         method: PATCH
@@ -3470,7 +3513,11 @@ endpoints:
                 title: 'Labels',
                 parser: 'label.ParseStrings',
               }
-            - { type: 'uint64', name: 'projectID', title: 'Project to scope the configured connection to' }
+            - {
+                type: 'uint64',
+                name: 'projectID',
+                title: 'Project to scope the configured connection to',
+              }
 
   - title: Configured Connections
     path: '/configured-connections'
@@ -3977,7 +4024,11 @@ endpoints:
             - { type: uint64, name: revisionID, title: Revision to assign this backlog item to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
-            - { type: string, name: category, title: Parent category (incident|task|feature|privacy|review) }
+            - {
+                type: string,
+                name: category,
+                title: Parent category (incident|task|feature|privacy|review),
+              }
             - { type: uint64, name: eventID, title: Parent category item ID }
             - { type: uint64, name: assignee, title: Assignee user ID }
             - { type: string, name: priority, title: Priority }
@@ -4001,7 +4052,11 @@ endpoints:
             - { type: uint64, name: revisionID, title: Revision to assign this backlog item to }
             - { type: string, name: title, title: Title }
             - { type: string, name: description, title: Description }
-            - { type: string, name: category, title: Parent category (incident|task|feature|privacy|review) }
+            - {
+                type: string,
+                name: category,
+                title: Parent category (incident|task|feature|privacy|review),
+              }
             - { type: uint64, name: eventID, title: Parent category item ID }
             - { type: uint64, name: assignee, title: Assignee user ID }
             - { type: string, name: priority, title: Priority }
@@ -5040,11 +5095,7 @@ endpoints:
           get:
             - { type: string, name: query, title: Search query }
             - { type: string, name: handle, title: Handle filter }
-            - {
-                type: '[]string',
-                name: projectAiSystemID,
-                title: Filter by AI system IDs,
-              }
+            - { type: '[]string', name: projectAiSystemID, title: Filter by AI system IDs }
             - {
                 type: string,
                 name: riskClass,
@@ -5207,11 +5258,7 @@ endpoints:
                 title: Filter by FRIA risk scenario IDs,
               }
             - { type: uint64, name: aiSystemID, title: Filter by the assessed AI system }
-            - {
-                type: string,
-                name: severity,
-                title: 'Severity filter (low|medium|high|critical)',
-              }
+            - { type: string, name: severity, title: 'Severity filter (low|medium|high|critical)' }
             - { type: uint, name: deleted, title: 'Deleted filter (0=exclude 1=only 2=include)' }
             - { type: uint, name: limit, title: Limit }
             - { type: bool, name: incTotal, title: Include total count }
@@ -5250,12 +5297,7 @@ endpoints:
                 title: Trigger condition taxonomy keys,
                 genHook: true,
               }
-            - {
-                type: string,
-                name: triggerDescription,
-                title: Trigger description,
-                genHook: true,
-              }
+            - { type: string, name: triggerDescription, title: Trigger description, genHook: true }
             - {
                 type: '[]string',
                 name: impactedParties,
@@ -5339,12 +5381,7 @@ endpoints:
                 title: Trigger condition taxonomy keys,
                 genHook: true,
               }
-            - {
-                type: string,
-                name: triggerDescription,
-                title: Trigger description,
-                genHook: true,
-              }
+            - { type: string, name: triggerDescription, title: Trigger description, genHook: true }
             - {
                 type: '[]string',
                 name: impactedParties,
@@ -5610,7 +5647,11 @@ endpoints:
           post:
             - { type: string, name: handle }
             - { type: string, name: label }
-            - { name: params, type: 'types.DmlConnectionParams', parser: 'types.ParseDmlConnectionParams' }
+            - {
+                name: params,
+                type: 'types.DmlConnectionParams',
+                parser: 'types.ParseDmlConnectionParams',
+              }
 
       - name: connectionRead
         method: GET

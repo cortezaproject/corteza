@@ -100,6 +100,8 @@ func (r *Application) GetValue(name string, pos uint) (any, error) {
 		return r.OwnerID, nil
 	case "projectID", "ProjectID":
 		return r.ProjectID, nil
+	case "source", "Source":
+		return r.Source, nil
 	case "tenantID", "TenantID":
 		return r.TenantID, nil
 	case "updatedAt", "UpdatedAt":
@@ -131,6 +133,8 @@ func (r *Application) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.OwnerID)
 	case "projectID", "ProjectID":
 		return cast2.Uint64(value, &r.ProjectID)
+	case "source", "Source":
+		return cast2.String(value, &r.Source)
 	case "tenantID", "TenantID":
 		return cast2.Uint64(value, &r.TenantID)
 	case "updatedAt", "UpdatedAt":

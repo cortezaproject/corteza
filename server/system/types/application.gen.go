@@ -18,20 +18,22 @@ import (
 
 type (
 	Application struct {
-		ID        uint64                           `json:"applicationID,string"`
-		TenantID  uint64                           `json:"tenantID,string,omitempty"`
-		ProjectID uint64                           `json:"projectID,string,omitempty"`
-		Name      string                           `json:"name"`
-		Enabled   bool                             `json:"enabled"`
-		Weight    int                              `json:"weight"`
-		Meta      *ApplicationMeta                 `json:"meta,omitempty"`
-		Unify     *ApplicationUnify                `json:"unify,omitempty"`
-		OwnerID   uint64                           `json:"ownerID"`
-		CreatedAt time.Time                        `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time                       `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time                       `json:"deletedAt,omitempty"`
-		Labels    map[string]labelTypes.LabelValue `json:"labels,omitempty"`
-		Flags     []string                         `json:"flags,omitempty"`
+		ID         uint64                           `json:"applicationID,string"`
+		TenantID   uint64                           `json:"tenantID,string,omitempty"`
+		ProjectID  uint64                           `json:"projectID,string,omitempty"`
+		Name       string                           `json:"name"`
+		Enabled    bool                             `json:"enabled"`
+		Weight     int                              `json:"weight"`
+		Meta       *ApplicationMeta                 `json:"meta,omitempty"`
+		Unify      *ApplicationUnify                `json:"unify,omitempty"`
+		Source     string                           `json:"-"`
+		SourceMeta *ApplicationSourceMeta           `json:"sourceMeta,omitempty"`
+		OwnerID    uint64                           `json:"ownerID,string"`
+		CreatedAt  time.Time                        `json:"createdAt,omitempty"`
+		UpdatedAt  *time.Time                       `json:"updatedAt,omitempty"`
+		DeletedAt  *time.Time                       `json:"deletedAt,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+		Flags      []string                         `json:"flags,omitempty"`
 	}
 
 	ApplicationMeta struct {
@@ -47,6 +49,16 @@ type (
 		IconID uint64 `json:"iconID,string"`
 		Logo   string `json:"logo,omitempty"`
 		LogoID uint64 `json:"logoID,string"`
+		Kind   string `json:"kind,omitempty"`
+	}
+
+	ApplicationSourceMeta struct {
+		Hash      string     `json:"hash,omitempty"`
+		Size      int        `json:"size"`
+		Namespace string     `json:"namespace,omitempty"`
+		Modules   []string   `json:"modules,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
 	}
 )
 
@@ -58,6 +70,10 @@ func (r Application) Clone() *Application {
 
 	if r.Unify != nil {
 		dup.Unify = r.Unify.Clone()
+	}
+
+	if r.SourceMeta != nil {
+		dup.SourceMeta = r.SourceMeta.Clone()
 	}
 
 	if r.UpdatedAt != nil {
@@ -126,6 +142,15 @@ func (r Application) Diff(cmp *Application) []*revisions.Change {
 	} else if r.Unify != nil {
 		for _, c := range r.Unify.Diff(cmp.Unify) {
 			c.Key = "unify." + c.Key
+			out = append(out, c)
+		}
+	}
+
+	if (r.SourceMeta == nil) != (cmp.SourceMeta == nil) {
+		out = append(out, &revisions.Change{Key: "sourceMeta", Old: []any{cmp.SourceMeta}, New: []any{r.SourceMeta}})
+	} else if r.SourceMeta != nil {
+		for _, c := range r.SourceMeta.Diff(cmp.SourceMeta) {
+			c.Key = "sourceMeta." + c.Key
 			out = append(out, c)
 		}
 	}
@@ -217,11 +242,65 @@ func (r ApplicationUnify) Diff(cmp *ApplicationUnify) []*revisions.Change {
 		out = append(out, &revisions.Change{Key: "logoID", Old: []any{cmp.LogoID}, New: []any{r.LogoID}})
 	}
 
+	if r.Kind != cmp.Kind {
+		out = append(out, &revisions.Change{Key: "kind", Old: []any{cmp.Kind}, New: []any{r.Kind}})
+	}
+
 	return out
 }
 
 func (r *ApplicationUnify) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r ApplicationUnify) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r ApplicationSourceMeta) Clone() *ApplicationSourceMeta {
+	dup := r
+	if r.Modules != nil {
+		dup.Modules = make([]string, len(r.Modules))
+		copy(dup.Modules, r.Modules)
+	}
+
+	if r.UpdatedAt != nil {
+		v := *r.UpdatedAt
+		dup.UpdatedAt = &v
+	}
+
+	return &dup
+}
+
+func (r ApplicationSourceMeta) Diff(cmp *ApplicationSourceMeta) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ApplicationSourceMeta{}
+	}
+	if r.Hash != cmp.Hash {
+		out = append(out, &revisions.Change{Key: "hash", Old: []any{cmp.Hash}, New: []any{r.Hash}})
+	}
+
+	if r.Size != cmp.Size {
+		out = append(out, &revisions.Change{Key: "size", Old: []any{cmp.Size}, New: []any{r.Size}})
+	}
+
+	if r.Namespace != cmp.Namespace {
+		out = append(out, &revisions.Change{Key: "namespace", Old: []any{cmp.Namespace}, New: []any{r.Namespace}})
+	}
+
+	if !reflect.DeepEqual(r.Modules, cmp.Modules) {
+		out = append(out, &revisions.Change{Key: "modules", Old: []any{cmp.Modules}, New: []any{r.Modules}})
+	}
+
+	if !reflect.DeepEqual(r.UpdatedAt, cmp.UpdatedAt) {
+		out = append(out, &revisions.Change{Key: "updatedAt", Old: []any{cmp.UpdatedAt}, New: []any{r.UpdatedAt}})
+	}
+
+	if r.UpdatedBy != cmp.UpdatedBy {
+		out = append(out, &revisions.Change{Key: "updatedBy", Old: []any{cmp.UpdatedBy}, New: []any{r.UpdatedBy}})
+	}
+
+	return out
+}
+
+func (r *ApplicationSourceMeta) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ApplicationSourceMeta) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func ParseApplicationMeta(ss []string) (p ApplicationMeta, err error) {
 	if len(ss) == 0 {
@@ -231,6 +310,13 @@ func ParseApplicationMeta(ss []string) (p ApplicationMeta, err error) {
 }
 
 func ParseApplicationUnify(ss []string) (p ApplicationUnify, err error) {
+	if len(ss) == 0 {
+		return
+	}
+	return p, json.Unmarshal([]byte(ss[0]), &p)
+}
+
+func ParseApplicationSourceMeta(ss []string) (p ApplicationSourceMeta, err error) {
 	if len(ss) == 0 {
 		return
 	}

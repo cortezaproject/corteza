@@ -673,6 +673,20 @@ var Application = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "Source",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "source"},
+		},
+
+		&dal.Attribute{
+			Ident: "SourceMeta",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "source_meta"},
+		},
+
+		&dal.Attribute{
 			Ident: "OwnerID",
 			Type: &dal.TypeRef{HasDefault: true,
 				DefaultValue: 0,

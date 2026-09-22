@@ -17,6 +17,19 @@ _applicationDefs: {
 				{ name: "IconID", type: "uint64", json: "iconID,string" },
 				{ name: "Logo", type: "string", json: "logo,omitempty" },
 				{ name: "LogoID", type: "uint64", json: "logoID,string" },
+				// "" or "section" opens a shell section or a link; "custom" opens
+				// the application's own HTML source in the sandboxed app view.
+				{ name: "Kind", type: "string", json: "kind,omitempty" },
+			]}
+			// What the app view needs to know about the source without loading
+			// it: the launcher payload carries this, never the HTML itself.
+			ApplicationSourceMeta: { name: "ApplicationSourceMeta", fields: [
+				{ name: "Hash", type: "string", json: "hash,omitempty" },
+				{ name: "Size", type: "int", json: "size" },
+				{ name: "Namespace", type: "string", json: "namespace,omitempty" },
+				{ name: "Modules", goType: "[]string", json: "modules,omitempty" },
+				{ name: "UpdatedAt", type: "time.Time", ptr: true, json: "updatedAt,omitempty" },
+				{ name: "UpdatedBy", type: "uint64", json: "updatedBy,string,omitempty" },
 			]}
 		}
 
@@ -64,11 +77,25 @@ application: {
 				omitGetter: true
 				json: { field: "unify", omitEmpty: true }
 			}
+			// The custom app's HTML. Never serialized with the resource: it is
+			// read through its own endpoint so list responses stay small.
+			source: {
+				dal: { type: "Text" }
+				json: "-"
+			}
+			source_meta: {
+				type: _applicationDefs.ApplicationSourceMeta
+				ptr: true
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+				json: { field: "sourceMeta", omitEmpty: true }
+			}
 			owner_id:   {
 				schema.AttributeUserRef,
 				storeIdent: "rel_owner",
 				ident: "ownerID"
-				json: "ownerID"
+				json: { field: "ownerID", string: true }
 				envoy: {
 					store: {
 						omitRefFilter: true
@@ -131,6 +158,8 @@ application: {
 				description: "Update application"
 			delete:
 				description: "Delete application"
+			"source.manage":
+				description: "Replace the HTML source of a custom application"
 		}
 	}
 
@@ -160,6 +189,19 @@ application: {
 					{name: "app", goType: "*types.Application"},
 					{name: "ownedBy", goType: "uint64"},
 					{name: "f", goType: "string"},
+				]
+				results: [
+					{name: "err", goType: "error"},
+				]
+			},
+			{
+				name:   "SetSource"
+				cap:    "write"
+				action: "SourceSet"
+				args: [
+					{name: "app", goType: "*types.Application"},
+					{name: "source", goType: "string"},
+					{name: "meta", goType: "*types.ApplicationSourceMeta"},
 				]
 				results: [
 					{name: "err", goType: "error"},

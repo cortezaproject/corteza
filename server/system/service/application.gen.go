@@ -299,6 +299,23 @@ func (svc *application) Unflag(ctx context.Context, app *types.Application, owne
 	return svc.recordAction(ctx, aProps, ApplicationActionUnflag, err)
 }
 
+func (svc *application) SetSource(ctx context.Context, app *types.Application, source string, meta *types.ApplicationSourceMeta) (err error) {
+	var (
+		aProps = &applicationActionProps{}
+	)
+
+	err = func() (err error) {
+		if err = svc.checkScope(ctx, scope.CapWrite); err != nil {
+			return err
+		}
+
+		err = svc.onSetSource(ctx, aProps, app, source, meta)
+		return err
+	}()
+
+	return svc.recordAction(ctx, aProps, ApplicationActionSourceSet, err)
+}
+
 func (svc *application) Reorder(ctx context.Context, order []uint64) (err error) {
 	var (
 		aProps = &applicationActionProps{}

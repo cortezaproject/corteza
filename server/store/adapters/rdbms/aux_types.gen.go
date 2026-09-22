@@ -121,18 +121,20 @@ type (
 
 	// auxApplication is an auxiliary structure used for transporting to/from RDBMS store
 	auxApplication struct {
-		ID        uint64                       `db:"id"`
-		TenantID  uint64                       `db:"tenant_id"`
-		ProjectID uint64                       `db:"project_id"`
-		Name      string                       `db:"name"`
-		Enabled   bool                         `db:"enabled"`
-		Weight    int                          `db:"weight"`
-		Meta      *systemType.ApplicationMeta  `db:"meta"`
-		Unify     *systemType.ApplicationUnify `db:"unify"`
-		OwnerID   uint64                       `db:"owner_id"`
-		CreatedAt time.Time                    `db:"created_at"`
-		UpdatedAt *time.Time                   `db:"updated_at"`
-		DeletedAt *time.Time                   `db:"deleted_at"`
+		ID         uint64                            `db:"id"`
+		TenantID   uint64                            `db:"tenant_id"`
+		ProjectID  uint64                            `db:"project_id"`
+		Name       string                            `db:"name"`
+		Enabled    bool                              `db:"enabled"`
+		Weight     int                               `db:"weight"`
+		Meta       *systemType.ApplicationMeta       `db:"meta"`
+		Unify      *systemType.ApplicationUnify      `db:"unify"`
+		Source     string                            `db:"source"`
+		SourceMeta *systemType.ApplicationSourceMeta `db:"source_meta"`
+		OwnerID    uint64                            `db:"owner_id"`
+		CreatedAt  time.Time                         `db:"created_at"`
+		UpdatedAt  *time.Time                        `db:"updated_at"`
+		DeletedAt  *time.Time                        `db:"deleted_at"`
 	}
 
 	// auxAttachment is an auxiliary structure used for transporting to/from RDBMS store
@@ -1615,6 +1617,8 @@ func (aux *auxApplication) encode(res *systemType.Application) (_ error) {
 	aux.Weight = res.Weight
 	aux.Meta = res.Meta
 	aux.Unify = res.Unify
+	aux.Source = res.Source
+	aux.SourceMeta = res.SourceMeta
 	aux.OwnerID = res.OwnerID
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
@@ -1635,6 +1639,8 @@ func (aux auxApplication) decode() (res *systemType.Application, _ error) {
 	res.Weight = aux.Weight
 	res.Meta = aux.Meta
 	res.Unify = aux.Unify
+	res.Source = aux.Source
+	res.SourceMeta = aux.SourceMeta
 	res.OwnerID = aux.OwnerID
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
@@ -1655,6 +1661,8 @@ func (aux *auxApplication) scan(row scanner) error {
 		&aux.Weight,
 		&aux.Meta,
 		&aux.Unify,
+		&aux.Source,
+		&aux.SourceMeta,
 		&aux.OwnerID,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,

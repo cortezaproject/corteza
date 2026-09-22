@@ -42,6 +42,26 @@ func (a *Application) Valid() bool {
 	return a.ID > 0 && a.DeletedAt == nil
 }
 
+// Dict exposes the fields a contextual role's expression may test, so a rule
+// such as "resource.ownerID == userID" can scope editing to the author.
+func (a Application) Dict() map[string]interface{} {
+	dict := map[string]interface{}{
+		"ID":        a.ID,
+		"name":      a.Name,
+		"enabled":   a.Enabled,
+		"ownerID":   a.OwnerID,
+		"createdAt": a.CreatedAt,
+		"updatedAt": a.UpdatedAt,
+		"deletedAt": a.DeletedAt,
+	}
+
+	if a.Unify != nil {
+		dict["kind"] = a.Unify.Kind
+	}
+
+	return dict
+}
+
 // // // These will get generated later on
 
 // SetFlags adds new label to label map

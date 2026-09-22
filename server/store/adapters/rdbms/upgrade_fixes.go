@@ -90,6 +90,8 @@ var (
 		fix_2026_08_14_addPrimaryLayoutToLayoutlessPages,
 		fix_2026_08_24_addMetaOnApplications,
 		fix_2026_08_24_addMetaOnComposeCharts,
+		fix_2026_09_22_addSourceOnApplications,
+		fix_2026_09_22_addSourceMetaOnApplications,
 	}, actionlogFixes...)
 
 	// actionlog-only additive column fixes. Shared here so both the main Upgrade
@@ -387,6 +389,20 @@ func fix_2026_08_24_addMetaOnApplications(ctx context.Context, s *Store) error {
 
 func fix_2026_08_24_addMetaOnComposeCharts(ctx context.Context, s *Store) error {
 	return addColumn(ctx, s, model.Chart.Ident, model.Chart.Attributes.FindByIdent("Meta"))
+}
+
+// A custom application carries its own HTML and what the app view needs to
+// know about it. Existing rows get an empty source and an empty meta object.
+func fix_2026_09_22_addSourceOnApplications(ctx context.Context, s *Store) error {
+	// The model's Text attribute carries no default, and the column is NOT
+	// NULL, so existing rows need one spelled out here.
+	return addColumn(ctx, s, systemModel.Application.Ident,
+		&dal.Attribute{Ident: "source", Type: &dal.TypeText{HasDefault: true, DefaultValue: ""}},
+	)
+}
+
+func fix_2026_09_22_addSourceMetaOnApplications(ctx context.Context, s *Store) error {
+	return addColumn(ctx, s, systemModel.Application.Ident, systemModel.Application.Attributes.FindByIdent("SourceMeta"))
 }
 
 func fix_2026_05_00_addSourceOnConnections(ctx context.Context, s *Store) (err error) {
