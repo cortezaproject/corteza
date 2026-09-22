@@ -54,6 +54,14 @@
           :title="role.name || role.handle || role.roleID"
           :target="role.name || role.handle || role.roleID"
         />
+
+        <!-- Corredor scripts bound to this slot of the role editor -->
+        <CManualScriptButtons
+          resource-type="system:role"
+          ui-page="role/editor"
+          ui-slot="toolbar"
+          @click="handleScriptButton"
+        />
       </div>
 
       <Panel :header="$t('system.roles.editor.info.title')" toggleable :collapsed="false">
@@ -200,7 +208,7 @@ import { components, useDraftGuard } from '@planetcrust/human-vue'
 import RoleMembers from '@/sections/admin/components/Role/RoleMembers.vue'
 import RolePermissionClone from '@/sections/admin/components/Role/RolePermissionClone.vue'
 
-const { CInputDelete, CInputToggleCard, CViewContainer } = components
+const { CInputDelete, CInputToggleCard, CManualScriptButtons, CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -208,6 +216,7 @@ const { t } = useI18n()
 
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
+const $ScriptBus = inject('$ScriptBus', null)
 const confirm = useConfirm()
 
 // State
@@ -391,6 +400,26 @@ async function handleSubmit({ valid }) {
     )(e)
   } finally {
     saving.value = false
+  }
+}
+
+// A manual script is triggered by name; the bus knows whether it runs in the
+// browser or inside Corredor.
+async function handleScriptButton(button) {
+  if (!$ScriptBus || !role.value) return
+
+  try {
+    await $ScriptBus.Dispatch(
+      {
+        ...system.RoleEvent(role.value),
+        resourceType: button.resourceType,
+        args: { role: role.value },
+      },
+      button.script,
+    )
+  } catch (e) {
+    console.error('Automation script failed:', e)
+    $toast.toastErrorHandler(t('notification.automation.scriptFailed'))(e)
   }
 }
 

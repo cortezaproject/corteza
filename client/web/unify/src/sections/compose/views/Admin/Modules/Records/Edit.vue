@@ -130,7 +130,7 @@
 import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 import { useModuleStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
-import { validator } from '@planetcrust/human-js'
+import { compose, validator } from '@planetcrust/human-js'
 import { components, useHistoryBack } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -140,6 +140,7 @@ import {
   uploadRecordAttachment,
 } from '@/sections/compose/lib/record-attachments'
 import { adminRecordBlocks } from '@/sections/compose/lib/record-blocks'
+import { isScriptAbort, scriptConstraintMatcher } from '@/sections/compose/lib/script-events'
 import {
   displayedFieldRegistry,
   fieldLabeller,
@@ -162,6 +163,7 @@ const goBack = useHistoryBack()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
+const $ScriptBus = inject('$ScriptBus', null)
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 
@@ -277,13 +279,62 @@ function scrollToFirstError() {
   })
 }
 
-async function handleSave({ valid }) {
-  if (!valid) {
+// What a Corredor client script bound to the admin record page is handed. The
+// record goes by reference: a script writing to `$record.values` writes to the
+// record being saved.
+function dispatchUiEvent(eventType, rec = record.value, args = {}) {
+  if (!$ScriptBus || !rec) return Promise.resolve(null)
+
+  try {
+    return $ScriptBus.Dispatch(
+      compose.RecordEvent(rec, {
+        eventType,
+        resourceType: 'ui:compose:admin-record-page',
+        match: scriptConstraintMatcher({
+          namespace: props.namespace,
+          module: recordModule.value,
+        }),
+        args: {
+          namespace: props.namespace,
+          module: recordModule.value,
+          page: syntheticPage.value,
+          ...args,
+        },
+      }),
+    )
+  } catch (e) {
+    return Promise.reject(e)
+  }
+}
+
+function reportScriptRefusal(e) {
+  if (isScriptAbort(e)) {
+    $toast.toastWarning(t('notification.automation.scriptAborted'))
+  } else {
+    console.error('Automation script failed:', e)
+    $toast.toastErrorHandler(t('notification.automation.scriptFailed'))(e)
+  }
+}
+
+async function handleSave() {
+  if (!record.value) return
+
+  // Before anything is checked or uploaded: a script may still correct the
+  // record, or refuse the save outright.
+  try {
+    await dispatchUiEvent('beforeFormSubmit')
+  } catch (e) {
+    reportScriptRefusal(e)
+    return
+  }
+
+  // Validity is read off the record the scripts left behind, not the one the
+  // form checked on submit.
+  if (Object.keys(resolver().errors).length > 0) {
     $toast.toastWarning(t('general.notification.formErrors'))
     scrollToFirstError()
     return
   }
-  if (!record.value) return
 
   isSaving.value = true
 
@@ -316,6 +367,9 @@ async function handleSave({ valid }) {
     if (warnings.length > 0) $toast.toastWarning(warnings.join('\n'))
 
     pristineRecord.value = saved
+
+    await dispatchUiEvent('afterFormSubmit', saved).catch(reportScriptRefusal)
+
     navigatingAfterSave.value = true
     router.replace({
       name: 'admin.modules.record.view',
@@ -323,6 +377,7 @@ async function handleSave({ valid }) {
     })
   } catch (e) {
     console.error('Failed to save record:', e)
+    await dispatchUiEvent('onFormSubmitError').catch(() => {})
     const shown = displayedFields.names()
     const { fieldErrors, general } = partitionSaveErrors(e, {
       canShow: name => shown.has(name),
@@ -354,11 +409,13 @@ async function handleDelete() {
 
   deleting.value = true
   try {
+    await dispatchUiEvent('beforeDelete')
     await recordStore.delete({
       namespaceID: props.namespace.namespaceID,
       moduleID: record.value.moduleID,
       recordID: record.value.recordID,
     })
+    await dispatchUiEvent('afterDelete').catch(reportScriptRefusal)
     $toast.toastSuccess(t('notification.record.deleteSuccess'))
     router.replace({
       name: 'admin.modules.record.list',
@@ -366,7 +423,8 @@ async function handleDelete() {
     })
   } catch (e) {
     console.error('Failed to delete record:', e)
-    $toast.toastErrorHandler(t('notification.record.deleteFailed'))(e)
+    if (isScriptAbort(e)) $toast.toastWarning(t('notification.automation.scriptAborted'))
+    else $toast.toastErrorHandler(t('notification.record.deleteFailed'))(e)
   } finally {
     deleting.value = false
   }
@@ -377,18 +435,21 @@ async function handleRestore() {
 
   restoring.value = true
   try {
+    await dispatchUiEvent('beforeUndelete')
     await recordStore.undelete({
       namespaceID: props.namespace.namespaceID,
       moduleID: record.value.moduleID,
       recordID: record.value.recordID,
     })
+    await dispatchUiEvent('afterUndelete').catch(reportScriptRefusal)
     $toast.toastSuccess(t('notification.record.restoreSuccess'))
     // Read back rather than clearing deletedAt here: the restore also changes
     // what the record may do, and the toolbar reads those flags.
     await loadRecord()
   } catch (e) {
     console.error('Failed to restore record:', e)
-    $toast.toastErrorHandler(t('notification.record.restoreFailed'))(e)
+    if (isScriptAbort(e)) $toast.toastWarning(t('notification.automation.scriptAborted'))
+    else $toast.toastErrorHandler(t('notification.record.restoreFailed'))(e)
   } finally {
     restoring.value = false
   }

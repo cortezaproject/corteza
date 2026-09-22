@@ -12,6 +12,7 @@ tests:
   - client/web/unify/src/sections/compose/lib/record-filter.test.ts
   - client/web/unify/src/sections/compose/lib/record-sort.test.ts
   - client/web/unify/src/sections/compose/lib/chart-color-schemes.test.js
+  - client/web/unify/src/sections/compose/lib/script-events.test.js
 ---
 
 # Compose lib helpers
@@ -64,6 +65,12 @@ test in isolation.
   the whole new setting value without touching the list handed in.
   `isCustomScheme` names the substring lib/js selects a custom scheme by, and
   `newCustomScheme` mints an id carrying it.
+- `script-events.js` — `scriptConstraintMatcher({ namespace, module })`: the
+  trigger-constraint matcher a Corredor script event is dispatched with —
+  namespace slug/name and module handle/name, the names the server's compose
+  events match on — supplied by the dispatcher because a record's module
+  carries no namespace here. `isScriptAbort(e)` recognises a script refusing
+  the action (`Aborted`).
 - `resource-translations.ts` — applies fetched resource-translation sets
   in-place onto modules/fields/pages/layouts/namespaces (`apply*Translations`).
   Owns the resource-ID string formats (`compose:module/{ns}/{mod}`,

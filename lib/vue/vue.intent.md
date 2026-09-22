@@ -32,6 +32,7 @@ provide/inject (`$SystemAPI`, `$ComposeAPI`, `$Auth`, `$Settings`, `$toast`,
 - `composables/` — reusable composition fns (useResourceList, usePermissions, useTheme, ...)
 - `stores/` — shared Pinia stores (user, record, module, notifications, agent chat, ...)
 - `plugins/` — app bootstrap: auth, human-api, i18n, settings, toast, event-bus, primevue-components, primevue-locale
+- `corredor/` — Corredor scripts in the browser: script bus, manual-script registry, script contexts, bundle loader (own intent doc); `components/corredor/` holds `CManualScriptButtons`, the buttons a page offers for those scripts
 - `filters/` — date formatting helpers
 - `libs/` — url + websocket helpers
 - `utils/` — app icons, app urls, internal navigation helpers

@@ -24,6 +24,7 @@ plugin registration, settings, Pinia, router, i18n, theming, PrimeVue services.
 - API plugins registered here (`$SystemAPI`, `$ComposeAPI`, `$AutomationAPI`, `$DiscoveryAPI`, `$FederationAPI`) are the only API access path for the app.
 - i18n loads the single merged `human-webapp` bundle in the user's preferred language; missing translations fall back to `{}`, never block boot.
 - PrimeVue theme preset comes from user meta + studio themes setting; CSS layer order `tailwind-base, primevue, tailwind-utilities` is load-bearing for styling.
+- Corredor scripts are wired here and nowhere else (`corredor.js`): the script bus (`$ScriptBus`, the lib/js `EventBus`) and the manual-script registry (`$UIHooks`, for the apps `compose`, `admin` and `unify`) install with the other global plugins; after the router, `setupCorredor` registers every `onManual` server script from the union of the compose and the system automation lists (each list drops the other's resources) and loads the `compose`, `admin` and `unify` client bundles. A failure warns and the app boots without scripts.
 - A dev build publishes `window.__human` (`router`, `pinia`, `routes()`, `stores()`, `globals()`) so the running app can be inspected from a console or a UI check without editing a component to park state on `window`. Guarded by `import.meta.env.DEV`, so a production build drops it.
 
 ## When changing this

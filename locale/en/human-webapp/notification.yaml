@@ -46,6 +46,7 @@ automation:
   delete:
     error: Failed to delete automation
     success: Automation deleted successfully
+  scriptAborted: An automation script stopped this action before it was carried out
   scriptFailed: Could not execute automation
 chart:
   colorScheme:

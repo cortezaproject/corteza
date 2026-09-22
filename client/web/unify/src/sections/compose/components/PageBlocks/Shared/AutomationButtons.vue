@@ -17,7 +17,9 @@
 <script setup>
 import { ref, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { compose } from '@planetcrust/human-js'
 import { evaluatePrefilter } from '../../../lib/record-filter'
+import { scriptConstraintMatcher } from '../../../lib/script-events'
 
 const { t } = useI18n()
 
@@ -39,6 +41,7 @@ const emit = defineEmits(['refresh'])
 const $toast = inject('$toast', null)
 const $Auth = inject('$Auth', {})
 const $AutomationAPI = inject('$AutomationAPI', null)
+const $ScriptBus = inject('$ScriptBus', null)
 
 const processingIDs = ref([])
 
@@ -96,8 +99,51 @@ function buildInput() {
   return input
 }
 
+// The event a Corredor script is triggered with — shaped by the resource its
+// trigger is bound to, and carrying the whole page context as arguments.
+function buildScriptEvent(btn) {
+  const args = {
+    namespace: props.namespace,
+    selected: props.records,
+    filter: props.filter,
+  }
+
+  if (props.module) args.module = props.module
+  if (props.page?.pageID) args.page = props.page
+
+  const match = scriptConstraintMatcher({ namespace: props.namespace, module: props.module })
+
+  switch (btn.resourceType) {
+    case 'compose:record':
+      if (!props.record || !props.module) {
+        $toast?.toastWarning?.(t('block.automation.noRecord'))
+        return null
+      }
+      return compose.RecordEvent(props.record, { match, args })
+    case 'compose:module':
+      return compose.ModuleEvent(props.module, { match, args })
+    case 'compose:namespace':
+      return compose.NamespaceEvent(props.namespace, { match, args })
+    case 'compose:page':
+      return compose.PageEvent(props.page, { match, args })
+    default:
+      return compose.ComposeEvent({ match, args })
+  }
+}
+
+// The bus knows which scripts are client and which are server ones, and runs
+// each where it belongs.
+async function dispatchScript(btn) {
+  if (!$ScriptBus) return
+
+  const ev = buildScriptEvent(btn)
+  if (!ev) return
+
+  await $ScriptBus.Dispatch(ev, btn.script)
+}
+
 async function handleButton(btn, index) {
-  if (!$AutomationAPI) return
+  if (!$AutomationAPI && !btn.script) return
 
   processingIDs.value.push(index)
 
@@ -112,6 +158,8 @@ async function handleButton(btn, index) {
         stepID: btn.stepID || '0',
         input,
       })
+    } else if (btn.script) {
+      await dispatchScript(btn)
     } else {
       $toast?.toastInfo?.(t('block.automation.noScript'))
       return
@@ -120,7 +168,9 @@ async function handleButton(btn, index) {
     emit('refresh')
   } catch (e) {
     console.error('Automation execution failed:', e)
-    $toast?.toastErrorHandler?.(t('block.automation.executionFailed'))(e)
+    $toast?.toastErrorHandler?.(
+      t(btn.script ? 'notification.automation.scriptFailed' : 'block.automation.executionFailed'),
+    )(e)
   } finally {
     processingIDs.value = processingIDs.value.filter(id => id !== index)
   }

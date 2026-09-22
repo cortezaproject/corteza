@@ -8,7 +8,9 @@ depends-on:
   - lib/js/src/compose
   - lib/js/src/system
   - lib/js/src/shared
-touched-by: []
+touched-by:
+  - corredor
+  - lib/vue/src/corredor
 tests:
   - lib/js/src/corredor/args.test.ts
   - lib/js/src/corredor/ctx.test.ts

@@ -34,6 +34,11 @@
             v-if="selectedIndex === index"
             class="flex flex-col gap-2 border-t border-surface pt-3"
           >
+            <div v-if="item.script" class="flex items-center gap-2 min-w-0">
+              <Tag :value="$t('block.automation.badge.script')" severity="secondary" />
+              <span class="text-sm text-muted-color truncate">{{ item.script }}</span>
+            </div>
+
             <CFormGroup :label="$t('block.automation.buttonLabel')">
               <CInputExpression
                 :ref="el => (labelInputs[index] = el)"
@@ -179,6 +184,7 @@ const props = defineProps({
 const emit = defineEmits(['update:buttons'])
 
 const $AutomationAPI = inject('$AutomationAPI', null)
+const $ComposeAPI = inject('$ComposeAPI', null)
 
 // Button labels are interpolated at render time (AutomationBlock.buttonLabel).
 const labelInputs = ref([])
@@ -210,10 +216,16 @@ const variantSeverityMap = {
 
 const mapVariantSeverity = key => variantSeverityMap[key]
 
+const scriptTypeOf = b => {
+  if (b.automationID) return 'taq'
+  if (b.script) return 'script'
+  return 'workflow'
+}
+
 const normalizedButtons = computed(() =>
   (props.buttons || []).map(b => ({
     ...b,
-    scriptType: b.scriptType || (b.automationID ? 'taq' : 'workflow'),
+    scriptType: b.scriptType || scriptTypeOf(b),
   })),
 )
 
@@ -225,15 +237,15 @@ const buttonsModel = computed({
   set: next => emit('update:buttons', next),
 })
 
+const triggerKey = t => {
+  if (t.automationID) return `taq-${t.automationID}-${t.triggerHandle}`
+  if (t.script) return `script-${t.script}`
+  return `${t.workflowID}-${t.stepID}`
+}
+
 const availableTriggers = computed(() => {
-  const existingKeys = normalizedButtons.value.map(b => {
-    if (b.automationID) return `taq-${b.automationID}-${b.triggerHandle}`
-    return b.workflowID ? `${b.workflowID}-${b.stepID}` : b.script
-  })
-  return triggerButtons.value.filter(t => {
-    const key = t.isTAQ ? `taq-${t.automationID}-${t.triggerHandle}` : `${t.workflowID}-${t.stepID}`
-    return !existingKeys.includes(key)
-  })
+  const existingKeys = normalizedButtons.value.map(triggerKey)
+  return triggerButtons.value.filter(t => !existingKeys.includes(triggerKey(t)))
 })
 
 const filteredWorkflows = computed(() => {
@@ -292,6 +304,9 @@ function addTriggerButton(trigger) {
     newButton.automationID = trigger.automationID
     newButton.triggerHandle = trigger.triggerHandle
     newButton.scriptType = 'taq'
+  } else if (trigger.isScript) {
+    newButton.script = trigger.script
+    newButton.scriptType = 'script'
   } else {
     newButton.workflowID = trigger.workflowID
     newButton.stepID = trigger.stepID
@@ -303,6 +318,39 @@ function addTriggerButton(trigger) {
 
 function selectButton(index) {
   selectedIndex.value = selectedIndex.value === index ? -1 : index
+}
+
+// Apps whose manual Corredor scripts a compose page button can trigger. A
+// trigger naming no app at all is offered everywhere.
+const scriptApps = ['compose', 'unify']
+
+async function fetchScriptTriggers() {
+  if (!$ComposeAPI) return []
+
+  try {
+    const { set = [] } = await $ComposeAPI.automationList({
+      eventTypes: ['onManual'],
+      excludeInvalid: true,
+    })
+
+    return set.flatMap(script =>
+      (script.triggers || [])
+        .filter(trigger => {
+          const app = (trigger.uiProps || []).find(p => p.name === 'app')?.value
+          return !app || scriptApps.includes(app)
+        })
+        .map(trigger => ({
+          script: script.name,
+          label: script.label || script.name,
+          resourceType: (trigger.resourceTypes || [])[0],
+          description: script.description,
+          isScript: true,
+        })),
+    )
+  } catch (e) {
+    console.error('Failed to fetch automation scripts:', e)
+    return []
+  }
 }
 
 async function fetchTriggers() {
@@ -375,7 +423,9 @@ async function fetchTriggers() {
       })
     })
 
-    triggerButtons.value = [...(triggerButtons.value || []), ...taqButtons]
+    const scriptButtons = await fetchScriptTriggers()
+
+    triggerButtons.value = [...(triggerButtons.value || []), ...taqButtons, ...scriptButtons]
   } catch (e) {
     console.error('Failed to fetch triggers:', e)
   } finally {

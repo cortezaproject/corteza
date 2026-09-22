@@ -22,6 +22,8 @@ declare module '*.vue' {
 import type { Auth } from './plugins/auth'
 import type { EventBus } from './plugins/event-bus'
 import type { Settings } from './plugins/settings'
+import type { UIHooks } from './corredor/ui-hooks'
+import type { eventbus } from '@planetcrust/human-js'
 
 // API Client types - import from declaration files
 import type AutomationAPI from '@planetcrust/human-js/src/api-clients/automation'
@@ -68,6 +70,18 @@ declare module 'vue' {
      */
     $Settings: Settings
     $eventBus: EventBus
+
+    /**
+     * Corredor script bus
+     * Dispatches webapp events to the Corredor scripts registered for them
+     */
+    $ScriptBus: eventbus.EventBus
+
+    /**
+     * Corredor manual-script hooks
+     * Holds the buttons that manually triggered scripts are offered as
+     */
+    $UIHooks: UIHooks
     $toast: {
       add: (options: unknown) => void
       addToast: (options: unknown) => void

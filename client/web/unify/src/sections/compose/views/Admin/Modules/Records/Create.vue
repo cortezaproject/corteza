@@ -87,6 +87,7 @@ import {
   uploadRecordAttachment,
 } from '@/sections/compose/lib/record-attachments'
 import { adminRecordBlocks } from '@/sections/compose/lib/record-blocks'
+import { isScriptAbort, scriptConstraintMatcher } from '@/sections/compose/lib/script-events'
 import {
   displayedFieldRegistry,
   fieldLabeller,
@@ -109,6 +110,7 @@ const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 const $Auth = inject('$Auth', {})
+const $ScriptBus = inject('$ScriptBus', null)
 const moduleStore = useModuleStore()
 const recordStore = useRecordStore()
 
@@ -269,13 +271,62 @@ function scrollToFirstError() {
   })
 }
 
-async function handleSave({ valid }) {
-  if (!valid) {
+// What a Corredor client script bound to the admin record page is handed. The
+// record goes by reference: a script writing to `$record.values` writes to the
+// record being saved.
+function dispatchUiEvent(eventType, rec = record.value, args = {}) {
+  if (!$ScriptBus || !rec) return Promise.resolve(null)
+
+  try {
+    return $ScriptBus.Dispatch(
+      compose.RecordEvent(rec, {
+        eventType,
+        resourceType: 'ui:compose:admin-record-page',
+        match: scriptConstraintMatcher({
+          namespace: props.namespace,
+          module: recordModule.value,
+        }),
+        args: {
+          namespace: props.namespace,
+          module: recordModule.value,
+          page: syntheticPage.value,
+          ...args,
+        },
+      }),
+    )
+  } catch (e) {
+    return Promise.reject(e)
+  }
+}
+
+function reportScriptRefusal(e) {
+  if (isScriptAbort(e)) {
+    $toast.toastWarning(t('notification.automation.scriptAborted'))
+  } else {
+    console.error('Automation script failed:', e)
+    $toast.toastErrorHandler(t('notification.automation.scriptFailed'))(e)
+  }
+}
+
+async function handleSave() {
+  if (!record.value) return
+
+  // Before anything is checked or uploaded: a script may still correct the
+  // record, or refuse the save outright.
+  try {
+    await dispatchUiEvent('beforeFormSubmit')
+  } catch (e) {
+    reportScriptRefusal(e)
+    return
+  }
+
+  // Validity is read off the record the scripts left behind, not the one the
+  // form checked on submit.
+  if (Object.keys(resolver().errors).length > 0) {
     $toast.toastWarning(t('general.notification.formErrors'))
     scrollToFirstError()
     return
   }
-  if (!record.value) return
 
   isSaving.value = true
 
@@ -305,6 +356,9 @@ async function handleSave({ valid }) {
     // reports on it. The record is stored, so this warns rather than refuses.
     const warnings = saveWarnings(saved, { labelOf: fieldLabeller(recordModule.value) })
     if (warnings.length > 0) $toast.toastWarning(warnings.join('\n'))
+
+    await dispatchUiEvent('afterFormSubmit', saved).catch(reportScriptRefusal)
+
     markSaved()
     router.replace({
       name: 'admin.modules.record.view',
@@ -312,6 +366,7 @@ async function handleSave({ valid }) {
     })
   } catch (e) {
     console.error('Failed to create record:', e)
+    await dispatchUiEvent('onFormSubmitError').catch(() => {})
     const shown = displayedFields.names()
     const { fieldErrors, general } = partitionSaveErrors(e, {
       canShow: name => shown.has(name),

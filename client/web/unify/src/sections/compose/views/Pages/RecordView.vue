@@ -213,6 +213,7 @@ import { usePageStore } from '@planetcrust/human-vue'
 import { useRecordStore } from '@planetcrust/human-vue'
 import { compose, validator, NoID } from '@planetcrust/human-js'
 import { evaluatePrefilter, usesRecordVariables } from '@/sections/compose/lib/record-filter'
+import { isScriptAbort, scriptConstraintMatcher } from '@/sections/compose/lib/script-events'
 import { components, useHistoryBack } from '@planetcrust/human-vue'
 import { computed, inject, nextTick, onBeforeUnmount, provide, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -260,6 +261,7 @@ const $ComposeAPI = inject('$ComposeAPI')
 const $SystemAPI = inject('$SystemAPI', null)
 const $Auth = inject('$Auth', {})
 const $eventBus = inject('$eventBus', null)
+const $ScriptBus = inject('$ScriptBus', null)
 
 const { buildExpressionVariables, determineLayout, evaluateBlocks } = usePageVisibility(
   $SystemAPI,
@@ -982,13 +984,61 @@ function scrollToFirstError() {
   })
 }
 
-async function handleSave({ valid }) {
-  if (!valid) {
+// What a Corredor client script bound to this page is handed. The record goes by
+// reference: a script writing to `$record.values` writes to the record being
+// saved.
+function dispatchUiEvent(eventType, rec = record.value, args = {}) {
+  if (!$ScriptBus || !rec) return Promise.resolve(null)
+
+  const recordModule = page.value ? moduleStore.getByID(page.value.moduleID) : undefined
+
+  try {
+    return $ScriptBus.Dispatch(
+      compose.RecordEvent(rec, {
+        eventType,
+        resourceType: 'ui:compose:record-page',
+        match: scriptConstraintMatcher({ namespace: props.namespace, module: recordModule }),
+        args: {
+          namespace: props.namespace,
+          module: recordModule,
+          page: page.value,
+          ...args,
+        },
+      }),
+    )
+  } catch (e) {
+    return Promise.reject(e)
+  }
+}
+
+function reportScriptRefusal(e) {
+  if (isScriptAbort(e)) {
+    $toast.toastWarning(t('notification.automation.scriptAborted'))
+  } else {
+    console.error('Automation script failed:', e)
+    $toast.toastErrorHandler(t('notification.automation.scriptFailed'))(e)
+  }
+}
+
+async function handleSave() {
+  if (!record.value || !page.value) return
+
+  // Before anything is checked or uploaded: a script may still correct the
+  // record, or refuse the save outright.
+  try {
+    await dispatchUiEvent('beforeFormSubmit')
+  } catch (e) {
+    reportScriptRefusal(e)
+    return
+  }
+
+  // Validity is read off the record the scripts left behind, not the one the
+  // form checked on submit.
+  if (Object.keys(resolver().errors).length > 0) {
     $toast.toastWarning(t('general.notification.formErrors'))
     scrollToFirstError()
     return
   }
-  if (!record.value || !page.value) return
 
   isSaving.value = true
 
@@ -1031,6 +1081,8 @@ async function handleSave({ valid }) {
     pristineRecord.value = saved
     record.value = saved
 
+    await dispatchUiEvent('afterFormSubmit', saved).catch(reportScriptRefusal)
+
     if (props.inModal) {
       if (isNew.value) {
         // Update query to new recordID instead of '0'; drop the clone/prefill
@@ -1063,6 +1115,7 @@ async function handleSave({ valid }) {
     }
   } catch (e) {
     console.error('Failed to save record:', e)
+    await dispatchUiEvent('onFormSubmitError').catch(() => {})
     const shown = displayedFields.names()
     const { fieldErrors, general } = partitionSaveErrors(e, {
       canShow: name => shown.has(name),
@@ -1175,11 +1228,13 @@ async function handleDelete() {
 
   deleting.value = true
   try {
+    await dispatchUiEvent('beforeDelete')
     await recordStore.delete({
       namespaceID: record.value.namespaceID,
       moduleID: record.value.moduleID,
       recordID: record.value.recordID,
     })
+    await dispatchUiEvent('afterDelete').catch(reportScriptRefusal)
     $toast.toastSuccess(t('notification.record.deleteSuccess'))
     if (props.inModal) {
       emit('close')
@@ -1188,7 +1243,8 @@ async function handleDelete() {
     }
   } catch (e) {
     console.error('Failed to delete record:', e)
-    $toast.toastErrorHandler(t('notification.record.deleteFailed'))(e)
+    if (isScriptAbort(e)) $toast.toastWarning(t('notification.automation.scriptAborted'))
+    else $toast.toastErrorHandler(t('notification.record.deleteFailed'))(e)
   } finally {
     deleting.value = false
   }
@@ -1199,18 +1255,21 @@ async function handleRestore() {
 
   restoring.value = true
   try {
+    await dispatchUiEvent('beforeUndelete')
     await recordStore.undelete({
       namespaceID: record.value.namespaceID,
       moduleID: record.value.moduleID,
       recordID: record.value.recordID,
     })
+    await dispatchUiEvent('afterUndelete').catch(reportScriptRefusal)
     $toast.toastSuccess(t('notification.record.restoreSuccess'))
     // Read back rather than clearing deletedAt here: the restore also changes
     // what the record may do, and the toolbar reads those flags.
     await loadRecord(record.value.recordID)
   } catch (e) {
     console.error('Failed to restore record:', e)
-    $toast.toastErrorHandler(t('notification.record.restoreFailed'))(e)
+    if (isScriptAbort(e)) $toast.toastWarning(t('notification.automation.scriptAborted'))
+    else $toast.toastErrorHandler(t('notification.record.restoreFailed'))(e)
   } finally {
     restoring.value = false
   }

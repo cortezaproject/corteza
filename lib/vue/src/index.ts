@@ -17,6 +17,23 @@ export { primeVueLocale, localeDateFormat, localeFirstDayOfWeek } from './plugin
 export { ToastPlugin } from './plugins/toast'
 export { EventBusPlugin } from './plugins/event-bus'
 
+// Corredor client-side automation: the script bus, the manual-script hooks and
+// the exec contexts client scripts run in
+export {
+  ComposeCtx,
+  ComposeUIHelper,
+  ScriptBusKey,
+  ScriptBusPlugin,
+  UIHooks,
+  UIHooksKey,
+  UIHooksPlugin,
+  WebappCtx,
+  loadClientScripts,
+  registerServerScripts,
+  wellKnownScriptPairs,
+} from './corredor'
+export type { Script as CorredorScript, ScriptEvent } from './corredor'
+
 // Export stores
 export { useRBACStore } from './composables/useRBAC'
 export { useApplicationsStore } from './stores/useApplicationsStore'
@@ -78,6 +95,7 @@ export * as components from './components'
 
 // Direct named exports for specific components
 export { CEmojiPicker } from './components'
+export { CManualScriptButtons } from './components'
 export { emojiData } from './components'
 export { CChatbotInbox, makeChatbotInboxTranslations } from './components'
 export {

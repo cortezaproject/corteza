@@ -24,6 +24,7 @@ import DialogService from 'primevue/dialogservice'
 import Ripple from 'primevue/ripple'
 import ToastService from 'primevue/toastservice'
 import router from '../router'
+import { installCorredor, setupCorredor } from './corredor'
 import TrimOnBlurPlugin from './trimOnBlur'
 
 /**
@@ -102,9 +103,16 @@ export function setupAndAuthenticate(app) {
       const pinia = createPinia()
       app.use(pinia)
       app.use(EventBusPlugin)
+      installCorredor(app)
       app.use(router)
 
       exposeForDebugging(app, { pinia, router })
+
+      // Corredor is optional: a webapp whose scripts could not be read is a
+      // webapp without them, not a broken one.
+      await setupCorredor(app).catch(err => {
+        console.warn('could not set up Corredor client-side automation:', err)
+      })
 
       // i18n — single consolidated locale bundle for chrome + every section.
       // The UI falls back to English because that is the only bundle there is;

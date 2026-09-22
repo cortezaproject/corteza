@@ -9,6 +9,7 @@ depends-on:
   - lib/vue/src/stores/useRecordStore.js
   - lib/vue/src/stores/useModuleStore.js
   - lib/vue/src/stores/usePageLayoutStore.js
+  - client/web/unify/src/sections/compose/lib/script-events.js
 touched-by:
   - client/web/unify/src/sections/compose/routes.js
   - client/web/unify/src/sections/compose/components/Record/RecordModal.vue
@@ -37,6 +38,7 @@ navigation via query params instead of route params).
 - View↔edit switches in place on a pristine clone — cancel restores without refetch; unsaved-changes guard on route leave.
 - `resolveLayout()` picks the layout once the record it needs is resolved, and re-runs on initial load, on a same-page record swap, on view/edit/create mode changes, and after save — but never on field-value edits, since a layout swap remounts the block set and would discard in-progress input. An explicit `?layoutID=` (e.g. from a navigation block) wins only if that layout's own condition/roles pass, else selection falls back to normal order.
 - Block visibility, unlike layout, is reactive to record values: re-evaluated (debounced 300ms) on value edits as well as mode/record changes.
+- Corredor client scripts hook the page through `ui:compose:record-page` events on `$ScriptBus`: `beforeFormSubmit` (before validation and uploads, on the very record then saved — a script may correct it, or refuse with `Aborted`, which stops the save with a warning), `onFormSubmitError`, `afterFormSubmit`, `beforeDelete`/`afterDelete`, `beforeUndelete`/`afterUndelete`. Validity is read off the record after the scripts ran, not off the form's submit event.
 - Provides `recordViewContext` (mode/record/isNew/isSaving) that RecordBlock consumes.
 - Topbar links into the admin panel, each on the namespace's `manage` plus the right of the resource it opens (see `compose.intent.md`): module edit on the record module's `canUpdateModule`, builder and page edit on the page's `canUpdatePage`. The two are read separately — a user who may edit the module but not the page gets one button, not both, and neither stands in for the other.
 - The displayed title is the page's, unless the active layout sets `config.useTitle` — then its `meta.title` is interpolated against the open record (`${record.values.x}`, `${recordID}`, `${ownerID}`, `${userID}`), so one page can title itself per layout. Any failure to evaluate falls back to the page title rather than surfacing a broken string.
@@ -51,4 +53,5 @@ navigation via query params instead of route params).
 - Fast-swap (loadRecord only) applies solely between two existing records on the same page — any transition involving create mode must go through full `loadPage()`; because it skips `loadPage()`, it must call `resolveLayout()` itself.
 - The pageID/recordID/query-param watcher uses separate per-value getters, not one getter returning an array: an array is compared by identity and re-fires on every touched dependency, including the edit-query toggle it must ignore.
 - After save/clone the query params `cloneFromID`/`refField`/`refValue` must be stripped so later actions don't inherit them.
+- `beforeFormSubmit` runs on the record object that is then saved, never on a clone taken before it; a `$ScriptBus` that is not installed (tests) skips every dispatch.
 - Listens to the `refetch-records` event-bus signal (automation buttons) to reload.

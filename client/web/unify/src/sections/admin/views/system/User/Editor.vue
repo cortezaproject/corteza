@@ -93,6 +93,16 @@
             />
           </CFormGroup>
         </div>
+
+        <!-- Corredor scripts bound to this slot of the user editor -->
+        <CManualScriptButtons
+          v-if="isEdit"
+          resource-type="system:user"
+          ui-page="user/editor"
+          ui-slot="infoFooter"
+          container-class="flex flex-wrap justify-end gap-2 mt-4"
+          @click="handleScriptButton"
+        />
       </Panel>
 
       <Panel
@@ -183,7 +193,7 @@ import { system } from '@planetcrust/human-js'
 import { components, useDraftGuard, useUserStore } from '@planetcrust/human-vue'
 import { useConfirm } from 'primevue/useconfirm'
 
-const { CInputDelete, CInputUserGroup, CViewContainer } = components
+const { CInputDelete, CInputUserGroup, CManualScriptButtons, CViewContainer } = components
 
 import UserSecurity from '@/sections/admin/components/User/UserSecurity.vue'
 import UserRoles from '@/sections/admin/components/User/UserRoles.vue'
@@ -198,6 +208,7 @@ const confirm = useConfirm()
 const $toast = inject('$toast')
 const $SystemAPI = inject('$SystemAPI')
 const $Auth = inject('$Auth')
+const $ScriptBus = inject('$ScriptBus', null)
 const userStore = useUserStore()
 
 // State
@@ -400,6 +411,26 @@ async function handleSubmit({ valid }) {
     )(e)
   } finally {
     saving.value = false
+  }
+}
+
+// A manual script is triggered by name; the bus knows whether it runs in the
+// browser or inside Corredor.
+async function handleScriptButton(button) {
+  if (!$ScriptBus || !user.value) return
+
+  try {
+    await $ScriptBus.Dispatch(
+      {
+        ...system.UserEvent(user.value),
+        resourceType: button.resourceType,
+        args: { user: user.value },
+      },
+      button.script,
+    )
+  } catch (e) {
+    console.error('Automation script failed:', e)
+    $toast.toastErrorHandler(t('notification.automation.scriptFailed'))(e)
   }
 }
 

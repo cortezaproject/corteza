@@ -54,6 +54,7 @@ automation:
   label: Automation
   noDescription: No description
   noLabel: Unlabeled
+  noRecord: This button runs a script against a record, and this page is not showing one
   noScript: There is no script, workflow, or TAQ configured for this button
   noScripts: There are no compatible automations for this block
   pickStep: Pick a step

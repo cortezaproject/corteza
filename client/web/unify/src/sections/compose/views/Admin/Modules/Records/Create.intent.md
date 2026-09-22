@@ -28,6 +28,7 @@ mode, minus the page.
 - Leaving with anything typed, picked or attached confirms first; an untouched form leaves silently.
 - Modules without fields show an explanatory message instead of a form (a record cannot be constructed).
 - Topbar links to the module editor and the admin record list.
+- Dispatches the `ui:compose:admin-record-page` script events on `$ScriptBus` around the save (`beforeFormSubmit`, `onFormSubmitError`, `afterFormSubmit`), with the same semantics as `Pages/RecordView.vue`.
 
 ## Routes
 

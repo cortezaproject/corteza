@@ -28,6 +28,7 @@ the mode is derived from the matched route name.
 - Required-field validation, server field errors mapped onto the form, pending file uploads flushed before update.
 - Delete replaces to the admin record list; save replaces to the view route.
 - Topbar links to the module editor and admin record list.
+- Dispatches the `ui:compose:admin-record-page` script events on `$ScriptBus` around save, delete and undelete (`beforeFormSubmit`, `onFormSubmitError`, `afterFormSubmit`, `beforeDelete`/`afterDelete`, `beforeUndelete`/`afterUndelete`), with the same semantics as `Pages/RecordView.vue`.
 
 ## Routes
 

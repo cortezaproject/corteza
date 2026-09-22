@@ -29,6 +29,10 @@ membership-based behavior, members, and lifecycle.
 - Archive/unarchive, delete/undelete, clone permission rules to other roles
   (`RolePermissionClone` dialog), per-role permissions button.
 - `isSystem` roles cannot be archived/deleted; `isClosed` roles are read-only.
+- Corredor manual scripts for `system:role` bound to ui page `role/editor`,
+  slot `toolbar`, render as `CManualScriptButtons` in the top action row; a
+  click dispatches the script on `$ScriptBus` with the role as the event's
+  subject.
 
 ## Routes
 

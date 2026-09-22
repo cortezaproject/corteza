@@ -12,6 +12,10 @@ const stubs = vi.hoisted(() => ({
   startAuthenticationFlow: vi.fn(),
   settingsInit: vi.fn(() => Promise.resolve()),
   localeGet: vi.fn(() => Promise.resolve({})),
+  automationList: vi.fn(() => Promise.resolve({ set: [] })),
+  composeAutomationList: vi.fn(() => Promise.resolve({ set: [] })),
+  loadClientScripts: vi.fn(() => Promise.resolve([])),
+  registerServerScripts: vi.fn(),
   // Reset per test; the signed-in user's language drives both the i18n bundle
   // and PrimeVue's date format.
   userMeta: {},
@@ -34,7 +38,10 @@ vi.mock('@planetcrust/human-vue', () => {
     SystemAPIPlugin: {
       pluginName: 'SystemAPIPlugin',
       install: app => {
-        app.config.globalProperties.$SystemAPI = { localeGet: stubs.localeGet }
+        app.config.globalProperties.$SystemAPI = {
+          localeGet: stubs.localeGet,
+          automationList: stubs.automationList,
+        }
       },
     },
     SettingsPlugin: {
@@ -46,11 +53,23 @@ vi.mock('@planetcrust/human-vue', () => {
         }
       },
     },
-    ComposeAPIPlugin: named('ComposeAPIPlugin'),
+    ComposeAPIPlugin: {
+      pluginName: 'ComposeAPIPlugin',
+      install: app => {
+        app.config.globalProperties.$ComposeAPI = { automationList: stubs.composeAutomationList }
+      },
+    },
     DiscoveryAPIPlugin: named('DiscoveryAPIPlugin'),
     AutomationAPIPlugin: named('AutomationAPIPlugin'),
     FederationAPIPlugin: named('FederationAPIPlugin'),
     EventBusPlugin: named('EventBusPlugin'),
+    ScriptBusPlugin: named('ScriptBusPlugin'),
+    UIHooksPlugin: named('UIHooksPlugin'),
+    ComposeCtx: class ComposeCtx {},
+    WebappCtx: class WebappCtx {},
+    loadClientScripts: stubs.loadClientScripts,
+    registerServerScripts: stubs.registerServerScripts,
+    usePageStore: () => ({ set: [] }),
     I18nPlugin: named('I18nPlugin'),
     PrimeVueComponentsPlugin: named('PrimeVueComponentsPlugin'),
     ToastPlugin: named('ToastPlugin'),
@@ -182,6 +201,36 @@ describe('setupAndAuthenticate', () => {
     // Missing translations fall back to {} and must never block boot.
     await expect(setupAndAuthenticate(app)).resolves.toBe(true)
     expect(app.installed).toContain('I18nPlugin')
+  })
+
+  it('registers the Corredor scripts once routing is in place', async () => {
+    stubs.handle.mockResolvedValue()
+
+    const app = fakeApp()
+    await setupAndAuthenticate(app)
+
+    // Each service's automation list drops the scripts bound to the other's
+    // resources, and this webapp is both apps at once
+    expect(stubs.composeAutomationList).toHaveBeenCalledOnce()
+    expect(stubs.automationList).toHaveBeenCalledOnce()
+    expect(stubs.registerServerScripts).toHaveBeenCalledOnce()
+    // One bundle per app a script can be written for
+    expect(stubs.loadClientScripts.mock.calls.map(([{ bundle }]) => bundle)).toEqual([
+      'compose',
+      'admin',
+      'unify',
+    ])
+  })
+
+  it('still boots when the Corredor scripts cannot be read', async () => {
+    stubs.handle.mockResolvedValue()
+    stubs.composeAutomationList.mockRejectedValue(new Error('corredor is down'))
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    // Automation the user cannot have is a webapp without it, not a broken one.
+    await expect(setupAndAuthenticate(fakeApp())).resolves.toBe(true)
+    expect(warn).toHaveBeenCalled()
+    warn.mockRestore()
   })
 
   it('propagates any error that is not an auth challenge', async () => {
