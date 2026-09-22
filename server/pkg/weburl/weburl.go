@@ -140,6 +140,11 @@ func Application(applicationID uint64) string {
 	return idPath(applicationID, "/admin/system/applications/%d")
 }
 
+// CustomApplication is a custom application as the app view shows it.
+func CustomApplication(applicationID uint64) string {
+	return idPath(applicationID, "/app/%d")
+}
+
 // AuthClient is the auth client's admin record.
 func AuthClient(authClientID uint64) string {
 	return idPath(authClientID, "/admin/system/auth-clients/%d")

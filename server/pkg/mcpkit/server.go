@@ -16,6 +16,20 @@ import (
 // parser needs it to find the group segment that follows.
 const mcpBasePath = "/api/mcp"
 
+// serverInstructions is what a client reads once, at initialize, before it has
+// called anything.
+//
+// It names system_skill_lookup without reaching for it: instructions are text
+// on the wire, so a server that does not register that tool loses a sentence
+// rather than gaining a dependency.
+const serverInstructions = "Every tool is listed and callable, but the listing summarises each to one " +
+	"line: " + toolLoadName + " returns a named tool's full documentation and " + toolSearchName +
+	" finds one by what you want to do. " +
+	"Before the first use of a tool you do not already know, call system_skill_lookup with its name — " +
+	"where this server offers skills, it returns the working rules a description cannot hold. " +
+	"Each tool carries a risk of read, write or destructive, and a session may be capped at one of " +
+	"them: a call above the cap is refused until the client reconnects without it."
+
 type MCPServer struct {
 	server     *server.MCPServer
 	httpServer *server.StreamableHTTPServer
@@ -43,6 +57,7 @@ func NewMCPServer(reg *Registry, name, version string) *MCPServer {
 	m.server = server.NewMCPServer(
 		name,
 		version,
+		server.WithInstructions(serverInstructions),
 		server.WithToolCapabilities(true),
 		server.WithResourceCapabilities(true, false),
 		server.WithToolFilter(m.listFilter()),

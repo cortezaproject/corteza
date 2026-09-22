@@ -38,6 +38,7 @@ var table = []struct {
 	{"user group", UserGroup(12), "/admin/system/user-groups/:userGroupID"},
 	{"role", Role(12), "/admin/system/roles/:roleID"},
 	{"application", Application(12), "/admin/system/applications/:applicationID"},
+	{"custom application", CustomApplication(12), "/app/:applicationID"},
 	{"auth client", AuthClient(12), "/admin/system/auth-clients/:authClientID"},
 }
 

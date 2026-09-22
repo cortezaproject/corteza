@@ -57,7 +57,10 @@ transports; they share nothing about what a tool does.
 - `disclosure` (`disclosure.go`) — per-session set of pulled-in tools, keyed by
   MCP session ID and dropped on teardown.
 - `MCPServer` (`server.go`) — wraps mcp-go. `MountRoutes` for HTTP,
-  `ServeStdio` for a client that launches the server as a child process.
+  `ServeStdio` for a client that launches the server as a child process. It also
+  sets the initialize-time instructions string: load a tool's documentation
+  before using it, look a skill up by tool name, and expect a per-session risk
+  cap.
 - `toolkit/` — the argument, result and error plumbing every handler repeats.
   `JSONResult` is the only sanctioned path from a Go value to a tool result, so
   the size ceiling lives in one place.
@@ -93,6 +96,7 @@ import it.
   because the staleness check compared mtimes, any checkout that merely rewrote
   these files — a rebase, a branch switch — re-vendored and left an untracked
   copy behind.
+
 - Changing the wire: run `dev/agent/mcp-verify.py`. Unit tests assert what the
   code declares, and that has been insufficient more than once.
 - Adding a tool option or tag: `server/tests/mcp` asserts every tool carries a

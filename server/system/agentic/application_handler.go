@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
+	"github.com/crusttech/human/server/pkg/weburl"
 	sysService "github.com/crusttech/human/server/system/service"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -135,6 +137,17 @@ func (h *applicationHandler) create(ctx context.Context, req mcp.CallToolRequest
 	if err != nil {
 		return nil, toolkit.Errf("application creation", err)
 	}
+
+	// A custom application is served by the app view at its own ID, so the URL
+	// cannot be known until the record exists. Nothing below this layer fills it
+	// in — the service and REST both take the unify block as given.
+	if customApplicationNeedsURL(app) {
+		app.Unify.Url = customApplicationPath(app.ID)
+		if app, err = sysService.DefaultApplication.Update(ctx, app); err != nil {
+			return nil, toolkit.Errf("custom application url", err)
+		}
+	}
+
 	return toolkit.JSONResultWith(app, applicationLinks(app))
 }
 
@@ -180,11 +193,130 @@ func (h *applicationHandler) update(ctx context.Context, req mcp.CallToolRequest
 		}
 	}
 
+	if customApplicationNeedsURL(app) {
+		app.Unify.Url = customApplicationPath(app.ID)
+	}
+
 	app, err = sysService.DefaultApplication.Update(ctx, app)
 	if err != nil {
 		return nil, toolkit.Errf("application update", err)
 	}
 	return toolkit.JSONResultWith(app, applicationLinks(app))
+}
+
+// applicationSourceResult reports a stored document back: enough to verify what
+// arrived, plus the link that opens it.
+type applicationSourceResult struct {
+	ApplicationID string `json:"applicationID"`
+	Size          int    `json:"size"`
+	Hash          string `json:"hash"`
+	URL           string `json:"url"`
+}
+
+// applicationSourcePayload is the document and the meta the app view reads
+// instead of it. The same shape REST serves on /application/{id}/source.
+type applicationSourcePayload struct {
+	ApplicationID string                          `json:"applicationID"`
+	Source        string                          `json:"source"`
+	SourceMeta    *sysTypes.ApplicationSourceMeta `json:"sourceMeta,omitempty"`
+}
+
+func (h *applicationHandler) sourceGet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	ref, err := toolkit.ReqRef(args, "application")
+	if err != nil {
+		return nil, err
+	}
+
+	app, err := resolveApplication(ctx, ref, filter.StateExcluded)
+	if err != nil {
+		return nil, err
+	}
+
+	// 'access' rather than the read that resolving already required: the source
+	// is the application as a user experiences it, so whoever may open it may
+	// read it. Same check REST makes.
+	if !sysService.DefaultAccessControl.CanAccessApplication(ctx, app) {
+		return nil, toolkit.Errf("application source read", sysService.ApplicationErrNotAllowedToRead())
+	}
+
+	return toolkit.JSONResult(applicationSourcePayload{
+		ApplicationID: strconv.FormatUint(app.ID, 10),
+		Source:        app.Source,
+		SourceMeta:    app.SourceMeta,
+	})
+}
+
+func (h *applicationHandler) sourceSet(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	ref, err := toolkit.ReqRef(args, "application")
+	if err != nil {
+		return nil, err
+	}
+
+	app, err := resolveApplication(ctx, ref, filter.StateExcluded)
+	if err != nil {
+		return nil, err
+	}
+
+	source, whole := toolkit.OptStr(args, "source")
+	oldString, patching := toolkit.OptStr(args, "old_string")
+	newString, replacement := toolkit.OptStr(args, "new_string")
+
+	switch {
+	case whole && (patching || replacement):
+		return nil, fmt.Errorf("send either 'source' or an 'old_string'/'new_string' pair, not both")
+	case patching != replacement:
+		return nil, fmt.Errorf("a patch needs both 'old_string' and 'new_string'; pass an empty 'new_string' to delete the matched text")
+	case patching:
+		if source, err = applyApplicationSourcePatch(app.Source, oldString, newString); err != nil {
+			return nil, err
+		}
+	case !whole:
+		return nil, fmt.Errorf("nothing to store: pass 'source' with the whole document, or 'old_string' and 'new_string' to patch the stored one")
+	}
+
+	if err = checkApplicationSource(source); err != nil {
+		return nil, err
+	}
+
+	// The declaration is what the bridge enforces at runtime, so a patch that
+	// says nothing about it carries the stored one forward rather than emptying
+	// the allowlist under an app that still works.
+	meta := &sysTypes.ApplicationSourceMeta{}
+	if app.SourceMeta != nil {
+		meta.Namespace = app.SourceMeta.Namespace
+		meta.Modules = app.SourceMeta.Modules
+	}
+	if v, ok := toolkit.OptStr(args, "namespace"); ok {
+		meta.Namespace = v
+	}
+	if raw, ok := args["modules"]; ok && raw != nil {
+		if meta.Modules, err = applicationStringList(raw); err != nil {
+			return nil, fmt.Errorf(`invalid modules: must be a JSON array of module handles, e.g. ["Lead","Deal"]: %w`, err)
+		}
+	}
+
+	// SetSource reloads the application itself and writes the hash and size onto
+	// the meta it was handed, which is where the result below reads them from.
+	if err = sysService.DefaultApplication.SetSource(ctx, app, source, meta); err != nil {
+		return nil, toolkit.Errf("application source set", err)
+	}
+
+	return toolkit.JSONResult(applicationSourceResult{
+		ApplicationID: strconv.FormatUint(app.ID, 10),
+		Size:          meta.Size,
+		Hash:          meta.Hash,
+		URL:           weburl.CustomApplication(app.ID),
+	})
 }
 
 func (h *applicationHandler) delete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -430,4 +562,119 @@ func applicationStringList(raw any) ([]string, error) {
 
 	var out []string
 	return out, json.Unmarshal(data, &out)
+}
+
+// customApplicationNeedsURL reports a custom application whose unify block has
+// no URL of its own. An explicit URL is left alone — the kind decides how the
+// application is rendered, not where the selector points.
+func customApplicationNeedsURL(app *sysTypes.Application) bool {
+	return app != nil &&
+		app.ID != 0 &&
+		app.Unify != nil &&
+		app.Unify.Kind == sysService.ApplicationKindCustom &&
+		app.Unify.Url == ""
+}
+
+// customApplicationPath is the unify URL of a custom application: the app
+// view's route, relative, the way the selector stores every local URL.
+func customApplicationPath(id uint64) string {
+	return "app/" + strconv.FormatUint(id, 10)
+}
+
+// applyApplicationSourcePatch replaces the one occurrence of oldString in the
+// stored document.
+//
+// Anything other than exactly one match is refused with the count. A patch that
+// silently hit the second of three copies edits a place the caller never read,
+// and the document is one file with no history to recover from.
+func applyApplicationSourcePatch(stored, oldString, newString string) (string, error) {
+	if oldString == "" {
+		return "", fmt.Errorf("old_string is empty; pass the exact text to replace, or send the whole document as 'source'")
+	}
+
+	if stored == "" {
+		return "", fmt.Errorf("this application has no source stored yet; send the whole document as 'source'")
+	}
+
+	switch n := strings.Count(stored, oldString); n {
+	case 1:
+		return strings.Replace(stored, oldString, newString, 1), nil
+	case 0:
+		return "", fmt.Errorf("old_string does not appear in the stored source; read it with system_application_source_get and copy the text exactly, whitespace included")
+	default:
+		return "", fmt.Errorf("old_string matches %d times in the stored source; extend it with the surrounding lines until exactly one place matches", n)
+	}
+}
+
+// checkApplicationSource refuses a document the app sandbox cannot run.
+//
+// The sandbox serves the HTML with a CSP of default-src 'none', connect-src
+// 'none' and script-src limited to inline script and cdnjs: an ES module never
+// loads, and every network call fails with nothing to catch it on. Both faults
+// surface as a blank frame in front of a user, minutes after this call
+// returned success, so they are refused here where the wording can say what to
+// write instead.
+func checkApplicationSource(source string) error {
+	if strings.TrimSpace(source) == "" {
+		return fmt.Errorf("the source is empty; a custom application is one whole HTML document")
+	}
+
+	if len(source) > sysService.ApplicationSourceMaxSize {
+		return fmt.Errorf(
+			"the source is %d bytes and the limit is %d; keep a custom application to a single document with inline script, well under that",
+			len(source), sysService.ApplicationSourceMaxSize,
+		)
+	}
+
+	const plainHTML = "; write one plain HTML document with inline <script>, loading libraries from https://cdnjs.cloudflare.com"
+
+	if strings.Contains(source, `<script type="module"`) || strings.Contains(source, "<script type='module'") {
+		return fmt.Errorf(`the source has a <script type="module">, which the sandbox's script-src never loads` + plainHTML)
+	}
+
+	if strings.Contains(source, "from 'react'") || strings.Contains(source, `from "react"`) {
+		return fmt.Errorf("the source imports React, which the sandbox cannot load and which needs a build step" + plainHTML)
+	}
+
+	for i, line := range strings.Split(source, "\n") {
+		trimmed := strings.TrimSpace(line)
+		for _, keyword := range []string{"import ", "export "} {
+			if strings.HasPrefix(trimmed, keyword) {
+				return fmt.Errorf("line %d is an ES module statement (%q), which the sandbox never evaluates%s", i+1, strings.TrimSpace(keyword), plainHTML)
+			}
+		}
+	}
+
+	for _, api := range []string{"fetch(", "XMLHttpRequest", "WebSocket"} {
+		if usesIdentifier(source, api) {
+			return fmt.Errorf(
+				"the source uses %s, and the sandbox is served with connect-src 'none' — the call is blocked at runtime and returns nothing to render; read data through the bridge (human.records.list, human.records.read, human.records.report) instead",
+				strings.TrimSuffix(api, "("),
+			)
+		}
+	}
+
+	return nil
+}
+
+// usesIdentifier reports whether the source uses name as an identifier of its
+// own rather than as the tail of a longer one — "prefetch(" is not "fetch(".
+func usesIdentifier(source, name string) bool {
+	for i := 0; i < len(source); {
+		at := strings.Index(source[i:], name)
+		if at < 0 {
+			return false
+		}
+		at += i
+		if at == 0 || !isIdentifierByte(source[at-1]) {
+			return true
+		}
+		i = at + len(name)
+	}
+	return false
+}
+
+func isIdentifierByte(b byte) bool {
+	return b == '_' || b == '$' ||
+		(b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')
 }

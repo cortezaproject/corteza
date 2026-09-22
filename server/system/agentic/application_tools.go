@@ -54,6 +54,9 @@ func (h *applicationHandler) register() {
 					"A new application is disabled and unlisted unless you say otherwise: pass enabled true and "+
 					"unify.listed true for it to reach users. It is also placed last in the ordering — this "+
 					"tool sets no weight, use system_application_reorder to position it. "+
+					"With unify.kind \"custom\" the application is its own HTML document rather than a link to "+
+					"a section: leave unify.url out and it is filled in with app/<applicationID> once the ID "+
+					"exists, and system_application_source_set is what gives it a body. "+
 					"Call system_application_lookup on an existing application first if you are unsure what a "+
 					"working unify block looks like on this instance.",
 			),
@@ -63,7 +66,9 @@ func (h *applicationHandler) register() {
 				`App selector configuration, as a JSON object. Keys: "name" (label in the selector, falls back `+
 					`to the application name), "listed" (boolean, whether users see it), "url" (where it opens), `+
 					`"config" (free-form configuration string), "icon" and "logo" (URLs), "iconID" and "logoID" `+
-					`(attachment IDs as strings). Example: `+
+					`(attachment IDs as strings), "kind" ("custom" for an application whose UI is one HTML `+
+					`document, shown by the app view at /app/<applicationID>; with no "url" of your own the `+
+					`server sets it to app/<applicationID>). Example: `+
 					`{"name":"Reports","listed":true,"url":"/compose/ns/reports"}`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
@@ -80,6 +85,8 @@ func (h *applicationHandler) register() {
 					"their current value, and sending a key with an empty value clears it — so you can flip "+
 					"listed without resending the URL. "+
 					"This tool never changes the ordering weight; use system_application_reorder for that. "+
+					"Setting unify.kind to \"custom\" on an application with no unify.url points the URL at "+
+					"app/<applicationID>, which is where the app view serves the stored HTML. "+
 					"To take an application away from users without deleting it, set enabled false — that is "+
 					"reversible and keeps every setting.",
 			),
@@ -88,7 +95,7 @@ func (h *applicationHandler) register() {
 			mcp.WithBoolean("enabled", mcp.Description("Whether the application is active. Omit to leave unchanged.")),
 			mcp.WithString("unify", mcp.Description(
 				`App selector configuration to merge in, as a JSON object. Same keys as `+
-					`system_application_create. Only the keys present are touched, so `+
+					`system_application_create, "kind" included. Only the keys present are touched, so `+
 					`{"listed":false} hides the application from the selector and leaves the URL, icon and `+
 					`logo alone.`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
@@ -96,6 +103,59 @@ func (h *applicationHandler) register() {
 		),
 		"Update application",
 		h.update,
+	)
+
+	h.reg.RegisterTool(
+		mcp.NewTool("system_application_source_get",
+			mcp.WithDescription(
+				"Read a custom application's HTML back, exactly as stored, with the meta the app view "+
+					"reads instead of the document: hash, byte size, and the namespace and modules the app "+
+					"is allowed to query. "+
+					"Neither system_application_lookup nor the listing carries the source — this is the only "+
+					"way to see it. Call it before patching with system_application_source_set, so "+
+					"'old_string' is copied from what is actually stored rather than from what you believe "+
+					"you wrote. "+
+					"Needs 'access' on the application, the same grant that lets a user open it.",
+			),
+			mcp.WithString("application", mcp.Required(), mcp.Description("Exact application name, or an application ID as a string to prevent precision loss.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskRead),
+		),
+		"Read custom application source",
+		h.sourceGet,
+	)
+
+	h.reg.RegisterTool(
+		mcp.NewTool("system_application_source_set",
+			mcp.WithDescription(
+				"Store the HTML of a custom application — the whole document the app view renders inside "+
+					"its sandbox. The application must already carry unify.kind \"custom\"; any other "+
+					"application is refused. "+
+					"Send it one of two ways: 'source' replaces the document outright, or 'old_string' with "+
+					"'new_string' patches the stored one, which is how you edit an app without resending it. "+
+					"A patch is applied only when 'old_string' matches exactly once — zero or several "+
+					"matches are refused with the count, so include enough surrounding text to be "+
+					"unambiguous. "+
+					"'namespace' and 'modules' declare the data the app may read: the bridge refuses every "+
+					"module not named here. A patch that sends neither keeps the declaration already "+
+					"stored. "+
+					"The document is plain HTML with inline script. JSX, ES modules and a React import are "+
+					"refused, and so are fetch, XMLHttpRequest and WebSocket — the sandbox's CSP blocks all "+
+					"of them, so an app using them fails in front of a user instead of here. Load the "+
+					"custom_app skill with system_skill_lookup before writing one.",
+			),
+			mcp.WithString("application", mcp.Required(), mcp.Description("Exact application name, or an application ID as a string to prevent precision loss.")),
+			mcp.WithString("source", mcp.Description("The whole HTML document, replacing whatever is stored. Capped at 256 KB; aim well under that. Cannot be combined with old_string.")),
+			mcp.WithString("old_string", mcp.Description("Patch mode: the exact text to replace, whitespace included. It must occur exactly once in the stored source — read it with system_application_source_get first.")),
+			mcp.WithString("new_string", mcp.Description("Patch mode: what old_string becomes. Pass an empty string to delete the matched text. Required whenever old_string is given.")),
+			mcp.WithString("namespace", mcp.Description("Handle of the compose namespace the app reads from. Omit in patch mode to keep the stored one.")),
+			mcp.WithString("modules", mcp.Description(`JSON array of module handles the app may query, as strings, e.g. ["Lead","Deal"]. This is the allowlist the bridge enforces; a module left out is refused at runtime. Omit in patch mode to keep the stored list.`)),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
+			hmcp.NeedsFullDocs(),
+		),
+		"Set custom application source",
+		h.sourceSet,
 	)
 
 	h.reg.RegisterTool(
