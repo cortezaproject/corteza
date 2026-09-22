@@ -13,6 +13,7 @@ touched-by:
 tests:
   - client/web/unify/src/sections/app/bridge.test.js
   - client/web/unify/e2e/sections/app/app.spec.ts
+  - client/web/unify/e2e/sections/app/gotchas.spec.ts
 ---
 
 # App section — custom applications
@@ -143,3 +144,17 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
   needs its own permission story before it exists.
 - The reshape of `values` is the app-facing contract; the MCP tool's
   `[{name, value}]` shape is not what apps see.
+
+## Gotchas — where each kind is fixed
+
+A custom app that breaks in Human is sorted by what broke, and each kind has
+one home. A gotcha with no test in that home is not written down anywhere else.
+
+| Kind                                                                     | Fixed in                                                                         | Pinned by                                                                       |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| API shape — what the store returns (a false Bool as nothing, `"12.5"`)   | the bridge (`host.js`); a change to an existing shape is a new contract version  | a probe in `e2e/sections/app/gotchas.spec.ts`                                   |
+| Sandbox — what the frame blocks (network, storage, dialogs, new windows) | the deploy guard (`checkApplicationSource`), refusing with what to write instead | a case in `application_handler_test.go`                                         |
+| Data — what a namespace holds (empty modules, invented Select values)    | a rule in the `custom_app` skill, read before the page is written                | nothing automated yet — a fresh session run against the skill is the only check |
+
+The skill carries only what neither the bridge nor the guard can absorb; when
+one of them takes a gotcha over, its line leaves the skill.
