@@ -71,3 +71,23 @@ func TestPageLayoutReadForeignNamespace(t *testing.T) {
 		Assert(helpers.AssertError("page-layout.errors.notFound")).
 		End()
 }
+
+func TestChartReadForeignNamespace(t *testing.T) {
+	h := newHelper(t)
+	h.clearCharts()
+
+	ns := h.makeNamespace("some-namespace")
+	foreign := h.makeNamespace("foreign-namespace")
+	c := h.makeChart(foreign, "some-chart")
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "read")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/chart/%d", ns.ID, c.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("chart.errors.notFound")).
+		End()
+}

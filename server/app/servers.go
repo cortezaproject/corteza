@@ -116,7 +116,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			return
 		}
 
-		if app.Opt.SCIM.Secret == "" && !app.Opt.Environment.IsDevelopment() {
+		if app.Opt.SCIM.Secret == "" {
 			// requests are made as a service user, do not expose SCIM without a secret
 			app.Log.
 				Error("SCIM secret empty (SCIM_SECRET), SCIM is disabled")
