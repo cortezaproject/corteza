@@ -73,10 +73,7 @@ mkdirSync(outDir, { recursive: true })
 
 // Requests the shell makes on every route, custom app or not. They are the
 // webapp's business and would otherwise be reported against every app.
-const SHELL_NOISE = [
-  /\/federation\/permissions\/effective/,
-  /\/system\/attachment\/avatar\//,
-]
+const SHELL_NOISE = [/\/federation\/permissions\/effective/, /\/system\/attachment\/avatar\//]
 
 // What gets typed into a page's own fields, so a record it creates can be told
 // apart from the fixture's afterwards.
@@ -168,10 +165,17 @@ const APP_REPORT = () => {
     if (over <= 4) continue
     const st = getComputedStyle(el)
     if (st.overflowX !== 'hidden' || st.textOverflow === 'ellipsis') continue
-    lost.push(`${el.tagName.toLowerCase()} loses ${over}px of "${(el.textContent || '').trim().slice(0, 30)}"`)
+    lost.push(
+      `${el.tagName.toLowerCase()} loses ${over}px of "${(el.textContent || '').trim().slice(0, 30)}"`,
+    )
   }
   return {
-    text, rows, ids, holes, clipped, lost,
+    text,
+    rows,
+    ids,
+    holes,
+    clipped,
+    lost,
     canvases: document.querySelectorAll('canvas').length,
   }
 }
@@ -218,44 +222,94 @@ for (const id of ids) {
   let pressed = 0
   let typed = 0
   if (clicks && report) {
-    const boxes = app.locator(
-      'input:visible:not([type="search"]):not([type="checkbox"]):not([type="radio"]), textarea:visible',
-    )
-    const fields = Math.min(await boxes.count().catch(() => 0), 12)
-    for (let i = 0; i < fields; i++) {
-      const box = boxes.nth(i)
-      const what = (
-        ((await box.getAttribute('placeholder').catch(() => '')) || '') +
-        ' ' +
-        ((await box.getAttribute('name').catch(() => '')) || '') +
-        ' ' +
-        ((await box.getAttribute('id').catch(() => '')) || '')
-      ).toLowerCase()
-      if (/search|filter|query/.test(what)) continue
-      if (await box.inputValue().catch(() => 'x')) continue // leave what is already there
-      const type = (await box.getAttribute('type').catch(() => '')) || 'text'
-      const value =
-        type === 'number' ? '7'
-        : type === 'date' ? '2026-09-23'
-        : type === 'email' ? `${PROBE_MARK}@example.tld`
-        : PROBE_MARK
-      await box.fill(value, { timeout: 2000 }).catch(() => {})
-      typed++
-    }
+    // Never pressed: these undo the work rather than doing it, and pressing a
+    // dialog's close button straight after its open button is how a form that
+    // was about to be filled disappears again.
+    const DISMISSES = /close|cancel|dismiss|back|reset|clear|delete|remove|×|✕/i
+    const COMMITS = /save|add|create|submit|apply|confirm|update|mark|set|send/i
 
-    // Not only buttons: a row's on/off switch is as often a checkbox, and a
-    // page whose save hangs off one is otherwise never reached.
-    const buttons = app.locator(
+    const controls = app.locator(
       'button:visible, [role="button"]:visible, [role="switch"]:visible, ' +
+        'label:has(input[type="checkbox"]):visible, label:has(input[type="radio"]):visible, ' +
         'input[type="checkbox"]:visible, input[type="radio"]:visible',
     )
-    const total = Math.min(await buttons.count().catch(() => 0), clicks)
-    for (let i = 0; i < total; i++) {
-      await buttons.nth(i).click({ timeout: 3000, noWaitAfter: true }).catch(() => {})
-      pressed++
-      const allow = page.getByRole('alertdialog').getByRole('button', { name: /^Allow/ })
-      if (await allow.isVisible().catch(() => false)) await allow.click().catch(() => {})
-      await page.waitForTimeout(400)
+
+    // A form's own submit button is the commit, whatever it is called. Pressing
+    // it before anything else that merely reads like one keeps a button called
+    // "+ Add contact" from reopening — and emptying — the form just filled in.
+    const submits = app.locator('button[type="submit"]:visible, input[type="submit"]:visible')
+
+    const press = async only => {
+      if (only === 'commits') {
+        const count = Math.min(await submits.count().catch(() => 0), clicks)
+        for (let i = 0; i < count && pressed < clicks; i++) {
+          await submits
+            .nth(i)
+            .click({ timeout: 3000, noWaitAfter: true })
+            .catch(() => {})
+          pressed++
+          const agree = page.getByRole('alertdialog').getByRole('button', { name: /^Allow/ })
+          if (await agree.isVisible().catch(() => false)) await agree.click().catch(() => {})
+          await page.waitForTimeout(400)
+        }
+      }
+      const total = Math.min(await controls.count().catch(() => 0), 20)
+      for (let i = 0; i < total && pressed < clicks; i++) {
+        const one = controls.nth(i)
+        const words =
+          ((await one.innerText().catch(() => '')) || '') +
+          ' ' +
+          ((await one.getAttribute('aria-label').catch(() => '')) || '')
+        if (DISMISSES.test(words)) continue
+        if (only === 'commits' && !COMMITS.test(words)) continue
+        if (only === 'opens' && COMMITS.test(words)) continue
+        await one.click({ timeout: 3000, noWaitAfter: true }).catch(() => {})
+        pressed++
+        const allow = page.getByRole('alertdialog').getByRole('button', { name: /^Allow/ })
+        if (await allow.isVisible().catch(() => false)) await allow.click().catch(() => {})
+        await page.waitForTimeout(400)
+      }
+    }
+
+    const fill = async () => {
+      const boxes = app.locator(
+        'input:visible:not([type="search"]):not([type="checkbox"]):not([type="radio"]), textarea:visible',
+      )
+      const fields = Math.min(await boxes.count().catch(() => 0), 12)
+      for (let i = 0; i < fields; i++) {
+        const box = boxes.nth(i)
+        const what = (
+          ((await box.getAttribute('placeholder').catch(() => '')) || '') +
+          ' ' +
+          ((await box.getAttribute('name').catch(() => '')) || '') +
+          ' ' +
+          ((await box.getAttribute('id').catch(() => '')) || '')
+        ).toLowerCase()
+        if (/search|filter|query/.test(what)) continue
+        if (await box.inputValue().catch(() => 'x')) continue // leave what is already there
+        const type = (await box.getAttribute('type').catch(() => '')) || 'text'
+        const value =
+          type === 'number'
+            ? '7'
+            : type === 'date'
+              ? '2026-09-23'
+              : type === 'email'
+                ? `${PROBE_MARK}@example.tld`
+                : PROBE_MARK
+        await box.fill(value, { timeout: 2000 }).catch(() => {})
+        typed++
+      }
+    }
+
+    // What a person does: open the thing, fill it in, commit it. Twice over,
+    // because the button that reveals a form is as likely to be called "Add
+    // contact" as anything else, and a form only exists to be filled once
+    // whatever hides it has been pressed.
+    for (const round of [1, 2]) {
+      await press('opens')
+      await fill()
+      await press('commits')
+      if (round === 1) await page.waitForTimeout(400)
     }
 
     // What the page said for itself before anything was pressed still decides
@@ -289,9 +343,11 @@ for (const id of ids) {
     if (report.holes.length) faults.push(`empty values rendered as ${report.holes.join(', ')}`)
     if (report.clipped > 4)
       faults.push(`${report.clipped}px of the page is cut off the right edge and cannot be reached`)
-    for (const l of report.lost.slice(0, 3)) faults.push(`text cut off with no way to read it: ${l}`)
+    for (const l of report.lost.slice(0, 3))
+      faults.push(`text cut off with no way to read it: ${l}`)
     for (const want of expects) {
-      if (!report.text.includes(want)) faults.push(`expected text not on the page: ${JSON.stringify(want)}`)
+      if (!report.text.includes(want))
+        faults.push(`expected text not on the page: ${JSON.stringify(want)}`)
     }
     console.log(`  text        ${JSON.stringify(visible.slice(0, 200))}`)
   }
