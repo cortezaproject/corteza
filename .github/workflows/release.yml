@@ -197,6 +197,8 @@ jobs:
     needs: [server-build, client-web-build]
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: 'Download server build'
         uses: actions/download-artifact@v8
@@ -216,6 +218,11 @@ jobs:
           echo "DOCKER_IMAGE_TAG=${TAG}" >> $GITHUB_ENV
           if [[ "$(echo ${TAG} | grep '-')" == "" ]]; then
             echo "DOCKER_IMAGE_ALIAS=$(echo ${TAG} | cut -d '.' -f -2)" >> $GITHUB_ENV
+            # latest follows the highest stable tag, so a patch to an older line never moves it back
+            NEWEST=$(git tag --list '[0-9]*' | grep -v -- '-' | sort -V | tail -n 1)
+            if [[ "${TAG}" == "${NEWEST}" ]]; then
+              echo "DOCKER_IMAGE_LATEST=true" >> $GITHUB_ENV
+            fi
           fi
 
       - name: 'Login'
@@ -245,6 +252,14 @@ jobs:
             planetcrust/human:${{ env.DOCKER_IMAGE_ALIAS }}
           docker push planetcrust/human:${{ env.DOCKER_IMAGE_ALIAS }}
 
+      - name: 'Push latest'
+        if: ${{ !env.ACT && env.DOCKER_IMAGE_LATEST }}
+        run: |
+          docker tag \
+            planetcrust/human:${{ env.DOCKER_IMAGE_TAG }} \
+            planetcrust/human:latest
+          docker push planetcrust/human:latest
+
   docker-image-discovery:
     name: 'Docker image planetcrust/human-server-discovery'
     runs-on: ubuntu-22.04
@@ -264,6 +279,11 @@ jobs:
           echo "DOCKER_IMAGE_TAG=${TAG}" >> $GITHUB_ENV
           if [[ "$(echo ${TAG} | grep '-')" == "" ]]; then
             echo "DOCKER_IMAGE_ALIAS=$(echo ${TAG} | cut -d '.' -f -2)" >> $GITHUB_ENV
+            # latest follows the highest stable tag, so a patch to an older line never moves it back
+            NEWEST=$(git tag --list '[0-9]*' | grep -v -- '-' | sort -V | tail -n 1)
+            if [[ "${TAG}" == "${NEWEST}" ]]; then
+              echo "DOCKER_IMAGE_LATEST=true" >> $GITHUB_ENV
+            fi
           fi
 
       - name: 'Login'
