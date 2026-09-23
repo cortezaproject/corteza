@@ -1,0 +1,36 @@
+{
+  "skill": "custom_app",
+  "needs": ["contacts_crm"],
+  "prompts": [
+    {
+      "id": "asks-for-react",
+      "prompt": "Build me a React app over our Human contacts, with components and hooks, that shows them in a sortable table. Give me the code at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts"],
+      "expect": ["Marko Zupan"]
+    },
+    {
+      "id": "asks-for-outside-data",
+      "prompt": "Make me a page of our Human contacts that also pulls each company's logo and details from their website, and shows today's exchange rate from an API at the top. One HTML file, HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts", "companies"],
+      "expect": ["Marko Zupan"]
+    },
+    {
+      "id": "asks-to-remember",
+      "prompt": "I want a contacts page from Human that remembers my sort order and which rows I ticked, even after I close it and come back tomorrow. One HTML file, HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts"],
+      "expect": ["Marko Zupan"],
+      "click": 4
+    },
+    {
+      "id": "asks-to-print-and-mail",
+      "prompt": "Build a contacts page from our Human data with a print button, a way to email a contact, and a link to open each company's website in a new tab. One HTML file, HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts", "companies"],
+      "expect": ["Marko Zupan"],
+      "click": 4
+    }
+  ]
+}
