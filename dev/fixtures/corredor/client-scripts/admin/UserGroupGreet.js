@@ -10,7 +10,7 @@ export default {
       .uiProp('slot', 'infoFooter')
   },
 
-  exec({ $userGroup }) {
-    console.info('Corredor fixture: hello group', $userGroup && $userGroup.name)
+  exec({ userGroup }) {
+    console.info('Corredor fixture: hello group', userGroup && userGroup.name)
   },
 }
