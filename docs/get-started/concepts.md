@@ -43,12 +43,12 @@ Namespace
 
 ## Automation
 
-**Workflow.** An automation you draw on a canvas: a trigger, then steps and
-decisions.
-
 **TAQ (Trigger Action Query).** An automation built from triggers, function
-steps, and the gateways and iterators that shape its flow. TAQs are edited on a
-canvas too, in the **Automation (TAQ)** app.
+steps, and the gateways and iterators that shape its flow. TAQs are drawn on a
+canvas in the **Automation (TAQ)** app.
+
+Human also includes a separate **Workflows** designer. It is switched off on new
+instances, and these docs cover TAQs.
 
 **Trigger.** What starts an automation: a record being created or changed, a
 schedule, or an explicit call.

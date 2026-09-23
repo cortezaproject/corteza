@@ -15,7 +15,7 @@ all share one permission model.
 - **Apps.** Describe your data as modules and fields, then lay out record lists,
   forms, charts and calendars on pages. A CRM, a case tracker or an asset
   register is an afternoon's work.
-- **Automations.** Workflows and TAQs (Trigger Action Queries) run when a record
+- **Automations.** TAQs (Trigger Action Queries) run when a record
   changes, on a schedule, or when something calls them.
 - **Agents.** Give a model instructions, tools and topics to know about. People
   talk to agents in the Assistant, and automations and chatbots can run them

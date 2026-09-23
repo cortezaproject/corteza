@@ -23,7 +23,7 @@ features:
     link: /guides/agents
     linkText: Guide
   - title: Automate the work
-    details: Workflows and TAQs (Trigger Action Queries) react to events, run on schedules and call your agents.
+    details: TAQs (Trigger Action Queries) react to events, run on schedules and call your agents.
     link: /get-started/concepts#automation
     linkText: Concepts
   - title: Self-host it

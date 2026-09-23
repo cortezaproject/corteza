@@ -53,7 +53,7 @@ This is where you decide what the agent can do.
   the chat asks the person before the tool runs.
 - A tool can be narrowed further with **Limit to modules**, and given a **Note
   for the model** that says when to use it.
-- **TAQs** and **Workflows** list the automations the agent may start.
+- **TAQs** lists the automations the agent may start.
 
 With no tools at all, an agent answers only from what it knows. It cannot look
 anything up or change anything.
@@ -68,8 +68,8 @@ your data.
 - **Enable User Chat Invocation** lets people chat with the agent.
 - **Agent Sidebar Roles** decides which roles see it in the Assistant on the
   home page.
-- **Enable System Invocation** lets automations and chatbots run it. It then
-  needs a **Service Account**: the user it acts as when no person is present.
+- **Enable System Invocation** lets a chatbot run it. It then needs a **Service
+  Account**: the user it acts as when no person is present.
 
 ## Test and inspect
 
@@ -84,8 +84,8 @@ Save the agent, then chat with it in the editor.
 - **The Assistant.** The middle column of the home page. People see the agents
   their roles allow.
 - **A page.** Add an **Agent Chat** block to any page in the page builder.
-- **Automations.** A workflow or TAQ step can run an agent that has system
-  invocation enabled, and use its answer in the next step.
+- **Automations.** A TAQ's **Prompt Agent** step runs an agent and hands its
+  answer to the next step.
 - **Chatbots.** A step in a chatbot's journey can hand the visitor to an agent.
   The agent needs system invocation and a service account.
 - **Your own AI client.** Human is also an MCP server, so Claude and other MCP
