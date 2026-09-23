@@ -27,7 +27,7 @@ connect contacts to companies, for example.
 _record page_ shows a single record; every other page is free-form.
 
 **Block.** One piece of a page. The kinds include Record list, Record, Chart,
-Metric, Calendar, Map, Content, Tabs, Comments, Report, Agent Chat and more.
+Metric, Calendar, Map, Content, Tabs, Comments, Agent Chat and more.
 
 **Chart.** A visualisation of module data: bar, line, pie, doughnut and
 scatter charts, plus funnel, gauge and radar. You place a chart on a page with a

@@ -13,6 +13,7 @@ export default defineConfig({
   rewrites: {
     'reference/environment.gen.md': 'reference/environment.md',
     'reference/permissions/:name.gen.md': 'reference/permissions/:name.md',
+    'reference/expressions/:name.gen.md': 'reference/expressions/:name.md',
   },
 
   head: [
@@ -38,8 +39,8 @@ export default defineConfig({
 
     nav: [
       { text: 'Get started', link: '/get-started/', activeMatch: '^/get-started/' },
-      { text: 'Guides', link: '/guides/build-an-app', activeMatch: '^/guides/' },
-      { text: 'Reference', link: '/reference/environment', activeMatch: '^/reference/' },
+      { text: 'Platform', link: '/platform/', activeMatch: '^/platform/' },
+      { text: 'Reference', link: '/reference/expressions/', activeMatch: '^/reference/' },
     ],
 
     sidebar: [
@@ -49,18 +50,28 @@ export default defineConfig({
           { text: 'What is Human', link: '/get-started/' },
           { text: 'Quickstart', link: '/get-started/quickstart' },
           { text: 'Core concepts', link: '/get-started/concepts' },
+          { text: 'How building works', link: '/get-started/building' },
         ],
       },
       {
-        text: 'Guides',
+        text: 'Platform',
         items: [
-          { text: 'Build an app', link: '/guides/build-an-app' },
-          { text: 'Agents', link: '/guides/agents' },
+          { text: 'Overview', link: '/platform/' },
+          { text: 'Home and apps', link: '/platform/home' },
+          { text: 'Namespaces and data', link: '/platform/namespaces' },
+          { text: 'Automation (TAQ)', link: '/platform/automation' },
+          { text: 'Agents', link: '/platform/agents' },
+          { text: 'Chatbots', link: '/platform/chatbots' },
+          { text: 'Projects', link: '/platform/projects' },
+          { text: 'Administration', link: '/platform/administration' },
         ],
       },
       {
         text: 'Reference',
         items: [
+          { text: 'Expressions', link: '/reference/expressions/' },
+          { text: 'Expression functions', link: '/reference/expressions/functions' },
+          { text: 'Expression types', link: '/reference/expressions/types' },
           { text: 'Environment variables', link: '/reference/environment' },
           {
             text: 'Permissions',

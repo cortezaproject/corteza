@@ -16,16 +16,16 @@ hero:
 features:
   - title: Build an app
     details: Model your data as modules, then put record lists, charts and forms on pages. No code required.
-    link: /guides/build-an-app
-    linkText: Guide
+    link: /platform/namespaces
+    linkText: Namespaces and data
   - title: Add AI agents
     details: Give an agent a model, instructions and tools. It works only within the permissions of whoever runs it.
-    link: /guides/agents
-    linkText: Guide
+    link: /platform/agents
+    linkText: Agents
   - title: Automate the work
     details: TAQs (Trigger Action Queries) react to events, run on schedules and call your agents.
-    link: /get-started/concepts#automation
-    linkText: Concepts
+    link: /platform/automation
+    linkText: Automation
   - title: Self-host it
     details: One container and a database. Every option is an environment variable, documented from the source.
     link: /reference/environment

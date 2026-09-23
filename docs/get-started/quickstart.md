@@ -1,12 +1,12 @@
 ---
 title: Quickstart
-description: Run Human with Docker Compose, create the first account and build a small app.
+description: Run Human with Docker Compose and sign in as the administrator.
 ---
 
 # Quickstart
 
-Run Human on your machine with Docker, sign in as the administrator, and build
-a small app. It takes about ten minutes.
+Run Human on your machine with Docker and sign in as the administrator. It
+takes about five minutes.
 
 You need [Docker](https://docs.docker.com/get-docker/) with Compose.
 
@@ -43,37 +43,22 @@ There is no email server in this setup, so your address is confirmed straight
 away. To send email, set the [`SMTP_*`](/reference/environment#email-sending)
 variables.
 
-## 3. Build an app
+## 3. Look around
 
-1. Open **Namespaces** from the menu, or go to `/compose/namespaces`. A
-   namespace holds one app.
-2. Click **New Namespace**. Name it `Contacts`, give it the short name
-   `contacts`, and click **Save**.
-3. Open **Modules** and click **New Module**. Call it `Contact`, and use
-   **Add new field** to add `Name` (Text), `Email` (Email) and `Company`
-   (Text). Click **Save**.
-4. Still in the module, click **Create record page**, then **Create record list
-   page**. Human creates a form for one contact and a list of all of them.
-5. Open the namespace. Your list page is there. Click **New Record** and
-   add a contact.
+After you sign in, the home screen shows three columns: the **Menu** of apps,
+the **Assistant** for chatting with agents, and your **Notifications**. A new
+instance lists these apps:
 
-That is a working app: a data model, a list and a form, with permissions
-already applied.
+| App                  | What it is for                                                   |
+| -------------------- | ---------------------------------------------------------------- |
+| **Namespaces**       | Build apps: data models, pages and charts                        |
+| **Automation (TAQ)** | Automations that react to events, run on schedules or on demand  |
+| **Agentic**          | AI agents, their models, tools and access                        |
+| **Chatbot**          | Chatbots for your website, and the inbox for their conversations |
+| **Projects**         | Group related resources into one governed unit                   |
+| **Admin Area**       | Users, roles, permissions and system settings                    |
 
-## 4. Add an agent
-
-Agents need a model to talk to. Add one first:
-
-1. In **Admin Area**, open **System → LLM Providers** and click **New LLM Provider**.
-   Pick **Anthropic** or **Mistral** and paste an API key.
-2. Open **Agentic** from the menu and click **Create agent**. Give it a name,
-   pick the provider and a model, and write a system prompt such as
-   _"You help the team look up contacts."_
-3. Under **Access**, set **Works in** to `Contacts` and, in **Tools**, allow
-   the **Records** tools. Save, and chat with it right there in the editor.
-
-The [Agents guide](/guides/agents) covers tools, knowledge and invocation in
-depth.
+[The platform](/platform/) describes each of them.
 
 ## Stop or reset
 
@@ -85,6 +70,7 @@ docker compose down -v   # stop and delete all data
 ## Next steps
 
 - [Core concepts](./concepts): the vocabulary the rest of the docs use.
-- [Build an app](/guides/build-an-app): charts, dashboards and linked modules.
+- [How building works](./building): how data, pages, automation and agents fit
+  together.
 - [Environment variables](/reference/environment): everything the server can be
   configured with.

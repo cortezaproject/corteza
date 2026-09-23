@@ -36,5 +36,8 @@ never do more than the person it acts for.
 
 ## Where to go next
 
-- [**Quickstart**](./quickstart): run Human with Docker and build your first app.
+- [**Quickstart**](./quickstart): run Human with Docker and sign in.
 - [**Core concepts**](./concepts): the handful of terms the rest of these docs use.
+- [**How building works**](./building): how data, pages, automation and agents
+  fit together.
+- [**The platform**](/platform/): each part of Human in more detail.
