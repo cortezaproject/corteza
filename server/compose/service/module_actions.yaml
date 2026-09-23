@@ -80,6 +80,9 @@ errors:
   - error: fieldNameReserved
     message: "field name is reserved for system fields"
 
+  - error: defaultSchemaAlteration
+    message: "field storage would need the shared record table altered"
+
   - error: fieldLocked
     message: "field name and kind can not be changed once the module has records"
 

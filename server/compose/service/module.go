@@ -77,6 +77,7 @@ type (
 		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
 
 		ReplaceModel(context.Context, []*dal.Alteration, *dal.Model) (newAlts []*dal.Alteration, err error)
+		DefaultSchemaAlterations(context.Context, *dal.Model) ([]*dal.Alteration, error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) error
 		SearchModelIssues(ID uint64) []dal.Issue
 	}
@@ -262,6 +263,10 @@ func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd *types.Modu
 		tt = append(tt, f.EncodeTranslations()...)
 	}
 	if err := updateTranslations(ctx, svc.ac, svc.services.locale, tt...); err != nil {
+		return err
+	}
+
+	if err := refuseDefaultSchemaAlterations(ctx, svc.services.dal, ns, res); err != nil {
 		return err
 	}
 
@@ -631,6 +636,10 @@ func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.
 
 		if err = label.Create(ctx, s, new); err != nil {
 			return
+		}
+
+		if err = refuseDefaultSchemaAlterations(ctx, svc.services.dal, ns, new); err != nil {
+			return err
 		}
 
 		if err = DalModelReplace(ctx, s, svc.services.schemaAltManager, svc.services.dal, ns, new); err != nil {
@@ -1108,6 +1117,46 @@ func DalModelReplace(ctx context.Context, s store.Storer, am schemaAltManager, d
 		}
 	}
 
+	return
+}
+
+// refuseDefaultSchemaAlterations refuses a module whose storage would need
+// columns changed on the shared record table; the DAL never alters that table,
+// so records of such a module could not be saved.
+func refuseDefaultSchemaAlterations(ctx context.Context, dmm dalModelManager, ns *types.Namespace, mod *types.Module) error {
+	models, err := ModulesToModelSet(dmm, ns, mod)
+	if err != nil {
+		return err
+	}
+
+	for _, m := range models {
+		alts, err := dmm.DefaultSchemaAlterations(ctx, m)
+		if err != nil {
+			return err
+		}
+
+		if len(alts) > 0 {
+			return ModuleErrDefaultSchemaAlteration().Apply(errors.Meta("fields", strings.Join(alteredAttributes(alts), ", ")))
+		}
+	}
+
+	return nil
+}
+
+// alteredAttributes names the attributes the alterations change.
+func alteredAttributes(alts []*dal.Alteration) (out []string) {
+	for _, a := range alts {
+		switch {
+		case a.AttributeAdd != nil:
+			out = append(out, a.AttributeAdd.Attr.Ident)
+		case a.AttributeDelete != nil:
+			out = append(out, a.AttributeDelete.Attr.Ident)
+		case a.AttributeReType != nil:
+			out = append(out, a.AttributeReType.Attr.Ident)
+		case a.AttributeReEncode != nil:
+			out = append(out, a.AttributeReEncode.Attr.Ident)
+		}
+	}
 	return
 }
 

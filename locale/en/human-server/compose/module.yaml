@@ -6,6 +6,7 @@ errors:
   invalidNamespaceID: invalid or missing namespace ID
   nameNotUnique: name not unique
   fieldNameReserved: field name reserved
+  defaultSchemaAlteration: "The fields {{fields}} would need their own columns in the shared record table, which can't be added. Leave their data store encoding at the default (JSON), or move the module to its own data store."
   fieldLocked: The field {{field}} already has records saved in it, so its name and type can't be changed. Add a new field instead.
   namespaceNotFound: namespace does not exist
   notAllowedToCreate: not allowed to create modules

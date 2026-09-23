@@ -46,6 +46,7 @@ type (
 		SearchExternalModels(ctx context.Context, connectionID uint64) (out ModelSet, err error)
 		SearchExternalData(ctx context.Context, connectionID uint64, model *Model, f filter.Filter) (Iterator, error)
 		ReplaceModel(ctx context.Context, currentAlts []*Alteration, model *Model) (newAlts []*Alteration, err error)
+		DefaultSchemaAlterations(ctx context.Context, model *Model) ([]*Alteration, error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
 		FindModelByResourceID(connectionID uint64, resourceID uint64) *Model
 		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *Model
@@ -831,7 +832,14 @@ func (svc *service) ReplaceModel(ctx context.Context, currentAlts []*Alteration,
 		return
 	}
 
-	newAlts, batchID, err := svc.getSchemaAlterations(ctx, connection, currentAlts, oldModel, model)
+	// The default schema is never altered, so its model is checked against the
+	// table as it stands, not against the model and pending alterations it replaces.
+	diffFrom, pending := oldModel, currentAlts
+	if svc.isDefaultSchema(model) {
+		diffFrom, pending = nil, nil
+	}
+
+	newAlts, batchID, err := svc.getSchemaAlterations(ctx, connection, pending, diffFrom, model)
 	if err != nil {
 		return
 	}
@@ -853,6 +861,28 @@ func (svc *service) ReplaceModel(ctx context.Context, currentAlts []*Alteration,
 	}
 
 	return
+}
+
+// DefaultSchemaAlterations returns the schema alterations the model would need
+// on the default connection's shared record table, which are never applied.
+func (svc *service) DefaultSchemaAlterations(ctx context.Context, model *Model) (alts []*Alteration, err error) {
+	if !svc.isDefaultSchema(model) {
+		return
+	}
+
+	alts, _, err = svc.getSchemaAlterations(ctx, svc.GetConnectionByID(svc.defConnID), nil, nil, model)
+	return
+}
+
+// isDefaultSchema reports whether the model is stored in the default
+// connection's shared record table.
+func (svc *service) isDefaultSchema(model *Model) bool {
+	connectionID := model.ConnectionID
+	if connectionID == 0 {
+		connectionID = svc.defConnID
+	}
+
+	return connectionID == svc.defConnID && svc.GetConnectionByID(connectionID) != nil && model.Ident == "compose_record"
 }
 
 // ApplyAlteration updates the underlying schema with the requested changes

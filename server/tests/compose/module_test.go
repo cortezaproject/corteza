@@ -459,6 +459,69 @@ func TestModuleCreateWithSystemAttributeFieldName(t *testing.T) {
 	}
 }
 
+func TestModuleRefusesDefaultSchemaAlteration(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
+	ns := h.makeNamespace("some-namespace")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "update")
+
+	plain := `{ "name": "plaincol", "kind": "String", "config": { "dal": { "encodingStrategy": { "plain": {} } } } }`
+
+	t.Run("create", func(t *testing.T) {
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
+			Header("Accept", "application/json").
+			JSON(fmt.Sprintf(`{ "name": "foo", "fields": [%s]}`, plain)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertError("module.errors.defaultSchemaAlteration")).
+			End()
+	})
+
+	t.Run("update", func(t *testing.T) {
+		m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "name"})
+		f := m.Fields[0]
+
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+			Header("Accept", "application/json").
+			JSON(fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "name", "kind": "String" }, %s]}`, m.Name, f.ID, plain)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertError("module.errors.defaultSchemaAlteration")).
+			End()
+
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+			Header("Accept", "application/json").
+			JSON(fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "name", "kind": "String" }, { "name": "other", "kind": "String" }]}`, m.Name, f.ID)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+	})
+
+	t.Run("recover", func(t *testing.T) {
+		stuck := &types.ModuleField{ID: id.Next(), Kind: "String", Name: "plaincol"}
+		stuck.Config.DAL.EncodingStrategy = &types.EncodingStrategy{EncodingStrategyPlain: &types.EncodingStrategyPlain{}}
+		m := h.makeModule(ns, "stuck-module", stuck)
+		f := m.Fields[0]
+
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+			Header("Accept", "application/json").
+			JSON(fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "plaincol", "kind": "String" }]}`, m.Name, f.ID)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			Assert(jsonpath.NotPresent(`$.response.issues`)).
+			End()
+	})
+}
+
 func TestModuleFieldsUpdate_defaults(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()

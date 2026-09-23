@@ -711,6 +711,38 @@ func ModuleErrFieldNameReserved(mm ...*moduleActionProps) *errors.Error {
 	return e
 }
 
+// ModuleErrDefaultSchemaAlteration returns "compose:module.defaultSchemaAlteration" as *errors.Error
+//
+// This function is auto-generated.
+func ModuleErrDefaultSchemaAlteration(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("field storage would need the shared record table altered", nil),
+
+		errors.Meta("type", "defaultSchemaAlteration"),
+		errors.Meta("resource", "compose:module"),
+
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.defaultSchemaAlteration"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ModuleErrFieldLocked returns "compose:module.fieldLocked" as *errors.Error
 //
 // This function is auto-generated.
