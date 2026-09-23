@@ -1,0 +1,87 @@
+# Awkward data fixture — a namespace whose records hold what real ones do and
+# demo data never does: empty values, mixed scripts, a note longer than any
+# column, markup that must be shown rather than run, two rows a reader cannot
+# tell apart, a Select value the module does not offer, and more rows than a
+# page should draw at once. Also an empty module, which is its own case.
+#
+# Imported by dev/agent/seed.sh (local dev server only). Data model + records
+# only. Used by the round-five custom app briefs in dev/agent/evals.
+
+namespace:
+  awkward:
+    name: Awkward Data
+    enabled: true
+
+    modules:
+      nothings:
+        name: Nothings
+        fields:
+          label:
+            title: Label
+
+      things:
+        name: Things
+        fields:
+          label:
+            title: Label
+          count:
+            title: Count
+            kind: Number
+          ratio:
+            title: Ratio
+            kind: Number
+            options:
+              precision: 3
+          flag:
+            title: Flag
+            kind: Bool
+          due:
+            title: Due
+            kind: DateTime
+            options:
+              onlyDate: true
+          kind:
+            title: Kind
+            kind: Select
+            options:
+              options:
+                - value: alpha
+                  text: Alpha
+                - value: beta
+                  text: Beta
+                - value: gamma
+                  text: Gamma
+          tags:
+            title: Tags
+            multi: true
+          link:
+            title: Link
+            kind: Url
+          note:
+            title: Note
+            options:
+              multiLine: true
+        source:
+          - from: things.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: label
+                field: label
+              - column: count
+                field: count
+              - column: ratio
+                field: ratio
+              - column: flag
+                field: flag
+              - column: due
+                field: due
+              - column: kind
+                field: kind
+              - column: tags
+                field: tags
+              - column: link
+                field: link
+              - column: note
+                field: note
