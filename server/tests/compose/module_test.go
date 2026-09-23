@@ -340,7 +340,7 @@ func TestModuleFieldsUpdate(t *testing.T) {
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
 
 	f := m.Fields[0]
-	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "Number" }, { "name": "new", "kind": "DateTime" }] }`, m.Name, f.ID)
+	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "Number" }, { "name": "added", "kind": "DateTime" }] }`, m.Name, f.ID)
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
 		JSON(fjs).
@@ -358,7 +358,7 @@ func TestModuleFieldsUpdate(t *testing.T) {
 	h.a.Equal(m.Fields[0].Name, "existing_edited")
 	h.a.Equal(m.Fields[0].Kind, "Number")
 	h.a.Nil(m.Fields[1].UpdatedAt)
-	h.a.Equal(m.Fields[1].Name, "new")
+	h.a.Equal(m.Fields[1].Name, "added")
 	h.a.Equal(m.Fields[1].Kind, "DateTime")
 }
 
@@ -445,7 +445,7 @@ func TestModuleCreateWithSystemAttributeFieldName(t *testing.T) {
 	ns := h.makeNamespace("some-namespace")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
 
-	for _, name := range []string{"id", "ID", "tenantID", "projectID", "createdByAgent", "namespaceID", "moduleID"} {
+	for _, name := range []string{"id", "ID", "tenantID", "projectID", "createdByAgent", "namespaceID", "moduleID", "new", "old", "or", "Or", "NULL", "desc"} {
 		t.Run(name, func(t *testing.T) {
 			h.apiInit().
 				Post(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
@@ -533,7 +533,7 @@ func TestModuleFieldsUpdate_defaults(t *testing.T) {
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
 
 	f := m.Fields[0]
-	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "String", "isRequired": true, "defaultValue": [{ "value": "test" }] }, { "name": "new", "kind": "Bool", "defaultValue": [{ "value": "1" }] }] }`, m.Name, f.ID)
+	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "String", "isRequired": true, "defaultValue": [{ "value": "test" }] }, { "name": "added", "kind": "Bool", "defaultValue": [{ "value": "1" }] }] }`, m.Name, f.ID)
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
 		JSON(fjs).
@@ -1000,7 +1000,7 @@ func TestModuleFieldsPreventUpdate_ifRecordExists(t *testing.T) {
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
 
 	f := m.Fields[0]
-	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "Number" }, { "name": "new", "kind": "DateTime" }] }`, m.Name, f.ID)
+	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "Number" }, { "name": "added", "kind": "DateTime" }] }`, m.Name, f.ID)
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
 		Header("Accept", "application/json").

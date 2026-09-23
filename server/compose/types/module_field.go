@@ -14,6 +14,7 @@ import (
 	"github.com/crusttech/human/server/pkg/filter"
 	labelTypes "github.com/crusttech/human/server/pkg/label/types"
 	"github.com/crusttech/human/server/pkg/locale"
+	"github.com/crusttech/human/server/pkg/ql"
 	"github.com/spf13/cast"
 )
 
@@ -174,9 +175,12 @@ var ModuleFieldKinds = []string{
 }
 
 // ModuleReservedFieldNames are the names a module field may not take: the
-// record's system fields as the API names them, and the idents of the system
-// attributes in the record's storage model, which a same-named field displaces.
+// record's system fields as the API names them, the idents of the system
+// attributes in the record's storage model, which a same-named field displaces,
+// and the whole-record names a value expression sees.
 var ModuleReservedFieldNames = []string{
+	"new",
+	"old",
 	"id",
 	"ID",
 	"recordID",
@@ -194,6 +198,13 @@ var ModuleReservedFieldNames = []string{
 	"updatedBy",
 	"deletedAt",
 	"deletedBy",
+}
+
+// IsReservedModuleFieldName reports whether a module field may not take the
+// name: a reserved name, or a query keyword in any casing, which record
+// filters could never refer to.
+func IsReservedModuleFieldName(name string) bool {
+	return slices.Contains(ModuleReservedFieldNames, name) || slices.Contains(ql.Keywords, strings.ToUpper(name))
 }
 
 // IsValidModuleFieldKind reports whether kind is one the platform implements.

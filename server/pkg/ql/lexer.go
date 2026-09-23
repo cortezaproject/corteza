@@ -38,6 +38,24 @@ type (
 var eof = rune(0)
 
 // NewLexer returns a new instance of Lexer.
+// Keywords are the words the lexer never reads as an identifier, in any casing.
+var Keywords = []string{
+	"NULL",
+	"TRUE",
+	"FALSE",
+	"IS",
+	"LIKE",
+	"NOT",
+	"AND",
+	"OR",
+	"XOR",
+	"IN",
+	"BETWEEN",
+	"DESC",
+	"ASC",
+	"INTERVAL",
+}
+
 func NewLexer(r io.Reader) *Lexer {
 	return &Lexer{
 		r: bufio.NewReader(r),

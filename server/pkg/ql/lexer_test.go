@@ -103,3 +103,13 @@ func TestScanner_ScanComplex(t *testing.T) {
 		}
 	}
 }
+
+func TestScanner_KeywordsAreNeverIdentifiers(t *testing.T) {
+	for _, kw := range Keywords {
+		for _, s := range []string{kw, strings.ToLower(kw)} {
+			if tok := NewLexer(strings.NewReader(s)).Scan(); tok.code == IDENT {
+				t.Errorf("%q scans as an identifier", s)
+			}
+		}
+	}
+}

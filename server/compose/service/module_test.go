@@ -370,6 +370,6 @@ func TestSystemAttributeIdentsAreReservedFieldNames(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, a := range attrs {
-		require.True(t, systemFields[a.Ident], "system attribute %q is not a reserved field name", a.Ident)
+		require.True(t, types.IsReservedModuleFieldName(a.Ident), "system attribute %q is not a reserved field name", a.Ident)
 	}
 }

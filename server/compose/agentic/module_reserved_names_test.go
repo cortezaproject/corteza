@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	cmpTypes "github.com/crusttech/human/server/compose/types"
+	"github.com/crusttech/human/server/pkg/ql"
 )
 
 func TestFieldsParamDocNamesReservedFieldNames(t *testing.T) {
-	for _, name := range cmpTypes.ModuleReservedFieldNames {
+	for _, name := range append(cmpTypes.ModuleReservedFieldNames, ql.Keywords...) {
 		if !strings.Contains(fieldsParamDoc, name) {
 			t.Errorf("fields documentation does not name reserved field %q", name)
 		}

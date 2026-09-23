@@ -24,7 +24,6 @@ import (
 	"github.com/crusttech/human/server/pkg/handle"
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/locale"
-	"github.com/crusttech/human/server/pkg/slice"
 	"github.com/crusttech/human/server/store"
 	systemTypes "github.com/crusttech/human/server/system/types"
 )
@@ -137,10 +136,6 @@ const (
 	colSysDeletedAt      = "deleted_at"
 	colSysDeletedBy      = "deleted_by"
 	colSysOwnedBy        = "owned_by"
-)
-
-var (
-	systemFields = slice.ToStringBoolMap(types.ModuleReservedFieldNames)
 )
 
 func Module(am schemaAltManager) *module {
@@ -515,7 +510,7 @@ func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.
 		}
 
 		for _, f := range new.Fields {
-			if systemFields[f.Name] {
+			if types.IsReservedModuleFieldName(f.Name) {
 				return ModuleErrFieldNameReserved()
 			}
 		}
@@ -796,7 +791,7 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 		// project).
 		f.ProjectID = new.ProjectID
 
-		if systemFields[f.Name] && !old.Fields.HasName(f.Name) {
+		if types.IsReservedModuleFieldName(f.Name) && !old.Fields.HasName(f.Name) {
 			// make sure we're backward compatible, or better:
 			// if, by some weird case, someone managed to get invalid field name into
 			// the store, we'll turn a blind eye.

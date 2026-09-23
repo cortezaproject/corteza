@@ -6,6 +6,7 @@ import (
 
 	cmpTypes "github.com/crusttech/human/server/compose/types"
 	hmcp "github.com/crusttech/human/server/pkg/mcpkit"
+	"github.com/crusttech/human/server/pkg/ql"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -34,10 +35,12 @@ var fieldsParamDoc = fmt.Sprintf(
 		`"defaultValue" fills the field when a record is created without it; the "name" key is `+
 		`optional and is stored empty, because the field already says which field it is for. `+
 		`Reserved field names, refused because the record already carries them as system `+
-		`fields: %s — name an identifier field for what it identifies instead, e.g. IssueID. `+
+		`fields: %s; so are the query keywords %s in any casing, which record filters could `+
+		`never refer to — name an identifier field for what it identifies instead, e.g. IssueID. `+
 		expressionsDoc,
 	strings.Join(cmpTypes.ModuleFieldKinds, ", "),
 	strings.Join(cmpTypes.ModuleReservedFieldNames, ", "),
+	strings.Join(ql.Keywords, ", "),
 )
 
 // writeDetailDoc is the same knob compose_module_lookup carries, on the two
