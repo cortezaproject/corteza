@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { BRIDGE_SCRIPT } from './bridge'
 import {
   allowModule,
+  describeField,
   dimensionRefs,
   downloadName,
   MAX_DOWNLOAD,
@@ -559,5 +560,57 @@ describe('a breakdown grouped by a reference', () => {
       { ...ctx, version: 1 },
     )
     expect(old).toEqual(rows)
+  })
+})
+
+describe('what the app may read about its modules', () => {
+  const fields = [
+    { name: 'name', label: 'Full name', kind: 'String' },
+    {
+      name: 'status',
+      kind: 'Select',
+      options: { options: [{ value: 'lead', text: 'Lead' }, { value: 'active' }] },
+    },
+    { name: 'tags', kind: 'String', multi: true },
+  ]
+
+  it('describes a field by what it is called and what it may hold', () => {
+    expect(describeField(fields[0])).toEqual({
+      name: 'name',
+      label: 'Full name',
+      kind: 'String',
+      multi: false,
+    })
+    // An option with no text of its own is known by its value.
+    expect(describeField(fields[1]).options).toEqual([
+      { value: 'lead', label: 'Lead' },
+      { value: 'active', label: 'active' },
+    ])
+    expect(describeField(fields[2]).multi).toBe(true)
+  })
+
+  it('answers with the declared modules, saying which may be changed', async () => {
+    const ctx = {
+      ...context({
+        namespace: 'agent-sandbox',
+        modules: ['agent-contact'],
+        writes: ['agent-contact'],
+      }),
+      fields: () => fields,
+    }
+
+    expect(await dispatch('modules', {}, ctx)).toEqual([
+      {
+        handle: 'agent-contact',
+        moduleID: '2',
+        writable: true,
+        fields: fields.map(describeField),
+      },
+    ])
+  })
+
+  it('says nothing about a module the app never declared', async () => {
+    const ctx = { ...context({ namespace: 'x', modules: [] }), fields: () => fields }
+    expect(await dispatch('modules', {}, ctx)).toEqual([])
   })
 })

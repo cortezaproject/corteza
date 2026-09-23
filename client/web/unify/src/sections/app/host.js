@@ -383,6 +383,24 @@ export async function dimensionRefs(ctx, moduleID, dimension, rows) {
   return {}
 }
 
+// A field as an app needs to read it: what to call it, what it holds, and the
+// options it may hold.
+export function describeField(field) {
+  const out = {
+    name: field.name,
+    label: field.label || field.name,
+    kind: field.kind,
+    multi: !!field.multi,
+  }
+
+  const options = field.options?.options
+  if (Array.isArray(options)) {
+    out.options = options.map(o => ({ value: o.value, label: o.text || o.value }))
+  }
+
+  return out
+}
+
 function writableModuleIDFor(ctx, module) {
   const refusal = allowWrite(ctx.meta, module)
   if (refusal) throw new Error(refusal)
@@ -513,6 +531,20 @@ export async function dispatch(op, args = {}, ctx) {
       }
       ctx.download(downloadName(args.name), text)
       return true
+    }
+
+    case 'modules': {
+      // What the app declared, as it stands now: the labels and the options a
+      // Select holds today, rather than the ones its author copied in.
+      return (ctx.meta?.modules || []).map(handle => {
+        const moduleID = ctx.moduleIDs?.[handle]
+        return {
+          handle,
+          moduleID,
+          writable: (ctx.meta?.writes || []).includes(handle),
+          fields: fieldsFor(ctx, moduleID).map(describeField),
+        }
+      })
     }
 
     case 'user':

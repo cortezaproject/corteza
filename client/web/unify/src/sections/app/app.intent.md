@@ -115,6 +115,7 @@ Operations:
 | `records.list`   | `{module, filter?, sort?, limit?, pageCursor?}` | `{records, refs, nextPageCursor}`               |
 | `records.read`   | `{module, recordID}`                            | `{record, refs}`                                |
 | `records.report` | `{module, metrics, dimensions, filter?}`        | `{rows, refs}`, or the rows alone in contract 1 |
+| `modules`        | —                                               | the declared modules, with their fields today   |
 | `user`           | —                                               | `{userID, name, email}`                         |
 | `theme`          | —                                               | `{dark: bool, colors: {primary, body-bg, ...}}` |
 | `records.create` | `{module, values}`                              | `{record}`                                      |
@@ -154,6 +155,9 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
   it changes every record a filter matches.
 - A report grouped by a Record or User field is keyed by bare IDs; from
   contract 2 its `refs` name them, by the same rule a listing follows.
+- `modules` answers with what the app declared, as the modules stand now:
+  each field's label, kind and Select options. A page that bakes those in goes
+  stale the day somebody renames an option.
 - `download` hands the viewer a file the sandbox could not save itself: at most
   5 MB of text, under a name reduced to one file name.
 - No delete, no attachment, no owner change.
