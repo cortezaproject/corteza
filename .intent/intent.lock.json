@@ -3457,7 +3457,7 @@
       "t": "2026-07-23"
     },
     "lib/js/src/corredor/ctx.ts": {
-      "h": "3d29001ddfa5",
+      "h": "12eabc1a4696",
       "doc": "lib/js/src/corredor/corredor.intent.md",
       "t": "2026-09-23"
     },
@@ -3477,14 +3477,19 @@
       "t": "2026-07-23"
     },
     "lib/js/src/corredor/helpers/compose.ts": {
-      "h": "a235c07dc3a4",
+      "h": "c49480e56be7",
       "doc": "lib/js/src/corredor/corredor.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-23"
+    },
+    "lib/js/src/corredor/helpers/generated.test.ts": {
+      "h": "5bf7438db9dc",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-09-23"
     },
     "lib/js/src/corredor/helpers/index.ts": {
-      "h": "e681178ddffd",
+      "h": "9e7c93ef0e88",
       "doc": "lib/js/src/corredor/corredor.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-23"
     },
     "lib/js/src/corredor/helpers/shared.test.ts": {
       "h": "8b58ef05a480",
@@ -3492,9 +3497,9 @@
       "t": "2026-07-23"
     },
     "lib/js/src/corredor/helpers/shared.ts": {
-      "h": "9ec5913daf50",
+      "h": "4dce7b424f7e",
       "doc": "lib/js/src/corredor/corredor.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-23"
     },
     "lib/js/src/corredor/helpers/system.test.ts": {
       "h": "7a7d5665aecd",
@@ -3502,9 +3507,9 @@
       "t": "2026-07-23"
     },
     "lib/js/src/corredor/helpers/system.ts": {
-      "h": "7b0ac1a7446b",
+      "h": "6dd7e24ff4d9",
       "doc": "lib/js/src/corredor/corredor.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-23"
     },
     "lib/js/src/corredor/index.ts": {
       "h": "e64b3d46d42a",
@@ -3741,10 +3746,20 @@
       "doc": "lib/js/src/validator/validator.intent.md",
       "t": "2026-07-23"
     },
-    "lib/js/tools/codegen/human-api-client.js": {
-      "h": "ec6c4cf12554",
+    "lib/js/tools/codegen/corredor-helpers.js": {
+      "h": "54177329f9ef",
       "doc": "lib/js/js.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-23"
+    },
+    "lib/js/tools/codegen/human-api-client.js": {
+      "h": "87b5d7bd66a8",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-09-23"
+    },
+    "lib/js/tools/codegen/spec.js": {
+      "h": "b7cb57f031b7",
+      "doc": "lib/js/js.intent.md",
+      "t": "2026-09-23"
     },
     "lib/js/tools/codegen/template.js": {
       "h": "54b869ca1117",

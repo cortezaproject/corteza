@@ -15,7 +15,7 @@
     "format:check": "prettier --check src/",
     "test:unit": "mocha",
     "test": "pnpm run test:unit",
-    "codegen": "node tools/codegen/human-api-client.js && prettier --write src/api-clients/*.ts && eslint --fix src/api-clients/*.ts"
+    "codegen": "node tools/codegen/human-api-client.js && prettier --write src/api-clients/*.ts && eslint --fix src/api-clients/*.ts && node tools/codegen/corredor-helpers.js"
   },
   "dependencies": {
     "axios": "^1.15.0",

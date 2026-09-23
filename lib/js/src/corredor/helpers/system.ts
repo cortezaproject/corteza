@@ -8,6 +8,7 @@ import {
   PermissionResource,
 } from './shared'
 import { System as SystemAPI } from '../../api-clients'
+import GeneratedSystemHelper from './system.gen'
 import { User, Role, Application } from '../../system/'
 import { IsHumanID } from '../../cast'
 
@@ -62,14 +63,13 @@ function isRole(o: any) {
 /**
  * SystemHelper provides layer over System API and utilities that simplify automation script writing
  */
-export default class SystemHelper {
-  readonly SystemAPI: SystemAPI
+export default class SystemHelper extends GeneratedSystemHelper {
   readonly $user?: User
   readonly $role?: Role
   readonly $application?: Application
 
   constructor(ctx: SystemContext) {
-    this.SystemAPI = ctx.SystemAPI
+    super(ctx)
 
     this.$user = ctx.$user
     this.$role = ctx.$role

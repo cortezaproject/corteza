@@ -31,6 +31,7 @@ here may import from `lib/vue` or any app.
 - `src/guards.ts` — structural type guards (`IsOf`, `AreObjectsOf`, …).
 - `src/markdown.ts` — `renderMarkdown`: markdown-it + DOMPurify pipeline shared by all chat surfaces (agent chat, chatbot inbox, embeddable widget).
 - `src/api-clients/` — CODEGEN-OWNED (see below); each subsystem's axios client class.
+- `src/corredor/helpers/*.gen.ts` — CODEGEN-OWNED by the same chain: the scripting helper layer over those clients, named through an append-only lock.
 - Subfolders each carry their own intent doc (validator, corredor, compose, system, automation, eventbus, formatting, shared).
 
 ## api-clients regeneration rule

@@ -9,6 +9,7 @@ import {
 } from './shared'
 import { Attachment } from '../../shared'
 import { Compose as ComposeAPI } from '../../api-clients'
+import GeneratedComposeHelper from './compose.gen'
 import { Namespace, Record, Module, Page } from '../../compose'
 import { Values } from '../../compose/types/record'
 import { IsHumanID } from '../../cast'
@@ -99,8 +100,7 @@ function isPage(o: any) {
  * Initiated as Compose object and provides a few handy shortcuts and fallback that will enable you
  * to rapidly develop your automation scripts.
  */
-export default class ComposeHelper {
-  readonly ComposeAPI: ComposeAPI
+export default class ComposeHelper extends GeneratedComposeHelper {
   readonly $namespace?: Namespace
   readonly $module?: Module
   readonly $record?: Record
@@ -111,7 +111,8 @@ export default class ComposeHelper {
    * @param ctx.$record - Current record
    */
   constructor(ctx: ComposeContext) {
-    this.ComposeAPI = ctx.ComposeAPI
+    super(ctx)
+
     this.$namespace = ctx.$namespace
     this.$module = ctx.$module
     this.$record = ctx.$record

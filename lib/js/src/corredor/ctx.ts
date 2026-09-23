@@ -1,5 +1,5 @@
 import * as apiClients from '../api-clients'
-import { SystemHelper, ComposeHelper } from './helpers'
+import { SystemHelper, ComposeHelper, AutomationHelper } from './helpers'
 import { Logger } from 'pino'
 import { BaseArgs } from './shared'
 import { User } from '../system'
@@ -164,6 +164,13 @@ export class Ctx {
    */
   get Compose(): ComposeHelper {
     return new ComposeHelper({ ComposeAPI: this.ComposeAPI, ...this.args })
+  }
+
+  /**
+   * Configures and returns automation helper
+   */
+  get Automation(): AutomationHelper {
+    return new AutomationHelper({ AutomationAPI: this.AutomationAPI, ...this.args })
   }
 
   /**
