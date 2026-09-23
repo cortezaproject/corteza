@@ -19,6 +19,8 @@ RUN curl -sOL $SASS_URL && tar -xzf dart-sass-${SASS_VERSION}-linux-x64.tar.gz &
 
 RUN mkdir -p /human/webapp
 COPY .docker-build/server /human
+# CI artifacts arrive without the exec bit
+RUN chmod +x /human/bin/human-server
 COPY .docker-build/webapp-merged /human/webapp
 
 WORKDIR /human

@@ -13,6 +13,8 @@ RUN sed -i 's|archive.ubuntu.com|azure.archive.ubuntu.com|g; s|security.ubuntu.c
 RUN mkdir -p /human
 
 COPY .docker-build/server /human
+# CI artifacts arrive without the exec bit
+RUN chmod +x /human/bin/human-server
 
 VOLUME /data
 
