@@ -33,15 +33,19 @@ how it presents in the unified shell (display name, URL, listed flag, logo).
   (`'custom'`, its own HTML page). A custom app's URL is shown locked at
   `app/<applicationID>` — the server stores exactly that on every update, and
   creating one saves twice, since only the second save has an ID to put in it.
-- Custom app panel (custom kind, edit only): open the app; the namespace and
-  modules its page may read; the page's size and when it was last replaced; the
-  page itself, read only, with a copy button — or, with no page yet, how to
-  deploy one. Whoever holds `source.manage` edits the page here, in
+- Custom app panel (custom kind, edit only): open the app; the namespace, the
+  modules its page may read and those it may change, all set here with the
+  namespace and module pickers; the page's size and when it was last replaced;
+  the page itself.
+- What is stored is names — the namespace's slug and module handles — while the
+  pickers hold IDs, so a page carried to another instance is read back by what
+  it declared rather than by IDs that mean nothing there. A module dropped from
+  the read list is dropped from the writable one with it. Whoever holds `source.manage` edits the page here, in
   `CCodeEditor`, and saves it through the same endpoint and the same refusals
   as `system_application_source_set` — a page the sandbox could not run is
   refused wherever it is written. The declaration travels back untouched:
-  sending the page alone would empty what the app may read. An edit made here
-  is what Claude's next patch has to find, and the view says so.
+  sending the page alone would empty what the app may read. An edit made here is what an
+  assistant's next patch has to find, and the view says so.
 
 ## Routes
 

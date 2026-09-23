@@ -113,6 +113,7 @@ Operations, all read-only:
 | `human.records.list`   | `{module, filter?, sort?, limit?, pageCursor?}` | `{records, refs, nextPageCursor}`            |
 | `human.records.read`   | `{module, recordID}`                            | `{record, refs}`                             |
 | `human.records.report` | `{module, metrics, dimensions, filter?}`        | `{rows, refs}`                               |
+| `human.modules`        | —                                               | the declared modules and their fields today  |
 | `human.user`           | —                                               | `{userID, name, email}`                      |
 | `human.theme`          | —                                               | `{dark, colors}`                             |
 | `human.records.create` | `{module, values}`                              | `{record}`                                   |
@@ -140,6 +141,10 @@ createdAt, updatedAt}`. `values` is an object keyed by field name, multi-value
 - `limit` is capped at 500.
 - A report grouped by a Record or User field comes back keyed by bare IDs, with
   `refs` naming them — show the name, never the ID.
+- `human.modules()` answers `[{handle, moduleID, writable, fields}]`, each field
+  `{name, label, kind, multi, options?}` as the module stands now. Take a
+  field's label and a Select's options from there rather than writing them into
+  the page: an option renamed next month should not leave the page lying.
 - Changing records is off unless the app was deployed with `writes` naming the
   modules it may change; every one of them must be in `modules` too. Leave
   `writes` out for a read-only app.
@@ -179,5 +184,7 @@ When the user is happy with the preview:
 
 To change an app later, read it with `system_application_source_get` and send a
 patch: `old_string` copied exactly from what came back, with `new_string`.
+Somebody may have edited the page in Human since you wrote it, so patch what
+`system_application_source_get` returns rather than what you remember sending.
 `old_string` must match exactly once, so include the surrounding lines. Sending
 the whole file again is right only for a rewrite.

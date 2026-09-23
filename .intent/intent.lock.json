@@ -47,7 +47,7 @@
       "t": "2026-07-24"
     },
     "client/web/unify/e2e/sections/admin/application-custom.spec.ts": {
-      "h": "c0b6ac969de1",
+      "h": "ab338dd7ddf5",
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-09-23"
     },
@@ -387,7 +387,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/admin/views/system/Application/Editor.vue": {
-      "h": "73f3b6a1b399",
+      "h": "672e8cdbc1ca",
       "doc": "client/web/unify/src/sections/admin/views/system/Application/Editor.intent.md",
       "t": "2026-09-23"
     },

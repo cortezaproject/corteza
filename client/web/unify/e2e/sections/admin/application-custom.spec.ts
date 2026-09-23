@@ -136,6 +136,37 @@ test.describe.serial('custom application in the editor', () => {
     expect(after.source).not.toContain('example.com')
   })
 
+  // What the app may reach is set here, by hand, not only through the API.
+  test('what the app reads and changes is set in the editor', async ({ page }) => {
+    test.skip(!applicationID, 'the application was not created')
+    await page.goto(`/admin/system/applications/${applicationID}`)
+    await page.locator('#customSource .cm-content').waitFor({ timeout: 20000 })
+
+    await page.locator('[data-test-id="custom-namespace"]').click()
+    const namespace = page.getByRole('option').first()
+    const namespaceName = (await namespace.innerText()).trim()
+    test.skip(!namespaceName, 'this stack has no namespace to declare')
+    await namespace.click()
+
+    await page.locator('[data-test-id="custom-modules"]').click()
+    const module = page.getByRole('option').first()
+    if (await module.count()) await module.click()
+    await page.keyboard.press('Escape')
+
+    await page.locator('[data-test-id="button-save-page"]').click()
+
+    await expect
+      .poll(
+        async () =>
+          (await api(page, 'applicationSourceRead', { applicationID })).sourceMeta?.namespace,
+      )
+      .toBeTruthy()
+
+    // Saved by name, and resolved to what this instance calls it.
+    const meta = (await api(page, 'applicationSourceRead', { applicationID })).sourceMeta
+    expect(meta.namespaceID).toBeTruthy()
+  })
+
   test('open the app from the editor', async ({ page }) => {
     test.skip(!applicationID, 'the application was not created')
     await page.goto(`/admin/system/applications/${applicationID}`)

@@ -20,8 +20,9 @@ tests:
 
 ## Intention
 
-An application of kind `custom` is one HTML document, written outside Human
-(typically by Claude through the MCP) and stored with the application. This
+An application of kind `custom` is one HTML document, written outside Human —
+by hand, or by an assistant over the MCP surface — and stored with the
+application. This
 section shows it at `/app/:applicationID` inside a sandbox that gives it no
 network, no storage and no session, and hands it data through a message bridge
 that runs every call as the viewer, under the viewer's permissions.
@@ -170,7 +171,7 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
 - `host.js` — the host script serialised into the outer frame: port handshake,
   operation dispatch, allowlist, value reshaping. Pure functions, unit-tested.
 - `bridge.js` — the in-page bridge prefixed to the app source. The same text
-  the MCP skill tells Claude to paste, so an app written to the skill needs
+  the MCP skill hands an app's author, so a page written to the skill needs
   nothing added; it is idempotent (`window.human = window.human || …`, sample
   data read lazily from `window.SAMPLE`) because the page usually carries its
   own copy too.
