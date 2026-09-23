@@ -474,11 +474,17 @@ export async function dispatch(op, args = {}, ctx) {
 
     case 'records.report': {
       const moduleID = moduleIDFor(ctx, args.module)
+      // One field is grouped by, and the API calls it `dimension` — which is
+      // also what an author reading the module through the tools is shown. The
+      // plural is taken too, because the operation reads like it takes several.
+      const dimension = args.dimension ?? args.dimensions
+      if (!dimension) throw new Error('a report needs a `dimension`: the field to group by')
+
       const rows = await ctx.compose.recordReport({
         namespaceID: ctx.namespaceID,
         moduleID,
         metrics: args.metrics,
-        dimensions: args.dimensions,
+        dimensions: dimension,
         filter: args.filter,
       })
 
@@ -486,7 +492,7 @@ export async function dispatch(op, args = {}, ctx) {
       // reference carries the labels too, the way a listing does.
       if (ctx.version < 2) return rows
 
-      return { rows, refs: await dimensionRefs(ctx, moduleID, args.dimensions, rows) }
+      return { rows, refs: await dimensionRefs(ctx, moduleID, dimension, rows) }
     }
 
     case 'records.create': {

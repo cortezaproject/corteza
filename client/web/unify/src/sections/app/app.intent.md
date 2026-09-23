@@ -154,6 +154,10 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
 - `records.update` changes exactly the one record it names and only the fields
   it lists; it refuses to run without a `recordID`, because the endpoint under
   it changes every record a filter matches.
+- A report groups by one field, and the app names it `dimension` — what the
+  API and its tools call it. The plural is taken as well, because a bridge that
+  took only the plural dropped what an author wrote and left the server
+  answering `field dimensions is empty`; naming neither is refused here.
 - A report grouped by a Record or User field is keyed by bare IDs; from
   contract 2 its `refs` name them, by the same rule a listing follows.
 - `modules` answers with what the app declared, as the modules stand now:

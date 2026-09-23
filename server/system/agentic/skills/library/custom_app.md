@@ -112,7 +112,7 @@ Operations, all read-only:
 | ---------------------- | ----------------------------------------------- | -------------------------------------------- |
 | `human.records.list`   | `{module, filter?, sort?, limit?, pageCursor?}` | `{records, refs, nextPageCursor}`            |
 | `human.records.read`   | `{module, recordID}`                            | `{record, refs}`                             |
-| `human.records.report` | `{module, metrics, dimensions, filter?}`        | `{rows, refs}`                               |
+| `human.records.report` | `{module, dimension, metrics?, filter?}`        | `{rows, refs}`                               |
 | `human.modules`        | —                                               | the declared modules and their fields today  |
 | `human.user`           | —                                               | `{userID, name, email}`                      |
 | `human.theme`          | —                                               | `{dark, colors}`                             |
@@ -139,6 +139,17 @@ createdAt, updatedAt}`. `values` is an object keyed by field name, multi-value
 - The snippet's `v: 2` is the contract a page is written against. Keep it as it
   is; a page with `v: 1` gets the older, string-only values.
 - `limit` is capped at 500.
+- A report groups by one field, named `dimension`, and every row comes back as
+  `{dimension_0, count}` — the record count is there without asking for it:
+
+      const { rows } = await human.records.report({ module: 'contacts', dimension: 'contact_type' })
+      // rows: [{ dimension_0: 'billing', count: 1 }, { dimension_0: null, count: 3 }]
+
+  `dimension_0` is the stored value, so a Select needs its option's wording
+  looked up, and `null` means the records that hold nothing there — count them
+  as "Not set" rather than dropping them. `metrics` is only for a sum or an
+  average, and each one must say so: `'SUM(amount) AS total'`.
+
 - A report grouped by a Record or User field comes back keyed by bare IDs, with
   `refs` naming them — show the name, never the ID.
 - `human.modules()` answers `[{handle, moduleID, writable, fields}]`, each field

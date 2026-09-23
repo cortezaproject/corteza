@@ -125,6 +125,30 @@ describe('operation dispatch', () => {
     )
   })
 
+  // The API calls the field a report groups by `dimension`, which is what an
+  // author reading the tools is shown; a bridge taking only the plural dropped
+  // it silently and the server answered "field dimensions is empty".
+  it('groups a report by the field the API names, singular or plural', async () => {
+    for (const args of [
+      { module: 'agent-contact', dimension: 'status' },
+      { module: 'agent-contact', dimensions: 'status' },
+    ]) {
+      const ctx = context()
+      await dispatch('records.report', args, ctx)
+      expect(ctx.compose.recordReport).toHaveBeenCalledWith(
+        expect.objectContaining({ dimensions: 'status' }),
+      )
+    }
+  })
+
+  it('refuses a report that names no field to group by', async () => {
+    const ctx = context()
+    await expect(dispatch('records.report', { module: 'agent-contact' }, ctx)).rejects.toThrow(
+      'a report needs a `dimension`: the field to group by',
+    )
+    expect(ctx.compose.recordReport).not.toHaveBeenCalled()
+  })
+
   it('passes a declared module through as its id, with the limit capped', async () => {
     const ctx = context()
     await dispatch('records.list', { module: 'agent-contact', limit: 5000 }, ctx)
