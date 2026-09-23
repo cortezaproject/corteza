@@ -132,7 +132,26 @@ const APP_REPORT = () => {
   const holes = ['undefined', 'NaN', '[object Object]', 'null'].filter(h =>
     new RegExp(`(^|[\\s>])${h.replace(/[[\]]/g, '\\$&')}([\\s<]|$)`).test(text),
   )
-  return { text, rows, ids, holes, canvases: document.querySelectorAll('canvas').length }
+  // Text the reader cannot get to. Two things are fine and only one is a
+  // fault: a container with overflow-x auto/scroll can be scrolled, and a cell
+  // that truncates with an ellipsis says so on screen. Content cut off by
+  // `overflow: hidden` with neither is simply gone, and looks complete in a
+  // preview that happened to be wider.
+  const root = document.documentElement
+  const clipped = Math.max(0, root.scrollWidth - root.clientWidth)
+  const lost = []
+  for (const el of document.querySelectorAll('*')) {
+    if (el.clientWidth < 80 || el.children.length) continue
+    const over = el.scrollWidth - el.clientWidth
+    if (over <= 4) continue
+    const st = getComputedStyle(el)
+    if (st.overflowX !== 'hidden' || st.textOverflow === 'ellipsis') continue
+    lost.push(`${el.tagName.toLowerCase()} loses ${over}px of "${(el.textContent || '').trim().slice(0, 30)}"`)
+  }
+  return {
+    text, rows, ids, holes, clipped, lost,
+    canvases: document.querySelectorAll('canvas').length,
+  }
 }
 
 const MODE = text => {
@@ -182,6 +201,9 @@ for (const id of ids) {
     if (report.ids.length)
       faults.push(`Human IDs shown to the reader: ${report.ids.slice(0, 3).join(', ')}`)
     if (report.holes.length) faults.push(`empty values rendered as ${report.holes.join(', ')}`)
+    if (report.clipped > 4)
+      faults.push(`${report.clipped}px of the page is cut off the right edge and cannot be reached`)
+    for (const l of report.lost.slice(0, 3)) faults.push(`text cut off with no way to read it: ${l}`)
     for (const want of expects) {
       if (!report.text.includes(want)) faults.push(`expected text not on the page: ${JSON.stringify(want)}`)
     }
