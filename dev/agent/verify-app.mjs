@@ -1,0 +1,202 @@
+#!/usr/bin/env node
+// Render-verify custom applications in a real (headless) browser.
+//
+// Usage: node dev/agent/verify-app.mjs [--out DIR] [--expect TEXT] ID [ID...]
+//   node dev/agent/verify-app.mjs --expect 'Ada Lovelace' 514958620159967233
+//
+// Logs in as agent@local.dev (password from .state/ui-password, created by
+// bootstrap.sh), opens /app/<id> for each application and reports what the app
+// actually drew. Exits non-zero if any app failed to render. Local-only.
+//
+// Why this exists: a custom app can pass every static check — the guard
+// accepts it, the snippet is intact, it deploys — and still show an empty
+// list, a column of record IDs, or "undefined" in every row. None of that is
+// visible to the API, to the deploy guard, or to the source itself. It is only
+// visible here.
+//
+// A custom app runs two frames deep: the shell holds an outer `srcdoc` frame
+// carrying the CSP, and that holds the sandboxed frame the page runs in. The
+// sandbox has an opaque origin, but the browser is being driven rather than
+// scripted, so the page's DOM is readable from here.
+
+import { readFileSync, readdirSync, mkdirSync } from 'node:fs'
+import { basename, dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
+import { stack } from './stack.mjs'
+
+const AGENT_DIR = dirname(fileURLToPath(import.meta.url))
+const REPO_DIR = resolve(AGENT_DIR, '..', '..')
+const { HUMAN_WEBAPP: WEBAPP, HUMAN_BASE: API_BASE } = stack()
+
+for (const u of [WEBAPP, API_BASE]) {
+  const host = new URL(u).hostname
+  if (!['localhost', '127.0.0.1', '::1'].includes(host)) {
+    console.error(`verify-app is local-only; refusing ${u}`)
+    process.exit(1)
+  }
+}
+
+const pnpmDir = join(REPO_DIR, 'node_modules', '.pnpm')
+const pwDir = readdirSync(pnpmDir).find(d => d.startsWith('playwright-core@'))
+if (!pwDir) {
+  console.error('playwright-core not found in node_modules/.pnpm — run pnpm install')
+  process.exit(1)
+}
+const require = createRequire(
+  join(pnpmDir, pwDir, 'node_modules', 'playwright-core', 'package.json'),
+)
+const { chromium } = require(join(pnpmDir, pwDir, 'node_modules', 'playwright-core'))
+
+const args = process.argv.slice(2)
+const SESSION = process.env.CLAUDE_CODE_SESSION_ID || 'unknown'
+let outDir = join(AGENT_DIR, '.state', 'sessions', SESSION, basename(REPO_DIR), 'app')
+const expects = []
+const ids = []
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === '--out') outDir = args[++i]
+  else if (args[i] === '--expect') expects.push(args[++i])
+  else ids.push(args[i])
+}
+if (!ids.length) {
+  console.error('usage: verify-app.mjs [--out DIR] [--expect TEXT] ID [ID...]')
+  process.exit(1)
+}
+mkdirSync(outDir, { recursive: true })
+
+// Requests the shell makes on every route, custom app or not. They are the
+// webapp's business and would otherwise be reported against every app.
+const SHELL_NOISE = [
+  /\/federation\/permissions\/effective/,
+  /\/system\/attachment\/avatar\//,
+]
+
+const email = 'agent@local.dev'
+const password = readFileSync(join(AGENT_DIR, '.state', 'ui-password'), 'utf8').trim()
+
+const browser = await chromium.launch({ headless: true })
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+
+let problems = []
+page.on('pageerror', e => problems.push(`pageerror: ${e.message.slice(0, 300)}`))
+page.on('console', m => {
+  // resource-load failures are reported (and filtered) through the response
+  // listener below — the console duplicate has no URL and only adds noise
+  if (m.type() === 'error' && !m.text().startsWith('Failed to load resource'))
+    problems.push(`console.error: ${m.text().slice(0, 300)}`)
+})
+page.on('requestfailed', r => {
+  // Leaving a route cancels whatever it still had in flight; only a request the
+  // browser refused says anything about the app.
+  const why = r.failure()?.errorText || ''
+  if (why === 'net::ERR_ABORTED') return
+  if (!SHELL_NOISE.some(re => re.test(r.url()))) problems.push(`${why}: ${r.url().slice(0, 160)}`)
+})
+page.on('response', r => {
+  if (r.status() >= 400 && !SHELL_NOISE.some(re => re.test(r.url())))
+    problems.push(`HTTP ${r.status()}: ${r.url().slice(0, 160)}`)
+})
+
+async function login() {
+  await page.goto(WEBAPP, { waitUntil: 'domcontentloaded' })
+  await page.waitForURL(/\/auth\//, { timeout: 20000 }).catch(() => {})
+  if (page.url().includes('/auth/')) {
+    await page.fill('input[name="email"]', email)
+    const pw = page.locator('input[name="password"]')
+    if (!(await pw.count())) await page.click('button[type="submit"]') // two-step login
+    await page.fill('input[name="password"]', password)
+    await page.click('button[type="submit"]')
+    await page.waitForURL(u => !u.href.includes('/auth/'), { timeout: 20000 })
+  }
+  problems.length = 0 // ignore login-phase noise
+}
+await login()
+
+// What the app drew, read out of the frame it drew it in.
+//
+// Every fault below survives the deploy guard, so this is the only place they
+// can be seen: a Human ID printed where a name belongs (the page read a field
+// the module does not have), `undefined` in a cell (a value the record left
+// empty), a frame holding nothing at all (the app threw before drawing).
+const APP_REPORT = () => {
+  const text = document.body ? document.body.innerText : ''
+  // Repeated things, whatever the page built them out of: a table, a list, or
+  // the grid of cards a page is just as likely to draw. Counted for the report
+  // rather than judged — the honest test of live data is the text itself.
+  const rows = document.querySelectorAll(
+    'tbody tr, li, [role="row"], [role="listitem"], [class*="card"], [class*="row"], [class*="item"]',
+  ).length
+  // A Human ID is 18-19 digits. Shown to a person it is always a mistake —
+  // the page meant to print the record's label and read the wrong field.
+  const ids = [...new Set(text.match(/\b\d{18,19}\b/g) || [])]
+  const holes = ['undefined', 'NaN', '[object Object]', 'null'].filter(h =>
+    new RegExp(`(^|[\\s>])${h.replace(/[[\]]/g, '\\$&')}([\\s<]|$)`).test(text),
+  )
+  return { text, rows, ids, holes, canvases: document.querySelectorAll('canvas').length }
+}
+
+const MODE = text => {
+  if (/\blive data\b/i.test(text)) return 'live'
+  if (/\bsample data\b/i.test(text)) return 'sample'
+  return 'unstated'
+}
+
+let failed = false
+for (const id of ids) {
+  problems = []
+  const faults = []
+  await page.goto(`${WEBAPP}/app/${id}`, { waitUntil: 'networkidle' }).catch(e => {
+    faults.push(`navigation: ${e.message.split('\n')[0]}`)
+  })
+  // The bridge answers over a port, so the first paint is empty by design.
+  await page.waitForTimeout(2500)
+
+  // shell, outer host, sandboxed app — in that order, the app being the last
+  // srcdoc frame the shell holds.
+  const srcdoc = page.frames().filter(f => f.url() === 'about:srcdoc')
+  const app = srcdoc[srcdoc.length - 1]
+
+  let report = null
+  if (!srcdoc.length) faults.push('no sandbox frame — the app never rendered')
+  else if (srcdoc.length < 2) faults.push('the app frame is gone — it navigated itself away')
+  else {
+    try {
+      report = await app.evaluate(APP_REPORT)
+    } catch (e) {
+      faults.push(`unreadable app frame: ${e.message.split('\n')[0]}`)
+    }
+  }
+
+  const shot = join(outDir, `app-${id}.png`)
+  await page.screenshot({ path: shot, fullPage: true }).catch(() => {})
+
+  console.log(`\n▸ /app/${id}`)
+  if (report) {
+    const mode = MODE(report.text)
+    const visible = report.text.trim()
+    console.log(`  mode        ${mode}`)
+    console.log(`  drew        ${report.rows} row(s), ${visible.length} chars of text`)
+    if (mode === 'unstated') faults.push('the page never says whether it is on live or sample data')
+    if (mode === 'sample') faults.push('the page fell back to sample data inside Human')
+    if (visible.length < 40) faults.push(`the app drew almost nothing: ${JSON.stringify(visible)}`)
+    if (report.ids.length)
+      faults.push(`Human IDs shown to the reader: ${report.ids.slice(0, 3).join(', ')}`)
+    if (report.holes.length) faults.push(`empty values rendered as ${report.holes.join(', ')}`)
+    for (const want of expects) {
+      if (!report.text.includes(want)) faults.push(`expected text not on the page: ${JSON.stringify(want)}`)
+    }
+    console.log(`  text        ${JSON.stringify(visible.slice(0, 200))}`)
+  }
+
+  for (const p of problems) faults.push(p)
+  if (faults.length) {
+    failed = true
+    for (const f of faults) console.log(`  ✗ ${f}`)
+  } else {
+    console.log('  ✓ renders live data with no faults')
+  }
+  console.log(`  screenshot  ${shot}`)
+}
+
+await browser.close()
+process.exit(failed ? 1 : 0)
