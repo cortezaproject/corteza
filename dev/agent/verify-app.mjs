@@ -243,10 +243,14 @@ for (const id of ids) {
       if (only === 'commits') {
         const count = Math.min(await submits.count().catch(() => 0), clicks)
         for (let i = 0; i < count && pressed < clicks; i++) {
-          await submits
+          const landed = await submits
             .nth(i)
             .click({ timeout: 3000, noWaitAfter: true })
-            .catch(() => {})
+            .then(
+              () => true,
+              () => false,
+            )
+          if (!landed) continue // a control that was not there to press is not a press
           pressed++
           const agree = page.getByRole('alertdialog').getByRole('button', { name: /^Allow/ })
           if (await agree.isVisible().catch(() => false)) await agree.click().catch(() => {})
@@ -263,7 +267,11 @@ for (const id of ids) {
         if (DISMISSES.test(words)) continue
         if (only === 'commits' && !COMMITS.test(words)) continue
         if (only === 'opens' && COMMITS.test(words)) continue
-        await one.click({ timeout: 3000, noWaitAfter: true }).catch(() => {})
+        const landed = await one.click({ timeout: 3000, noWaitAfter: true }).then(
+          () => true,
+          () => false,
+        )
+        if (!landed) continue
         pressed++
         const allow = page.getByRole('alertdialog').getByRole('button', { name: /^Allow/ })
         if (await allow.isVisible().catch(() => false)) await allow.click().catch(() => {})
