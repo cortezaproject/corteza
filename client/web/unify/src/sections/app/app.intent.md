@@ -83,6 +83,13 @@ block its own navigation). The outer frame's host script owns the port and the
 API calls, and posts results to the shell only through `postMessage` with the
 shell's own origin.
 
+The inner frame is `sandbox="allow-scripts allow-forms"`. `allow-forms` is not
+a way out: the inner CSP sets `form-action 'none'` and the script below cancels
+every submit in the capture phase, so a form can reach nowhere. What it buys is
+the submit event itself — without it the browser blocks submission before any
+listener runs, and a page that saves the ordinary way, through a form's own
+`submit` handler, renders perfectly and writes nothing.
+
 The inner document starts with `<base href="about:srcdoc">` and a host script
 that cancels every link and form navigation except a `#fragment`, before the
 bridge and before any app script. Without the base a srcdoc document resolves

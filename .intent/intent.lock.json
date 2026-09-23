@@ -67,14 +67,14 @@
       "t": "2026-07-24"
     },
     "client/web/unify/e2e/sections/app/app.spec.ts": {
-      "h": "9dfb9ccd7b16",
+      "h": "c5cf9a2dbb94",
       "doc": "client/web/unify/e2e/e2e.intent.md",
-      "t": "2026-09-23"
+      "t": "2026-09-28"
     },
     "client/web/unify/e2e/sections/app/gotchas.spec.ts": {
-      "h": "f3484d4e8d92",
+      "h": "1526c88f1e4f",
       "doc": "client/web/unify/e2e/e2e.intent.md",
-      "t": "2026-09-23"
+      "t": "2026-09-28"
     },
     "client/web/unify/e2e/sections/compose/corredor-record-scripts.spec.ts": {
       "h": "07cb11bcb7f6",
@@ -667,9 +667,9 @@
       "t": "2026-09-23"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "2af9ff3e010b",
+      "h": "192dc63c387b",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
-      "t": "2026-09-23"
+      "t": "2026-09-28"
     },
     "client/web/unify/src/sections/app/index.js": {
       "h": "51ca56861a3f",

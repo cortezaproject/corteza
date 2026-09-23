@@ -100,7 +100,13 @@ export function hostScriptSource({ origin }) {
   var loads = 0
 
   var frame = document.createElement('iframe')
-  frame.setAttribute('sandbox', 'allow-scripts')
+  // allow-forms is what lets a form fire its own submit event. Without it the
+  // browser blocks the submission before any handler runs, so a page that
+  // saves the ordinary way — a form and a submit listener — does nothing at
+  // all and says nothing about it. Submitting anywhere stays impossible twice
+  // over: the inner CSP sets form-action 'none', and the script above cancels
+  // the navigation in the capture phase.
+  frame.setAttribute('sandbox', 'allow-scripts allow-forms')
   frame.srcdoc = window.__humanInner
 
   // A second load is the app navigating itself: the document that answered the

@@ -87,6 +87,25 @@ window.SAMPLE = { 'records.list': function () { return Promise.resolve({ records
 })()
 </script>`
 
+// The ordinary way to build a form: a submit listener, not a click handler.
+// Without allow-forms the browser blocks the submission before the listener
+// runs, so the page looks right and saves nothing.
+const FORM = `
+<form id="form"><input name="name" id="name" value="written by a form"><button type="submit">Save</button></form>
+<pre id="out"></pre>
+<script>__BRIDGE__</script>
+<script>
+document.getElementById('form').addEventListener('submit', async e => {
+  e.preventDefault()
+  try {
+    const { record } = await human.records.create({ module: 'e2e_probes', values: { name: 'written by a form' } })
+    document.getElementById('out').textContent = JSON.stringify({ ok: record.recordID })
+  } catch (err) {
+    document.getElementById('out').textContent = JSON.stringify({ error: String(err.message || err) })
+  }
+})
+</script>`
+
 // What a page that changes records finds out.
 const WRITES = `
 <pre id="out"></pre>
@@ -121,7 +140,7 @@ function appFrame(page: Page) {
   return page
     .frameLocator('iframe[srcdoc]')
     .first()
-    .frameLocator('iframe[sandbox="allow-scripts"]')
+    .frameLocator('iframe[sandbox^="allow-scripts"]')
     .first()
 }
 
@@ -225,7 +244,7 @@ test.describe.serial('custom app gotchas', () => {
               // Only the writing app may read the second module; the others
               // need one they cannot touch.
               modules: version === 'writes' ? ['e2e_probes', 'e2e_companies'] : ['e2e_probes'],
-              writes: version === 'writes' ? writable : [],
+              writes: version === 'writes' || version === 'form' ? writable : [],
             })
             apps[version] = created.applicationID
           }
@@ -241,6 +260,7 @@ test.describe.serial('custom app gotchas', () => {
             links: LINKS.replace('__BRIDGE__', BRIDGE_SCRIPT),
             writes: WRITES.replace('__BRIDGE__', BRIDGE_SCRIPT),
             throws: THROWS.replace('__BRIDGE__', BRIDGE_SCRIPT),
+            form: FORM.replace('__BRIDGE__', BRIDGE_SCRIPT),
           },
           writable: ['e2e_probes'],
         },
@@ -441,6 +461,20 @@ test.describe.serial('custom app gotchas', () => {
     expect(out.readOnlyModule.error).toBe(
       'module "e2e_companies" is not declared as one this app may change',
     )
+  })
+
+  // A form is how anyone builds a form. The sandbox has to let it fire its own
+  // submit, or the page renders perfectly and quietly saves nothing.
+  test('a form saves through its own submit handler', async ({ page }) => {
+    test.skip(!apps.form, 'the form app was not created')
+    await page.goto(`/app/${apps.form}`)
+    const dialog = page.getByRole('alertdialog')
+    await appFrame(page).locator('#form button').click()
+    await dialog.waitFor({ timeout: 20000 })
+    await dialog.getByRole('button', { name: /^Allow/ }).click()
+    const out = appFrame(page).locator('#out')
+    await expect(out).not.toBeEmpty({ timeout: 20000 })
+    expect(JSON.parse(await out.innerText()).ok).toBeTruthy()
   })
 
   // The sandbox saves no file of its own; Human does it for the app.

@@ -23,7 +23,7 @@ test('a custom application renders inside the sandbox', async ({ page }) => {
   await page.goto(href!)
 
   const outer = page.frameLocator('iframe[srcdoc]').first()
-  const inner = outer.frameLocator('iframe[sandbox="allow-scripts"]').first()
+  const inner = outer.frameLocator('iframe[sandbox^="allow-scripts"]').first()
   await expect(inner.locator('body')).toBeVisible()
 
   // The outer document is what pins the inner one in place.
@@ -45,7 +45,7 @@ test('the app cannot reach the network', async ({ page }) => {
   const inner = page
     .frameLocator('iframe[srcdoc]')
     .first()
-    .frameLocator('iframe[sandbox="allow-scripts"]')
+    .frameLocator('iframe[sandbox^="allow-scripts"]')
     .first()
   await expect(inner.locator('body')).toBeVisible()
 
