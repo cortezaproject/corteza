@@ -1,0 +1,33 @@
+{
+  "skill": "custom_app",
+  "needs": ["awkward"],
+  "prompts": [
+    {
+      "id": "many-rows",
+      "prompt": "Build me a page listing everything in the Things module of our Human awkward data namespace, so I can look through it. One HTML file, give me the HTML at the end.",
+      "namespace": "awkward",
+      "modules": ["things"],
+      "expect": ["Ordinary row"]
+    },
+    {
+      "id": "unicode-and-long-text",
+      "prompt": "I want a page from our Human awkward data that shows each thing's label and its note, so I can read them. One HTML file, HTML at the end.",
+      "namespace": "awkward",
+      "modules": ["things"],
+      "expect": ["Đurđa Ćosić-Ångström"]
+    },
+    {
+      "id": "counts-by-kind",
+      "prompt": "Make me a page counting the things in our Human awkward data by kind, with the totals. One HTML file, HTML at the end.",
+      "namespace": "awkward",
+      "modules": ["things"],
+      "expect": ["Alpha"]
+    },
+    {
+      "id": "an-empty-module",
+      "prompt": "Build me a page listing what is in the Nothings module of our Human awkward data namespace. One HTML file, HTML at the end.",
+      "namespace": "awkward",
+      "modules": ["nothings", "things"]
+    }
+  ]
+}
