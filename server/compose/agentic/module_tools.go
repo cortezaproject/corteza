@@ -33,8 +33,11 @@ var fieldsParamDoc = fmt.Sprintf(
 		`Geometry→{"center":[46.05,14.51],"zoom":7}. `+
 		`"defaultValue" fills the field when a record is created without it; the "name" key is `+
 		`optional and is stored empty, because the field already says which field it is for. `+
+		`Reserved field names, refused because the record already carries them as system `+
+		`fields: %s — name an identifier field for what it identifies instead, e.g. IssueID. `+
 		expressionsDoc,
 	strings.Join(cmpTypes.ModuleFieldKinds, ", "),
+	strings.Join(cmpTypes.ModuleReservedFieldNames, ", "),
 )
 
 // writeDetailDoc is the same knob compose_module_lookup carries, on the two

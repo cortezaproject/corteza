@@ -173,6 +173,29 @@ var ModuleFieldKinds = []string{
 	"Geometry",
 }
 
+// ModuleReservedFieldNames are the names a module field may not take: the
+// record's system fields as the API names them, and the idents of the system
+// attributes in the record's storage model, which a same-named field displaces.
+var ModuleReservedFieldNames = []string{
+	"id",
+	"ID",
+	"recordID",
+	"tenantID",
+	"projectID",
+	"namespaceID",
+	"moduleID",
+	"revision",
+	"meta",
+	"ownedBy",
+	"createdAt",
+	"createdBy",
+	"createdByAgent",
+	"updatedAt",
+	"updatedBy",
+	"deletedAt",
+	"deletedBy",
+}
+
 // IsValidModuleFieldKind reports whether kind is one the platform implements.
 func IsValidModuleFieldKind(kind string) bool {
 	return slices.Contains(ModuleFieldKinds, kind)

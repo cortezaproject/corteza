@@ -364,3 +364,12 @@ func TestModuleSystemFieldsCarryScopeColumns(t *testing.T) {
 		req.Equal(col, storeIdent(ident), "attribute %q must map to column %q", ident, col)
 	}
 }
+
+func TestSystemAttributeIdentsAreReservedFieldNames(t *testing.T) {
+	attrs, err := moduleSystemFieldsToAttributes(&types.Module{})
+	require.NoError(t, err)
+
+	for _, a := range attrs {
+		require.True(t, systemFields[a.Ident], "system attribute %q is not a reserved field name", a.Ident)
+	}
+}
