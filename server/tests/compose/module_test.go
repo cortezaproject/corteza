@@ -437,6 +437,28 @@ func TestModuleCreateWithReservedFieldName(t *testing.T) {
 		End()
 }
 
+func TestModuleCreateWithSystemAttributeFieldName(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
+	ns := h.makeNamespace("some-namespace")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
+
+	for _, name := range []string{"id", "ID", "tenantID", "projectID", "createdByAgent", "namespaceID", "moduleID"} {
+		t.Run(name, func(t *testing.T) {
+			h.apiInit().
+				Post(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
+				Header("Accept", "application/json").
+				JSON(fmt.Sprintf(`{ "name": "foo", "fields": [{ "name": "%s", "kind": "String" }]}`, name)).
+				Expect(t).
+				Status(http.StatusOK).
+				Assert(helpers.AssertError("module.errors.fieldNameReserved")).
+				End()
+		})
+	}
+}
+
 func TestModuleFieldsUpdate_defaults(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()

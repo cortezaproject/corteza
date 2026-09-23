@@ -139,7 +139,16 @@ const (
 )
 
 var (
+	// JSON names of system fields plus the DAL idents of system attributes;
+	// a user field sharing a DAL ident displaces the system attribute.
 	systemFields = slice.ToStringBoolMap([]string{
+		"id",
+		sysID,
+		sysTenantID,
+		sysProjectID,
+		sysCreatedByAgent,
+		sysNamespaceID,
+		sysModuleID,
 		"recordID",
 		"ownedBy",
 		"revision",
