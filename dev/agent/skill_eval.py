@@ -26,6 +26,8 @@ Transcripts, pages and screenshots land in .state/evals/<timestamp>/<model>/.
 """
 
 import argparse
+import builtins
+import functools
 import json
 import os
 import re
@@ -37,6 +39,10 @@ import time
 import mcp
 
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# A suite is minutes per prompt, so each result is printed as it lands rather
+# than held in a buffer until the run ends.
+print = functools.partial(builtins.print, flush=True)
 
 # The line of the bridge snippet that only an unchanged copy carries.
 SNIPPET = "window.human = window.human ||"
@@ -149,6 +155,10 @@ def renders(app_id, prompt, outdir):
     cmd = [os.path.join(AGENT_DIR, "verify-app.mjs"), "--out", os.path.join(outdir, "render")]
     for want in prompt.get("expect", []):
         cmd += ["--expect", want]
+    # A page that saves does nothing until its own control is pressed and the
+    # consent dialog answered, so a write brief is scored on what it did after.
+    if prompt.get("writes"):
+        cmd += ["--click", "6"]
     cmd.append(app_id)
     try:
         run = subprocess.run(["node"] + cmd, capture_output=True, text=True, timeout=300)
