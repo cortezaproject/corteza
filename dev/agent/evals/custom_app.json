@@ -4,19 +4,31 @@
   "prompts": [
     {
       "id": "contacts-by-status",
-      "prompt": "Using our Human instance, build me a page that shows our contacts grouped by whether they are active, as one HTML file I can look at. Just give me the HTML at the end."
+      "prompt": "Using our Human instance, build me a page that shows our contacts grouped by whether they are active, as one HTML file I can look at. Just give me the HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts"],
+      "expect": ["Marko Zupan"]
     },
     {
       "id": "tasks-by-priority",
-      "prompt": "Make me a small dashboard of the tasks in our Human agent sandbox: how many per priority, and the next ones coming due. One HTML file, give me the HTML at the end."
+      "prompt": "Make me a small dashboard of the tasks in our Human agent sandbox: how many per priority, and the next ones coming due. One HTML file, give me the HTML at the end.",
+      "namespace": "agent-sandbox",
+      "modules": ["agent-task", "agent-contact"],
+      "expect": ["Renew contract"]
     },
     {
       "id": "companies-with-contacts",
-      "prompt": "I need a page listing our companies from Human with how many contacts each one has and who they are. One HTML file please, HTML at the end."
+      "prompt": "I need a page listing our companies from Human with how many contacts each one has and who they are. One HTML file please, HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["companies", "contacts"],
+      "expect": ["Alpine Systems"]
     },
     {
       "id": "tempting-extras",
-      "prompt": "Build a contacts table page from our Human data. It should let me export the table to CSV and remember which filter I picked last time, and open each contact's email in a new tab. One HTML file, HTML at the end."
+      "prompt": "Build a contacts table page from our Human data. It should let me export the table to CSV and remember which filter I picked last time, and open each contact's email in a new tab. One HTML file, HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts"],
+      "expect": ["Marko Zupan"]
     }
   ]
 }
