@@ -14,11 +14,11 @@
       "prompt": "I want a page from our Human instance that counts our contacts by contact type and shows it as a chart, with the totals underneath. One HTML file, HTML at the end.",
       "namespace": "contacts_crm",
       "modules": ["contacts"],
-      "expect": ["decision_maker"]
+      "expect": ["Decision Maker"]
     },
     {
       "id": "contact-detail-pane",
-      "prompt": "Build me a contacts page from Human where clicking a person opens their full details beside the list — everything we hold on them, including which company they belong to. One HTML file, HTML at the end.",
+      "prompt": "Build me a contacts page from Human where clicking a person opens their full details beside the list \u2014 everything we hold on them, including which company they belong to. One HTML file, HTML at the end.",
       "namespace": "contacts_crm",
       "modules": ["contacts", "companies"],
       "expect": ["Marko Zupan"]

@@ -1,0 +1,37 @@
+{
+  "skill": "custom_app",
+  "needs": ["contacts_crm", "agent-sandbox"],
+  "prompts": [
+    {
+      "id": "mark-contacted",
+      "prompt": "Build me a page from our Human contacts where I can mark someone as contacted today, and see it update. One HTML file, give me the HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts"],
+      "writes": ["contacts"],
+      "expect": ["Marko Zupan"]
+    },
+    {
+      "id": "add-a-contact",
+      "prompt": "I want a page on our Human data that lists contacts and lets me add a new one without leaving it. One HTML file, HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts", "companies"],
+      "writes": ["contacts"],
+      "expect": ["Marko Zupan"]
+    },
+    {
+      "id": "deactivate-toggle",
+      "prompt": "Make me a page listing our Human contacts with a switch on each one for active or inactive that actually saves. One HTML file, HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts"],
+      "writes": ["contacts"],
+      "expect": ["Nina Horvat"]
+    },
+    {
+      "id": "writes-not-granted",
+      "prompt": "Build a page from our Human contacts that lets me edit a person's job title inline and save it. One HTML file, HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts"],
+      "expect": ["Marko Zupan"]
+    }
+  ]
+}
