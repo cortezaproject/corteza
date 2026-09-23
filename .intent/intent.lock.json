@@ -47,9 +47,9 @@
       "t": "2026-07-24"
     },
     "client/web/unify/e2e/sections/admin/application-custom.spec.ts": {
-      "h": "c9a1d1d18c50",
+      "h": "c0b6ac969de1",
       "doc": "client/web/unify/e2e/e2e.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/e2e/sections/admin/users.spec.ts": {
       "h": "c153f38175ff",
@@ -62,9 +62,9 @@
       "t": "2026-09-22"
     },
     "client/web/unify/e2e/sections/app/gotchas.spec.ts": {
-      "h": "f9aab1a162c0",
+      "h": "0574aed26a31",
       "doc": "client/web/unify/e2e/e2e.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/e2e/sections/compose/translations.spec.ts": {
       "h": "8370f8e92ecd",
@@ -201,15 +201,10 @@
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
       "t": "2026-07-23"
     },
-    "client/web/unify/src/sections/admin/components/Template/CCodeEditor.vue": {
-      "h": "cac41f59be10",
-      "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
-      "t": "2026-08-13"
-    },
     "client/web/unify/src/sections/admin/components/Template/CTemplatePreview.vue": {
-      "h": "0d2848964112",
+      "h": "e6d9e8c40b3c",
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/admin/components/Template/CTemplateToolbox.vue": {
       "h": "22b351bdb285",
@@ -392,9 +387,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/admin/views/system/Application/Editor.vue": {
-      "h": "df548f0a388d",
+      "h": "73f3b6a1b399",
       "doc": "client/web/unify/src/sections/admin/views/system/Application/Editor.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/admin/views/system/Application/List.vue": {
       "h": "f311fd02e2f5",
@@ -522,9 +517,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/admin/views/system/Template/Editor.vue": {
-      "h": "d2ff6ad12563",
+      "h": "8b9b75457af3",
       "doc": "client/web/unify/src/sections/admin/views/system/Template/Editor.intent.md",
-      "t": "2026-08-21"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/admin/views/system/Template/List.vue": {
       "h": "f5722243bf17",
@@ -627,19 +622,19 @@
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/app/bridge.js": {
-      "h": "e05ebf793836",
+      "h": "5995db1f8126",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/app/bridge.test.js": {
-      "h": "42652e6fca4a",
+      "h": "27d139d7a079",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "6ef15c086590",
+      "h": "347b9465c27b",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/app/index.js": {
       "h": "51ca56861a3f",
@@ -4056,6 +4051,11 @@
       "doc": "lib/vue/src/components/components.intent.md",
       "t": "2026-08-13"
     },
+    "lib/vue/src/components/input/CCodeEditor.vue": {
+      "h": "2881469d913f",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-09-23"
+    },
     "lib/vue/src/components/input/CEditorActions.vue": {
       "h": "71b4e9d2c906",
       "doc": "lib/vue/src/components/input/input.intent.md",
@@ -4267,9 +4267,9 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/components/input/index.ts": {
-      "h": "07386bcdfd75",
+      "h": "d4c5d63cc35d",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-23"
     },
     "lib/vue/src/components/loader/CLoaderLogo.vue": {
       "h": "5b257053930e",

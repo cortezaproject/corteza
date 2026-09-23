@@ -200,30 +200,49 @@
           <Message v-if="sourceProblem" severity="warn" :closable="false">
             {{ sourceProblem }}
           </Message>
-          <Message v-else-if="!source" severity="info" :closable="false">
+          <Message v-else-if="!source && !canEditSource" severity="info" :closable="false">
             {{ $t('system.applications.editor.custom.empty') }}
           </Message>
           <div v-else class="flex flex-col gap-2">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
               <span class="text-sm text-muted-color">
-                {{ $t('system.applications.editor.custom.source') }}
+                {{
+                  canEditSource
+                    ? $t('system.applications.editor.custom.edit')
+                    : $t('system.applications.editor.custom.source')
+                }}
               </span>
-              <Button
-                :label="$t('system.applications.editor.custom.copy')"
-                icon="pi pi-copy"
-                severity="secondary"
-                variant="text"
-                size="small"
-                @click="copySource"
-              />
+              <div class="flex items-center gap-1">
+                <Button
+                  :label="$t('system.applications.editor.custom.copy')"
+                  icon="pi pi-copy"
+                  severity="secondary"
+                  variant="text"
+                  size="small"
+                  @click="copySource"
+                />
+                <Button
+                  v-if="canEditSource"
+                  :label="$t('system.applications.editor.custom.savePage')"
+                  icon="pi pi-save"
+                  size="small"
+                  :loading="savingSource"
+                  :disabled="draftSource === source"
+                  data-test-id="button-save-page"
+                  @click="handleSaveSource"
+                />
+              </div>
             </div>
-            <Textarea
+            <CCodeEditor
               id="customSource"
-              :model-value="source"
-              rows="16"
-              readonly
-              class="w-full font-mono text-xs"
+              v-model="draftSource"
+              language="html"
+              min-height="360px"
+              :read-only="!canEditSource"
             />
+            <small class="text-muted-color">
+              {{ $t('system.applications.editor.custom.editNote') }}
+            </small>
           </div>
         </div>
       </Panel>
@@ -276,7 +295,7 @@ import {
 } from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
 
-const { CFileDropZone, CInputDelete, CInputToggleCard, CViewContainer } = components
+const { CCodeEditor, CFileDropZone, CInputDelete, CInputToggleCard, CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -334,7 +353,14 @@ const customUrl = computed(() =>
 )
 
 const source = ref('')
+// What the editor holds, against what the server last stored: saving is off
+// until they differ, and an edit made here is one Claude's next patch has to
+// find, so the note under the editor says so.
+const draftSource = ref('')
+const savingSource = ref(false)
 const sourceProblem = ref('')
+
+const canEditSource = computed(() => !!application.value?.canManageSourceOnApplication)
 const sourceMeta = computed(() => application.value?.sourceMeta || { size: 0 })
 
 const sourceSizeLabel = computed(() => {
@@ -351,6 +377,7 @@ const sourceUpdatedLabel = computed(() => {
 
 async function loadSource() {
   source.value = ''
+  draftSource.value = ''
   sourceProblem.value = ''
   if (!isEdit.value || !isCustom.value) return
 
@@ -359,10 +386,37 @@ async function loadSource() {
       applicationID: application.value.applicationID,
     })
     source.value = rsp.source || ''
+    draftSource.value = source.value
   } catch (e) {
     sourceProblem.value = t('system.applications.editor.custom.unreadable', {
       reason: e?.message || String(e),
     })
+  }
+}
+
+// The page goes through the endpoint the MCP tool uses, so the same rules
+// refuse the same documents however they arrive. The declaration is sent back
+// as it stands: leaving it out would empty what the app may read.
+async function handleSaveSource() {
+  savingSource.value = true
+  try {
+    const meta = application.value.sourceMeta || {}
+    await $SystemAPI.applicationSourceSet({
+      applicationID: application.value.applicationID,
+      source: draftSource.value,
+      namespace: meta.namespace,
+      modules: meta.modules || [],
+      writes: meta.writes || [],
+    })
+    application.value = new system.Application(
+      await applicationsStore.findByID(application.value.applicationID),
+    )
+    await loadSource()
+    $toast.toastSuccess(t('system.applications.editor.custom.saved'))
+  } catch (e) {
+    $toast.toastErrorHandler(t('system.applications.editor.custom.saveError'))(e)
+  } finally {
+    savingSource.value = false
   }
 }
 

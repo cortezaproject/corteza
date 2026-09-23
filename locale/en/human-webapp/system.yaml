@@ -260,6 +260,11 @@ applications:
     custom:
       copied: Source copied to the clipboard
       copy: Copy source
+      edit: The page, as stored — edit it here or from Claude
+      editNote: Claude changes this page by finding and replacing text in it, so an edit made here is what its next change will look for.
+      saveError: The page could not be saved
+      savePage: Save page
+      saved: Page saved
       empty: No page has been stored for this custom app yet. Deploy one through the MCP tool system_application_source_set, for example from Claude with the Human connector.
       modules: Modules the app may read
       namespace: Namespace the app reads from

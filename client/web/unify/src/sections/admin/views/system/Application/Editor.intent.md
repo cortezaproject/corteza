@@ -36,8 +36,12 @@ how it presents in the unified shell (display name, URL, listed flag, logo).
 - Custom app panel (custom kind, edit only): open the app; the namespace and
   modules its page may read; the page's size and when it was last replaced; the
   page itself, read only, with a copy button — or, with no page yet, how to
-  deploy one. The page is replaced only through
-  `system_application_source_set`; this view never writes it.
+  deploy one. Whoever holds `source.manage` edits the page here, in
+  `CCodeEditor`, and saves it through the same endpoint and the same refusals
+  as `system_application_source_set` — a page the sandbox could not run is
+  refused wherever it is written. The declaration travels back untouched:
+  sending the page alone would empty what the app may read. An edit made here
+  is what Claude's next patch has to find, and the view says so.
 
 ## Routes
 
