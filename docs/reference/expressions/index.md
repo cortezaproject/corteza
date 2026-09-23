@@ -45,9 +45,11 @@ the TAQ builder.
 | String  | `"text"`                     |
 | Boolean | `true`, `false`              |
 | Array   | `[1, 2, 3]`, `["vip", "eu"]` |
+| Empty   | `null` (or `nil`)            |
 
-There is no dedicated empty value. How a missing value behaves depends on
-where the expression runs; see [Missing values](#missing-values).
+`null` is the empty value, for example `record.values.discount == null`. How a
+name that is not there behaves depends on where the expression runs; see
+[Missing values](#missing-values).
 
 ## Variables and properties
 
@@ -92,10 +94,10 @@ format("%s has %d items", "cart", quantity)
 What happens when an expression reads a name that is not there depends on
 where it runs:
 
-| Where                                                                   | A missing variable or property…                                                                               |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Field expressions (value, sanitization, validation) and page conditions | reads as empty. Any unknown name does, so `record.values.discount == null` is true when there is no discount. |
-| Contextual roles and the TAQ **While** loop                             | is an **error**, and the whole expression fails.                                                              |
+| Where                                                                   | A missing variable or property…                                                        |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Field expressions (value, sanitization, validation) and page conditions | reads as empty, so `record.values.discount == null` is true when there is no discount. |
+| Contextual roles and the TAQ **While** loop                             | is an **error**, and the whole expression fails.                                       |
 
 Everywhere, reading through something that is missing fails: if `lead` is not
 there, `lead.values` is an error in both kinds of place.
