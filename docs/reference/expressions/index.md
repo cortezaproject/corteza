@@ -1,6 +1,6 @@
 ---
 title: Expressions
-description: The expression language used in calculated fields, field validation and contextual roles.
+description: The expression language used in field expressions, page conditions, contextual roles and TAQ loops.
 ---
 
 # Expressions
@@ -15,13 +15,14 @@ the variables the place provides, and produces one value.
 
 ## Where expressions are used
 
-| Where                                             | The expression…                                     | Variables                                                                                                        |
-| ------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Field value expression** on a module field      | calculates the field's value when a record is saved | every field of the record by name; `new` (the record being saved); `old` (the previous version, empty on create) |
-| **Value sanitization** on a module field          | rewrites the value before it is validated           | `value`                                                                                                          |
-| **Value validation** on a module field            | rejects the value when it comes out **true**        | `value`, `oldValue`, `values` (all field values of the record)                                                   |
-| **Contextual role** (Admin Area → System → Roles) | decides whether the role applies to a resource      | `resource` (the resource being accessed), `userID`, `agentID`                                                    |
-| **While** loop in a TAQ                           | decides whether to run the loop again               | the TAQ's values: what the trigger carries and the results of earlier steps                                      |
+| Where                                                                    | The expression…                                                    | Variables                                                                                                         |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| **Field value expression** on a module field                             | calculates the field's value when a record is saved                | every field of the record by name; `new` (the record being saved); `old` (the previous version, empty on create)  |
+| **Value sanitization** on a module field                                 | rewrites the value before it is validated                          | `value`                                                                                                           |
+| **Value validation** on a module field                                   | rejects the value when it comes out **true**                       | `value`, `oldValue`, `values` (all field values of the record)                                                    |
+| **Page layout, block and required-field conditions** in the page builder | decides whether a layout or block is shown, or a field is required | `record`, `user`, `screen` (`width`, `height`, `breakpoint`); on record pages also `isView`, `isCreate`, `isEdit` |
+| **Contextual role** (Admin Area → System → Roles)                        | decides whether the role applies to a resource                     | `resource` (the resource being accessed), `userID`, `agentID`                                                     |
+| **While** loop in a TAQ                                                  | decides whether to run the loop again                              | the TAQ's values: what the trigger carries and the results of earlier steps                                       |
 
 ::: tip Validation reads the other way round
 A validation expression describes when a value is **wrong**. To allow values
@@ -45,8 +46,8 @@ the TAQ builder.
 | Boolean | `true`, `false`              |
 | Array   | `[1, 2, 3]`, `["vip", "eu"]` |
 
-There is no `nil` literal. To handle a value that may be missing, see
-[Missing values](#missing-values).
+There is no dedicated empty value. How a missing value behaves depends on
+where the expression runs; see [Missing values](#missing-values).
 
 ## Variables and properties
 
@@ -88,9 +89,19 @@ format("%s has %d items", "cart", quantity)
 
 ## Missing values
 
-Reading a variable or property that does not exist is an **error**, not an
-empty value. Check first with `has()`, and use the if-then-else operator, which
-only evaluates the branch it takes:
+What happens when an expression reads a name that is not there depends on
+where it runs:
+
+| Where                                                                   | A missing variable or property…                                                                               |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Field expressions (value, sanitization, validation) and page conditions | reads as empty. Any unknown name does, so `record.values.discount == null` is true when there is no discount. |
+| Contextual roles and the TAQ **While** loop                             | is an **error**, and the whole expression fails.                                                              |
+
+Everywhere, reading through something that is missing fails: if `lead` is not
+there, `lead.values` is an error in both kinds of place.
+
+The safe form works in both. Check with `has()`, and use the if-then-else
+operator, which only evaluates the branch it takes:
 
 ```
 has(lead.values, "discount") ? lead.values.discount : 0
