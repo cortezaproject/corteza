@@ -73,6 +73,19 @@ document.getElementById('scripted').onclick = () => { location.href = elsewhere 
 <div style="height: 3000px"></div>
 <p id="below">below</p>`
 
+// A page that throws where a real one did: an object literal, then a line
+// beginning with a bracket, which JavaScript reads as calling the object.
+const THROWS = `
+<h1>Contacts by type</h1>
+<script>__BRIDGE__</script>
+<script>
+window.SAMPLE = { 'records.list': function () { return Promise.resolve({ records: [] }) } }
+
+(async function () {
+  document.body.appendChild(document.createTextNode('never reached'))
+})()
+</script>`
+
 // What a page that changes records finds out.
 const WRITES = `
 <pre id="out"></pre>
@@ -225,6 +238,7 @@ test.describe.serial('custom app gotchas', () => {
             v2: probeSource(2),
             links: LINKS.replace('__BRIDGE__', BRIDGE_SCRIPT),
             writes: WRITES.replace('__BRIDGE__', BRIDGE_SCRIPT),
+            throws: THROWS.replace('__BRIDGE__', BRIDGE_SCRIPT),
           },
           writable: ['e2e_probes'],
         },
@@ -299,6 +313,16 @@ test.describe.serial('custom app gotchas', () => {
     const probes = probe.modules.ok!.find((m: { handle: string }) => m.handle === 'e2e_probes')
     const stage = probes.fields.find((f: { name: string }) => f.name === 'stage')
     expect(stage.options).toEqual([{ value: 'won', text: 'Closed won', label: 'Closed won' }])
+  })
+
+  // Silence is the worst answer here: the page draws its headings, stops, and
+  // reads as a working app that happens to hold no data.
+  test('an app that throws says so to the viewer', async ({ page }) => {
+    test.skip(!apps.throws, 'the throwing app was not created')
+    await page.goto(`/app/${apps.throws}`)
+    const said = page.locator('[data-test-id="custom-app-failure"]')
+    await expect(said).toBeVisible({ timeout: 20000 })
+    await expect(said).toContainText('is not a function')
   })
 
   test('a module the app did not declare is refused by name', async ({ page }) => {

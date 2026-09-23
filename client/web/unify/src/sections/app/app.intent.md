@@ -115,7 +115,7 @@ Operations:
 | ---------------- | ----------------------------------------------- | ----------------------------------------------- |
 | `records.list`   | `{module, filter?, sort?, limit?, pageCursor?}` | `{records, refs, nextPageCursor}`               |
 | `records.read`   | `{module, recordID}`                            | `{record, refs}`                                |
-| `records.report` | `{module, metrics, dimensions, filter?}`        | `{rows, refs}`, or the rows alone in contract 1 |
+| `records.report` | `{module, dimension, metrics?, filter?}`        | `{rows, refs}`, or the rows alone in contract 1 |
 | `modules`        | —                                               | the declared modules, with their fields today   |
 | `user`           | —                                               | `{userID, name, email}`                         |
 | `theme`          | —                                               | `{dark: bool, colors: {primary, body-bg, ...}}` |
@@ -166,6 +166,11 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
   both `text` and `label`: `text` is what the module calls it and what an author
   reading the module through the API is shown, so a bridge that renamed it left
   pages printing nothing where the option should be.
+- An app that throws tells the shell, which says so over the page. Silence is
+  the worst answer: a page that stops after its headings reads as a working app
+  holding no data, and neither the guard nor the API can see the difference.
+  The reporter is the first script in the document, ahead of the bridge, or it
+  misses the errors that stop a page before anything else runs.
 - `download` hands the viewer a file the sandbox could not save itself: at most
   5 MB of text, under a name reduced to one file name.
 - No delete, no attachment, no owner change.

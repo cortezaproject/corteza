@@ -23,6 +23,16 @@
         {{ $t('app.state.preview') }}
       </Message>
 
+      <Message
+        v-if="failure"
+        severity="warn"
+        :closable="false"
+        class="m-4"
+        data-test-id="custom-app-failure"
+      >
+        {{ failure }}
+      </Message>
+
       <iframe
         ref="frameRef"
         :srcdoc="outerDocument"
@@ -56,6 +66,8 @@ const userStore = useUserStore()
 
 const loading = ref(true)
 const problem = ref('')
+// What the app itself said went wrong, shown over the page it half drew.
+const failure = ref('')
 const application = ref(null)
 const outerDocument = ref('')
 // The app fills the content area unless it asks for a height of its own.
@@ -218,6 +230,11 @@ async function onMessage(event) {
     return
   }
 
+  if (data.type === 'human:failed') {
+    failure.value = t('app.state.failed', { message: data.message || '' })
+    return
+  }
+
   if (data.type !== 'human:call') return
 
   try {
@@ -292,6 +309,7 @@ async function moduleIDByHandle(handle) {
 async function load(applicationID) {
   loading.value = true
   problem.value = ''
+  failure.value = ''
   application.value = null
   outerDocument.value = ''
   frameHeight.value = '100%'

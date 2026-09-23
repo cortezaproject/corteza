@@ -104,7 +104,9 @@ Define the fallback as `window.SAMPLE = { ... }` — an assignment, not
 `const SAMPLE`, because `call` reads it off `window` at call time. It is an
 object keyed by operation name, each entry a function returning what the live
 call would, built from the real records you read. Five to fifteen rows; keep one
-or two of the messy ones.
+or two of the messy ones. End it with a semicolon: the line after it usually
+opens with `(`, and JavaScript then reads the whole thing as calling the object,
+so the page throws before it draws anything. Never begin a line with `(` or `[`.
 
 Operations, all read-only:
 

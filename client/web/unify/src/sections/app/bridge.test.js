@@ -16,6 +16,7 @@ import {
   dispatch,
   hostScriptSource,
   INERT_NAVIGATION,
+  REPORT_FAILURE,
   labelFieldOf,
   recordLabels,
   referenceTargets,
@@ -179,6 +180,23 @@ describe('outer document', () => {
     expect(inner.indexOf(INERT_NAVIGATION)).toBeGreaterThan(-1)
     expect(inner.indexOf(INERT_NAVIGATION)).toBeLessThan(inner.indexOf('BRIDGE'))
     expect(inner.indexOf('BRIDGE')).toBeLessThan(inner.indexOf('app()'))
+  })
+
+  // A page that throws draws its headings and stops, which reads as a working
+  // page with no data in it. The reporter has to be first, or it misses the
+  // very errors that stop the page before anything else runs.
+  it('carries a failure reporter ahead of everything the page runs', () => {
+    const doc = buildOuterDocument({
+      source: '<script>boom()</script>',
+      hostScript: '',
+      bridgeScript: 'BRIDGE',
+    })
+    const inner = JSON.parse(
+      doc.match(/window.__humanInner = (".*?")<\/script>/s)[1].replace(/<\\\//g, '</'),
+    )
+    expect(inner).toContain(REPORT_FAILURE)
+    expect(inner.indexOf(REPORT_FAILURE)).toBeLessThan(inner.indexOf(INERT_NAVIGATION))
+    expect(inner.indexOf(REPORT_FAILURE)).toBeLessThan(inner.indexOf('boom()'))
   })
 
   it('denies itself child frames, which is what pins the app in place', () => {

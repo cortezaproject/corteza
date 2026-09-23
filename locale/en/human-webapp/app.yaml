@@ -6,6 +6,7 @@ consent:
 state:
   empty: This application has no page stored for it yet. An administrator can add one from the application's settings.
   error: 'This application could not be opened: {reason}'
+  failed: 'This app ran into an error and may be showing nothing or only part of what it should: {message}'
   navigated: This app tried to leave the sandbox and was stopped.
   preview: This app is switched off. You see it as a preview because you may change its page; nobody else can open it until it is switched on.
   refused: You do not have permission to open this application, or it is not an application this shell can display.

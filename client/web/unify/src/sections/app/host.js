@@ -35,6 +35,20 @@ export const INERT_NAVIGATION = `(function () {
   document.addEventListener('submit', function (e) { e.preventDefault() }, true)
 })()`
 
+// An app that throws draws nothing, or worse, draws its headings and stops —
+// which reads as a working page holding no data. The frame cannot say so
+// itself, so it tells the shell, which puts it in front of the viewer.
+export const REPORT_FAILURE = `(function () {
+  function tell(message) {
+    try { parent.postMessage({ type: 'human:failed', message: String(message).slice(0, 300) }, '*') } catch (e) {}
+  }
+  addEventListener('error', function (e) { tell((e && e.message) || 'the page stopped') })
+  addEventListener('unhandledrejection', function (e) {
+    var reason = e && e.reason
+    tell((reason && reason.message) || reason || 'the page stopped')
+  })
+})()`
+
 // The most records one call may ask for.
 export const MAX_LIMIT = 500
 
@@ -109,7 +123,14 @@ export function hostScriptSource({ origin }) {
       return
     }
 
-    if (e.source !== frame.contentWindow || data.type !== 'human:hello') return
+    if (e.source !== frame.contentWindow) return
+
+    if (data.type === 'human:failed') {
+      parent.postMessage({ type: 'human:failed', message: data.message }, SHELL)
+      return
+    }
+
+    if (data.type !== 'human:hello') return
 
     var channel = new MessageChannel()
     channel.port1.onmessage = function (m) {
@@ -137,6 +158,7 @@ export function buildOuterDocument({ source, hostScript, bridgeScript, cspInner 
 <meta charset="utf-8">
 <base href="about:srcdoc">
 <meta http-equiv="Content-Security-Policy" content="${cspInner}">
+<script>${REPORT_FAILURE}</script>
 <script>${INERT_NAVIGATION}</script>
 <script>${bridgeScript}</script>
 ${source}`
