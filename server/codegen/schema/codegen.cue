@@ -5,8 +5,8 @@ package schema
 	output:   string
 
 	syntax: string | *"go"
-	if output =~ "\\.adoc$" {
-		syntax: "adoc"
+	if output =~ "\\.md$" {
+		syntax: "md"
 	}
 }
 
@@ -14,6 +14,6 @@ package schema
 	#_ioSpec
 	payload: _
 } | {
-		bulk?: [...#_ioSpec]
-		payload: _
+	bulk?: [...#_ioSpec]
+	payload: _
 }

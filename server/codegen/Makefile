@@ -3,6 +3,7 @@
 DEF_ALL    = *.cue
 DEF_SERVER = server.*.cue
 DEF_DOCS   = docs.*.cue
+DOCS_DIR  ?= $(ROOT_DIR)/../docs
 
 server: $(DEF_SERVER)
 docs:   $(DEF_DOCS)

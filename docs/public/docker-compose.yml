@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: human
+      POSTGRES_PASSWORD: human
+      POSTGRES_DB: human
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U human']
+      interval: 5s
+      retries: 10
+
+  human:
+    image: planetcrust/human:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '8080:80'
+    environment:
+      DB_DSN: postgres://human:human@db:5432/human?sslmode=disable
+      DOMAIN: localhost:8080
+      # Any long random string. Keeps sessions valid when the container is recreated.
+      AUTH_JWT_SECRET: replace-me-with-a-long-random-string
+    volumes:
+      - data:/data
+
+volumes:
+  db:
+  data:

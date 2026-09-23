@@ -8,13 +8,15 @@ import (
 [...schema.#codegen] &
 [
 	{
-		template: "docs/options.adoc.tpl"
-		output:   "src/modules/generated/partials/env-options.gen.adoc"
+		template: "docs/environment.md.tpl"
+		output:   "reference/environment.gen.md"
 		payload: {
 			groups: [
 				for g in app.human.options {
 					title: g.title
-					intro?: g.intro
+					if g.intro != _|_ {
+						intro: g.intro
+					}
 
 					options: g.options
 				},

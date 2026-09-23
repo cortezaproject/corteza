@@ -1,0 +1,14 @@
+{
+  "name": "@human/docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-llms": "^1.14.0"
+  }
+}

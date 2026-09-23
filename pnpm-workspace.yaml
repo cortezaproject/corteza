@@ -3,6 +3,7 @@ packages:
   - 'lib/*'
   - 'client/web/*'
   - 'server/webconsole'
+  - 'docs'
 
 onlyBuiltDependencies:
   - esbuild

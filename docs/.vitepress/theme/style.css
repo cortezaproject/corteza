@@ -1,0 +1,249 @@
+/* Human palette: navy brand in light, coral in dark, zinc neutrals (lib/vue useTheme). */
+
+:root {
+  --h-navy: #09344e;
+  --h-navy-soft: #1d5578;
+  --h-coral: #e56b5b;
+  --h-coral-soft: #ef8f82;
+
+  --vp-font-family-heading: 'Poppins', var(--vp-font-family-base);
+
+  --vp-c-brand-1: var(--h-navy);
+  --vp-c-brand-2: var(--h-navy-soft);
+  --vp-c-brand-3: var(--h-navy);
+  --vp-c-brand-soft: rgba(9, 52, 78, 0.08);
+
+  --vp-c-accent: var(--h-coral);
+
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #fafafa;
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-bg-soft: #f4f4f5;
+  --vp-c-divider: #e4e4e7;
+  --vp-c-gutter: #e4e4e7;
+  --vp-c-border: #d4d4d8;
+  --vp-c-text-1: #18181b;
+  --vp-c-text-2: #52525b;
+  --vp-c-text-3: #a1a1aa;
+
+  --vp-code-font-size: 0.875em;
+  --vp-code-color: var(--h-navy);
+  --vp-code-bg: #f4f4f5;
+  --vp-code-block-bg: #fafafa;
+  --vp-code-copy-code-active-text: var(--h-navy);
+
+  --vp-home-hero-name-color: var(--vp-c-text-1);
+  --vp-home-hero-image-background-image: none;
+
+  --vp-button-brand-bg: var(--h-navy);
+  --vp-button-brand-hover-bg: var(--h-navy-soft);
+  --vp-button-brand-active-bg: var(--h-navy);
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-hover-text: #ffffff;
+  --vp-button-alt-bg: #f4f4f5;
+
+  --vp-custom-block-info-bg: #f4f4f5;
+  --vp-custom-block-tip-bg: rgba(67, 170, 139, 0.08);
+  --vp-custom-block-tip-border: transparent;
+  --vp-custom-block-warning-bg: rgba(226, 118, 70, 0.08);
+  --vp-custom-block-danger-bg: rgba(229, 65, 34, 0.08);
+
+  --vp-sidebar-bg-color: #fafafa;
+  --vp-nav-bg-color: rgba(255, 255, 255, 0.8);
+  --vp-layout-max-width: 1440px;
+}
+
+.dark {
+  --vp-c-brand-1: var(--h-coral);
+  --vp-c-brand-2: var(--h-coral-soft);
+  --vp-c-brand-3: var(--h-coral);
+  --vp-c-brand-soft: rgba(229, 107, 91, 0.14);
+
+  --vp-c-bg: #18181b;
+  --vp-c-bg-alt: #111113;
+  --vp-c-bg-elv: #202023;
+  --vp-c-bg-soft: #27272a;
+  --vp-c-divider: #2e2e33;
+  --vp-c-gutter: #09090b;
+  --vp-c-border: #3f3f46;
+  --vp-c-text-1: #f4f4f5;
+  --vp-c-text-2: #a1a1aa;
+  --vp-c-text-3: #71717a;
+
+  --vp-code-color: var(--h-coral-soft);
+  --vp-code-bg: #27272a;
+  --vp-code-block-bg: #111113;
+  --vp-code-copy-code-active-text: var(--h-coral);
+
+  --vp-button-brand-bg: var(--h-coral);
+  --vp-button-brand-hover-bg: var(--h-coral-soft);
+  --vp-button-brand-active-bg: var(--h-coral);
+  --vp-button-brand-text: #18181b;
+  --vp-button-brand-hover-text: #18181b;
+  --vp-button-alt-bg: #27272a;
+
+  --vp-custom-block-info-bg: #202023;
+
+  --vp-sidebar-bg-color: #111113;
+  --vp-nav-bg-color: rgba(24, 24, 27, 0.8);
+}
+
+/* Headings */
+
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3,
+.VPHero .name,
+.VPHero .text,
+.VPFeature .title {
+  font-family: var(--vp-font-family-heading);
+  letter-spacing: -0.01em;
+}
+
+.vp-doc h1 {
+  font-weight: 600;
+  font-size: 2.25rem;
+  line-height: 1.2;
+}
+
+.vp-doc h2 {
+  border-top: none;
+  margin-top: 56px;
+  padding-top: 0;
+  font-weight: 600;
+}
+
+.vp-doc h3 {
+  font-weight: 500;
+}
+
+.vp-doc p,
+.vp-doc li {
+  line-height: 1.75;
+}
+
+/* Frosted top bar */
+
+.VPNav .VPNavBar:not(.home.top) .content-body,
+.VPNav .VPNavBar.has-sidebar .content-body {
+  background-color: var(--vp-nav-bg-color);
+  backdrop-filter: saturate(180%) blur(12px);
+}
+
+/* Sidebar: quiet section labels, brand bar on the active page */
+
+.VPSidebarItem.level-0 > .item > .text {
+  font-family: var(--vp-font-family-heading);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--vp-c-text-3);
+}
+
+.VPSidebarItem.level-1.is-active > .item > .indicator,
+.VPSidebarItem.level-2.is-active > .item > .indicator {
+  background-color: var(--vp-c-accent);
+}
+
+/* Cards and blocks */
+
+.vp-doc div[class*='language-'] {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+}
+
+.custom-block {
+  border-radius: 10px;
+}
+
+.vp-doc table {
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+@media (min-width: 768px) {
+  .vp-doc table {
+    display: table;
+    width: 100%;
+  }
+}
+
+.vp-doc th,
+.vp-doc td {
+  border: none;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.vp-doc tr:last-child td {
+  border-bottom: none;
+}
+
+.vp-doc tr:nth-child(2n) {
+  background-color: transparent;
+}
+
+.vp-doc th {
+  background-color: var(--vp-c-bg-soft);
+  font-weight: 500;
+  font-size: 0.8125rem;
+}
+
+.vp-doc td:first-child code {
+  white-space: nowrap;
+}
+
+/* Environment variable meta line */
+
+.env-meta p {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  color: var(--vp-c-text-2);
+}
+
+/* Home */
+
+.VPHero .name {
+  font-weight: 600;
+}
+
+.VPHero .text {
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+.VPHero .tagline {
+  color: var(--vp-c-text-2);
+}
+
+.VPHome {
+  background:
+    radial-gradient(60rem 30rem at 85% -10%, var(--vp-c-brand-soft), transparent 70%),
+    radial-gradient(40rem 24rem at 10% 0%, rgba(229, 107, 91, 0.08), transparent 70%);
+}
+
+.VPFeature {
+  border: 1px solid var(--vp-c-divider);
+  background-color: var(--vp-c-bg);
+  transition:
+    border-color 0.2s,
+    transform 0.2s;
+}
+
+.VPFeature.link:hover {
+  border-color: var(--vp-c-brand-1);
+  transform: translateY(-2px);
+}
+
+.VPFeature .title {
+  font-weight: 500;
+}
+
+/* Long identifiers wrap instead of widening the page on phones */
+
+.vp-doc :not(pre) > code {
+  overflow-wrap: anywhere;
+}
