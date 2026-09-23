@@ -1003,3 +1003,91 @@ Returns a copy of the object without the given keys.
 omit(rec, "a")
 // → {"b":2}
 ```
+
+## Access control
+
+These functions read the user group hierarchy (Admin Area → System → User Groups, where a group "reports to" parent groups). They are meant for contextual role expressions. The examples assume a group `managers` with user 1, and two groups under it — `sales` (user 2), linked with the relationship name `read`, and `support` (user 3), linked with no name.
+
+### `isDescendantOf` {#isDescendantOf}
+
+```ts
+isDescendantOf(userID: ID, owners: Any, ...relationships: String): Boolean
+```
+
+True when a group of one of the `owners` sits somewhere below the user's group. `owners` is a user ID or a list of them, typically `resource.ownedBy`. With `relationships`, only links with one of those names — or with no name — are followed. The user's own group does not count, and it is false when either user is in no group.
+
+```js
+// with {"userID": 1, "resource": {"ownedBy": 2}}
+isDescendantOf(userID, resource.ownedBy)
+// → true
+```
+
+### `isDescendantOfR` {#isDescendantOfR}
+
+```ts
+isDescendantOfR(userID: ID, owners: Any): Boolean
+```
+
+`isDescendantOf` following only links named `read`, or with no name.
+
+```js
+// with {"userID": 1, "resource": {"ownedBy": 2}}
+isDescendantOfR(userID, resource.ownedBy)
+// → true
+```
+
+### `isDescendantOfC` {#isDescendantOfC}
+
+```ts
+isDescendantOfC(userID: ID, owners: Any): Boolean
+```
+
+`isDescendantOf` following only links named `create`, or with no name.
+
+```js
+// with {"userID": 1, "resource": {"ownedBy": 3}}
+isDescendantOfC(userID, resource.ownedBy)
+// → true
+```
+
+### `isDescendantOfU` {#isDescendantOfU}
+
+```ts
+isDescendantOfU(userID: ID, owners: Any): Boolean
+```
+
+`isDescendantOf` following only links named `update`, or with no name. The `read` link to `sales` does not count, so this is false.
+
+```js
+// with {"userID": 1, "resource": {"ownedBy": 2}}
+isDescendantOfU(userID, resource.ownedBy)
+// → false
+```
+
+### `isDescendantOfD` {#isDescendantOfD}
+
+```ts
+isDescendantOfD(userID: ID, owners: Any): Boolean
+```
+
+`isDescendantOf` following only links named `delete`, or with no name. It only looks down: a member of `support` is not below itself or above `managers`.
+
+```js
+// with {"userID": 3, "resource": {"ownedBy": 1}}
+isDescendantOfD(userID, resource.ownedBy)
+// → false
+```
+
+### `isDescendantOfW` {#isDescendantOfW}
+
+```ts
+isDescendantOfW(userID: ID, owners: Any): Boolean
+```
+
+`isDescendantOf` following only links named `create`, `update` or `delete`, or with no name.
+
+```js
+// with {"userID": 1, "resource": {"ownedBy": 3}}
+isDescendantOfW(userID, resource.ownedBy)
+// → true
+```

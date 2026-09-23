@@ -452,13 +452,21 @@ groups:
         params: [{ name: first, type: DateTime }, { name: rest, type: DateTime, variadic: true }]
         returns: DateTime
         description: Returns the earliest of the dates.
-        example: { expr: 'earliest("2024-03-01T00:00:00Z", "2024-01-15T00:00:00Z")', result: '"2024-01-15T00:00:00Z"' }
+        example:
+          {
+            expr: 'earliest("2024-03-01T00:00:00Z", "2024-01-15T00:00:00Z")',
+            result: '"2024-01-15T00:00:00Z"',
+          }
 
       - name: latest
         params: [{ name: first, type: DateTime }, { name: rest, type: DateTime, variadic: true }]
         returns: DateTime
         description: Returns the latest of the dates.
-        example: { expr: 'latest("2024-03-01T00:00:00Z", "2024-01-15T00:00:00Z")', result: '"2024-03-01T00:00:00Z"' }
+        example:
+          {
+            expr: 'latest("2024-03-01T00:00:00Z", "2024-01-15T00:00:00Z")',
+            result: '"2024-03-01T00:00:00Z"',
+          }
 
       - name: modTime
         params: [{ name: date, type: DateTime }, { name: duration, type: Duration }]
@@ -466,7 +474,8 @@ groups:
         description: >-
           Adds a duration to the date. The duration is a Duration value or a
           string in `parseDuration()` syntax; a negative one moves back.
-        example: { expr: 'modTime("2024-03-01T10:00:00Z", "90m")', result: '"2024-03-01T11:30:00Z"' }
+        example:
+          { expr: 'modTime("2024-03-01T10:00:00Z", "90m")', result: '"2024-03-01T11:30:00Z"' }
 
       - name: modDate
         params: [{ name: date, type: DateTime }, { name: days, type: Integer }]
@@ -506,7 +515,11 @@ groups:
         caution: >-
           `%b` prints milliseconds and `%L` the Unix timestamp in seconds, not
           their usual POSIX meanings (month name, and none).
-        example: { expr: 'strftime("2024-03-01T10:00:00Z", "%d.%m.%Y %H:%M")', result: '"01.03.2024 10:00"' }
+        example:
+          {
+            expr: 'strftime("2024-03-01T10:00:00Z", "%d.%m.%Y %H:%M")',
+            result: '"01.03.2024 10:00"',
+          }
 
       - name: isLeapYear
         params: [{ name: date, type: DateTime }]
@@ -540,7 +553,12 @@ groups:
         description: >-
           Returns the first argument that is not empty-valued (nil). An empty
           string or `0` is a value and is returned.
-        example: { expr: 'coalesce(nickname, "anonymous")', scope: '{"nickname": null}', result: '"anonymous"' }
+        example:
+          {
+            expr: 'coalesce(nickname, "anonymous")',
+            scope: '{"nickname": null}',
+            result: '"anonymous"',
+          }
 
       - name: isNil
         params: [{ name: value, type: Any }]
@@ -588,7 +606,12 @@ groups:
           - { name: value, type: Any }
         returns: Vars
         description: Returns a copy of the object with `key` set to `value`.
-        example: { expr: 'set(rec, "c", 3)', scope: '{"rec": {"a": 1, "b": 2}}', result: '{"a":1,"b":2,"c":3}' }
+        example:
+          {
+            expr: 'set(rec, "c", 3)',
+            scope: '{"rec": {"a": 1, "b": 2}}',
+            result: '{"a":1,"b":2,"c":3}',
+          }
 
       - name: merge
         params: [{ name: object, type: Vars }, { name: others, type: Vars, variadic: true }]
@@ -597,7 +620,12 @@ groups:
           Returns a copy of the object with the keys of the others added. On
           a shared key the later object wins. Every argument must be an
           object value such as a variable — an inline `{…}` literal fails.
-        example: { expr: 'merge(rec, extra)', scope: '{"rec": {"a": 1, "b": 2}, "extra": {"b": 20, "c": 3}}', result: '{"a":1,"b":20,"c":3}' }
+        example:
+          {
+            expr: 'merge(rec, extra)',
+            scope: '{"rec": {"a": 1, "b": 2}, "extra": {"b": 20, "c": 3}}',
+            result: '{"a":1,"b":20,"c":3}',
+          }
 
       - name: filter
         params: [{ name: object, type: Vars }, { name: keys, type: String, variadic: true }]
@@ -610,3 +638,91 @@ groups:
         returns: Vars
         description: Returns a copy of the object without the given keys.
         example: { expr: 'omit(rec, "a")', scope: '{"rec": {"a": 1, "b": 2}}', result: '{"b":2}' }
+
+  - name: Access control
+    registeredIn: rbac
+    intro: >-
+      These functions read the user group hierarchy (Admin Area → System →
+      User Groups, where a group "reports to" parent groups). They are meant
+      for contextual role expressions. The examples assume a group `managers` with user 1, and two
+      groups under it — `sales` (user 2), linked with the relationship name
+      `read`, and `support` (user 3), linked with no name.
+    functions:
+      - name: isDescendantOf
+        params:
+          - { name: userID, type: ID }
+          - { name: owners, type: Any }
+          - { name: relationships, type: String, variadic: true }
+        returns: Boolean
+        description: >-
+          True when a group of one of the `owners` sits somewhere below the
+          user's group. `owners` is a user ID or a list of them, typically
+          `resource.ownedBy`. With `relationships`, only links with one of
+          those names — or with no name — are followed. The user's own group
+          does not count, and it is false when either user is in no group.
+        example:
+          {
+            expr: 'isDescendantOf(userID, resource.ownedBy)',
+            scope: '{"userID": 1, "resource": {"ownedBy": 2}}',
+            result: 'true',
+          }
+
+      - name: isDescendantOfR
+        params: [{ name: userID, type: ID }, { name: owners, type: Any }]
+        returns: Boolean
+        description: '`isDescendantOf` following only links named `read`, or with no name.'
+        example:
+          {
+            expr: 'isDescendantOfR(userID, resource.ownedBy)',
+            scope: '{"userID": 1, "resource": {"ownedBy": 2}}',
+            result: 'true',
+          }
+
+      - name: isDescendantOfC
+        params: [{ name: userID, type: ID }, { name: owners, type: Any }]
+        returns: Boolean
+        description: '`isDescendantOf` following only links named `create`, or with no name.'
+        example:
+          {
+            expr: 'isDescendantOfC(userID, resource.ownedBy)',
+            scope: '{"userID": 1, "resource": {"ownedBy": 3}}',
+            result: 'true',
+          }
+
+      - name: isDescendantOfU
+        params: [{ name: userID, type: ID }, { name: owners, type: Any }]
+        returns: Boolean
+        description: >-
+          `isDescendantOf` following only links named `update`, or with no
+          name. The `read` link to `sales` does not count, so this is false.
+        example:
+          {
+            expr: 'isDescendantOfU(userID, resource.ownedBy)',
+            scope: '{"userID": 1, "resource": {"ownedBy": 2}}',
+            result: 'false',
+          }
+
+      - name: isDescendantOfD
+        params: [{ name: userID, type: ID }, { name: owners, type: Any }]
+        returns: Boolean
+        description: >-
+          `isDescendantOf` following only links named `delete`, or with no
+          name. It only looks down: a member of `support` is not below
+          itself or above `managers`.
+        example:
+          {
+            expr: 'isDescendantOfD(userID, resource.ownedBy)',
+            scope: '{"userID": 3, "resource": {"ownedBy": 1}}',
+            result: 'false',
+          }
+
+      - name: isDescendantOfW
+        params: [{ name: userID, type: ID }, { name: owners, type: Any }]
+        returns: Boolean
+        description: '`isDescendantOf` following only links named `create`, `update` or `delete`, or with no name.'
+        example:
+          {
+            expr: 'isDescendantOfW(userID, resource.ownedBy)',
+            scope: '{"userID": 1, "resource": {"ownedBy": 3}}',
+            result: 'true',
+          }

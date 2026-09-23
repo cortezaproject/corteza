@@ -19,8 +19,9 @@ import (
 type (
 	exprFunctionsDoc struct {
 		Groups []struct {
-			Name      string
-			Functions []exprFunctionDoc
+			Name         string
+			RegisteredIn string `yaml:"registeredIn"`
+			Functions    []exprFunctionDoc
 		}
 	}
 
@@ -43,8 +44,13 @@ func loadExprFunctionsDoc(t *testing.T) []exprFunctionDoc {
 	var doc exprFunctionsDoc
 	require.NoError(t, yaml.Unmarshal(raw, &doc))
 
+	// Groups another package registers are held to the code by that package.
 	var out []exprFunctionDoc
 	for _, g := range doc.Groups {
+		if g.RegisteredIn != "" && g.RegisteredIn != "expr" {
+			continue
+		}
+
 		out = append(out, g.Functions...)
 	}
 

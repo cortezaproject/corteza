@@ -29,6 +29,10 @@ from 0 to 5, write `value < 0 || value > 5`, with the message to show when it
 comes out true.
 :::
 
+Contextual roles can also use the [access control functions](./functions#access-control),
+which follow the user group hierarchy, for example
+`isDescendantOfR(userID, resource.ownedBy)`.
+
 Branch conditions in TAQs are not written as expressions: they are built in
 the TAQ builder.
 

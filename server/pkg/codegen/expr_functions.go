@@ -24,9 +24,12 @@ type (
 	}
 
 	exprFunctionGroup struct {
-		Name      string             `yaml:"name"`
-		Intro     string             `yaml:"intro"`
-		Functions []*exprFunctionDef `yaml:"functions"`
+		Name string `yaml:"name"`
+		// RegisteredIn names the package that registers the group's functions
+		// when it is not the definition's own; those stay out of Names.
+		RegisteredIn string             `yaml:"registeredIn"`
+		Intro        string             `yaml:"intro"`
+		Functions    []*exprFunctionDef `yaml:"functions"`
 	}
 
 	exprFunctionDef struct {
@@ -77,10 +80,14 @@ func procExprFunctions(mm ...string) (dd []*exprFunctionsDef, err error) {
 	return dd, nil
 }
 
-// Names returns every function name of the definition, sorted.
+// Names returns the function names the definition's own package registers, sorted.
 func (d exprFunctionsDef) Names() []string {
 	var nn []string
 	for _, g := range d.Groups {
+		if g.RegisteredIn != "" && g.RegisteredIn != d.Package {
+			continue
+		}
+
 		for _, f := range g.Functions {
 			nn = append(nn, f.Name)
 		}
