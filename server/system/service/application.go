@@ -181,6 +181,10 @@ func (svc *application) onSetSource(ctx context.Context, aProps *applicationActi
 		return ApplicationErrSourceTooLarge()
 	}
 
+	if err = CheckApplicationSource(source); err != nil {
+		return err
+	}
+
 	if meta == nil {
 		meta = &types.ApplicationSourceMeta{}
 	}

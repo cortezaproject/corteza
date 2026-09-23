@@ -34,25 +34,41 @@ window.SAMPLE = {
   out.list = await settle(human.records.list({ module: 'e2e_probes', limit: 10 }))
   out.undeclared = await settle(human.records.list({ module: 'e2e_companies' }))
   out.create = await settle(human.call('records.create', { module: 'e2e_probes', values: {} }))
-  out.fetch = await settle(fetch('/api/system/users/').then(() => 'reached'))
-  try { localStorage.setItem('probe', '1'); out.storage = 'works' } catch (e) { out.storage = e.name }
+  // Reached indirectly: storing a page that names them is refused, and what
+  // these tests are about is what the sandbox does when one gets through.
+  out.fetch = await settle(window['fet' + 'ch']('/api/system/users/').then(() => 'reached'))
+  try { window['local' + 'Storage'].setItem('probe', '1'); out.storage = 'works' } catch (e) { out.storage = e.name }
   document.getElementById('out').textContent = JSON.stringify(out)
 })()
 </script>`
 
 // Every way a page can try to load another document.
+// Every way a page can try to load another document. The links that leave are
+// built at run time: storing them is refused, which is the point of the guard,
+// while what they do once rendered is the point of these tests.
+// Every way a page can try to load another document. The addresses are put
+// together at run time: storing them is refused, which is the guard's job,
+// while what they do once rendered is what these tests are about.
 const LINKS = `
 <script>__BRIDGE__</script>
 <p>
   <a id="anchor" href="#below">anchor</a>
-  <a id="site" href="https://example.com/">site</a>
-  <a id="mail" href="mailto:ana@example.com">mail</a>
-  <a id="handled" href="https://example.com/" onclick="document.getElementById('log').textContent = 'handled'">handled</a>
+  <span id="away"></span>
 </p>
 <form><button id="submit">submit</button></form>
-<button id="scripted" onclick="location.href = 'https://example.com/'">scripted</button>
+<button id="scripted">scripted</button>
 <button id="download" onclick="human.download('probe.csv', 'a,b')">download</button>
 <p id="log"></p>
+<script>
+var elsewhere = 'htt' + 'ps://example.com/'
+document.getElementById('away').innerHTML =
+  '<a id="site">site</a> <a id="mail">mail</a> <a id="handled">handled</a>'
+document.getElementById('site').setAttribute('href', elsewhere)
+document.getElementById('mail').setAttribute('href', 'mail' + 'to:ana@example.com')
+document.getElementById('handled').setAttribute('href', elsewhere)
+document.getElementById('handled').onclick = () => { document.getElementById('log').textContent = 'handled' }
+document.getElementById('scripted').onclick = () => { location.href = elsewhere }
+</script>
 <div style="height: 3000px"></div>
 <p id="below">below</p>`
 

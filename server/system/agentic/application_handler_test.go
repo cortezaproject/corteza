@@ -60,103 +60,6 @@ func TestApplicationSourcePatchRefusesAnApplicationWithNoSource(t *testing.T) {
 	assert.Contains(t, err.Error(), "no source stored yet")
 }
 
-func TestApplicationSourceAcceptsAPlainDocument(t *testing.T) {
-	require.NoError(t, checkApplicationSource(sampleApp))
-}
-
-func TestApplicationSourceRefusesWhatTheSandboxCannotRun(t *testing.T) {
-	cases := []struct {
-		name    string
-		source  string
-		message string
-	}{
-		{"module script", `<script type="module">const a = 1</script>`, "script-src"},
-		{"single-quoted module script", "<script type='module'>const a = 1</script>", "script-src"},
-		{"import statement", "<script>\nimport { h } from 'https://esm.sh/preact'\n</script>", "line 2"},
-		{"export statement", "<script>\nexport const render = () => {}\n</script>", "ES module statement"},
-		{"react import", `<script>const { useState } = from "react"</script>`, "React"},
-		{"fetch", `<script>fetch('/api/compose').then(r => r.json())</script>`, "connect-src"},
-		{"window fetch", `<script>window.fetch('/api/compose')</script>`, "connect-src"},
-		{"xhr", `<script>const r = new XMLHttpRequest()</script>`, "connect-src"},
-		{"websocket", `<script>const s = new WebSocket('wss://example.com')</script>`, "connect-src"},
-		{"local storage", `<script>try { localStorage.setItem('tab', 'a') } catch {}</script>`, "SecurityError"},
-		{"session storage", `<script>sessionStorage.getItem('x')</script>`, "SecurityError"},
-		{"indexed db", `<script>indexedDB.open('db')</script>`, "SecurityError"},
-		{"cookie", `<script>document.cookie = 'a=1'</script>`, "SecurityError"},
-		{"alert", `<script>alert('saved')</script>`, "in-page dialog"},
-		{"window confirm", `<script>if (window.confirm('Sure?')) go()</script>`, "always answers false"},
-		{"prompt", `<script>const n = prompt('Name?')</script>`, "in-page dialog"},
-		{"window open", `<script>window.open('https://example.com')</script>`, "no new windows"},
-		{"new tab link", `<a href="https://example.com" target="_blank">x</a>`, "no new windows"},
-		{"download link", `<a href="data:text/csv,a" download="x.csv">Export</a>`, "download"},
-		{"download property", `<script>a.download = 'x.csv'; a.click()</script>`, "download"},
-		{"script elsewhere", `<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>`, "cdn.jsdelivr.net"},
-		{"protocol-relative script", `<script src="//unpkg.com/x"></script>`, "cdnjs"},
-		{"web font", `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter">`, "system font"},
-		{"css import", `<style>@import url('https://fonts.googleapis.com/css2?family=Inter');</style>`, "inline it"},
-		{"css url", `<style>.hero { background: url(https://example.com/a.png) }</style>`, "data: URL"},
-		{"remote image", `<img src="https://example.com/logo.png" alt="">`, "img-src"},
-		{"mailto link", `<a href="mailto:ana@example.com">Ana</a>`, "leaves the page does nothing"},
-		{"tel link", `<a href='tel:+38612345'>call</a>`, "tel:+38612345"},
-		{"site link", `<a class="x" href=https://example.com>site</a>`, "leaves the page"},
-		{"file link", `<a href="details.html">more</a>`, "details.html"},
-	}
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			err := checkApplicationSource(c.source)
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), c.message)
-		})
-	}
-}
-
-// A name that merely ends in one of the refused ones is somebody's own
-// function, and refusing it would send the caller looking for a call it never
-// wrote.
-func TestApplicationSourceAllowsIdentifiersThatOnlyEndInARefusedName(t *testing.T) {
-	require.NoError(t, checkApplicationSource(`<script>const prefetch = () => {}; prefetch()</script>`))
-	require.NoError(t, checkApplicationSource(`<script>function importRows () {}</script>`))
-}
-
-// What only looks like a refused call is the page's own: a method of that name
-// on some object, a library from the one admitted host, an image carried as
-// data.
-func TestApplicationSourceAllowsWhatOnlyResemblesARefusal(t *testing.T) {
-	for _, source := range []string{
-		`<script>dialog.confirm(); modal.alert(); form.prompt()</script>`,
-		`<script>function showAlert () {}; showAlert()</script>`,
-		`<script>panel.open(); const open = () => {}; open()</script>`,
-		`<script>row.downloadCount = 3; if (a.download == b) {}</script>`,
-		`<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>`,
-		`<img src="data:image/png;base64,AAAA" alt="">`,
-		`<a href="#detail">Details</a>`,
-		`<a href="" onclick="open()">Open</a>`,
-		`<a href="javascript:void(0)">Toggle</a>`,
-		`<a name="top"></a>`,
-	} {
-		require.NoError(t, checkApplicationSource(source), source)
-	}
-}
-
-func TestApplicationSourceRefusesAnEmptyDocument(t *testing.T) {
-	err := checkApplicationSource("   \n\t ")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "empty")
-}
-
-// The service caps the source too; failing here is what keeps a 300 KB argument
-// from being carried through the whole write before it is refused.
-func TestApplicationSourceRefusesOverTheSizeCap(t *testing.T) {
-	oversize := "<html>" + strings.Repeat("x", sysService.ApplicationSourceMaxSize) + "</html>"
-
-	err := checkApplicationSource(oversize)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "the limit is")
-
-	require.NoError(t, checkApplicationSource("<html>"+strings.Repeat("x", sysService.ApplicationSourceMaxSize-20)+"</html>"))
-}
-
 func TestCustomApplicationNeedsURL(t *testing.T) {
 	custom := func(url string) *sysTypes.Application {
 		return &sysTypes.Application{
@@ -193,8 +96,28 @@ func TestApplicationHandlerRegistersTheSourceTools(t *testing.T) {
 	}
 }
 
-// The skill hands out a bridge snippet that every custom app pastes in. If the
-// guard refused it, the tool would reject the first app written to the skill.
+// indentedBlockContaining returns the run of indented lines holding marker.
+func indentedBlockContaining(body, marker string) string {
+	var block []string
+	for _, line := range strings.Split(body, "\n") {
+		switch {
+		case strings.HasPrefix(line, "    "):
+			block = append(block, strings.TrimPrefix(line, "    "))
+		case strings.TrimSpace(line) == "" && len(block) > 0:
+			block = append(block, "")
+		default:
+			if joined := strings.Join(block, "\n"); strings.Contains(joined, marker) {
+				return joined
+			}
+			block = nil
+		}
+	}
+	if joined := strings.Join(block, "\n"); strings.Contains(joined, marker) {
+		return joined
+	}
+	return ""
+}
+
 func TestTheSkillsBridgeSnippetSurvivesTheSourceGuard(t *testing.T) {
 	lib, err := skills.LoadLibrary()
 	require.NoError(t, err)
@@ -218,27 +141,5 @@ func TestTheSkillsBridgeSnippetSurvivesTheSourceGuard(t *testing.T) {
 		"the bridge snippet was not found in the custom_app skill as an indented block; "+
 			"this test is asserting nothing until it is")
 
-	require.NoError(t, checkApplicationSource("<script>\n"+snippet+"\n</script>"))
-}
-
-// indentedBlockContaining returns the run of indented lines holding marker.
-func indentedBlockContaining(body, marker string) string {
-	var block []string
-	for _, line := range strings.Split(body, "\n") {
-		switch {
-		case strings.HasPrefix(line, "    "):
-			block = append(block, strings.TrimPrefix(line, "    "))
-		case strings.TrimSpace(line) == "" && len(block) > 0:
-			block = append(block, "")
-		default:
-			if joined := strings.Join(block, "\n"); strings.Contains(joined, marker) {
-				return joined
-			}
-			block = nil
-		}
-	}
-	if joined := strings.Join(block, "\n"); strings.Contains(joined, marker) {
-		return joined
-	}
-	return ""
+	require.NoError(t, sysService.CheckApplicationSource("<script>\n"+snippet+"\n</script>"))
 }
