@@ -20,7 +20,7 @@ so individual specs never wire i18n or component registration themselves.
 
 ## Map
 
-- setup.ts — registers on `@vue/test-utils` global config: vue-i18n (Composition mode, empty `en` messages), unstyled PrimeVue, and the shared `PrimeVueComponentsPlugin` registry; spies away `console.error`/`console.warn` before each test.
+- setup.ts — registers on `@vue/test-utils` global config: vue-i18n (Composition mode, empty `en` messages), unstyled PrimeVue, and the shared `PrimeVueComponentsPlugin` registry; spies away `console.error`/`console.warn` before each test; gives `Range` the empty geometry jsdom does not implement.
 
 ## When changing this
 
