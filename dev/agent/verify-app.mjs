@@ -1,8 +1,13 @@
 #!/usr/bin/env node
 // Render-verify custom applications in a real (headless) browser.
 //
-// Usage: node dev/agent/verify-app.mjs [--out DIR] [--expect TEXT] ID [ID...]
+// Usage: node dev/agent/verify-app.mjs [--out DIR] [--expect TEXT] [--click N] ID [ID...]
 //   node dev/agent/verify-app.mjs --expect 'Ada Lovelace' 514958620159967233
+//
+// `--click N` presses up to N of the app's own buttons afterwards and agrees to
+// whatever Human asks, which is the only way to reach a page that saves: the
+// consent dialog belongs to the shell, so a page that changes records does
+// nothing at all until somebody answers it.
 //
 // Logs in as agent@local.dev (password from .state/ui-password, created by
 // bootstrap.sh), opens /app/<id> for each application and reports what the app
@@ -53,9 +58,11 @@ const SESSION = process.env.CLAUDE_CODE_SESSION_ID || 'unknown'
 let outDir = join(AGENT_DIR, '.state', 'sessions', SESSION, basename(REPO_DIR), 'app')
 const expects = []
 const ids = []
+let clicks = 0
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--out') outDir = args[++i]
   else if (args[i] === '--expect') expects.push(args[++i])
+  else if (args[i] === '--click') clicks = Number(args[++i]) || 6
   else ids.push(args[i])
 }
 if (!ids.length) {
@@ -186,10 +193,35 @@ for (const id of ids) {
     }
   }
 
+  // Press what the page offers, agreeing to whatever Human asks about it. A
+  // page that saves is inert until the consent dialog is answered, so without
+  // this its whole write path is never reached and renders as working.
+  let pressed = 0
+  if (clicks && report) {
+    const buttons = app.locator('button:visible, [role="button"]:visible')
+    const total = Math.min(await buttons.count().catch(() => 0), clicks)
+    for (let i = 0; i < total; i++) {
+      await buttons.nth(i).click({ timeout: 3000, noWaitAfter: true }).catch(() => {})
+      pressed++
+      const allow = page.getByRole('alertdialog').getByRole('button', { name: /^Allow/ })
+      if (await allow.isVisible().catch(() => false)) await allow.click().catch(() => {})
+      await page.waitForTimeout(400)
+    }
+    try {
+      const after = await app.evaluate(APP_REPORT)
+      report.holes = after.holes
+      report.ids = after.ids
+      report.text = after.text
+    } catch {
+      faults.push('the app frame stopped answering after its own buttons were pressed')
+    }
+  }
+
   const shot = join(outDir, `app-${id}.png`)
   await page.screenshot({ path: shot, fullPage: true }).catch(() => {})
 
   console.log(`\n▸ /app/${id}`)
+  if (pressed) console.log(`  pressed     ${pressed} control(s)`)
   if (report) {
     const mode = MODE(report.text)
     const visible = report.text.trim()

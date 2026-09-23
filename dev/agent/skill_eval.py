@@ -132,6 +132,8 @@ def deploy(sid, page, prompt):
         args["namespace"] = prompt["namespace"]
     if prompt.get("modules"):
         args["modules"] = prompt["modules"]
+    if prompt.get("writes"):
+        args["writes"] = prompt["writes"]
     _, err = call_tool(sid, "system_application_source_set", args)
     if err:
         call_tool(sid, "system_application_delete", {"application": app["applicationID"]})
