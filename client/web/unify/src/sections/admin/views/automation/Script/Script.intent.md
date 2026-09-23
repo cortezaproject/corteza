@@ -20,7 +20,7 @@ deployed outside the UI — there is no create/edit/delete here.
 ## Map
 
 - `Index.vue` — the whole area (see `Index.intent.md`).
-- `script-inventory.js` — pure helpers behind the view: script kind/bundle/extension from the name, trigger rows, grouping by extension, kind filter, banner state from the list's status fields, relative time.
+- `script-inventory.js` — pure helpers behind the view: script kind/bundle/extension from the name, trigger rows, grouping and narrowing by extension, kind filter, sorting, banner state from the list's status fields, relative time.
 
 ## Data touched
 

@@ -29,6 +29,8 @@ const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:5173'
 const STORAGE_STATE = 'e2e/.auth/state.json'
 
 const DASHBOARD_SCRIPT = 'Dashboard hello (client)'
+// The inventory's own search box: what says the screen finished loading
+const SEARCH_PLACEHOLDER = 'Search scripts by label, name or description'
 
 /** A crashed bundle still leaves the last frame on screen; the console is the
  *  only witness. */
@@ -74,7 +76,7 @@ test.describe('corredor manual script slots in admin', () => {
     try {
       const page = await context.newPage()
       await page.goto('/admin/automation/scripts')
-      await expect(page.getByText('Search query')).toBeVisible({ timeout: 30000 })
+      await expect(page.getByPlaceholder(SEARCH_PLACEHOLDER)).toBeVisible({ timeout: 30000 })
 
       if (await page.getByText(/Corredor is turned off on this server/).count()) {
         bundleMissing =

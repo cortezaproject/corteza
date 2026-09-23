@@ -1,12 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import {
+  ANY_EXTENSION,
   corredorBanner,
   groupScripts,
+  matchesExtensionFilter,
   matchesKindFilter,
   relativeTime,
   scriptBundle,
   scriptExtension,
   scriptKind,
+  sortScripts,
   triggerRows,
 } from './script-inventory'
 
@@ -118,6 +121,101 @@ describe('matchesKindFilter', () => {
     expect(matchesKindFilter('client', { server: true, client: false })).toBe(false)
     expect(matchesKindFilter('client', { server: false, client: true })).toBe(true)
     expect(matchesKindFilter('server', { server: false, client: true })).toBe(false)
+  })
+})
+
+describe('matchesExtensionFilter', () => {
+  it('shows every script while no extension is chosen', () => {
+    expect(matchesExtensionFilter(serverScript, ANY_EXTENSION)).toBe(true)
+    expect(matchesExtensionFilter(looseClientScript, ANY_EXTENSION)).toBe(true)
+  })
+
+  it('narrows to the scripts of the chosen extension', () => {
+    expect(matchesExtensionFilter(serverScript, 'agent-sandbox')).toBe(true)
+    expect(matchesExtensionFilter(clientScript, 'agent-sandbox')).toBe(true)
+    expect(matchesExtensionFilter(looseServerScript, 'agent-sandbox')).toBe(false)
+  })
+
+  it('treats the empty name as the scripts outside any extension', () => {
+    expect(matchesExtensionFilter(looseServerScript, '')).toBe(true)
+    expect(matchesExtensionFilter(looseClientScript, '')).toBe(true)
+    expect(matchesExtensionFilter(serverScript, '')).toBe(false)
+  })
+})
+
+describe('sortScripts', () => {
+  const labelled = [
+    { ...serverScript, label: 'Activate contact (server)' },
+    { ...clientScript, label: 'Greet contact (client)' },
+    { ...looseServerScript, label: 'Sink: hello (server)' },
+  ]
+
+  it('orders by the label a row shows', () => {
+    expect(sortScripts(labelled, 'name', false).map(s => s.label)).toEqual([
+      'Activate contact (server)',
+      'Greet contact (client)',
+      'Sink: hello (server)',
+    ])
+  })
+
+  it('falls back to the machine name for a script with no label', () => {
+    const unlabelled = [
+      { name: '/server-scripts/Zulu.js:default' },
+      { name: '/server-scripts/Alpha.js:default' },
+    ]
+
+    expect(sortScripts(unlabelled, 'name', false).map(s => s.name)).toEqual([
+      '/server-scripts/Alpha.js:default',
+      '/server-scripts/Zulu.js:default',
+    ])
+  })
+
+  it('reverses on a descending sort', () => {
+    expect(sortScripts(labelled, 'name', true).map(s => s.label)).toEqual([
+      'Sink: hello (server)',
+      'Greet contact (client)',
+      'Activate contact (server)',
+    ])
+  })
+
+  it('orders by extension and by kind', () => {
+    // Two scripts of the same extension keep the order they came in.
+    expect(sortScripts(labelled, 'extension', false).map(s => s.name)).toEqual([
+      looseServerScript.name,
+      serverScript.name,
+      clientScript.name,
+    ])
+
+    expect(sortScripts(labelled, 'kind', false).map(s => s.name)).toEqual([
+      clientScript.name,
+      serverScript.name,
+      looseServerScript.name,
+    ])
+  })
+
+  it('orders by the timestamp the last-change column shows', () => {
+    const stamped = [
+      { name: 'b', updatedAt: '2026-02-01T00:00:00Z' },
+      { name: 'a', updatedAt: '2026-01-01T00:00:00Z' },
+      { name: 'c' },
+    ]
+
+    expect(sortScripts(stamped, 'changedAt', false).map(s => s.name)).toEqual(['c', 'a', 'b'])
+  })
+
+  it('leaves a column that carries no order alone, and never sorts in place', () => {
+    const given = [...labelled]
+
+    expect(sortScripts(given, 'triggers', false).map(s => s.label)).toEqual(
+      labelled.map(s => s.label),
+    )
+    expect(sortScripts(given, 'name', true)).not.toBe(given)
+    expect(given.map(s => s.label)).toEqual(labelled.map(s => s.label))
+  })
+
+  it('has nothing to sort for no scripts', () => {
+    expect(sortScripts(null, 'name', false)).toEqual([])
+    expect(sortScripts([], 'name', false)).toEqual([])
   })
 })
 

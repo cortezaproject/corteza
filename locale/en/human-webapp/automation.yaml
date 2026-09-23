@@ -1,18 +1,30 @@
 scripts:
   list:
     columns:
-      name: Name
-    filter:
-      absoluteTime: Show absolute time
+      extension: Extension
+      kind: Where it runs
+      name: Script
+      triggers: Triggers and security
+    extensionNone: Outside any extension
+    filterForm:
+      extension:
+        any: Every extension ({count})
+        label: Extension the script came from
+        named: '{extension} ({count})'
+        none: Outside any extension ({count})
+      has:
+        label: What the script declares
       incClientScripts: Client scripts ({count})
-      incScriptsWithErrors: Errors ({count})
-      incScriptsWithIterator: Iterator ({count})
-      incScriptsWithSecurity: Security ({count})
-      incScriptsWithTriggers: Triggers ({count})
+      incScriptsWithErrors: Scripts with errors ({count})
+      incScriptsWithIterator: Scripts with an iterator ({count})
+      incScriptsWithSecurity: Scripts with security rules ({count})
+      incScriptsWithTriggers: Scripts with triggers ({count})
       incServerScripts: Server scripts ({count})
-      searchQuery: Search query
-    groups:
-      root: Scripts outside any extension
+      kind:
+        label: Where the script runs
+      query:
+        placeholder: Search scripts by label, name or description
+      title: Filter the scripts
     iterator:
       chip: iterator · {eventType} · {resourceType} · {action}
       chipWithSchedule: iterator · {eventType} · {resourceType} · {action} · {schedule}
@@ -21,6 +33,9 @@ scripts:
       clientWithoutBundle: Client
       server: Server
     labelMissing: <label missing>
+    resource:
+      plural: Scripts
+      single: Script
     security:
       allow: 'allow: {roles}'
       deny: 'deny: {roles}'

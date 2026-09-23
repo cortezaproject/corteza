@@ -1,4 +1,4 @@
-import { constraintChips } from '@planetcrust/human-vue'
+import { changedAt, constraintChips } from '@planetcrust/human-vue'
 
 /**
  * Inventory facts about a Corredor script, read off the shape
@@ -14,6 +14,12 @@ import { constraintChips } from '@planetcrust/human-vue'
 
 const clientScriptPrefix = '/client-scripts/'
 const chipSeparator = ' · '
+
+/**
+ * The extension filter's value for "every extension", distinct from the empty
+ * name the scripts outside any extension carry.
+ */
+export const ANY_EXTENSION = '*'
 
 function segments(name) {
   return String(name || '')
@@ -93,6 +99,47 @@ export function groupScripts(scripts) {
 export function matchesKindFilter(kind, { server, client } = {}) {
   if (!!server === !!client) return true
   return server ? kind === 'server' : kind === 'client'
+}
+
+/**
+ * Whether a script comes from the extension the filter names. The empty name
+ * is a choice of its own — the scripts sitting outside any extension.
+ */
+export function matchesExtensionFilter(script, extension) {
+  return extension === ANY_EXTENSION || scriptExtension(script) === extension
+}
+
+// What each sortable column orders by. A column absent here is one whose cell
+// holds chips rather than a value, and the table does not offer to sort it.
+const sortValues = {
+  name: script => String(script?.label || script?.name || '').toLocaleLowerCase(),
+  extension: script => scriptExtension(script),
+  kind: script => [scriptKind(script), scriptBundle(script)].join(chipSeparator),
+  changedAt: script => {
+    const stamp = changedAt(script)
+    return stamp ? new Date(stamp).getTime() : 0
+  },
+}
+
+/**
+ * The fetched set in the order the table asks for, left as it came for a column
+ * that carries no order of its own.
+ */
+export function sortScripts(scripts, sortBy, sortDesc) {
+  const value = sortValues[sortBy]
+  const sorted = [...(scripts || [])]
+
+  if (!value) return sorted
+
+  return sorted.sort((a, b) => {
+    const [left, right] = [value(a), value(b)]
+    const order =
+      typeof left === 'number' && typeof right === 'number'
+        ? left - right
+        : String(left).localeCompare(String(right))
+
+    return sortDesc ? -order : order
+  })
 }
 
 /**

@@ -3,212 +3,220 @@
     <span>{{ $t('automation.scripts.list.title') }}</span>
   </Teleport>
 
-  <div v-if="loading" class="flex items-center justify-center h-full">
-    <ProgressSpinner />
-  </div>
+  <CViewContainer>
+    <div class="flex flex-col gap-4 h-full min-h-0">
+      <!-- Corredor connection, as the script list reported it -->
+      <Message v-if="banner" :severity="banner.severity" :closable="false" class="shrink-0">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <span>{{ bannerText }}</span>
+          <Button
+            v-if="banner.state === 'connected'"
+            :label="$t('automation.scripts.list.status.refresh')"
+            :title="$t('automation.scripts.list.status.refreshTooltip')"
+            icon="pi pi-refresh"
+            size="small"
+            severity="secondary"
+            :loading="refreshing"
+            @click="refreshScripts"
+          />
+        </div>
+      </Message>
 
-  <div v-else class="flex flex-col h-full">
-    <CViewContainer scroll>
-      <Panel
-        :header="$t('automation.scripts.list.title')"
-        toggleable
-        :collapsed="false"
-        class="shadow"
+      <CResourceList
+        primary-key="name"
+        :fields="fields"
+        :items="paged"
+        :filter="filter"
+        :sorting="sorting"
+        :pagination="paginationState"
+        :loading="loading"
+        :translations="{
+          searchPlaceholder: $t('automation.scripts.list.filterForm.query.placeholder'),
+          showingPagination: 'general.resourceList.pagination.showing',
+          singlePluralPagination: 'general.resourceList.pagination.single',
+          prevPagination: $t('general.resourceList.pagination.prev'),
+          nextPagination: $t('general.resourceList.pagination.next'),
+          recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
+          resourceSingle: $t('automation.scripts.list.resource.single'),
+          resourcePlural: $t('automation.scripts.list.resource.plural'),
+        }"
+        class="flex-1 min-h-0"
+        @update:filter="Object.assign(filter, $event)"
+        @sort="handleSort"
+        @page-change="handlePageChange"
       >
-        <!-- Corredor connection, as the script list reported it -->
-        <Message v-if="banner" :severity="banner.severity" :closable="false" class="mb-4">
-          <div class="flex items-center justify-between gap-3 flex-wrap">
-            <span>{{ bannerText }}</span>
-            <Button
-              v-if="banner.state === 'connected'"
-              :label="$t('automation.scripts.list.status.refresh')"
-              :title="$t('automation.scripts.list.status.refreshTooltip')"
-              icon="pi pi-refresh"
-              size="small"
-              severity="secondary"
-              :loading="refreshing"
-              @click="refreshScripts"
-            />
+        <template #filter>
+          <Button
+            v-tooltip.bottom="$t('automation.scripts.list.filterForm.title')"
+            :aria-label="$t('automation.scripts.list.filterForm.title')"
+            icon="pi pi-filter"
+            severity="secondary"
+            size="small"
+            text
+            @click="toggleFilterMenu"
+          />
+        </template>
+
+        <template #body-name="{ data }">
+          <div class="flex flex-col gap-1 max-w-sm">
+            <span v-if="data.label" class="font-medium truncate">{{ data.label }}</span>
+            <span v-else class="text-muted-color italic">
+              {{ $t('automation.scripts.list.labelMissing') }}
+            </span>
+
+            <span v-if="data.description" class="text-xs text-muted-color truncate">
+              {{ data.description }}
+            </span>
+
+            <code class="text-xs text-muted-color truncate">{{ data.name }}</code>
+
+            <div v-if="data.errors && data.errors.length" class="flex flex-col gap-1 mt-1">
+              <Message
+                v-for="(error, i) in data.errors"
+                :key="i"
+                severity="warn"
+                :closable="false"
+                class="text-sm"
+              >
+                {{ error }}
+              </Message>
+            </div>
           </div>
-        </Message>
+        </template>
 
-        <!-- Search + Filters -->
-        <div class="flex flex-col gap-4 mb-4">
-          <CFormGroup :label="$t('automation.scripts.list.filter.searchQuery')">
-            <InputText v-model="filter.query" class="w-full md:w-1/2" />
-          </CFormGroup>
+        <template #body-extension="{ data }">
+          <span v-if="scriptExtension(data)" class="flex items-center gap-2">
+            <i class="pi pi-folder text-muted-color" />
+            {{ scriptExtension(data) }}
+          </span>
+          <span v-else class="text-muted-color">
+            {{ $t('automation.scripts.list.extensionNone') }}
+          </span>
+        </template>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <CInputSwitch
-              v-model="filter.incScriptsWithErrors"
-              :label="
-                $t('automation.scripts.list.filter.incScriptsWithErrors', {
-                  count: totalScriptsWithErrors,
-                })
-              "
-            />
-            <CInputSwitch
-              v-model="filter.incScriptsWithTriggers"
-              :label="
-                $t('automation.scripts.list.filter.incScriptsWithTriggers', {
-                  count: totalScriptsWithTriggers,
-                })
-              "
-            />
-            <CInputSwitch
-              v-model="filter.incScriptsWithIterator"
-              :label="
-                $t('automation.scripts.list.filter.incScriptsWithIterator', {
-                  count: totalScriptsWithIterator,
-                })
-              "
-            />
-            <CInputSwitch
-              v-model="filter.incScriptsWithSecurity"
-              :label="
-                $t('automation.scripts.list.filter.incScriptsWithSecurity', {
-                  count: totalScriptsWithSecurity,
-                })
-              "
-            />
-            <CInputSwitch
-              v-model="filter.incServerScripts"
-              :label="
-                $t('automation.scripts.list.filter.incServerScripts', {
-                  count: totalServerScripts,
-                })
-              "
-            />
-            <CInputSwitch
-              v-model="filter.incClientScripts"
-              :label="
-                $t('automation.scripts.list.filter.incClientScripts', {
-                  count: totalClientScripts,
-                })
-              "
-            />
+        <template #body-kind="{ data }">
+          <Tag :value="kindLabel(data)" severity="contrast" class="text-xs" />
+        </template>
+
+        <template #body-triggers="{ data }">
+          <div class="flex flex-col gap-1 max-w-md">
+            <div
+              v-for="(trigger, i) in triggerRows(data)"
+              :key="`trigger-${i}`"
+              class="flex items-center gap-1 flex-wrap"
+            >
+              <Tag :value="trigger.label" severity="info" class="text-xs" />
+              <Tag
+                v-for="(constraint, j) in trigger.constraints"
+                :key="`constraint-${j}`"
+                :value="constraint"
+                severity="secondary"
+                class="text-xs"
+              />
+            </div>
+
+            <div v-if="data.iterator" class="flex items-center gap-1 flex-wrap">
+              <Tag :value="iteratorChip(data.iterator)" severity="warn" class="text-xs" />
+              <Tag
+                v-for="(constraint, j) in iteratorFilterChips(data.iterator)"
+                :key="`iterator-filter-${j}`"
+                :value="constraint"
+                severity="secondary"
+                class="text-xs"
+              />
+            </div>
+
+            <div v-if="data.security" class="flex items-center gap-1 flex-wrap">
+              <Tag
+                v-for="(chip, i) in securityChips(data.security)"
+                :key="`security-${i}`"
+                :value="chip"
+                severity="contrast"
+                class="text-xs"
+              />
+            </div>
+          </div>
+        </template>
+
+        <template #body-changedAt="{ data }">
+          {{ changedAtText(data) }}
+        </template>
+      </CResourceList>
+
+      <Popover ref="filterMenu">
+        <div class="flex flex-col gap-4 p-2 w-72">
+          <div class="flex flex-col gap-2">
+            <span class="font-medium text-sm text-primary">
+              {{ $t('automation.scripts.list.filterForm.has.label') }}
+            </span>
+            <div
+              v-for="option in capabilityOptions"
+              :key="option.key"
+              class="flex items-center gap-2"
+            >
+              <Checkbox v-model="filter[option.key]" :inputId="`filter-${option.key}`" binary />
+              <label :for="`filter-${option.key}`" class="text-sm cursor-pointer">
+                {{ option.label }}
+              </label>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <span class="font-medium text-sm text-primary">
+              {{ $t('automation.scripts.list.filterForm.kind.label') }}
+            </span>
+            <div v-for="option in kindOptions" :key="option.key" class="flex items-center gap-2">
+              <Checkbox v-model="filter[option.key]" :inputId="`filter-${option.key}`" binary />
+              <label :for="`filter-${option.key}`" class="text-sm cursor-pointer">
+                {{ option.label }}
+              </label>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <span class="font-medium text-sm text-primary">
+              {{ $t('automation.scripts.list.filterForm.extension.label') }}
+            </span>
+            <div
+              v-for="option in extensionOptions"
+              :key="option.id"
+              class="flex items-center gap-2"
+            >
+              <RadioButton
+                v-model="filter.extension"
+                :inputId="`filter-extension-${option.id}`"
+                :value="option.value"
+              />
+              <label :for="`filter-extension-${option.id}`" class="text-sm cursor-pointer">
+                {{ option.label }}
+              </label>
+            </div>
           </div>
         </div>
-
-        <Divider />
-
-        <div v-if="grouped.length" class="flex flex-col gap-6">
-          <CResourceTable
-            v-for="group in grouped"
-            :key="group.extension || '-'"
-            :items="group.items"
-            :fields="scriptFields"
-            primary-key="name"
-            :empty-message="$t('general.resourceList.noItems')"
-          >
-            <template #header>
-              <div class="flex items-center gap-2">
-                <i class="pi pi-folder text-muted-color" />
-                <span class="font-medium">
-                  {{ group.extension || $t('automation.scripts.list.groups.root') }}
-                </span>
-                <Tag :value="`${group.items.length}`" severity="secondary" class="text-xs" />
-              </div>
-            </template>
-
-            <template #body-name="{ data }">
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span v-if="data.label" class="font-medium">{{ data.label }}</span>
-                  <span v-else class="text-muted-color italic">
-                    {{ $t('automation.scripts.list.labelMissing') }}
-                  </span>
-
-                  <Tag :value="kindLabel(data)" severity="contrast" class="text-xs" />
-                </div>
-
-                <span v-if="data.description" class="text-xs text-muted-color max-w-md">
-                  {{ data.description }}
-                </span>
-
-                <code class="text-xs text-muted-color truncate max-w-md">{{ data.name }}</code>
-
-                <div
-                  v-for="(trigger, i) in triggerRows(data)"
-                  :key="`trigger-${i}`"
-                  class="flex items-center gap-1 flex-wrap mt-1"
-                >
-                  <Tag :value="trigger.label" severity="info" class="text-xs" />
-                  <Tag
-                    v-for="(constraint, j) in trigger.constraints"
-                    :key="`constraint-${j}`"
-                    :value="constraint"
-                    severity="secondary"
-                    class="text-xs"
-                  />
-                </div>
-
-                <div v-if="data.iterator" class="flex items-center gap-1 flex-wrap mt-1">
-                  <Tag :value="iteratorChip(data.iterator)" severity="warn" class="text-xs" />
-                  <Tag
-                    v-for="(constraint, j) in iteratorFilterChips(data.iterator)"
-                    :key="`iterator-filter-${j}`"
-                    :value="constraint"
-                    severity="secondary"
-                    class="text-xs"
-                  />
-                </div>
-
-                <div v-if="data.security" class="flex items-center gap-1 flex-wrap mt-1">
-                  <Tag
-                    v-for="(chip, i) in securityChips(data.security)"
-                    :key="`security-${i}`"
-                    :value="chip"
-                    severity="contrast"
-                    class="text-xs"
-                  />
-                </div>
-
-                <div v-if="data.errors && data.errors.length" class="flex flex-col gap-1 mt-1">
-                  <Message
-                    v-for="(error, i) in data.errors"
-                    :key="i"
-                    severity="warn"
-                    :closable="false"
-                    class="text-sm"
-                  >
-                    {{ error }}
-                  </Message>
-                </div>
-              </div>
-            </template>
-
-            <template #body-changedAt="{ data }">
-              <span v-if="changedAt(data)" class="text-sm text-muted-color">
-                {{ formatDate(changedAt(data)) }}
-              </span>
-            </template>
-          </CResourceTable>
-        </div>
-
-        <div v-else class="flex items-center justify-center p-4 text-muted-color">
-          {{ $t('general.resourceList.noItems') }}
-        </div>
-      </Panel>
-    </CViewContainer>
-  </div>
+      </Popover>
+    </div>
+  </CViewContainer>
 </template>
 
 <script setup>
-import { computed, inject, onMounted, reactive, ref } from 'vue'
+import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { changedAt, changedAtField, components, constraintChips } from '@planetcrust/human-vue'
+import { changedAtField, changedAtText, components, constraintChips } from '@planetcrust/human-vue'
 import {
+  ANY_EXTENSION,
   corredorBanner,
   groupScripts,
+  matchesExtensionFilter,
   matchesKindFilter,
   relativeTime,
   scriptBundle,
+  scriptExtension,
   scriptKind,
+  sortScripts,
   triggerRows,
 } from './script-inventory'
 
-const { CResourceTable, CViewContainer } = components
+const { CResourceList, CViewContainer } = components
 const { t, locale } = useI18n()
 
 const $toast = inject('$toast')
@@ -219,8 +227,11 @@ const refreshing = ref(false)
 const items = ref([])
 const status = ref({})
 
+const filterMenu = ref()
+
 const filter = reactive({
   query: '',
+  extension: ANY_EXTENSION,
   incScriptsWithErrors: false,
   incScriptsWithTriggers: false,
   incScriptsWithIterator: false,
@@ -229,17 +240,35 @@ const filter = reactive({
   incClientScripts: false,
 })
 
-// Corredor scripts are listed in memory from the server's script bundle, so the
-// column cannot be sorted the way a stored resource's can. CResourceTable takes
-// header/body classes rather than the shared `class`.
-const scriptFields = [
-  { key: 'name', header: t('automation.scripts.list.columns.name') },
-  changedAtField(t('general.columns.changedAt'), {
+const sorting = reactive({ sortBy: 'name', sortDesc: false })
+const pagination = reactive({ page: 1, limit: 50 })
+
+const fields = [
+  {
+    key: 'name',
+    header: t('automation.scripts.list.columns.name'),
+    sortable: true,
+    style: 'min-width: 16rem',
+  },
+  {
+    key: 'extension',
+    header: t('automation.scripts.list.columns.extension'),
+    sortable: true,
+    style: 'width: 10rem',
+  },
+  {
+    key: 'kind',
+    header: t('automation.scripts.list.columns.kind'),
+    sortable: true,
+    style: 'width: 9rem',
+  },
+  {
+    key: 'triggers',
+    header: t('automation.scripts.list.columns.triggers'),
     sortable: false,
-    headerStyle: 'width: 12rem',
-    headerClass: 'text-right',
-    bodyClass: 'text-right',
-  }),
+    style: 'min-width: 16rem',
+  },
+  changedAtField(t('general.columns.changedAt'), { style: 'width: 10rem' }),
 ]
 
 const banner = computed(() => corredorBanner(status.value))
@@ -265,8 +294,9 @@ const filtered = computed(() => {
   const lcQuery = filter.query.toLocaleLowerCase()
   return items.value
     .filter(
-      ({ name, label }) =>
-        lcQuery.length === 0 || (name + ' ' + (label || '')).toLocaleLowerCase().includes(lcQuery),
+      ({ name, label, description }) =>
+        lcQuery.length === 0 ||
+        [name, label, description].join(' ').toLocaleLowerCase().includes(lcQuery),
     )
     .filter(({ errors }) => !filter.incScriptsWithErrors || (errors && errors.length > 0))
     .filter(({ triggers }) => !filter.incScriptsWithTriggers || !!triggers)
@@ -278,28 +308,113 @@ const filtered = computed(() => {
         client: filter.incClientScripts,
       }),
     )
+    .filter(script => matchesExtensionFilter(script, filter.extension))
 })
 
-const grouped = computed(() => groupScripts(filtered.value))
+const sorted = computed(() => sortScripts(filtered.value, sorting.sortBy, sorting.sortDesc))
 
-const totalScriptsWithErrors = computed(
-  () => items.value.filter(({ errors }) => errors && errors.length > 0).length,
-)
-const totalScriptsWithTriggers = computed(
-  () => items.value.filter(({ triggers }) => !!triggers).length,
-)
-const totalScriptsWithIterator = computed(
-  () => items.value.filter(({ iterator }) => !!iterator).length,
-)
-const totalScriptsWithSecurity = computed(
-  () => items.value.filter(({ security }) => !!security).length,
-)
-const totalServerScripts = computed(
-  () => items.value.filter(script => scriptKind(script) === 'server').length,
-)
-const totalClientScripts = computed(
-  () => items.value.filter(script => scriptKind(script) === 'client').length,
-)
+const paged = computed(() => {
+  const from = (pagination.page - 1) * pagination.limit
+  return sorted.value.slice(from, from + pagination.limit)
+})
+
+// The shell gates its pager on cursors. A set held in memory pages by index, so
+// the cursors here are only the flags that light the two buttons.
+const paginationState = computed(() => ({
+  page: pagination.page,
+  limit: pagination.limit,
+  total: sorted.value.length,
+  prevPage: pagination.page > 1 ? 'prev' : '',
+  nextPage: pagination.page * pagination.limit < sorted.value.length ? 'next' : '',
+}))
+
+// Counted over everything fetched, so a count says how much turning the filter
+// on would leave, not how much the current filter already left.
+const counts = computed(() => ({
+  errors: items.value.filter(({ errors }) => errors && errors.length > 0).length,
+  triggers: items.value.filter(({ triggers }) => !!triggers).length,
+  iterator: items.value.filter(({ iterator }) => !!iterator).length,
+  security: items.value.filter(({ security }) => !!security).length,
+  server: items.value.filter(script => scriptKind(script) === 'server').length,
+  client: items.value.filter(script => scriptKind(script) === 'client').length,
+}))
+
+const capabilityOptions = computed(() => [
+  {
+    key: 'incScriptsWithErrors',
+    label: t('automation.scripts.list.filterForm.incScriptsWithErrors', {
+      count: counts.value.errors,
+    }),
+  },
+  {
+    key: 'incScriptsWithTriggers',
+    label: t('automation.scripts.list.filterForm.incScriptsWithTriggers', {
+      count: counts.value.triggers,
+    }),
+  },
+  {
+    key: 'incScriptsWithIterator',
+    label: t('automation.scripts.list.filterForm.incScriptsWithIterator', {
+      count: counts.value.iterator,
+    }),
+  },
+  {
+    key: 'incScriptsWithSecurity',
+    label: t('automation.scripts.list.filterForm.incScriptsWithSecurity', {
+      count: counts.value.security,
+    }),
+  },
+])
+
+const kindOptions = computed(() => [
+  {
+    key: 'incServerScripts',
+    label: t('automation.scripts.list.filterForm.incServerScripts', {
+      count: counts.value.server,
+    }),
+  },
+  {
+    key: 'incClientScripts',
+    label: t('automation.scripts.list.filterForm.incClientScripts', {
+      count: counts.value.client,
+    }),
+  },
+])
+
+const extensionOptions = computed(() => [
+  {
+    id: 'any',
+    value: ANY_EXTENSION,
+    label: t('automation.scripts.list.filterForm.extension.any', { count: items.value.length }),
+  },
+  ...groupScripts(items.value).map(group => ({
+    id: group.extension || 'none',
+    value: group.extension,
+    label: group.extension
+      ? t('automation.scripts.list.filterForm.extension.named', {
+          extension: group.extension,
+          count: group.items.length,
+        })
+      : t('automation.scripts.list.filterForm.extension.none', { count: group.items.length }),
+  })),
+])
+
+function toggleFilterMenu(event) {
+  filterMenu.value.toggle(event)
+}
+
+function handleSort({ sortField, sortOrder }) {
+  sorting.sortBy = sortField
+  sorting.sortDesc = sortOrder === -1
+}
+
+function handlePageChange({ page, limit }) {
+  pagination.page = page || 1
+  if (limit) pagination.limit = limit
+}
+
+// A narrowed or reordered set makes the page the pager is on meaningless.
+watch([filter, sorting], () => (pagination.page = 1), { deep: true })
 
 function kindLabel(script) {
   if (scriptKind(script) === 'server') return t('automation.scripts.list.kind.server')
@@ -349,12 +464,6 @@ function securityChips(security) {
   }
 
   return chips
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 async function fetchScripts(indicator) {

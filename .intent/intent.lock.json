@@ -47,14 +47,14 @@
       "t": "2026-07-24"
     },
     "client/web/unify/e2e/sections/admin/corredor-admin-slots.spec.ts": {
-      "h": "ff5b8bc7d97c",
+      "h": "fb95b4fca87e",
       "doc": "client/web/unify/e2e/e2e.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/e2e/sections/admin/corredor-scripts.spec.ts": {
-      "h": "c1b41731e585",
+      "h": "04e63ed3cf61",
       "doc": "client/web/unify/e2e/e2e.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/e2e/sections/admin/users.spec.ts": {
       "h": "c153f38175ff",
@@ -292,19 +292,19 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/admin/views/automation/Script/Index.vue": {
-      "h": "9b8d5ee51b3c",
+      "h": "9b023a8c869c",
       "doc": "client/web/unify/src/sections/admin/views/automation/Script/Index.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/admin/views/automation/Script/script-inventory.js": {
-      "h": "3c529fcaf93a",
+      "h": "d7a99015d80c",
       "doc": "client/web/unify/src/sections/admin/views/automation/Script/Script.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/admin/views/automation/Script/script-inventory.test.js": {
-      "h": "90f280ffc855",
+      "h": "b14b42e825db",
       "doc": "client/web/unify/src/sections/admin/views/automation/Script/Script.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/admin/views/automation/Session/List.vue": {
       "h": "eb0378814f65",
