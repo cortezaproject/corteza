@@ -133,9 +133,20 @@ const APP_REPORT = () => {
   const rows = document.querySelectorAll(
     'tbody tr, li, [role="row"], [role="listitem"], [class*="card"], [class*="row"], [class*="item"]',
   ).length
-  // A Human ID is 18-19 digits. Shown to a person it is always a mistake —
-  // the page meant to print the record's label and read the wrong field.
-  const ids = [...new Set(text.match(/\b\d{18,19}\b/g) || [])]
+  // A Human ID is 18-19 digits. Shown where a name belongs it is a mistake —
+  // the page read the wrong field, or never looked the reference up. Shown
+  // under a label that says it is an ID, it is a record's own detail and is
+  // exactly what the reader asked to see.
+  const excused = new Set()
+  for (const el of document.querySelectorAll('*')) {
+    if (el.children.length) continue
+    const own = (el.textContent || '').trim()
+    if (!/^\d{18,19}$/.test(own)) continue
+    const beside = el.previousElementSibling?.textContent || ''
+    const around = el.parentElement ? (el.parentElement.textContent || '').replace(own, '') : ''
+    if (/\bid\b/i.test(beside + ' ' + around)) excused.add(own)
+  }
+  const ids = [...new Set(text.match(/\b\d{18,19}\b/g) || [])].filter(id => !excused.has(id))
   const holes = ['undefined', 'NaN', '[object Object]', 'null'].filter(h =>
     new RegExp(`(^|[\\s>])${h.replace(/[[\]]/g, '\\$&')}([\\s<]|$)`).test(text),
   )
