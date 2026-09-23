@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { useApplicationsStore, useUserStore } from '@planetcrust/human-vue'
+import { getThemeVariables, useApplicationsStore, useUserStore } from '@planetcrust/human-vue'
 import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useConfirm } from 'primevue/useconfirm'
 import { useI18n } from 'vue-i18n'
@@ -89,12 +89,23 @@ const frameRef = ref(null)
 function themeInfo() {
   const styles = getComputedStyle(document.documentElement)
   const read = name => styles.getPropertyValue(name).trim()
+  const dark = document.documentElement.classList.contains('dark')
+
+  // The instance's own palette, under the names it is read by everywhere else:
+  // an app told to look the theme up through the API is shown these, and has
+  // to get the same ones back here. `surface` is a set of shades rather than a
+  // colour, so it is left out of what an app is handed.
+  const palette = {}
+  for (const [name, value] of Object.entries(getThemeVariables(dark ? 'dark' : 'light'))) {
+    if (typeof value === 'string') palette[name] = value
+  }
 
   return {
-    dark: document.documentElement.classList.contains('dark'),
+    dark,
     colors: {
-      primary: read('--p-primary-color'),
-      'body-bg': read('--body-bg'),
+      ...palette,
+      primary: read('--p-primary-color') || palette.primary,
+      'body-bg': read('--body-bg') || palette['body-bg'],
       'content-bg': read('--p-content-background'),
       text: read('--p-text-color'),
       'text-muted': read('--p-text-muted-color'),

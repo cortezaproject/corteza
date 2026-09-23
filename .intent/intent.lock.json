@@ -4907,9 +4907,9 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/index.ts": {
-      "h": "5c3d3220ef7d",
+      "h": "c44675aa44b5",
       "doc": "lib/vue/vue.intent.md",
-      "t": "2026-09-25"
+      "t": "2026-09-28"
     },
     "lib/vue/src/libs/url.ts": {
       "h": "2ce73c48a4fa",

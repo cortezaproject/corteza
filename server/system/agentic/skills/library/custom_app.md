@@ -28,8 +28,11 @@ it is in.
    invented ones. A status the module cannot hold makes the preview a
    demonstration of something that will never appear.
 3. Read the colours (`system_theme_lookup`) and use them as CSS custom
-   properties. At run time `human.theme()` sends the live ones; yours are the
-   fallback.
+   properties. At run time `human.theme()` sends the live ones under the same
+   names — `primary`, `secondary`, `success`, `warning`, `danger`, `black`,
+   `white`, `light`, `extra-light`, `body-bg`, `sidebar-bg`, `topbar-bg`, and
+   `content-bg`, `text`, `text-muted`, `border` besides — so the palette you
+   read is the palette you get back. Yours are the fallback.
 
 ## The file
 

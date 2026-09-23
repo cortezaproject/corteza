@@ -34,6 +34,7 @@ window.SAMPLE = {
   out.list = await settle(human.records.list({ module: 'e2e_probes', limit: 10 }))
   out.undeclared = await settle(human.records.list({ module: 'e2e_companies' }))
   out.modules = await settle(human.call('modules'))
+  out.theme = await settle(human.theme())
   out.create = await settle(human.call('records.create', { module: 'e2e_probes', values: {} }))
   // Reached indirectly: storing a page that names them is refused, and what
   // these tests are about is what the sandbox does when one gets through.
@@ -110,6 +111,7 @@ type Probe = {
   list: { ok?: { records: any[]; refs: Record<string, string> }; error?: string }
   undeclared: { error?: string }
   modules: { ok?: { handle: string; fields: any[] }[]; error?: string }
+  theme: { ok?: { dark: boolean; colors: Record<string, string> }; error?: string }
   create: { error?: string }
   fetch: { ok?: string; error?: string }
   storage: string
@@ -323,6 +325,25 @@ test.describe.serial('custom app gotchas', () => {
     const said = page.locator('[data-test-id="custom-app-failure"]')
     await expect(said).toBeVisible({ timeout: 20000 })
     await expect(said).toContainText('is not a function')
+  })
+
+  // A page is told to read the palette through the API and ask for it again at
+  // run time. The two have to be the same palette, or the page keeps whatever
+  // hex values its author copied in and never follows the instance.
+  test('the theme arrives under the names the API uses', async ({ page }) => {
+    const probe = await runProbe(page, apps.v2)
+    const colors = probe.theme.ok!.colors
+    for (const name of [
+      'primary',
+      'secondary',
+      'success',
+      'warning',
+      'danger',
+      'body-bg',
+      'sidebar-bg',
+    ]) {
+      expect(colors[name], name).toMatch(/^#|^rgb/)
+    }
   })
 
   test('a module the app did not declare is refused by name', async ({ page }) => {

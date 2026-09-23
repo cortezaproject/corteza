@@ -171,6 +171,13 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
   holding no data, and neither the guard nor the API can see the difference.
   The reporter is the first script in the document, ahead of the bridge, or it
   misses the errors that stop a page before anything else runs.
+- `theme` answers with the instance's own palette under the names the API and
+  its tools use — `primary`, `secondary`, `success`, `warning`, `danger`,
+  `black`, `white`, `light`, `extra-light`, `body-bg`, `sidebar-bg`,
+  `topbar-bg` — with `content-bg`, `text`, `text-muted` and `border` read off
+  the running document besides. A page is told to read that palette through the
+  API before it is written, so sending back a different set of names left every
+  page keeping the hex values its author copied in.
 - `download` hands the viewer a file the sandbox could not save itself: at most
   5 MB of text, under a name reduced to one file name.
 - No delete, no attachment, no owner change.
