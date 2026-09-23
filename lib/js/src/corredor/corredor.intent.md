@@ -13,6 +13,7 @@ touched-by:
   - lib/vue/src/corredor
 tests:
   - lib/js/src/corredor/args.test.ts
+  - lib/js/src/corredor/ctx.automation.test.ts
   - lib/js/src/corredor/ctx.test.ts
   - lib/js/src/corredor/exec.test.ts
   - lib/js/src/corredor/helpers/compose.test.ts
@@ -32,7 +33,7 @@ casting, and the high-level `Compose`/`System` helper classes scripts call
 ## Map
 
 - `exec.ts` — `Exec(script, args, ctx)`: wraps sync/async script `exec` fns, normalizes results.
-- `ctx.ts` — `Ctx`: what a script sees as `this` — casted args, logger, API clients, helper instances (uppercase = Human classes/helpers, lowercase = raw).
+- `ctx.ts` — `Ctx`: what a script sees as `this` — casted args, logger, API clients (`SystemAPI`, `ComposeAPI`, `AutomationAPI`, each built from its own configured base URL and carrying the invoker's token), helper instances (uppercase = Human classes/helpers, lowercase = raw).
 - `args.ts` / `args-human.ts` — `Args`/`ArgsProxy`: cast raw event args into Human classes per `HumanTypes` mapping.
 - `helpers/compose.ts`, `helpers/system.ts` — scripting-facing CRUD/permission/notification helpers over the API clients; `helpers/shared.ts` — common plumbing (extractID, permission updater, list unwrapping).
 - `shared.ts` — `BaseArgs` contract every script invocation receives.

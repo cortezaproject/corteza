@@ -3446,15 +3446,20 @@
       "doc": "lib/js/src/corredor/corredor.intent.md",
       "t": "2026-07-23"
     },
+    "lib/js/src/corredor/ctx.automation.test.ts": {
+      "h": "cad3f519fcd3",
+      "doc": "lib/js/src/corredor/corredor.intent.md",
+      "t": "2026-09-23"
+    },
     "lib/js/src/corredor/ctx.test.ts": {
       "h": "114742049d20",
       "doc": "lib/js/src/corredor/corredor.intent.md",
       "t": "2026-07-23"
     },
     "lib/js/src/corredor/ctx.ts": {
-      "h": "c47121234bd7",
+      "h": "3d29001ddfa5",
       "doc": "lib/js/src/corredor/corredor.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-09-23"
     },
     "lib/js/src/corredor/exec.test.ts": {
       "h": "9ffc91d252fe",

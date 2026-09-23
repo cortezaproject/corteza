@@ -138,6 +138,12 @@ export const execContext = {
       apiBaseURL:
         e.CORREDOR_EXEC_CTX_CORTEZA_SERVERS_COMPOSE_API_BASEURL ?? discoverApiBaseURL('compose'),
     },
+
+    automation: {
+      apiBaseURL:
+        e.CORREDOR_EXEC_CTX_CORTEZA_SERVERS_AUTOMATION_API_BASEURL ??
+        discoverApiBaseURL('automation'),
+    },
   },
 
   frontend: {

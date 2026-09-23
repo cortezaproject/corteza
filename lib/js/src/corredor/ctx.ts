@@ -7,6 +7,7 @@ import { User } from '../system'
 export interface ConfigCServers {
   system?: ConfigServer
   compose?: ConfigServer
+  automation?: ConfigServer
 }
 
 export interface ConfigServer {
@@ -28,6 +29,8 @@ interface CtxInitArgs {
   systemAPI?: apiClients.System
 
   composeAPI?: apiClients.Compose
+
+  automationAPI?: apiClients.Automation
 }
 
 /**
@@ -50,6 +53,8 @@ export class Ctx {
   protected systemAPI?: apiClients.System
 
   protected composeAPI?: apiClients.Compose
+
+  protected automationAPI?: apiClients.Automation
 
   constructor(args: BaseArgs, logger: Logger, a?: CtxInitArgs) {
     this.args = args
@@ -124,6 +129,27 @@ export class Ctx {
     }
 
     return this.composeAPI
+  }
+
+  /**
+   * Configures and returns automation API client
+   *
+   * What a script reaches an automation through: running a TAQ or a workflow,
+   * and reading what they are.
+   */
+  get AutomationAPI(): apiClients.Automation {
+    if (!this.automationAPI) {
+      if (!this.config?.cServers?.automation) {
+        throw new Error('configuration for human automation server missing')
+      }
+
+      this.automationAPI = new apiClients.Automation({
+        baseURL: this.config.cServers.automation.apiBaseURL,
+        accessTokenFn: (): string => this.args.authToken,
+      })
+    }
+
+    return this.automationAPI
   }
 
   /**
