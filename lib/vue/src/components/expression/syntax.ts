@@ -4,6 +4,7 @@
 // tested directly; CInputExpression adapts their output to CodeMirror.
 
 import { membersAt, resolvePath, type ScopeEntry } from './catalog'
+import { EXPR_FUNCTIONS } from './functions.gen'
 
 // Keywords the QL lexer reserves — server/pkg/ql/token_consumers.go.
 export const QL_KEYWORDS = [
@@ -20,83 +21,10 @@ export const QL_KEYWORDS = [
   'FALSE',
 ]
 
-// Functions the server-evaluated expression language registers — mirrors
-// server/pkg/expr/expr_functions.yaml, whose TestBuiltInFunctionNames proves each one
-// is really reserved. Calling a name that is not here is a hard evaluation
-// error, not a silent null.
-export const EXPR_FUNCTIONS = [
-  'abs',
-  'average',
-  'base64encode',
-  'camelize',
-  'ceil',
-  'coalesce',
-  'count',
-  'earliest',
-  'filter',
-  'find',
-  'float',
-  'floor',
-  'format',
-  'has',
-  'hasAll',
-  'hasPrefix',
-  'hasSubstring',
-  'hasSuffix',
-  'int',
-  'isEmail',
-  'isEmpty',
-  'isLeapYear',
-  'isNil',
-  'isUrl',
-  'isWeekDay',
-  'join',
-  'latest',
-  'length',
-  'log',
-  'longest',
-  'match',
-  'max',
-  'merge',
-  'min',
-  'modDate',
-  'modMonth',
-  'modTime',
-  'modWeek',
-  'modYear',
-  'now',
-  'omit',
-  'parseDuration',
-  'parseISOTime',
-  'pop',
-  'pow',
-  'push',
-  'random',
-  'repeat',
-  'replace',
-  'round',
-  'set',
-  'shift',
-  'shorten',
-  'shortest',
-  'snakify',
-  'sort',
-  'splice',
-  'split',
-  'sqrt',
-  'strftime',
-  'sub',
-  'substring',
-  'sum',
-  'title',
-  'toJSON',
-  'toLower',
-  'toUpper',
-  'trim',
-  'trimLeft',
-  'trimRight',
-  'untitle',
-]
+// Functions the server-evaluated expression language registers, generated
+// from server/pkg/expr/expr_functions.yaml. Calling a name that is not there
+// is a hard evaluation error, not a silent null.
+export { EXPR_FUNCTIONS }
 
 // Literals the language accepts as bare words; never variables.
 const EXPR_LITERALS = ['true', 'false', 'null', 'nil']

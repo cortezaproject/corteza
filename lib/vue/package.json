@@ -14,7 +14,8 @@
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "format": "prettier --write src/",
-    "format:check": "prettier --check src/"
+    "format:check": "prettier --check src/",
+    "codegen": "node tools/codegen/expr-functions.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.0",
@@ -36,7 +37,8 @@
     "vue-echarts": "^8.0.1"
   },
   "devDependencies": {
-    "@planetcrust/human-test-utils": "workspace:*"
+    "@planetcrust/human-test-utils": "workspace:*",
+    "js-yaml": "^4.1.0"
   },
   "peerDependencies": {
     "@primeuix/themes": ">=1.0.0",

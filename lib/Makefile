@@ -3,6 +3,7 @@
 codegen:
 	@echo "---Running codegen---"
 	@(cd $(CURDIR)/js && pnpm codegen) || (echo "Failed to run codegen"; exit 1)
+	@(cd $(CURDIR)/vue && pnpm codegen) || (echo "Failed to run vue codegen"; exit 1)
 
 test: test-js test-vue
 

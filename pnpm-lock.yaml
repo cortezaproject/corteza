@@ -599,6 +599,9 @@ importers:
       '@planetcrust/human-test-utils':
         specifier: workspace:*
         version: link:../test-utils
+      js-yaml:
+        specifier: ^4.3.2
+        version: 4.3.2
 
   server/webconsole:
     dependencies:
