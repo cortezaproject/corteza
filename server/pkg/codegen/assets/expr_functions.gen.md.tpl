@@ -12,7 +12,7 @@ outline: [2, 3]
 # Expression functions
 
 Every [expression](./) can call these functions: field value expressions,
-value sanitization and validation, and contextual roles.
+value sanitization and validation, contextual roles and the While loop in TAQs.
 A name is a function only where it is called: `split(a, b)` is the function,
 while a bare `split` reads a variable of that name.
 

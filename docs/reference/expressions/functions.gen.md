@@ -9,7 +9,7 @@ outline: [2, 3]
 # Expression functions
 
 Every [expression](./) can call these functions: field value expressions,
-value sanitization and validation, and contextual roles.
+value sanitization and validation, contextual roles and the While loop in TAQs.
 A name is a function only where it is called: `split(a, b)` is the function,
 while a bare `split` reads a variable of that name.
 
@@ -27,7 +27,7 @@ trim(s: String): String
 Removes leading and trailing whitespace.
 
 ```js
-trim('  hello  ')
+trim("  hello  ")
 // → "hello"
 ```
 
@@ -40,7 +40,7 @@ trimLeft(s: String, cutset: String): String
 Removes every leading character that appears in `cutset`. The second argument is a set of characters, not a prefix.
 
 ```js
-trimLeft('xxhixx', 'x')
+trimLeft("xxhixx", "x")
 // → "hixx"
 ```
 
@@ -53,7 +53,7 @@ trimRight(s: String, cutset: String): String
 Removes every trailing character that appears in `cutset`. The second argument is a set of characters, not a suffix.
 
 ```js
-trimRight('xxhixx', 'x')
+trimRight("xxhixx", "x")
 // → "xxhi"
 ```
 
@@ -66,7 +66,7 @@ toLower(s: String): String
 Converts every letter to lower case.
 
 ```js
-toLower('HeLLo')
+toLower("HeLLo")
 // → "hello"
 ```
 
@@ -79,7 +79,7 @@ toUpper(s: String): String
 Converts every letter to upper case.
 
 ```js
-toUpper('hello')
+toUpper("hello")
 // → "HELLO"
 ```
 
@@ -92,7 +92,7 @@ shortest(first: String, ...rest: String): String
 Returns the shortest of the given strings, measured in bytes. On a tie the earlier argument wins.
 
 ```js
-shortest('apple', 'fig', 'banana')
+shortest("apple", "fig", "banana")
 // → "fig"
 ```
 
@@ -105,7 +105,7 @@ longest(first: String, ...rest: String): String
 Returns the longest of the given strings, measured in bytes. On a tie the earlier argument wins.
 
 ```js
-longest('apple', 'fig', 'banana')
+longest("apple", "fig", "banana")
 // → "banana"
 ```
 
@@ -122,7 +122,7 @@ Number literals are floats, so `%d` prints `%!d(float64=3)`. Use `%v`, or `%.0f`
 :::
 
 ```js
-format('%s has %v items', 'cart', 3)
+format("%s has %v items", "cart", 3)
 // → "cart has 3 items"
 ```
 
@@ -139,7 +139,7 @@ A single-word input gets a trailing space: `title("hello")` returns `"Hello "`.
 :::
 
 ```js
-title('hello big world')
+title("hello big world")
 // → "Hello big world"
 ```
 
@@ -156,7 +156,7 @@ A single-word input gets a trailing space, and an empty string makes the express
 :::
 
 ```js
-untitle('Hello World')
+untitle("Hello World")
 // → "hello World"
 ```
 
@@ -169,7 +169,7 @@ repeat(s: String, count: Integer): String
 Returns `s` repeated `count` times. A fractional count is truncated to a whole number.
 
 ```js
-repeat('ab', 3)
+repeat("ab", 3)
 // → "ababab"
 ```
 
@@ -182,7 +182,7 @@ replace(s: String, old: String, new: String, n: Integer): String
 Replaces the first `n` occurrences of `old` with `new`; an `n` of `-1` replaces all of them. All four arguments are required.
 
 ```js
-replace('a-b-c', '-', '+', -1)
+replace("a-b-c", "-", "+", -1)
 // → "a+b+c"
 ```
 
@@ -195,7 +195,7 @@ isUrl(s: String): Boolean
 Reports whether the string is a URL. The scheme is optional, so a bare host such as `example.com` passes.
 
 ```js
-isUrl('https://example.com')
+isUrl("https://example.com")
 // → true
 ```
 
@@ -208,7 +208,7 @@ isEmail(s: String): Boolean
 Reports whether the string is an email address.
 
 ```js
-isEmail('jane@example.com')
+isEmail("jane@example.com")
 // → true
 ```
 
@@ -221,7 +221,7 @@ split(s: String, sep: String): Array
 Splits the string at every occurrence of `sep` and returns the parts.
 
 ```js
-split('a,b,c', ',')
+split("a,b,c", ",")
 // → ["a","b","c"]
 ```
 
@@ -234,7 +234,7 @@ join(list: Array, sep: String): String
 Joins the items of the list into one string, with `sep` between them. Items are converted to strings; an empty value gives an empty string.
 
 ```js
-join(['a', 'b', 'c'], '-')
+join(["a", "b", "c"], "-")
 // → "a-b-c"
 ```
 
@@ -247,7 +247,7 @@ hasSubstring(s: String, substring: String, caseSensitive: Boolean): Boolean
 Reports whether `substring` occurs in `s`. The third argument is required: `false` ignores case, `true` matches it exactly.
 
 ```js
-hasSubstring('Hello World', 'world', false)
+hasSubstring("Hello World", "world", false)
 // → true
 ```
 
@@ -260,7 +260,7 @@ substring(s: String, start: Integer, end: Integer): String
 Returns the part of `s` from `start` to `end`, both positions included and counted in bytes from 0. An `end` of `-1` runs to the end of the string; a `start` past the end gives an empty string.
 
 ```js
-substring('Hello World', 0, 4)
+substring("Hello World", 0, 4)
 // → "Hello"
 ```
 
@@ -273,7 +273,7 @@ hasPrefix(s: String, prefix: String): Boolean
 Reports whether `s` starts with `prefix`. Case-sensitive.
 
 ```js
-hasPrefix('Hello', 'He')
+hasPrefix("Hello", "He")
 // → true
 ```
 
@@ -286,7 +286,7 @@ hasSuffix(s: String, suffix: String): Boolean
 Reports whether `s` ends with `suffix`. Case-sensitive.
 
 ```js
-hasSuffix('Hello', 'lo')
+hasSuffix("Hello", "lo")
 // → true
 ```
 
@@ -299,7 +299,7 @@ shorten(s: String, unit: String, count: Integer): String
 Cuts `s` to its first `count` words, or to its first `count` bytes when `unit` is `"char"`, then drops one trailing punctuation mark and appends `" …"`. A string already short enough is returned unchanged.
 
 ```js
-shorten('The quick brown fox', 'word', 2)
+shorten("The quick brown fox", "word", 2)
 // → "The quick …"
 ```
 
@@ -316,7 +316,7 @@ The result ends with a trailing space; wrap it in `trim()` where that matters.
 :::
 
 ```js
-trim(camelize('hello big world'))
+trim(camelize("hello big world"))
 // → "helloBigWorld"
 ```
 
@@ -329,7 +329,7 @@ snakify(s: String): String
 Joins space-separated words into lower-case snake_case.
 
 ```js
-snakify('Hello big World')
+snakify("Hello big World")
 // → "hello_big_world"
 ```
 
@@ -342,7 +342,7 @@ match(s: String, pattern: String): Boolean
 Reports whether the regular expression matches anywhere in `s`. The pattern uses Go (RE2) syntax; anchor it with `^` and `$` to match the whole string.
 
 ```js
-match('abc123', '[0-9]+')
+match("abc123", "[0-9]+")
 // → true
 ```
 
@@ -355,7 +355,7 @@ base64encode(value: String): String
 Encodes a string or binary value as standard base64. Any other value gives an empty string.
 
 ```js
-base64encode('hello')
+base64encode("hello")
 // → "aGVsbG8="
 ```
 
@@ -491,7 +491,7 @@ A list passed as one argument is skipped too, so `sum([1, 2, 3])` is `0`. Pass t
 :::
 
 ```js
-sum(1, 2, '3.5')
+sum(1, 2, "3.5")
 // → 6.5
 ```
 
@@ -530,7 +530,7 @@ int(value: Any): Integer
 Converts to a whole number, truncating any fraction. Strings are read as base-10, so a leading zero is not octal; a string that is not a number gives `0`.
 
 ```js
-int('042')
+int("042")
 // → 42
 ```
 
@@ -543,7 +543,7 @@ float(value: Any): Float
 Converts to a number. A string that is not a number makes the expression fail.
 
 ```js
-float('3.5')
+float("3.5")
 // → 3.5
 ```
 
@@ -601,7 +601,7 @@ With only a list, returns its length. With values, returns how many of those val
 :::
 
 ```js
-count(['a', 'b', 'c'], 'a', 'z')
+count(["a", "b", "c"], "a", "z")
 // → 1
 ```
 
@@ -615,7 +615,7 @@ Reports whether any of the values occurs in the list or string. On a key-value o
 
 ```js
 // with {"rec": {"a": 1, "b": 2}}
-has(rec, 'b')
+has(rec, "b")
 // → true
 ```
 
@@ -641,7 +641,7 @@ find(list: Array, value: Any): Integer
 Returns the position of the first item equal to `value`, counting from 0, or `-1` when there is none. Types must match: `"1"` is not found in `[1, 2]`.
 
 ```js
-find(['a', 'b', 'c'], 'b')
+find(["a", "b", "c"], "b")
 // → 1
 ```
 
@@ -658,7 +658,7 @@ Only lists of one comparable type sort — the result of `split()`, or a list fi
 :::
 
 ```js
-sort(split('b,c,a', ','), false)
+sort(split("b,c,a", ","), false)
 // → ["a","b","c"]
 ```
 
@@ -701,7 +701,7 @@ parseISOTime(s: String): DateTime
 Parses an RFC 3339 timestamp. Unlike the other date functions it accepts nothing else — a plain date such as `2024-03-01` fails.
 
 ```js
-parseISOTime('2024-03-01T10:00:00Z')
+parseISOTime("2024-03-01T10:00:00Z")
 // → "2024-03-01T10:00:00Z"
 ```
 
@@ -714,7 +714,7 @@ parseDuration(s: String): Duration
 Parses a duration such as `90m`, `1h30m` or `-2h`. Valid units are `ns`, `us`, `ms`, `s`, `m` and `h`; there is no unit for days.
 
 ```js
-parseDuration('1h30m')
+parseDuration("1h30m")
 // → "1h30m0s"
 ```
 
@@ -727,7 +727,7 @@ earliest(first: DateTime, ...rest: DateTime): DateTime
 Returns the earliest of the dates.
 
 ```js
-earliest('2024-03-01T00:00:00Z', '2024-01-15T00:00:00Z')
+earliest("2024-03-01T00:00:00Z", "2024-01-15T00:00:00Z")
 // → "2024-01-15T00:00:00Z"
 ```
 
@@ -740,7 +740,7 @@ latest(first: DateTime, ...rest: DateTime): DateTime
 Returns the latest of the dates.
 
 ```js
-latest('2024-03-01T00:00:00Z', '2024-01-15T00:00:00Z')
+latest("2024-03-01T00:00:00Z", "2024-01-15T00:00:00Z")
 // → "2024-03-01T00:00:00Z"
 ```
 
@@ -753,7 +753,7 @@ modTime(date: DateTime, duration: Duration): DateTime
 Adds a duration to the date. The duration is a Duration value or a string in `parseDuration()` syntax; a negative one moves back.
 
 ```js
-modTime('2024-03-01T10:00:00Z', '90m')
+modTime("2024-03-01T10:00:00Z", "90m")
 // → "2024-03-01T11:30:00Z"
 ```
 
@@ -766,7 +766,7 @@ modDate(date: DateTime, days: Integer): DateTime
 Adds a number of days to the date; a negative number moves back.
 
 ```js
-modDate('2024-03-01T10:00:00Z', -1)
+modDate("2024-03-01T10:00:00Z", -1)
 // → "2024-02-29T10:00:00Z"
 ```
 
@@ -779,7 +779,7 @@ modWeek(date: DateTime, weeks: Integer): DateTime
 Adds a number of weeks to the date; a negative number moves back.
 
 ```js
-modWeek('2024-03-01T10:00:00Z', 2)
+modWeek("2024-03-01T10:00:00Z", 2)
 // → "2024-03-15T10:00:00Z"
 ```
 
@@ -792,7 +792,7 @@ modMonth(date: DateTime, months: Integer): DateTime
 Adds a number of months to the date; a negative number moves back. A day that does not exist in the target month rolls over into the next one.
 
 ```js
-modMonth('2024-01-31T10:00:00Z', 1)
+modMonth("2024-01-31T10:00:00Z", 1)
 // → "2024-03-02T10:00:00Z"
 ```
 
@@ -805,7 +805,7 @@ modYear(date: DateTime, years: Integer): DateTime
 Adds a number of years to the date; a negative number moves back. 29 February rolls over to 1 March in a year that has no leap day.
 
 ```js
-modYear('2024-02-29T10:00:00Z', 1)
+modYear("2024-02-29T10:00:00Z", 1)
 // → "2025-03-01T10:00:00Z"
 ```
 
@@ -822,7 +822,7 @@ Formats the date with POSIX `strftime` directives such as `%Y`, `%m`, `%d`, `%H`
 :::
 
 ```js
-strftime('2024-03-01T10:00:00Z', '%d.%m.%Y %H:%M')
+strftime("2024-03-01T10:00:00Z", "%d.%m.%Y %H:%M")
 // → "01.03.2024 10:00"
 ```
 
@@ -835,7 +835,7 @@ isLeapYear(date: DateTime): Boolean
 Reports whether the year of the date is a leap year.
 
 ```js
-isLeapYear('2024-03-01')
+isLeapYear("2024-03-01")
 // → true
 ```
 
@@ -848,7 +848,7 @@ isWeekDay(date: DateTime): Boolean
 Reports whether the date falls on Monday to Friday, in the date's own time zone.
 
 ```js
-isWeekDay('2024-03-02')
+isWeekDay("2024-03-02")
 // → false
 ```
 
@@ -865,7 +865,7 @@ The first date must be strictly later than the second; equal dates, or the other
 :::
 
 ```js
-sub('2024-03-01T10:00:00Z', '2024-03-01T09:00:00Z')
+sub("2024-03-01T10:00:00Z", "2024-03-01T09:00:00Z")
 // → 3600000
 ```
 
@@ -881,7 +881,7 @@ Returns the first argument that is not empty-valued (nil). An empty string or `0
 
 ```js
 // with {"nickname": null}
-coalesce(nickname, 'anonymous')
+coalesce(nickname, "anonymous")
 // → "anonymous"
 ```
 
@@ -908,7 +908,7 @@ isEmpty(value: Any): Boolean
 Reports whether the value is nil or its type's zero value: an empty string, `0`, `false`, or a list or object with no items.
 
 ```js
-isEmpty('')
+isEmpty("")
 // → true
 ```
 
@@ -940,7 +940,7 @@ A key-value object of typed values encodes each value with its type, as `{"@valu
 :::
 
 ```js
-toJSON(['a', 'b'])
+toJSON(["a", "b"])
 // → "[\"a\",\"b\"]"
 ```
 
@@ -958,7 +958,7 @@ Returns a copy of the object with `key` set to `value`.
 
 ```js
 // with {"rec": {"a": 1, "b": 2}}
-set(rec, 'c', 3)
+set(rec, "c", 3)
 // → {"a":1,"b":2,"c":3}
 ```
 
@@ -986,7 +986,7 @@ Returns a copy of the object with only the given keys.
 
 ```js
 // with {"rec": {"a": 1, "b": 2}}
-filter(rec, 'a')
+filter(rec, "a")
 // → {"a":1}
 ```
 
@@ -1000,6 +1000,6 @@ Returns a copy of the object without the given keys.
 
 ```js
 // with {"rec": {"a": 1, "b": 2}}
-omit(rec, 'a')
+omit(rec, "a")
 // → {"b":2}
 ```
