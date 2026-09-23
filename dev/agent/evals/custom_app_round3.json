@@ -31,7 +31,8 @@
       "prompt": "Build a page from our Human contacts that lets me edit a person's job title inline and save it. One HTML file, HTML at the end.",
       "namespace": "contacts_crm",
       "modules": ["contacts"],
-      "expect": ["Marko Zupan"]
+      "expect": ["Marko Zupan"],
+      "click": 6
     }
   ]
 }

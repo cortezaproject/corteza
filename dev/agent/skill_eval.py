@@ -121,6 +121,24 @@ def read_skill_first(calls, skill):
     return False
 
 
+def reseed(prompt):
+    """Put the namespace back as the fixture has it.
+
+    A brief that changes records leaves them changed, so the next model — or the
+    next run of the same brief — would be scored against whatever the last page
+    did. Only a brief that writes pays for this.
+    """
+    fixture = prompt.get("namespace")
+    if not fixture:
+        return
+    run = subprocess.run(
+        [os.path.join(AGENT_DIR, "seed.sh"), fixture, "--force"],
+        capture_output=True, text=True, timeout=600,
+    )
+    if run.returncode != 0:
+        print(f"note: could not put {fixture} back — this brief is scored on whatever the last one left")
+
+
 def deploy(sid, page, prompt):
     """Put the page somewhere a browser can open it, as the prompt declares.
 
@@ -157,8 +175,11 @@ def renders(app_id, prompt, outdir):
         cmd += ["--expect", want]
     # A page that saves does nothing until its own control is pressed and the
     # consent dialog answered, so a write brief is scored on what it did after.
-    if prompt.get("writes"):
-        cmd += ["--click", "6"]
+    # A brief that asks for a change it was not granted is pressed too: how a
+    # page says it was refused is the whole of what that brief tests.
+    presses = prompt.get("click") or (6 if prompt.get("writes") else 0)
+    if presses:
+        cmd += ["--click", str(presses)]
     cmd.append(app_id)
     try:
         run = subprocess.run(["node"] + cmd, capture_output=True, text=True, timeout=300)
@@ -248,6 +269,8 @@ def main():
         for p in prompts:
             run = os.path.join(outdir, model, p["id"])
             os.makedirs(os.path.dirname(run), exist_ok=True)
+            if p.get("writes") or p.get("click"):
+                reseed(p)
             calls, final, cost = run_session(p["prompt"], model, config, workdir, run + ".jsonl")
             page, checks, why, faults = score(sid, suite["skill"], calls, final, p, os.path.dirname(run))
             with open(run + ".html", "w") as fh:
