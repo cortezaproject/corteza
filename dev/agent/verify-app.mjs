@@ -78,6 +78,10 @@ const SHELL_NOISE = [
   /\/system\/attachment\/avatar\//,
 ]
 
+// What gets typed into a page's own fields, so a record it creates can be told
+// apart from the fixture's afterwards.
+const PROBE_MARK = 'probe-' + Date.now().toString(36)
+
 const email = 'agent@local.dev'
 const password = readFileSync(join(AGENT_DIR, '.state', 'ui-password'), 'utf8').trim()
 
@@ -204,12 +208,47 @@ for (const id of ids) {
     }
   }
 
-  // Press what the page offers, agreeing to whatever Human asks about it. A
-  // page that saves is inert until the consent dialog is answered, so without
-  // this its whole write path is never reached and renders as working.
+  // Fill what the page asks for, press what it offers, and agree to whatever
+  // Human asks about it. A page that saves is inert until the consent dialog is
+  // answered, and a page that saves something new is inert until its form has
+  // been filled — press-only leaves both reading as working pages.
+  //
+  // A search or filter box is left alone: typing in one hides the very rows the
+  // checks above were made against.
   let pressed = 0
+  let typed = 0
   if (clicks && report) {
-    const buttons = app.locator('button:visible, [role="button"]:visible')
+    const boxes = app.locator(
+      'input:visible:not([type="search"]):not([type="checkbox"]):not([type="radio"]), textarea:visible',
+    )
+    const fields = Math.min(await boxes.count().catch(() => 0), 12)
+    for (let i = 0; i < fields; i++) {
+      const box = boxes.nth(i)
+      const what = (
+        ((await box.getAttribute('placeholder').catch(() => '')) || '') +
+        ' ' +
+        ((await box.getAttribute('name').catch(() => '')) || '') +
+        ' ' +
+        ((await box.getAttribute('id').catch(() => '')) || '')
+      ).toLowerCase()
+      if (/search|filter|query/.test(what)) continue
+      if (await box.inputValue().catch(() => 'x')) continue // leave what is already there
+      const type = (await box.getAttribute('type').catch(() => '')) || 'text'
+      const value =
+        type === 'number' ? '7'
+        : type === 'date' ? '2026-09-23'
+        : type === 'email' ? `${PROBE_MARK}@example.tld`
+        : PROBE_MARK
+      await box.fill(value, { timeout: 2000 }).catch(() => {})
+      typed++
+    }
+
+    // Not only buttons: a row's on/off switch is as often a checkbox, and a
+    // page whose save hangs off one is otherwise never reached.
+    const buttons = app.locator(
+      'button:visible, [role="button"]:visible, [role="switch"]:visible, ' +
+        'input[type="checkbox"]:visible, input[type="radio"]:visible',
+    )
     const total = Math.min(await buttons.count().catch(() => 0), clicks)
     for (let i = 0; i < total; i++) {
       await buttons.nth(i).click({ timeout: 3000, noWaitAfter: true }).catch(() => {})
@@ -218,13 +257,16 @@ for (const id of ids) {
       if (await allow.isVisible().catch(() => false)) await allow.click().catch(() => {})
       await page.waitForTimeout(400)
     }
+
+    // What the page said for itself before anything was pressed still decides
+    // whether it drew live data; pressing can only add faults, never excuse one.
     try {
       const after = await app.evaluate(APP_REPORT)
-      report.holes = after.holes
-      report.ids = after.ids
-      report.text = after.text
+      report.holes = [...new Set([...report.holes, ...after.holes])]
+      report.ids = [...new Set([...report.ids, ...after.ids])]
+      report.lost = [...report.lost, ...after.lost]
     } catch {
-      faults.push('the app frame stopped answering after its own buttons were pressed')
+      faults.push('the app frame stopped answering after its own controls were used')
     }
   }
 
@@ -232,7 +274,8 @@ for (const id of ids) {
   await page.screenshot({ path: shot, fullPage: true }).catch(() => {})
 
   console.log(`\n▸ /app/${id}`)
-  if (pressed) console.log(`  pressed     ${pressed} control(s)`)
+  if (pressed || typed)
+    console.log(`  used        ${typed} field(s), ${pressed} control(s) · typed ${PROBE_MARK}`)
   if (report) {
     const mode = MODE(report.text)
     const visible = report.text.trim()
