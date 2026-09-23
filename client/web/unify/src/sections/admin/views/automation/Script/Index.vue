@@ -243,32 +243,43 @@ const filter = reactive({
 const sorting = reactive({ sortBy: 'name', sortDesc: false })
 const pagination = reactive({ page: 1, limit: 50 })
 
+// A row is as tall as its chips, and a cell centred against that floats away
+// from the script it belongs to; every cell starts at the top of its row.
+const topAligned = { bodyCell: { class: 'align-top' } }
+
 const fields = [
   {
     key: 'name',
     header: t('automation.scripts.list.columns.name'),
     sortable: true,
     style: 'min-width: 16rem',
+    pt: topAligned,
   },
   {
     key: 'extension',
     header: t('automation.scripts.list.columns.extension'),
     sortable: true,
     style: 'width: 10rem',
+    pt: topAligned,
   },
   {
     key: 'kind',
     header: t('automation.scripts.list.columns.kind'),
     sortable: true,
     style: 'width: 9rem',
+    pt: topAligned,
   },
   {
     key: 'triggers',
     header: t('automation.scripts.list.columns.triggers'),
     sortable: false,
     style: 'min-width: 16rem',
+    pt: topAligned,
   },
-  changedAtField(t('general.columns.changedAt'), { style: 'width: 10rem' }),
+  changedAtField(t('general.columns.changedAt'), {
+    style: 'width: 10rem',
+    pt: { columnHeaderContent: 'justify-end', ...topAligned },
+  }),
 ]
 
 const banner = computed(() => corredorBanner(status.value))
