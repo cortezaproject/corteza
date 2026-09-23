@@ -56,7 +56,7 @@
     "eslint-plugin-promise": "^7.2.1",
     "handlebars": "^4.7.8",
     "js-yaml": "^4.1.0",
-    "mocha": "^11.1.0",
+    "mocha": "^12.0.2",
     "prettier": "^3.0.0",
     "ts-sinon": "2.0.2",
     "tsx": "^4.19.2",

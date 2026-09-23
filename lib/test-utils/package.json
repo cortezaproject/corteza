@@ -14,7 +14,7 @@
     "vue-router": "^4.5.0",
     "pinia": "^3.0.0",
     "primevue": "^4.5.0",
-    "vitest": "^3.0.0",
+    "vitest": "^4.0.0",
     "@vue/test-utils": "^2.4.0"
   }
 }
