@@ -33,6 +33,7 @@ window.SAMPLE = {
   const out = { live: await human.ready }
   out.list = await settle(human.records.list({ module: 'e2e_probes', limit: 10 }))
   out.undeclared = await settle(human.records.list({ module: 'e2e_companies' }))
+  out.modules = await settle(human.call('modules'))
   out.create = await settle(human.call('records.create', { module: 'e2e_probes', values: {} }))
   // Reached indirectly: storing a page that names them is refused, and what
   // these tests are about is what the sandbox does when one gets through.
@@ -95,6 +96,7 @@ type Probe = {
   live: boolean
   list: { ok?: { records: any[]; refs: Record<string, string> }; error?: string }
   undeclared: { error?: string }
+  modules: { ok?: { handle: string; fields: any[] }[]; error?: string }
   create: { error?: string }
   fetch: { ok?: string; error?: string }
   storage: string
@@ -156,6 +158,12 @@ test.describe.serial('custom app gotchas', () => {
               { name: 'flag', kind: 'Bool', label: 'Flag' },
               { name: 'amount', kind: 'Number', label: 'Amount', options: { precision: 2 } },
               { name: 'tags', kind: 'String', label: 'Tags', isMulti: true },
+              {
+                name: 'stage',
+                kind: 'Select',
+                label: 'Stage',
+                options: { options: [{ value: 'won', text: 'Closed won' }] },
+              },
               {
                 name: 'company',
                 kind: 'Record',
@@ -281,6 +289,16 @@ test.describe.serial('custom app gotchas', () => {
       expect(probe.list.ok!.refs[on.values.company]).toBe('Acme')
       expect(probe.list.ok!.refs[on.ownedBy]).toBeTruthy()
     }
+  })
+
+  // A page labels a Select from the options the module holds. Read through the
+  // API those options say `text`, so an option that arrives under `label`
+  // alone renders as nothing at all.
+  test('a Select option carries its wording under the name the module uses', async ({ page }) => {
+    const probe = await runProbe(page, apps.v2)
+    const probes = probe.modules.ok!.find((m: { handle: string }) => m.handle === 'e2e_probes')
+    const stage = probes.fields.find((f: { name: string }) => f.name === 'stage')
+    expect(stage.options).toEqual([{ value: 'won', text: 'Closed won', label: 'Closed won' }])
   })
 
   test('a module the app did not declare is refused by name', async ({ page }) => {

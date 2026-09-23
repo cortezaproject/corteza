@@ -393,9 +393,15 @@ export function describeField(field) {
     multi: !!field.multi,
   }
 
+  // An option carries its wording twice. `text` is what the module calls it and
+  // what an author reading the module through the API sees; `label` is the word
+  // every other field here uses. They are always the same string.
   const options = field.options?.options
   if (Array.isArray(options)) {
-    out.options = options.map(o => ({ value: o.value, label: o.text || o.value }))
+    out.options = options.map(o => {
+      const text = o.text || o.value
+      return { value: o.value, text, label: text }
+    })
   }
 
   return out

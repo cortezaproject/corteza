@@ -142,9 +142,12 @@ createdAt, updatedAt}`. `values` is an object keyed by field name, multi-value
 - A report grouped by a Record or User field comes back keyed by bare IDs, with
   `refs` naming them — show the name, never the ID.
 - `human.modules()` answers `[{handle, moduleID, writable, fields}]`, each field
-  `{name, label, kind, multi, options?}` as the module stands now. Take a
-  field's label and a Select's options from there rather than writing them into
-  the page: an option renamed next month should not leave the page lying.
+  `{name, label, kind, multi, options?}` as the module stands now. A Select's
+  options are `[{value, text, label}]`, where `text` and `label` are the same
+  wording. Take a field's label and a Select's options from there rather than
+  writing them into the page: an option renamed next month should not leave the
+  page lying. A value the options do not cover still has to render — fall back
+  to the value itself rather than printing nothing.
 - Changing records is off unless the app was deployed with `writes` naming the
   modules it may change; every one of them must be in `modules` too. Leave
   `writes` out for a read-only app.

@@ -581,10 +581,12 @@ describe('what the app may read about its modules', () => {
       kind: 'String',
       multi: false,
     })
-    // An option with no text of its own is known by its value.
+    // An option with no text of its own is known by its value, and carries its
+    // wording under both names — `text` is what the module calls it, `label` is
+    // what every other field here is called.
     expect(describeField(fields[1]).options).toEqual([
-      { value: 'lead', label: 'Lead' },
-      { value: 'active', label: 'active' },
+      { value: 'lead', text: 'Lead', label: 'Lead' },
+      { value: 'active', text: 'active', label: 'active' },
     ])
     expect(describeField(fields[2]).multi).toBe(true)
   })

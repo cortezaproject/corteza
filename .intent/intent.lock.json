@@ -72,7 +72,7 @@
       "t": "2026-09-23"
     },
     "client/web/unify/e2e/sections/app/gotchas.spec.ts": {
-      "h": "0574aed26a31",
+      "h": "85d26223134d",
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-09-23"
     },
@@ -662,12 +662,12 @@
       "t": "2026-09-23"
     },
     "client/web/unify/src/sections/app/bridge.test.js": {
-      "h": "27d139d7a079",
+      "h": "2e3c37f4bb51",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-23"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "347b9465c27b",
+      "h": "d3c277c86bf5",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-09-23"
     },

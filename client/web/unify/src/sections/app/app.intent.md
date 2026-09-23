@@ -158,7 +158,10 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
   contract 2 its `refs` name them, by the same rule a listing follows.
 - `modules` answers with what the app declared, as the modules stand now:
   each field's label, kind and Select options. A page that bakes those in goes
-  stale the day somebody renames an option.
+  stale the day somebody renames an option. An option carries its wording under
+  both `text` and `label`: `text` is what the module calls it and what an author
+  reading the module through the API is shown, so a bridge that renamed it left
+  pages printing nothing where the option should be.
 - `download` hands the viewer a file the sandbox could not save itself: at most
   5 MB of text, under a name reduced to one file name.
 - No delete, no attachment, no owner change.
