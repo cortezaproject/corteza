@@ -45,7 +45,16 @@ func Init(ext ...func() []gval.Language) {
 	}
 
 	initialized = true
-	parser = gval.Full(aux...)
+	parser = gval.Full(append(aux, emptyLiterals()...)...)
+}
+
+// emptyLiterals are the names that stand for an empty value, whatever the
+// scope holds.
+func emptyLiterals() []gval.Language {
+	return []gval.Language{
+		gval.Constant("null", nil),
+		gval.Constant("nil", nil),
+	}
 }
 
 // Parser returns global parser instance

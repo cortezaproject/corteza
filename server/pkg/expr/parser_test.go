@@ -108,3 +108,43 @@ func benchmarkEval(b *testing.B, expr string) {
 		}
 	}
 }
+
+func TestEmptyLiterals(t *testing.T) {
+	var (
+		ctx = context.Background()
+		p   = NewParser()
+	)
+
+	vars, err := NewVars(map[string]interface{}{"a": 1, "rec": map[string]interface{}{"x": nil}})
+	require.NoError(t, err)
+
+	for _, tc := range []struct {
+		expr string
+		want interface{}
+	}{
+		{`null`, nil},
+		{`nil`, nil},
+		{`a == null`, false},
+		{`a != nil`, true},
+		{`rec.x == null`, true},
+		{`coalesce(null, "fallback")`, "fallback"},
+	} {
+		ev, err := p.Parse(tc.expr)
+		require.NoErrorf(t, err, "parse %q", tc.expr)
+
+		v, err := ev.Eval(ctx, vars)
+		require.NoErrorf(t, err, "eval %q", tc.expr)
+		require.Equalf(t, tc.want, UntypedValue(v), "%q", tc.expr)
+	}
+
+	// The same on the plain-map path field expressions and page conditions use.
+	v, err := Parser().Evaluate(`a == null`, map[string]interface{}{"a": 1})
+	require.NoError(t, err)
+	require.Equal(t, false, v)
+
+	// A name that is not there is still an error on Vars.
+	ev, err := p.Parse(`missing`)
+	require.NoError(t, err)
+	_, err = ev.Eval(ctx, vars)
+	require.Error(t, err)
+}
