@@ -468,6 +468,13 @@ describe('lintExpression — expr dialect', () => {
     expect(lint('isEmpty(record.values.status)')).toEqual([])
   })
 
+  it('accepts the functions registered with integer arguments', () => {
+    expect(lint('repeat(record.values.status, 2)')).toEqual([])
+    expect(lint('replace(record.values.status, "a", "b", 1)')).toEqual([])
+    expect(lint('shorten(record.values.status, "word", 3)')).toEqual([])
+    expect(lint('substring(record.values.status, 0, 2)')).toEqual([])
+  })
+
   it('leaves literals alone', () => {
     expect(lint('isView == true && record.canUpdateRecord != false')).toEqual([])
   })

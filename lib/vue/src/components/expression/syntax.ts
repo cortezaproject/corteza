@@ -21,7 +21,7 @@ export const QL_KEYWORDS = [
 ]
 
 // Functions the server-evaluated expression language registers — mirrors
-// server/pkg/expr/func_names.go, whose TestBuiltInFunctionNames proves each one
+// server/pkg/expr/expr_functions.yaml, whose TestBuiltInFunctionNames proves each one
 // is really reserved. Calling a name that is not here is a hard evaluation
 // error, not a silent null.
 export const EXPR_FUNCTIONS = [
@@ -72,9 +72,12 @@ export const EXPR_FUNCTIONS = [
   'pow',
   'push',
   'random',
+  'repeat',
+  'replace',
   'round',
   'set',
   'shift',
+  'shorten',
   'shortest',
   'snakify',
   'sort',
@@ -83,6 +86,7 @@ export const EXPR_FUNCTIONS = [
   'sqrt',
   'strftime',
   'sub',
+  'substring',
   'sum',
   'title',
   'toJSON',
