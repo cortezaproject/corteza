@@ -270,6 +270,9 @@ label:
     single: Session
   status: Status
   submit: Submit
+  script:
+    plural: Scripts
+    single: Script
   taq:
     plural: TAQs
     single: TAQ
