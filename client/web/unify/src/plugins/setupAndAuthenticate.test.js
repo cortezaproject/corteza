@@ -233,6 +233,26 @@ describe('setupAndAuthenticate', () => {
     warn.mockRestore()
   })
 
+  it('keeps the scripts one service can still list when the other refuses', async () => {
+    stubs.handle.mockResolvedValue()
+    // Listing the system catalogue asks for a permission an ordinary user does
+    // not have; their compose scripts must survive that refusal.
+    stubs.automationList.mockRejectedValue(
+      new Error('not allowed to search or list Corredor scripts'),
+    )
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    await expect(setupAndAuthenticate(fakeApp())).resolves.toBe(true)
+
+    expect(stubs.registerServerScripts).toHaveBeenCalledOnce()
+    expect(stubs.loadClientScripts.mock.calls.map(([{ bundle }]) => bundle)).toEqual([
+      'compose',
+      'admin',
+      'unify',
+    ])
+    warn.mockRestore()
+  })
+
   it('propagates any error that is not an auth challenge', async () => {
     stubs.handle.mockRejectedValue(new Error('boom'))
 

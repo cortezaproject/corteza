@@ -38,14 +38,24 @@ export async function setupCorredor(app) {
 
   // Both services are asked: each one's automation list drops the scripts bound
   // to the other's resources, and this webapp is the compose and the admin app
-  // at once.
-  const lists = await Promise.all([
+  // at once. They are asked separately because listing the system catalogue
+  // asks for a permission an ordinary user does not have, and that refusal must
+  // cost them the admin scripts only, not every script on the page.
+  const lists = await Promise.allSettled([
     $ComposeAPI.automationList({ excludeInvalid: true }),
     $SystemAPI.automationList({ excludeInvalid: true }),
   ])
 
   const byName = new Map()
-  lists.forEach(({ set = [] }) => set.forEach(script => byName.set(script.name, script)))
+  lists.forEach(result => {
+    if (result.status !== 'fulfilled') {
+      console.warn('corredor: could not read an automation list', result.reason)
+      return
+    }
+
+    const { set = [] } = result.value || {}
+    set.forEach(script => byName.set(script.name, script))
+  })
 
   registerServerScripts({
     scriptBus: $ScriptBus,
