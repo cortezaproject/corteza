@@ -34,6 +34,11 @@ pnpm --filter @planetcrust/human-corredor serve
 
 An `.env` file in this directory is read on start; see `.env.example`.
 
+[`SCRIPTING.md`](SCRIPTING.md) is the reference for writing one: every resource
+a trigger can bind to, the arguments each event hands the script, the constraint
+names, and what the execution context exposes. It is generated, so it tracks the
+server rather than drifting from it.
+
 ## Extension layout
 
 Extensions live under the paths in `CORREDOR_EXT_SEARCH_PATHS`:

@@ -10,8 +10,9 @@
     "serve:dev": "tsx watch ./src/server.ts",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
-    "format": "prettier --write src/",
-    "format:check": "prettier --check src/",
+    "format": "prettier --write src/ tools/",
+    "format:check": "prettier --check src/ tools/",
+    "docs:scripting": "node tools/scripting-reference.mjs",
     "test:unit": "mocha",
     "test": "pnpm run test:unit"
   },
