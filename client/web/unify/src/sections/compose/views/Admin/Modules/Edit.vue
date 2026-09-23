@@ -973,10 +973,9 @@ async function handleDelete() {
 
 async function checkSchemaAlterations() {
   try {
+    const { namespaceID, moduleID } = module.value
     const { set } = await $SystemAPI.dalSchemaAlterationList({
-      resourceType: 'compose:module',
-      resourceID: module.value.moduleID,
-      completedAt: null,
+      resource: [`corteza::compose:module/${namespaceID}/${moduleID}`],
     })
     schemaBatch.value = (set || []).filter(s => !!s.batchID).map(s => s.batchID)
     schemaModal.value = false
