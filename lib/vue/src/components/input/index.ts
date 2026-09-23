@@ -1,3 +1,4 @@
+export { default as CCodeEditor } from './CCodeEditor.vue'
 export { default as CInputSearch } from './CInputSearch.vue'
 export { default as CInputSelect } from './CInputSelect.vue'
 export { default as CInputUser } from './CInputUser.vue'

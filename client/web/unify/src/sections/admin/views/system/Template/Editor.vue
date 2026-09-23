@@ -180,11 +180,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NoID, system } from '@planetcrust/human-js'
 import { components, useDraftGuard } from '@planetcrust/human-vue'
-import CCodeEditor from '@/sections/admin/components/Template/CCodeEditor.vue'
 import CTemplateToolbox from '@/sections/admin/components/Template/CTemplateToolbox.vue'
 import CTemplatePreview from '@/sections/admin/components/Template/CTemplatePreview.vue'
 
-const { CInputDelete, CInputToggleCard, CViewContainer } = components
+const { CCodeEditor, CInputDelete, CInputToggleCard, CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()

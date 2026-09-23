@@ -114,7 +114,10 @@ function getExtensions() {
   }
 
   if (props.readOnly) {
-    extensions.push(EditorState.readOnly.of(true))
+    // Both: the first refuses the change, the second stops the element taking
+    // the keystroke at all — with only the first, typing shows text the
+    // document never took.
+    extensions.push(EditorState.readOnly.of(true), EditorView.editable.of(false))
   }
 
   return extensions
@@ -161,9 +164,9 @@ watch(
 )
 
 watch(
-  () => props.language,
+  () => [props.language, props.readOnly],
   () => {
-    // Recreate editor when language changes
+    // Recreate the editor: both are fixed when it is built
     const currentDoc = view ? view.state.doc.toString() : props.modelValue
     destroyEditor()
     nextTick(() => {

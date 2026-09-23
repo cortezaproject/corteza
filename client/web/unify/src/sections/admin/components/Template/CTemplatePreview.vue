@@ -44,7 +44,9 @@
 <script setup>
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import CCodeEditor from './CCodeEditor.vue'
+import { components } from '@planetcrust/human-vue'
+
+const { CCodeEditor } = components
 
 const { t } = useI18n()
 const $toast = inject('$toast')

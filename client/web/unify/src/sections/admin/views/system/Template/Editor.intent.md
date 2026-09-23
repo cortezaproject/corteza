@@ -5,7 +5,7 @@ backfilled: true
 owner: fe
 depends-on:
   - client/web/unify/src/sections/admin/routes.js
-  - client/web/unify/src/sections/admin/components/Template/CCodeEditor.vue
+  - lib/vue/src/components/input/CCodeEditor.vue
   - client/web/unify/src/sections/admin/components/Template/CTemplateToolbox.vue
   - client/web/unify/src/sections/admin/components/Template/CTemplatePreview.vue
   - lib/js
