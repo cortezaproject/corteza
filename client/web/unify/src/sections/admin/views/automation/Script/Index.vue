@@ -37,8 +37,8 @@
           prevPagination: $t('general.resourceList.pagination.prev'),
           nextPagination: $t('general.resourceList.pagination.next'),
           recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-          resourceSingle: $t('automation.scripts.list.resource.single'),
-          resourcePlural: $t('automation.scripts.list.resource.plural'),
+          resourceSingle: $t('general.label.script.single'),
+          resourcePlural: $t('general.label.script.plural'),
         }"
         class="flex-1 min-h-0"
         @update:filter="Object.assign(filter, $event)"
@@ -64,11 +64,11 @@
               {{ $t('automation.scripts.list.labelMissing') }}
             </span>
 
-            <span v-if="data.description" class="text-xs text-muted-color truncate">
+            <span v-if="data.description" class="text-xs text-muted-color truncate max-w-md">
               {{ data.description }}
             </span>
 
-            <code class="text-xs text-muted-color truncate">{{ data.name }}</code>
+            <code class="text-xs text-muted-color truncate max-w-md">{{ data.name }}</code>
 
             <div v-if="data.errors && data.errors.length" class="flex flex-col gap-1 mt-1">
               <Message

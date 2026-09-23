@@ -76,7 +76,7 @@ import:
   json: Import JSON
   label: Import
   no-workflows-in-file: No workflows found in this file.
-  reassign-run-as: 'NOTE: the Run as workflow property won''t be imported and should be reassigned'
+  reassign-run-as: "NOTE: the Run as workflow property won't be imported and should be reassigned"
   upload-files: Browse or drop files to upload...
 including: Including
 label:
@@ -255,6 +255,9 @@ label:
   saveAndClose: Save and close
   saveAs: Save as
   saveAsCopy: Save as copy
+  script:
+    plural: Scripts
+    single: Script
   search: Search
   seconds: seconds
   selectOption: Select an option

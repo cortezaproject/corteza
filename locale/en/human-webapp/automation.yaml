@@ -33,9 +33,6 @@ scripts:
       clientWithoutBundle: Client
       server: Server
     labelMissing: <label missing>
-    resource:
-      plural: Scripts
-      single: Script
     security:
       allow: 'allow: {roles}'
       deny: 'deny: {roles}'
