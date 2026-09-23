@@ -1,0 +1,34 @@
+{
+  "skill": "custom_app",
+  "needs": ["contacts_crm", "agent-sandbox"],
+  "prompts": [
+    {
+      "id": "deals-per-company",
+      "prompt": "From our Human data, build me one page that puts each company next to its contacts: the company name, its industry, and the people there with their job titles. Group it by company. One HTML file, give me the HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["companies", "contacts"],
+      "expect": ["Alpine Systems", "Marko Zupan"]
+    },
+    {
+      "id": "counts-by-type",
+      "prompt": "I want a page from our Human instance that counts our contacts by contact type and shows it as a chart, with the totals underneath. One HTML file, HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts"],
+      "expect": ["decision_maker"]
+    },
+    {
+      "id": "contact-detail-pane",
+      "prompt": "Build me a contacts page from Human where clicking a person opens their full details beside the list — everything we hold on them, including which company they belong to. One HTML file, HTML at the end.",
+      "namespace": "contacts_crm",
+      "modules": ["contacts", "companies"],
+      "expect": ["Marko Zupan"]
+    },
+    {
+      "id": "overdue-tasks",
+      "prompt": "Make me a page showing which tasks in our Human agent sandbox are overdue and who each one is for, newest first. One HTML file, HTML at the end.",
+      "namespace": "agent-sandbox",
+      "modules": ["agent-task", "agent-contact"],
+      "expect": ["Renew contract"]
+    }
+  ]
+}
