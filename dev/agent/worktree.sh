@@ -39,9 +39,16 @@ WT_DIR="$STATE_DIR/worktrees"
 mkdir -p "$WT_DIR"
 
 # The main checkout — the one holding .git, slot 0, and the real .state.
-primary_repo() {
-  git -C "$REPO_DIR" worktree list --porcelain | awk '/^worktree /{print $2; exit}'
-}
+#
+# Resolved now, while it is still answerable: the lookup runs inside $REPO_DIR,
+# which for a run started from a worktree is the checkout `rm` and `land`
+# delete. Asked afterwards it answers nothing, and everything derived from it —
+# the DSN, so the database credentials — comes back empty. Caching inside the
+# function would not do: every caller reads it through a command substitution,
+# and the assignment dies with that subshell.
+PRIMARY_REPO="$(git -C "$REPO_DIR" worktree list --porcelain 2>/dev/null |
+  awk '/^worktree /{print $2; exit}' || true)"
+primary_repo() { echo "$PRIMARY_REPO"; }
 
 # Where worktrees are created: a sibling dir, never inside the repo.
 worktrees_root() { echo "$(dirname "$(primary_repo)")/human-worktrees"; }
@@ -89,9 +96,18 @@ slot_db() { echo "$(db_name_base)_wt$1"; }
 # The primary's DB_DSN — the one connection string every worktree derives from.
 # Only the database name is swapped per slot: user, password, host and port are
 # the developer's, and a literal here works on one machine and not the next.
+# Read with the primary's path, and for the same reason: by the time `rm`
+# needs the credentials, the checkout the run started in is gone.
+PRIMARY_DSN=""
+if [[ -f "$PRIMARY_REPO/server/.env" ]]; then
+  PRIMARY_DSN="$(
+    sed -nE 's/^[[:space:]]*DB_DSN=[[:space:]]*//p' "$PRIMARY_REPO/server/.env" |
+      tail -1 | sed -E 's/^["'"'"']//; s/["'"'"']$//'
+  )"
+fi
 primary_dsn() {
-  sed -nE 's/^[[:space:]]*DB_DSN=[[:space:]]*//p' "$(primary_repo)/server/.env" |
-    tail -1 | sed -E 's/^["'"'"']//; s/["'"'"']$//'
+  [[ -n "$PRIMARY_DSN" ]] || die "no DB_DSN in $PRIMARY_REPO/server/.env"
+  echo "$PRIMARY_DSN"
 }
 
 # dsn_part FIELD [DSN] — user, password, host, port, db or scheme.
@@ -227,12 +243,18 @@ orphan_warning() { # orphan_warning PORT PIDFILE WHAT
 # always do, so the identity is overridable — but it defaults to the primary's
 # rather than to a literal `postgres`, which is a superuser on one machine and
 # absent on the next.
+#
+# -w so a credential that did not resolve is an error: these run unattended as
+# often as not, and libpq's fallback is to read a password from the terminal.
 pg() {
+  local user
+  user="${PGSUPERUSER:-$(dsn_part user)}"
+  [[ -n "$user" ]] || die "no database user in the primary's DB_DSN — set PGSUPERUSER"
   PGPASSWORD="${PGSUPERPASS:-$(dsn_part password)}" \
-    "$@" \
+    "$@" -w \
     -h "${PGSUPERHOST:-$(dsn_part host)}" \
     -p "${PGSUPERPORT:-$(dsn_part port)}" \
-    -U "${PGSUPERUSER:-$(dsn_part user)}"
+    -U "$user"
 }
 
 # ---------------------------------------------------------------- new --------
@@ -778,6 +800,12 @@ cmd_rm() {
   fi
 
   cmd_down "$name" || true
+
+  # Step out of the checkout before deleting it: a run started from inside it
+  # is standing in the directory about to go, and every child then inherits a
+  # working directory that no longer exists.
+  cd "$primary"
+
   git -C "$primary" worktree remove "$path" --force
   pg dropdb --if-exists "$db"
   rm -f "$(meta "$name")"

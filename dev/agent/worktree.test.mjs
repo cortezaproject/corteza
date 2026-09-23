@@ -185,3 +185,88 @@ test('a started service does not hold the caller end of a pipe', async t => {
   assert.match(out, /rc=0/, 'the pipe stayed open after the service started — rc=124 is timeout')
   assert.ok(await waitFor(() => existsSync(pidfile)), 'the service never recorded its leader')
 })
+
+// `rm` and `land` delete the checkout they are often running inside, and
+// $REPO_DIR is that checkout. Every database credential comes from the
+// primary's DSN, which is found by asking git where the primary is — so asking
+// after the removal answers nothing, and dropdb falls back to prompting for a
+// password that no one is there to type.
+test('rm from inside the worktree still resolves the database credentials', async t => {
+  const root = mkdtempSync(join(tmpdir(), 'wt-rm-'))
+  const primary = join(root, 'primary')
+  const wt = join(root, 'wt')
+  const bin = join(root, 'bin')
+  const record = join(root, 'dropdb.args')
+  const api = freePort()
+  const vite = freePort(new Set([api]))
+  t.after(() => rmSync(root, { recursive: true, force: true }))
+
+  const git = (...args) => execFileSync('git', ['-C', primary, ...args], { stdio: 'ignore' })
+
+  // A primary that is a real git repo: the removal has to be a real worktree
+  // removal for the lookup to lose its answer.
+  mkdirSync(join(primary, 'dev', 'agent'), { recursive: true })
+  mkdirSync(join(primary, 'server'), { recursive: true })
+  mkdirSync(join(primary, 'client', 'web', 'unify'), { recursive: true })
+  for (const f of ['worktree.sh', 'common.sh', 'stack.sh', 'tty.sh'])
+    copyFileSync(join(HERE, f), join(primary, 'dev', 'agent', f))
+  writeFileSync(
+    join(primary, 'server', '.env'),
+    `HTTP_ADDR=:${api}\nDB_DSN=postgres://alice:s3cret@db.example:6543/base\n`,
+  )
+  writeFileSync(
+    join(primary, 'client', 'web', 'unify', '.env.e2e'),
+    `E2E_BASE_URL=http://localhost:${vite}\n`,
+  )
+  execFileSync('git', ['init', '-q', primary], { stdio: 'ignore' })
+  git('add', '-A')
+  git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'fixture')
+  git('worktree', 'add', '-q', '-b', 'fake', wt)
+
+  // .state is a symlink into the primary in a real worktree, and that is what
+  // makes the ledger outlive the checkout.
+  mkdirSync(join(primary, 'dev', 'agent', '.state', 'worktrees'), { recursive: true })
+  execFileSync('ln', [
+    '-s',
+    join(primary, 'dev', 'agent', '.state'),
+    join(wt, 'dev', 'agent', '.state'),
+  ])
+  writeFileSync(
+    join(primary, 'dev', 'agent', '.state', 'worktrees', 'fake.json'),
+    JSON.stringify(
+      { name: 'fake', path: wt, slot: 7, branch: 'fake', api, vite, db: 'fixture_wt7' },
+      null,
+      2,
+    ),
+  )
+  writeFileSync(join(primary, 'dev', 'agent', 'backlog.sh'), '#!/usr/bin/env bash\necho 0\n', {
+    mode: 0o755,
+  })
+
+  // The stub stands in for the real thing and records what it was handed: an
+  // empty -U with no password is exactly the state that makes libpq prompt.
+  mkdirSync(bin, { recursive: true })
+  writeFileSync(
+    join(bin, 'dropdb'),
+    '#!/usr/bin/env bash\nprintf "PGPASSWORD=%s\\n" "${PGPASSWORD-unset}" >"$RECORD"\n' +
+      'printf "%s\\n" "$@" >>"$RECORD"\n',
+    { mode: 0o755 },
+  )
+
+  const out = execFileSync(
+    'bash',
+    [
+      '-c',
+      `cd ${JSON.stringify(wt)} && PATH=${JSON.stringify(bin)}:$PATH dev/agent/worktree.sh rm fake`,
+    ],
+    { encoding: 'utf8', timeout: 60000, env: { ...process.env, RECORD: record } },
+  )
+
+  assert.match(out, /removed 'fake'/)
+  const args = readFileSync(record, 'utf8')
+  assert.match(args, /PGPASSWORD=s3cret/, `dropdb got no password: ${args}`)
+  assert.match(args, /^-U$\nalice$/m, `dropdb got the wrong user: ${args}`)
+  assert.match(args, /^-w$/m, 'dropdb may still prompt')
+  assert.match(args, /^fixture_wt7$/m)
+  assert.ok(!existsSync(wt), 'the checkout survived')
+})
