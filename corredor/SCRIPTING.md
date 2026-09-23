@@ -25,8 +25,12 @@ Generated from:
 - `lib/js/src/api-clients/system.ts`
 - `lib/js/src/corredor/args-human.ts`
 - `lib/js/src/corredor/ctx.ts`
+- `lib/js/src/corredor/helpers/automation.gen.ts`
+- `lib/js/src/corredor/helpers/compose.gen.ts`
 - `lib/js/src/corredor/helpers/compose.ts`
+- `lib/js/src/corredor/helpers/system.gen.ts`
 - `lib/js/src/corredor/helpers/system.ts`
+- `lib/js/tools/codegen/helper-names.lock.json`
 - `lib/vue/src/corredor/compose-ui.ts`
 - `lib/vue/src/corredor/script-bus.ts`
 - `server/compose/service/event/events.yaml`
@@ -170,18 +174,22 @@ and fetches that user, so it is a promise and it costs a request.)
 | `ctx.$authUser`       | `Promise<User>`         |
 | `ctx.System`          | `SystemHelper`          |
 | `ctx.Compose`         | `ComposeHelper`         |
+| `ctx.Automation`      | `AutomationHelper`      |
 | `ctx.frontendBaseURL` | `string \| undefined`   |
 
 API clients live in `lib/js/src/api-clients/` (`System`, `Compose`, `Federation`, `Automation`, `Discovery`); the context
 configures `SystemAPI`, `ComposeAPI`, `AutomationAPI` with the script's own token.
 
-`ctx.System` and `ctx.Compose` are conveniences over the two clients:
-they resolve handles, cast results to library classes, and default the module
-and namespace from the event. They cover users, roles, permissions, records,
-modules, namespaces, pages and mail — and nothing else. Automations, workflows,
-agents, chatbots, projects, user groups, reminders, notifications and labels
-have no helper; they are reached through the raw clients, by the method names in
-`lib/js/src/api-clients/`.
+A helper is a client with two conveniences: it takes an object, an ID or a
+handle wherever the endpoint wants an ID, and it casts what comes back into a
+library class. Every endpoint of the three services has one, generated from the
+same definitions the clients are, so the layer cannot fall behind the API.
+
+The generated method mirrors its endpoint, so a server change reaches scripts.
+The hand-written methods listed below are the curated layer: they carry judgement
+a generator cannot — defaults from the event, several ways to name a thing, and
+shapes with no endpoint at all — and they are where a breaking change is absorbed.
+Where both would answer to one name the hand-written one stands.
 
 `ctx.System` (19 methods): `findUsers`, `findUserByID`, `findUserByEmail`, `findUserByHandle`, `saveUser`, `setPassword`, `deleteUser`, `findRoles`, `findRoleByID`, `findRoleByHandle`, `saveRole`, `deleteRole`, `addUserToRole`, `removeUserFromRole`, `resolveUser`, `resolveRole`, `allow`, `deny`, `inherit`.
 
@@ -191,19 +199,17 @@ It defaults from `$user`, `$role`, `$application` when the event carries them.
 
 It defaults from `$namespace`, `$module`, `$record` when the event carries them.
 
-Uncovered resources and where to reach them:
+Generated alongside them, one method per endpoint: `ctx.System` 325,
+`ctx.Compose` 78 and `ctx.Automation` 41 methods.
+A regular list, read, create, update, delete or undelete reads as
+`findUsers`, `findUserByID`, `createUser`, `updateUser`, `deleteUser`,
+`undeleteUser`; everything else keeps the client method name, so
+`ctx.Automation.ngAutomationExec()` runs a TAQ and `ctx.System.userSuspend()`
+suspends a user. `lib/js/tools/codegen/helper-names.lock.json` is the list,
+and a name in it never changes.
 
-| resource          | client              | example              |
-| ----------------- | ------------------- | -------------------- |
-| automations (TAQ) | `ctx.AutomationAPI` | `ngAutomationList()` |
-| workflows         | `ctx.AutomationAPI` | `workflowList()`     |
-| agents            | `ctx.SystemAPI`     | `agentList()`        |
-| chatbots          | `ctx.SystemAPI`     | `chatbotList()`      |
-| projects          | `ctx.SystemAPI`     | `projectList()`      |
-| user groups       | `ctx.SystemAPI`     | `userGroupList()`    |
-| reminders         | `ctx.SystemAPI`     | `reminderList()`     |
-| notifications     | `ctx.SystemAPI`     | `notificationList()` |
-| labels            | `ctx.SystemAPI`     | `labelList()`        |
+These 17 names belong to the hand-written layer, which takes its own
+arguments rather than one object: `deletePage`, `deleteRecord`, `findAttachmentByID`, `findModuleByID`, `findModules`, `findNamespaceByID`, `findNamespaces`, `findPageByID`, `findPages`, `findRecordByID`, `findRecords`, `deleteRole`, `deleteUser`, `findRoleByID`, `findRoles`, `findUserByID`, `findUsers`.
 
 ## Arguments
 

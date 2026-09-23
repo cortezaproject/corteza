@@ -32,6 +32,10 @@ const SOURCES = {
   ctx: 'lib/js/src/corredor/ctx.ts',
   systemHelper: 'lib/js/src/corredor/helpers/system.ts',
   composeHelper: 'lib/js/src/corredor/helpers/compose.ts',
+  helperNames: 'lib/js/tools/codegen/helper-names.lock.json',
+  systemGenerated: 'lib/js/src/corredor/helpers/system.gen.ts',
+  composeGenerated: 'lib/js/src/corredor/helpers/compose.gen.ts',
+  automationGenerated: 'lib/js/src/corredor/helpers/automation.gen.ts',
   apiClients: 'lib/js/src/api-clients/index.ts',
   systemClient: 'lib/js/src/api-clients/system.ts',
   automationClient: 'lib/js/src/api-clients/automation.ts',
@@ -229,6 +233,32 @@ function parseHelper(key) {
   return { methods, props }
 }
 
+// One method per endpoint, emitted by the helper generator.
+// Endpoints whose name the hand-written layer owns: the generated twin is not
+// emitted, so the curated signature is the one to call.
+function curatedNames() {
+  const lock = JSON.parse(read('helperNames'))
+  const out = []
+
+  for (const service of Object.keys(lock.curated || {})) {
+    for (const owner of Object.values(lock.curated[service])) {
+      out.push(owner)
+    }
+  }
+
+  must(out.length > 5, `helper-names.lock.json: found ${out.length} curated collisions`)
+  return [...new Set(out)].sort()
+}
+
+function countGenerated(key) {
+  const src = read(key)
+  // one promise-returning signature per endpoint, plus the shared resolver
+  const signatures = [...src.matchAll(/\): Promise</g)].length - 1
+
+  must(signatures > 20, `${SOURCES[key]}: found ${signatures} generated methods`)
+  return signatures
+}
+
 function clientMethods(key) {
   const src = read(key)
   const methods = [...src.matchAll(/^ {2}async (\w+)\(/gm)].map(([, name]) => name)
@@ -393,38 +423,9 @@ const HELPER_COVERAGE = [
   ['mail', 'sendMail'],
 ]
 
-// What they do not cover, each with the client method that reaches it.
-const RAW_ONLY = [
-  ['automations (TAQ)', 'AutomationAPI', 'ngAutomationList'],
-  ['workflows', 'AutomationAPI', 'workflowList'],
-  ['agents', 'SystemAPI', 'agentList'],
-  ['chatbots', 'SystemAPI', 'chatbotList'],
-  ['projects', 'SystemAPI', 'projectList'],
-  ['user groups', 'SystemAPI', 'userGroupList'],
-  ['reminders', 'SystemAPI', 'reminderList'],
-  ['notifications', 'SystemAPI', 'notificationList'],
-  ['labels', 'SystemAPI', 'labelList'],
-]
-
-// Resource nouns the helpers must stay out of, as CRUD-shaped method names.
-const NOT_IN_HELPERS =
-  /^(?:find|save|make|delete|resolve|add|remove|set)\w*(Automation|Workflow|Agent|Chatbot|Project|UserGroup|Reminder|Notification|Label)s?$/
-
-function checkReach(helperMethods, clients) {
+function checkReach(helperMethods) {
   HELPER_COVERAGE.forEach(([what, method]) =>
     must(helperMethods.includes(method), `helpers no longer cover ${what} (${method}() is gone)`),
-  )
-
-  helperMethods.forEach(name => {
-    const hit = NOT_IN_HELPERS.exec(name)
-    must(!hit, `a helper now covers ${hit?.[1]} (${name}()) — the reference says it does not`)
-  })
-
-  RAW_ONLY.forEach(([what, client, method]) =>
-    must(
-      clients[client].includes(method),
-      `${client}.${method}() is gone — the reference points at it for ${what}`,
-    ),
   )
 }
 
@@ -522,13 +523,16 @@ while \`$invoker\` stays the user who triggered the script even under \`runAs\`.
 (\`ctx.$authUser\` answers the same question a different way: it decodes the token
 and fetches that user, so it is a promise and it costs a request.)`,
 
-  helpers: `\`ctx.System\` and \`ctx.Compose\` are conveniences over the two clients:
-they resolve handles, cast results to library classes, and default the module
-and namespace from the event. They cover users, roles, permissions, records,
-modules, namespaces, pages and mail — and nothing else. Automations, workflows,
-agents, chatbots, projects, user groups, reminders, notifications and labels
-have no helper; they are reached through the raw clients, by the method names in
-\`lib/js/src/api-clients/\`.`,
+  helpers: `A helper is a client with two conveniences: it takes an object, an ID or a
+handle wherever the endpoint wants an ID, and it casts what comes back into a
+library class. Every endpoint of the three services has one, generated from the
+same definitions the clients are, so the layer cannot fall behind the API.
+
+The generated method mirrors its endpoint, so a server change reaches scripts.
+The hand-written methods listed below are the curated layer: they carry judgement
+a generator cannot — defaults from the event, several ways to name a thing, and
+shapes with no endpoint at all — and they are where a breaking change is absorbed.
+Where both would answer to one name the hand-written one stands.`,
 
   clientScripts: `A client script is the same module shape, bundled by Corredor and run in
 the browser instead of inside Corredor. Its context is the webapp's own: the
@@ -619,6 +623,12 @@ function render() {
   const ctx = parseCtx()
   const systemHelper = parseHelper('systemHelper')
   const composeHelper = parseHelper('composeHelper')
+  const curated = curatedNames()
+  const generatedCounts = {
+    system: countGenerated('systemGenerated'),
+    compose: countGenerated('composeGenerated'),
+    automation: countGenerated('automationGenerated'),
+  }
   const dsl = parseTriggerDSL()
   const iterator = parseIterator()
   const securityKeys = parseSecurityKeys()
@@ -633,7 +643,14 @@ function render() {
     AutomationAPI: clientMethods('automationClient'),
   }
 
-  checkReach([...systemHelper.methods, ...composeHelper.methods], clients)
+  // the two the prose names as examples of a kept client name
+  must(
+    clients.AutomationAPI.includes('ngAutomationExec'),
+    'AutomationAPI.ngAutomationExec() is gone',
+  )
+  must(clients.SystemAPI.includes('userSuspend'), 'SystemAPI.userSuspend() is gone')
+
+  checkReach([...systemHelper.methods, ...composeHelper.methods])
 
   const clientNames = [...read('apiClients').matchAll(/^export \{ default as (\w+) \}/gm)].map(
     ([, n]) => n,
@@ -726,12 +743,17 @@ function render() {
     '',
   )
   add(
-    'Uncovered resources and where to reach them:',
+    `Generated alongside them, one method per endpoint: \`ctx.System\` ${generatedCounts.system},`,
+    `\`ctx.Compose\` ${generatedCounts.compose} and \`ctx.Automation\` ${generatedCounts.automation} methods.`,
+    'A regular list, read, create, update, delete or undelete reads as',
+    '`findUsers`, `findUserByID`, `createUser`, `updateUser`, `deleteUser`,',
+    '`undeleteUser`; everything else keeps the client method name, so',
+    '`ctx.Automation.ngAutomationExec()` runs a TAQ and `ctx.System.userSuspend()`',
+    'suspends a user. `lib/js/tools/codegen/helper-names.lock.json` is the list,',
+    'and a name in it never changes.',
     '',
-    table(
-      ['resource', 'client', 'example'],
-      RAW_ONLY.map(([what, client, method]) => [what, `\`ctx.${client}\``, `\`${method}()\``]),
-    ),
+    `These ${curated.length} names belong to the hand-written layer, which takes its own`,
+    'arguments rather than one object: ' + code(curated.map(n => n.split('.')[1])) + '.',
     '',
   )
 
