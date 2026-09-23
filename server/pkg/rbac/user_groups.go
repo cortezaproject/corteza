@@ -273,6 +273,9 @@ func (svc *orgTree) GroupMembers(group id.ID) (members []id.ID) {
 func (svc *orgTree) IsAbove(childUser, parentUser id.ID, paths ...string) bool {
 	childGroup := svc.memberGroupIndex[childUser]
 	parentGroup := svc.memberGroupIndex[parentUser]
+	if childGroup == nil || parentGroup == nil {
+		return false
+	}
 
 	return svc.isAbove(parentGroup, childGroup, paths...)
 }

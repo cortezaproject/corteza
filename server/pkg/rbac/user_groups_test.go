@@ -154,6 +154,20 @@ func TestIsAboveStopsOnCycles(t *testing.T) {
 	}
 }
 
+func TestIsAboveWithoutGroup(t *testing.T) {
+	svc, err := mkOrgTree()
+	require.NoError(t, err)
+
+	require.NoError(t, svc.AddNode(id.MustNumID(101), "root"))
+	require.NoError(t, svc.AddNode(id.MustNumID(201), "a", mkPp(id.MustNumID(101))...))
+	require.NoError(t, svc.AssignGroupMembers(id.MustNumID(101), id.MustNumID(1)))
+	require.NoError(t, svc.AssignGroupMembers(id.MustNumID(201), id.MustNumID(2)))
+
+	require.False(t, svc.IsAbove(id.MustNumID(99), id.MustNumID(1)), "owner in no group")
+	require.False(t, svc.IsAbove(id.MustNumID(2), id.MustNumID(99)), "user in no group")
+	require.True(t, svc.IsAbove(id.MustNumID(2), id.MustNumID(1)))
+}
+
 func TestAddGroupRole(t *testing.T) {
 	t.Run("add role", func(t *testing.T) {
 		svc, err := mkOrgTree()
