@@ -165,6 +165,19 @@ def deploy(sid, page, prompt):
     return app["applicationID"], ""
 
 
+def deployed_app(calls):
+    """The application a session put its own page into.
+
+    A follow-up brief is answered by a second session that has never seen the
+    first: it has to find the app in Human and patch what is stored. Which
+    means the first session must deploy it itself, declaration and all — the
+    one part of the flow the harness otherwise does on its behalf."""
+    for name, args in reversed(calls):
+        if name == "system_application_source_set":
+            return str(args.get("application") or "")
+    return ""
+
+
 def written_state(sid, prompt):
     """What the modules a brief may change look like right now.
 
@@ -218,7 +231,7 @@ def written_page(calls):
     return ""
 
 
-def score(sid, skill, calls, final, prompt, outdir):
+def score(sid, skill, calls, final, prompt, outdir, again=None):
     page = page_of(final) or written_page(calls)
     checks = {
         "read skill first": read_skill_first(calls, skill),
@@ -228,7 +241,17 @@ def score(sid, skill, calls, final, prompt, outdir):
         "mode badge": bool(re.search(r"sample data", page, re.I)) and "human.ready" in page,
     }
 
-    app_id, why = deploy(sid, page, prompt) if page else (None, "no page in the answer")
+    # A brief with a follow-up asks the session to put the app in Human itself,
+    # declaration and all, so the second session has something to find and
+    # patch. Everywhere else the harness deploys, and the session only writes.
+    spent_again = [0.0]
+    own = deployed_app(calls) if prompt.get("followup") else ""
+    if prompt.get("followup"):
+        checks["deployed it"] = bool(own)
+
+    app_id, why = (own, "") if own else (
+        deploy(sid, page, prompt) if page else (None, "no page in the answer")
+    )
     checks["guard accepts"] = app_id is not None
     faults = []
     if app_id:
@@ -245,13 +268,26 @@ def score(sid, skill, calls, final, prompt, outdir):
                 checks["saves"] = changed
                 if not changed:
                     faults.append("nothing was written: the page's own controls never reached a save")
+            # What a person does next: come back to a page that exists and ask
+            # for one more thing. A fresh session has to find it, read what is
+            # stored and patch it, which is the whole of `old_string`.
+            if prompt.get("followup") and ok and again:
+                after_calls, extra = again(prompt["followup"]["prompt"])
+                spent_again[0] = extra
+                checks["patched, not resent"] = any(
+                    name == "system_application_source_set" and args.get("old_string")
+                    for name, args in after_calls
+                )
+                ok2, faults2 = renders(app_id, prompt["followup"], outdir)
+                checks["still renders"] = ok2
+                faults += [f"after the follow-up: {f}" for f in faults2]
         finally:
             call_tool(sid, "system_application_delete", {"application": app_id})
     else:
         checks["renders"] = False
         if prompt.get("writes"):
             checks["saves"] = False
-    return page, checks, why, faults
+    return page, checks, why, faults, spent_again[0]
 
 
 def main():
@@ -302,11 +338,19 @@ def main():
             if p.get("writes") or p.get("click"):
                 reseed(p)
             calls, final, cost = run_session(p["prompt"], model, config, workdir, run + ".jsonl")
-            page, checks, why, faults = score(sid, suite["skill"], calls, final, p, os.path.dirname(run))
+            def again(text, _run=run, _model=model):
+                more_calls, _, more_cost = run_session(
+                    text, _model, config, workdir, _run + ".followup.jsonl",
+                )
+                return more_calls, more_cost or 0
+
+            page, checks, why, faults, extra = score(
+                sid, suite["skill"], calls, final, p, os.path.dirname(run), again,
+            )
             with open(run + ".html", "w") as fh:
                 fh.write(page)
 
-            spent += cost or 0
+            spent += (cost or 0) + extra
             checks_met += sum(1 for v in checks.values() if v)
             checks_run += len(checks)
             ok = all(checks.values())
