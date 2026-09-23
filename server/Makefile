@@ -3,6 +3,7 @@
 include Makefile.inc
 
 BUILD_FLAVOUR         ?= human
+DOCS_DIR              ?= $(ROOT_DIR)/../docs
 BUILD_TIME            ?= $(shell date +%FT%T%z)
 BUILD_VERSION         ?= $(shell git describe --tags --abbrev=0)
 BUILD_ARCH            ?= $(shell $(GO) env GOARCH)
@@ -169,10 +170,10 @@ cue.fmt: $(CUE)
 	$(CUE) fmt federation/*.cue
 
 codegen-legacy: $(CODEGEN)
-	@ $(CODEGEN) -v
+	@ $(CODEGEN) -v -d $(DOCS_DIR)
 
 watch.codegen-legacy: $(CODEGEN)
-	@ $(CODEGEN) -w -v
+	@ $(CODEGEN) -w -v -d $(DOCS_DIR)
 
 clean.codegen-legacy:
 	rm -f $(CODEGEN)

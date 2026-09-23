@@ -14,7 +14,7 @@ import (
 
 func Proc() {
 	const (
-		docGenBase = "/generated/partials"
+		exprDocsBase = "reference/expressions"
 	)
 
 	var (
@@ -46,6 +46,10 @@ func Proc() {
 		exprTypeSrcPath = filepath.Join("*"+string(filepath.Separator)+"*", "expr_types.yaml")
 		exprTypeSrc     []string
 		exprTypeDefs    []*exprTypesDef
+
+		exprFuncSrcPath = filepath.Join("*"+string(filepath.Separator)+"*", "expr_functions.yaml")
+		exprFuncSrc     []string
+		exprFuncDefs    []*exprFunctionsDef
 
 		restSrcPath = filepath.Join("*", "rest.yaml")
 		restSrc     []string
@@ -106,7 +110,7 @@ func Proc() {
 
 	flag.BoolVar(&watchChanges, "w", false, "regenerate on change of template or definition files")
 	flag.BoolVar(&beVerbose, "v", false, "output loaded definitions, templates and outputs")
-	flag.StringVar(&docPath, "d", "", "generate docs on template or definition change")
+	flag.StringVar(&docPath, "d", "", "docs site directory to write the expression reference pages into")
 	flag.Parse()
 
 	defer func() {
@@ -116,12 +120,14 @@ func Proc() {
 	}()
 
 	if len(docPath) > 0 {
-		docPath = strings.TrimRight(docPath, "/") + "/src/modules"
 		if i, err := os.Stat(docPath); err != nil {
 			handleError(err)
 		} else if !i.IsDir() {
 			handleError(fmt.Errorf("expecting directory: %q", docPath))
 		}
+
+		docPath = filepath.Join(docPath, exprDocsBase)
+		handleError(os.MkdirAll(docPath, 0o755))
 
 		genDocs = true
 	}
@@ -141,6 +147,9 @@ func Proc() {
 		exprTypeSrc = glob(exprTypeSrcPath)
 		output("loaded %d exprType definitions from %s\n", len(exprTypeSrc), exprTypeSrcPath)
 
+		exprFuncSrc = glob(exprFuncSrcPath)
+		output("loaded %d expr function definitions from %s\n", len(exprFuncSrc), exprFuncSrcPath)
+
 		restSrc = glob(restSrcPath)
 		output("loaded %d rest definitions from %s\n", len(restSrc), restSrcPath)
 
@@ -159,6 +168,7 @@ func Proc() {
 			fileList = append(fileList, actionSrc...)
 			fileList = append(fileList, eventSrc...)
 			fileList = append(fileList, exprTypeSrc...)
+			fileList = append(fileList, exprFuncSrc...)
 			fileList = append(fileList, restSrc...)
 			fileList = append(fileList, aFuncsSrc...)
 
@@ -188,7 +198,7 @@ func Proc() {
 					err = genExprTypes(tpls, exprTypeDefs...)
 				}
 				if genDocs && err == nil {
-					err = genExprTypeDocs(tpls, docPath+docGenBase, exprTypeDefs...)
+					err = genExprTypeDocs(tpls, docPath, exprTypeDefs...)
 				}
 			}
 
@@ -196,13 +206,23 @@ func Proc() {
 				return
 			}
 
+			if exprFuncDefs, err = procExprFunctions(exprFuncSrc...); err == nil {
+				if genCode {
+					err = genExprFunctions(tpls, exprFuncDefs...)
+				}
+				if genDocs && err == nil {
+					err = genExprFunctionDocs(tpls, docPath, exprFuncDefs...)
+				}
+			}
+
+			if outputErr(err, "failed to process expr functions:\n") {
+				return
+			}
+
 			if eventDefs, err = procEvents(eventSrc...); err == nil {
 				if genCode {
 					expandEventTypes(eventDefs, exprTypeDefs)
 					err = genEvents(tpls, eventDefs...)
-				}
-				if genDocs && err == nil {
-					err = genEventsDocs(tpls, docPath+docGenBase, eventDefs...)
 				}
 			}
 
@@ -233,9 +253,6 @@ func Proc() {
 					expandAutomationFunctionTypes(aFuncsDefs, exprTypeDefs)
 
 					err = genAutomationFunctions(tpls, aFuncsDefs...)
-				}
-				if genDocs && err == nil {
-					err = genAutomationFunctionDocs(tpls, docPath+docGenBase, aFuncsDefs...)
 				}
 			}
 

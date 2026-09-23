@@ -1,0 +1,612 @@
+# Functions of the expression language.
+#
+# Every function registered in this package (gval.Function / gvalFunc) is
+# listed here. Codegen builds func_names.gen.go and the functions reference
+# page from this file; expr_functions_test.go evaluates every example and
+# fails when a registered function is missing.
+#
+# example.scope is a JSON object whose keys become variables of the example.
+# example.result is the JSON rendering of the value the example returns:
+# times as RFC 3339 strings, durations as Go duration strings, typed values
+# unwrapped. An example without a result (random, now) states what it
+# returns in example.note and is checked only for its return type.
+
+package: expr
+
+groups:
+  - name: String
+    functions:
+      - name: trim
+        params: [{ name: s, type: String }]
+        returns: String
+        description: Removes leading and trailing whitespace.
+        example: { expr: 'trim("  hello  ")', result: '"hello"' }
+
+      - name: trimLeft
+        params: [{ name: s, type: String }, { name: cutset, type: String }]
+        returns: String
+        description: >-
+          Removes every leading character that appears in `cutset`. The
+          second argument is a set of characters, not a prefix.
+        example: { expr: 'trimLeft("xxhixx", "x")', result: '"hixx"' }
+
+      - name: trimRight
+        params: [{ name: s, type: String }, { name: cutset, type: String }]
+        returns: String
+        description: >-
+          Removes every trailing character that appears in `cutset`. The
+          second argument is a set of characters, not a suffix.
+        example: { expr: 'trimRight("xxhixx", "x")', result: '"xxhi"' }
+
+      - name: toLower
+        params: [{ name: s, type: String }]
+        returns: String
+        description: Converts every letter to lower case.
+        example: { expr: 'toLower("HeLLo")', result: '"hello"' }
+
+      - name: toUpper
+        params: [{ name: s, type: String }]
+        returns: String
+        description: Converts every letter to upper case.
+        example: { expr: 'toUpper("hello")', result: '"HELLO"' }
+
+      - name: shortest
+        params: [{ name: first, type: String }, { name: rest, type: String, variadic: true }]
+        returns: String
+        description: >-
+          Returns the shortest of the given strings, measured in bytes. On a
+          tie the earlier argument wins.
+        example: { expr: 'shortest("apple", "fig", "banana")', result: '"fig"' }
+
+      - name: longest
+        params: [{ name: first, type: String }, { name: rest, type: String, variadic: true }]
+        returns: String
+        description: >-
+          Returns the longest of the given strings, measured in bytes. On a
+          tie the earlier argument wins.
+        example: { expr: 'longest("apple", "fig", "banana")', result: '"banana"' }
+
+      - name: format
+        params: [{ name: format, type: String }, { name: values, type: Any, variadic: true }]
+        returns: String
+        description: >-
+          Formats the values with Go `fmt.Sprintf` verbs such as `%s`, `%v`
+          and `%.2f`.
+        caution: >-
+          Number literals are floats, so `%d` prints `%!d(float64=3)`. Use
+          `%v`, or `%.0f` for a whole number.
+        example: { expr: 'format("%s has %v items", "cart", 3)', result: '"cart has 3 items"' }
+
+      - name: title
+        params: [{ name: s, type: String }]
+        returns: String
+        description: >-
+          Capitalises the first word and leaves the rest of the string as it
+          is.
+        caution: >-
+          A single-word input gets a trailing space: `title("hello")` returns
+          `"Hello "`.
+        example: { expr: 'title("hello big world")', result: '"Hello big world"' }
+
+      - name: untitle
+        params: [{ name: s, type: String }]
+        returns: String
+        description: Lower-cases the first letter of the first word.
+        caution: >-
+          A single-word input gets a trailing space, and an empty string
+          makes the expression fail.
+        example: { expr: 'untitle("Hello World")', result: '"hello World"' }
+
+      - name: repeat
+        params: [{ name: s, type: String }, { name: count, type: Integer }]
+        returns: String
+        description: >-
+          Returns `s` repeated `count` times. A fractional count is truncated
+          to a whole number.
+        example: { expr: 'repeat("ab", 3)', result: '"ababab"' }
+
+      - name: replace
+        params:
+          - { name: s, type: String }
+          - { name: old, type: String }
+          - { name: new, type: String }
+          - { name: n, type: Integer }
+        returns: String
+        description: >-
+          Replaces the first `n` occurrences of `old` with `new`; an `n` of
+          `-1` replaces all of them. All four arguments are required.
+        example: { expr: 'replace("a-b-c", "-", "+", -1)', result: '"a+b+c"' }
+
+      - name: isUrl
+        params: [{ name: s, type: String }]
+        returns: Boolean
+        description: >-
+          Reports whether the string is a URL. The scheme is optional, so a
+          bare host such as `example.com` passes.
+        example: { expr: 'isUrl("https://example.com")', result: 'true' }
+
+      - name: isEmail
+        params: [{ name: s, type: String }]
+        returns: Boolean
+        description: Reports whether the string is an email address.
+        example: { expr: 'isEmail("jane@example.com")', result: 'true' }
+
+      - name: split
+        params: [{ name: s, type: String }, { name: sep, type: String }]
+        returns: Array
+        description: Splits the string at every occurrence of `sep` and returns the parts.
+        example: { expr: 'split("a,b,c", ",")', result: '["a","b","c"]' }
+
+      - name: join
+        params: [{ name: list, type: Array }, { name: sep, type: String }]
+        returns: String
+        description: >-
+          Joins the items of the list into one string, with `sep` between
+          them. Items are converted to strings; an empty value gives an empty
+          string.
+        example: { expr: 'join(["a", "b", "c"], "-")', result: '"a-b-c"' }
+
+      - name: hasSubstring
+        params:
+          - { name: s, type: String }
+          - { name: substring, type: String }
+          - { name: caseSensitive, type: Boolean }
+        returns: Boolean
+        description: >-
+          Reports whether `substring` occurs in `s`. The third argument is
+          required: `false` ignores case, `true` matches it exactly.
+        example: { expr: 'hasSubstring("Hello World", "world", false)', result: 'true' }
+
+      - name: substring
+        params:
+          - { name: s, type: String }
+          - { name: start, type: Integer }
+          - { name: end, type: Integer }
+        returns: String
+        description: >-
+          Returns the part of `s` from `start` to `end`, both positions
+          included and counted in bytes from 0. An `end` of `-1` runs to the
+          end of the string; a `start` past the end gives an empty string.
+        example: { expr: 'substring("Hello World", 0, 4)', result: '"Hello"' }
+
+      - name: hasPrefix
+        params: [{ name: s, type: String }, { name: prefix, type: String }]
+        returns: Boolean
+        description: Reports whether `s` starts with `prefix`. Case-sensitive.
+        example: { expr: 'hasPrefix("Hello", "He")', result: 'true' }
+
+      - name: hasSuffix
+        params: [{ name: s, type: String }, { name: suffix, type: String }]
+        returns: Boolean
+        description: Reports whether `s` ends with `suffix`. Case-sensitive.
+        example: { expr: 'hasSuffix("Hello", "lo")', result: 'true' }
+
+      - name: shorten
+        params:
+          - { name: s, type: String }
+          - { name: unit, type: String }
+          - { name: count, type: Integer }
+        returns: String
+        description: >-
+          Cuts `s` to its first `count` words, or to its first `count` bytes
+          when `unit` is `"char"`, then drops one trailing punctuation mark
+          and appends `" …"`. A string already short enough is returned
+          unchanged.
+        example: { expr: 'shorten("The quick brown fox", "word", 2)', result: '"The quick …"' }
+
+      - name: camelize
+        params: [{ name: s, type: String }]
+        returns: String
+        description: Joins space-separated words into camelCase.
+        caution: >-
+          The result ends with a trailing space; wrap it in `trim()` where
+          that matters.
+        example: { expr: 'trim(camelize("hello big world"))', result: '"helloBigWorld"' }
+
+      - name: snakify
+        params: [{ name: s, type: String }]
+        returns: String
+        description: Joins space-separated words into lower-case snake_case.
+        example: { expr: 'snakify("Hello big World")', result: '"hello_big_world"' }
+
+      - name: match
+        params: [{ name: s, type: String }, { name: pattern, type: String }]
+        returns: Boolean
+        description: >-
+          Reports whether the regular expression matches anywhere in `s`.
+          The pattern uses Go (RE2) syntax; anchor it with `^` and `$` to
+          match the whole string.
+        example: { expr: 'match("abc123", "[0-9]+")', result: 'true' }
+
+      - name: base64encode
+        params: [{ name: value, type: String }]
+        returns: String
+        description: >-
+          Encodes a string or binary value as standard base64. Any other
+          value gives an empty string.
+        example: { expr: 'base64encode("hello")', result: '"aGVsbG8="' }
+
+  - name: Numeric
+    functions:
+      - name: min
+        params: [{ name: values, type: Float, variadic: true }]
+        returns: Float
+        description: >-
+          Returns the smallest of the numbers. Arguments that are not numbers,
+          numeric strings included, are skipped; with no number at all the
+          result is `0`.
+        example: { expr: 'min(3, 1, 2)', result: '1' }
+
+      - name: max
+        params: [{ name: values, type: Float, variadic: true }]
+        returns: Float
+        description: >-
+          Returns the largest of the numbers. Arguments that are not numbers,
+          numeric strings included, are skipped; with no number at all the
+          result is `0`.
+        example: { expr: 'max(3, 1, 2)', result: '3' }
+
+      - name: round
+        params: [{ name: value, type: Float }, { name: decimals, type: Float }]
+        returns: Float
+        description: Rounds to the given number of decimal places, halves away from zero. Both arguments are required.
+        example: { expr: 'round(3.14159, 2)', result: '3.14' }
+
+      - name: floor
+        params: [{ name: value, type: Float }]
+        returns: Float
+        description: Rounds down to the nearest whole number.
+        example: { expr: 'floor(3.7)', result: '3' }
+
+      - name: ceil
+        params: [{ name: value, type: Float }]
+        returns: Float
+        description: Rounds up to the nearest whole number.
+        example: { expr: 'ceil(3.2)', result: '4' }
+
+      - name: abs
+        params: [{ name: value, type: Float }]
+        returns: Float
+        description: Returns the absolute value.
+        example: { expr: 'abs(-4.5)', result: '4.5' }
+
+      - name: log
+        params: [{ name: value, type: Float }]
+        returns: Float
+        description: Returns the base-10 logarithm.
+        example: { expr: 'log(1000)', result: '3' }
+
+      - name: pow
+        params: [{ name: base, type: Float }, { name: exponent, type: Float }]
+        returns: Float
+        description: Raises `base` to the power of `exponent`.
+        example: { expr: 'pow(2, 10)', result: '1024' }
+
+      - name: sqrt
+        params: [{ name: value, type: Float }]
+        returns: Float
+        description: Returns the square root.
+        example: { expr: 'sqrt(16)', result: '4' }
+
+      - name: sum
+        params: [{ name: values, type: Any, variadic: true }]
+        returns: Float
+        description: >-
+          Adds the arguments. Numeric strings count; anything that cannot be
+          read as a number is skipped.
+        caution: >-
+          A list passed as one argument is skipped too, so `sum([1, 2, 3])`
+          is `0`. Pass the numbers as separate arguments.
+        example: { expr: 'sum(1, 2, "3.5")', result: '6.5' }
+
+      - name: average
+        params: [{ name: values, type: Any, variadic: true }]
+        returns: Float
+        description: >-
+          Returns the mean of the arguments that can be read as numbers,
+          skipping the rest. With no number at all the result is NaN.
+        example: { expr: 'average(1, 2, 3)', result: '2' }
+
+      - name: random
+        params: [{ name: a, type: Float }, { name: b, type: Float, optional: true }]
+        returns: Float
+        description: >-
+          With one argument returns a random number from 0 up to `a`; with
+          two, from `a` up to `b`. The result is fractional; wrap it in
+          `int()` or `floor()` for a whole number. Negative bounds fail.
+        example: { expr: 'random(10)', note: 'a number from 0 up to 10' }
+
+      - name: int
+        params: [{ name: value, type: Any }]
+        returns: Integer
+        description: >-
+          Converts to a whole number, truncating any fraction. Strings are
+          read as base-10, so a leading zero is not octal; a string that is
+          not a number gives `0`.
+        example: { expr: 'int("042")', result: '42' }
+
+      - name: float
+        params: [{ name: value, type: Any }]
+        returns: Float
+        description: >-
+          Converts to a number. A string that is not a number makes the
+          expression fail.
+        example: { expr: 'float("3.5")', result: '3.5' }
+
+  - name: Array
+    functions:
+      - name: push
+        params: [{ name: list, type: Array }, { name: values, type: Any, variadic: true }]
+        returns: Array
+        description: >-
+          Returns a copy of the list with the values appended. The original
+          list is not changed; an empty list value gives just the pushed
+          values.
+        example: { expr: 'push([1, 2], 3)', result: '[1,2,3]' }
+
+      - name: pop
+        params: [{ name: list, type: Array }]
+        returns: Any
+        description: >-
+          Returns the last item without removing it. An empty list gives an
+          empty value.
+        example: { expr: 'pop([1, 2, 3])', result: '3' }
+
+      - name: shift
+        params: [{ name: list, type: Array }]
+        returns: Any
+        description: >-
+          Returns the first item without removing it. An empty list gives an
+          empty value.
+        example: { expr: 'shift([1, 2, 3])', result: '1' }
+
+      - name: count
+        params: [{ name: list, type: Array }, { name: values, type: Any, variadic: true }]
+        returns: Integer
+        description: >-
+          With only a list, returns its length. With values, returns how many
+          of those values occur in the list — each value counts once, however
+          often it appears. On a string, it instead counts every occurrence
+          of each value.
+        caution: >-
+          `count([1, 2, 1], 1)` is `1`, not `2`, while `count("banana", "a")`
+          is `3`.
+        example: { expr: 'count(["a", "b", "c"], "a", "z")', result: '1' }
+
+      - name: has
+        params: [{ name: list, type: Array }, { name: values, type: Any, variadic: true }]
+        returns: Boolean
+        description: >-
+          Reports whether any of the values occurs in the list or string. On
+          a key-value object it checks keys instead.
+        example: { expr: 'has(rec, "b")', scope: '{"rec": {"a": 1, "b": 2}}', result: 'true' }
+
+      - name: hasAll
+        params: [{ name: list, type: Array }, { name: values, type: Any, variadic: true }]
+        returns: Boolean
+        description: Reports whether every one of the values occurs in the list. Works on lists only.
+        example: { expr: 'hasAll([1, 2, 3], 1, 3)', result: 'true' }
+
+      - name: find
+        params: [{ name: list, type: Array }, { name: value, type: Any }]
+        returns: Integer
+        description: >-
+          Returns the position of the first item equal to `value`, counting
+          from 0, or `-1` when there is none. Types must match: `"1"` is not
+          found in `[1, 2]`.
+        example: { expr: 'find(["a", "b", "c"], "b")', result: '1' }
+
+      - name: sort
+        params: [{ name: list, type: Array }, { name: descending, type: Boolean }]
+        returns: Array
+        description: >-
+          Returns a sorted copy of the list, ascending when `descending` is
+          `false`. Both arguments are required.
+        caution: >-
+          Only lists of one comparable type sort — the result of `split()`,
+          or a list field of a record. A list literal such as `[3, 1, 2]`
+          fails with "cannot compare".
+        example: { expr: 'sort(split("b,c,a", ","), false)', result: '["a","b","c"]' }
+
+      - name: splice
+        params:
+          - { name: list, type: Array }
+          - { name: start, type: Float }
+          - { name: end, type: Float }
+        returns: Array
+        description: >-
+          Returns the items from position `start` up to, but not including,
+          `end`, counting from 0. An `end` of `-1` runs to the end of the
+          list. A `start` past the end returns the whole list.
+        example: { expr: 'splice([1, 2, 3, 4], 1, 3)', result: '[2,3]' }
+
+  - name: Date and time
+    intro: >-
+      Functions that take a date accept a DateTime value or a string in a
+      common date format such as RFC 3339 (`2024-03-01T10:00:00Z`) or a
+      plain date (`2024-03-01`).
+    functions:
+      - name: now
+        params: []
+        returns: DateTime
+        description: Returns the current date and time.
+        example: { expr: 'now()', note: 'the current date and time' }
+
+      - name: parseISOTime
+        params: [{ name: s, type: String }]
+        returns: DateTime
+        description: >-
+          Parses an RFC 3339 timestamp. Unlike the other date functions it
+          accepts nothing else — a plain date such as `2024-03-01` fails.
+        example: { expr: 'parseISOTime("2024-03-01T10:00:00Z")', result: '"2024-03-01T10:00:00Z"' }
+
+      - name: parseDuration
+        params: [{ name: s, type: String }]
+        returns: Duration
+        description: >-
+          Parses a duration such as `90m`, `1h30m` or `-2h`. Valid units are
+          `ns`, `us`, `ms`, `s`, `m` and `h`; there is no unit for days.
+        example: { expr: 'parseDuration("1h30m")', result: '"1h30m0s"' }
+
+      - name: earliest
+        params: [{ name: first, type: DateTime }, { name: rest, type: DateTime, variadic: true }]
+        returns: DateTime
+        description: Returns the earliest of the dates.
+        example: { expr: 'earliest("2024-03-01T00:00:00Z", "2024-01-15T00:00:00Z")', result: '"2024-01-15T00:00:00Z"' }
+
+      - name: latest
+        params: [{ name: first, type: DateTime }, { name: rest, type: DateTime, variadic: true }]
+        returns: DateTime
+        description: Returns the latest of the dates.
+        example: { expr: 'latest("2024-03-01T00:00:00Z", "2024-01-15T00:00:00Z")', result: '"2024-03-01T00:00:00Z"' }
+
+      - name: modTime
+        params: [{ name: date, type: DateTime }, { name: duration, type: Duration }]
+        returns: DateTime
+        description: >-
+          Adds a duration to the date. The duration is a Duration value or a
+          string in `parseDuration()` syntax; a negative one moves back.
+        example: { expr: 'modTime("2024-03-01T10:00:00Z", "90m")', result: '"2024-03-01T11:30:00Z"' }
+
+      - name: modDate
+        params: [{ name: date, type: DateTime }, { name: days, type: Integer }]
+        returns: DateTime
+        description: Adds a number of days to the date; a negative number moves back.
+        example: { expr: 'modDate("2024-03-01T10:00:00Z", -1)', result: '"2024-02-29T10:00:00Z"' }
+
+      - name: modWeek
+        params: [{ name: date, type: DateTime }, { name: weeks, type: Integer }]
+        returns: DateTime
+        description: Adds a number of weeks to the date; a negative number moves back.
+        example: { expr: 'modWeek("2024-03-01T10:00:00Z", 2)', result: '"2024-03-15T10:00:00Z"' }
+
+      - name: modMonth
+        params: [{ name: date, type: DateTime }, { name: months, type: Integer }]
+        returns: DateTime
+        description: >-
+          Adds a number of months to the date; a negative number moves back.
+          A day that does not exist in the target month rolls over into the
+          next one.
+        example: { expr: 'modMonth("2024-01-31T10:00:00Z", 1)', result: '"2024-03-02T10:00:00Z"' }
+
+      - name: modYear
+        params: [{ name: date, type: DateTime }, { name: years, type: Integer }]
+        returns: DateTime
+        description: >-
+          Adds a number of years to the date; a negative number moves back.
+          29 February rolls over to 1 March in a year that has no leap day.
+        example: { expr: 'modYear("2024-02-29T10:00:00Z", 1)', result: '"2025-03-01T10:00:00Z"' }
+
+      - name: strftime
+        params: [{ name: date, type: DateTime }, { name: format, type: String }]
+        returns: String
+        description: >-
+          Formats the date with POSIX `strftime` directives such as `%Y`,
+          `%m`, `%d`, `%H` and `%M`.
+        caution: >-
+          `%b` prints milliseconds and `%L` the Unix timestamp in seconds, not
+          their usual POSIX meanings (month name, and none).
+        example: { expr: 'strftime("2024-03-01T10:00:00Z", "%d.%m.%Y %H:%M")', result: '"01.03.2024 10:00"' }
+
+      - name: isLeapYear
+        params: [{ name: date, type: DateTime }]
+        returns: Boolean
+        description: Reports whether the year of the date is a leap year.
+        example: { expr: 'isLeapYear("2024-03-01")', result: 'true' }
+
+      - name: isWeekDay
+        params: [{ name: date, type: DateTime }]
+        returns: Boolean
+        description: >-
+          Reports whether the date falls on Monday to Friday, in the date's
+          own time zone.
+        example: { expr: 'isWeekDay("2024-03-02")', result: 'false' }
+
+      - name: sub
+        params: [{ name: later, type: DateTime }, { name: earlier, type: DateTime }]
+        returns: Integer
+        description: >-
+          Returns the time from `earlier` to `later` in milliseconds.
+        caution: >-
+          The first date must be strictly later than the second; equal dates,
+          or the other order, make the expression fail.
+        example: { expr: 'sub("2024-03-01T10:00:00Z", "2024-03-01T09:00:00Z")', result: '3600000' }
+
+  - name: Generic
+    functions:
+      - name: coalesce
+        params: [{ name: values, type: Any, variadic: true }]
+        returns: Any
+        description: >-
+          Returns the first argument that is not empty-valued (nil). An empty
+          string or `0` is a value and is returned.
+        example: { expr: 'coalesce(nickname, "anonymous")', scope: '{"nickname": null}', result: '"anonymous"' }
+
+      - name: isNil
+        params: [{ name: value, type: Any }]
+        returns: Boolean
+        description: Reports whether the value is nil — unset, not merely empty.
+        example: { expr: 'isNil(nickname)', scope: '{"nickname": null}', result: 'true' }
+
+      - name: isEmpty
+        params: [{ name: value, type: Any }]
+        returns: Boolean
+        description: >-
+          Reports whether the value is nil or its type's zero value: an empty
+          string, `0`, `false`, or a list or object with no items.
+        example: { expr: 'isEmpty("")', result: 'true' }
+
+      - name: length
+        params: [{ name: value, type: Any }]
+        returns: Integer
+        description: >-
+          Returns the number of items in a list or object, or of bytes in a
+          string. Any other value, an empty one included, gives `0`.
+        example: { expr: 'length([1, 2, 3])', result: '3' }
+
+  - name: JSON
+    functions:
+      - name: toJSON
+        params: [{ name: value, type: Any }]
+        returns: String
+        description: Encodes the value as a JSON string.
+        caution: >-
+          A key-value object of typed values encodes each value with its type,
+          as `{"@value": 1, "@type": "Float"}`.
+        example: { expr: 'toJSON(["a", "b"])', result: '"[\"a\",\"b\"]"' }
+
+  - name: Key-value objects
+    intro: >-
+      These work on key-value objects: Vars (typed values), KV (string values)
+      and KVV (lists of strings). Each returns a new object and leaves its
+      input unchanged.
+    functions:
+      - name: set
+        params:
+          - { name: object, type: Vars }
+          - { name: key, type: String }
+          - { name: value, type: Any }
+        returns: Vars
+        description: Returns a copy of the object with `key` set to `value`.
+        example: { expr: 'set(rec, "c", 3)', scope: '{"rec": {"a": 1, "b": 2}}', result: '{"a":1,"b":2,"c":3}' }
+
+      - name: merge
+        params: [{ name: object, type: Vars }, { name: others, type: Vars, variadic: true }]
+        returns: Vars
+        description: >-
+          Returns a copy of the object with the keys of the others added. On
+          a shared key the later object wins. Every argument must be an
+          object value such as a variable — an inline `{…}` literal fails.
+        example: { expr: 'merge(rec, extra)', scope: '{"rec": {"a": 1, "b": 2}, "extra": {"b": 20, "c": 3}}', result: '{"a":1,"b":20,"c":3}' }
+
+      - name: filter
+        params: [{ name: object, type: Vars }, { name: keys, type: String, variadic: true }]
+        returns: Vars
+        description: Returns a copy of the object with only the given keys.
+        example: { expr: 'filter(rec, "a")', scope: '{"rec": {"a": 1, "b": 2}}', result: '{"a":1}' }
+
+      - name: omit
+        params: [{ name: object, type: Vars }, { name: keys, type: String, variadic: true }]
+        returns: Vars
+        description: Returns a copy of the object without the given keys.
+        example: { expr: 'omit(rec, "a")', scope: '{"rec": {"a": 1, "b": 2}}', result: '{"b":2}' }

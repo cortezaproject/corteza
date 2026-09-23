@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sort"
 	"text/template"
 
 	"gopkg.in/yaml.v3"
@@ -109,17 +110,39 @@ func genExprTypes(tpl *template.Template, dd ...*exprTypesDef) (err error) {
 	return nil
 }
 
-// genExprTypeDocs look for expr_types.gen.adoc.tpl and generates expr_types.gen.adoc from it
+// genExprTypeDocs writes the expression types reference page
 func genExprTypeDocs(tpl *template.Template, docsPath string, dd ...*exprTypesDef) (err error) {
-	var (
-		typeGenAdoc = tpl.Lookup("expr_types.gen.adoc.tpl")
+	type structType struct {
+		Name string
+		Def  *exprTypeDef
+	}
 
-		dst string
+	var (
+		valueTypes  []string
+		structTypes []structType
+		structNames = map[string]bool{}
 	)
 
-	dst = path.Join(docsPath, "expr-types.gen.adoc")
-	return plainTemplate(dst, typeGenAdoc, map[string]interface{}{
+	for _, d := range dd {
+		for name, def := range d.Types {
+			if len(def.Struct) == 0 {
+				valueTypes = append(valueTypes, name)
+				continue
+			}
+
+			structTypes = append(structTypes, structType{Name: name, Def: def})
+			structNames[name] = true
+		}
+	}
+
+	sort.Strings(valueTypes)
+	sort.Slice(structTypes, func(i, j int) bool { return structTypes[i].Name < structTypes[j].Name })
+
+	return plainTemplate(path.Join(docsPath, "types.gen.md"), tpl.Lookup("expr_types.gen.md.tpl"), map[string]interface{}{
 		"Definitions": dd,
+		"ValueTypes":  valueTypes,
+		"StructTypes": structTypes,
+		"StructNames": structNames,
 	})
 }
 
