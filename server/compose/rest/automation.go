@@ -7,7 +7,9 @@ import (
 
 	"github.com/crusttech/human/server/compose/rest/request"
 	"github.com/crusttech/human/server/compose/service/event"
+	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/corredor"
+	"github.com/crusttech/human/server/pkg/errors"
 )
 
 type (
@@ -18,7 +20,14 @@ func (Automation) New() *Automation {
 	return &Automation{}
 }
 
+// The catalogue names every script, what fires it and who may run it, and the
+// bundle is the client scripts' own source, so both are for the people this
+// instance knows. A script's own security still decides who may run it.
 func (ctrl *Automation) List(ctx context.Context, r *request.AutomationList) (interface{}, error) {
+	if !auth.GetIdentityFromContext(ctx).Valid() {
+		return nil, errors.Unauthorized("cannot list Corredor scripts")
+	}
+
 	return corredor.GenericListHandler(
 		ctx,
 		corredor.Service(),
@@ -35,6 +44,10 @@ func (ctrl *Automation) List(ctx context.Context, r *request.AutomationList) (in
 }
 
 func (ctrl *Automation) Bundle(ctx context.Context, r *request.AutomationBundle) (interface{}, error) {
+	if !auth.GetIdentityFromContext(ctx).Valid() {
+		return nil, errors.Unauthorized("cannot read the Corredor client script bundle")
+	}
+
 	return corredor.GenericBundleHandler(
 		ctx,
 		corredor.Service(),
@@ -45,5 +58,9 @@ func (ctrl *Automation) Bundle(ctx context.Context, r *request.AutomationBundle)
 }
 
 func (ctrl *Automation) TriggerScript(ctx context.Context, r *request.AutomationTriggerScript) (interface{}, error) {
+	if !auth.GetIdentityFromContext(ctx).Valid() {
+		return nil, errors.Unauthorized("cannot run a Corredor script")
+	}
+
 	return api.OK(), corredor.Service().Exec(ctx, r.Script, corredor.ExtendScriptArgs(event.ComposeOnManual(), r.Args))
 }
