@@ -231,7 +231,7 @@ func (e YamlEncoder) encodeApplication(ctx context.Context, p envoyx.EncodeParam
 		"ownerID", auxOwnerID,
 		"projectID", res.ProjectID,
 		"source", res.Source,
-		"sourceMeta", res.SourceMeta,
+		"sourcemeta", res.SourceMeta,
 		"tenantID", res.TenantID,
 		"unify", res.Unify,
 		"updatedAt", auxUpdatedAt,

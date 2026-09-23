@@ -96,6 +96,9 @@ application: {
 				omitSetter: true
 				omitGetter: true
 				json: { field: "sourceMeta", omitEmpty: true }
+				// An exported document is read back by field name, lowercased;
+				// a camel-cased key would export and never import again.
+				envoy: { yaml: { identKeyEncode: "sourcemeta" } }
 			}
 			owner_id:   {
 				schema.AttributeUserRef,

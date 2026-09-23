@@ -235,24 +235,40 @@ async function onMessage(event) {
 async function resolveDeclared(meta) {
   if (!meta.namespace) return
 
-  namespaceID.value = meta.namespaceID || (await namespaceIDBySlug(meta.namespace))
+  namespaceID.value = await namespaceIDFor(meta)
   if (!namespaceID.value) return
 
   for (const handle of meta.modules || []) {
-    const moduleID = meta.moduleIDs?.[handle] || (await moduleIDByHandle(handle))
-    if (!moduleID) continue
-
-    const module = await $ComposeAPI
-      .moduleRead({
-        namespaceID: namespaceID.value,
-        moduleID,
-      })
-      .catch(() => null)
+    const module = await moduleFor(handle, meta.moduleIDs?.[handle])
     if (!module) continue
 
     moduleIDs.value[handle] = module.moduleID
     moduleFields.value[module.moduleID] = module.fields || []
   }
+}
+
+// The stored ID first, then the slug or handle: a page brought in from another
+// instance carries IDs that mean nothing here, while the names it declared
+// still point at the same things.
+async function namespaceIDFor(meta) {
+  if (meta.namespaceID) {
+    const stored = await $ComposeAPI
+      .namespaceRead({ namespaceID: meta.namespaceID })
+      .catch(() => null)
+    if (stored) return stored.namespaceID
+  }
+  return namespaceIDBySlug(meta.namespace)
+}
+
+async function moduleFor(handle, storedID) {
+  const read = moduleID =>
+    $ComposeAPI.moduleRead({ namespaceID: namespaceID.value, moduleID }).catch(() => null)
+
+  const stored = storedID ? await read(storedID) : null
+  if (stored) return stored
+
+  const moduleID = await moduleIDByHandle(handle)
+  return moduleID ? read(moduleID) : null
 }
 
 async function namespaceIDBySlug(slug) {

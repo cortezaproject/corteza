@@ -167,14 +167,14 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/router/sectionAccess.js": {
-      "h": "a4c5ca3636ba",
+      "h": "19b0dfccb68d",
       "doc": "client/web/unify/src/router/router.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/router/sectionAccess.test.js": {
-      "h": "bc590950786c",
+      "h": "da14e7ebafa1",
       "doc": "client/web/unify/src/router/router.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/admin/components/ApiGateway/CFilterParamsEditor.vue": {
       "h": "3d348418f7d1",
@@ -657,9 +657,9 @@
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/app/views/AppView.vue": {
-      "h": "63d4265a5183",
+      "h": "18d473debc38",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-09-23"
     },
     "client/web/unify/src/sections/chatbot/composables/usePreviewClient.ts": {
       "h": "0566a4e37d26",
