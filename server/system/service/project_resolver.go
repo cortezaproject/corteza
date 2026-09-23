@@ -16,7 +16,7 @@ import (
 // numeric ID) to a projectID within a tenant, authorises the user against it,
 // and returns the capabilities granted by the user's access path.
 //
-// Access follows docs/multi-tenancy-project-access.md:
+// Access follows server/devdocs/multi-tenancy-project-access.md:
 //   - Project membership (explicit ProjectMember record) → capabilities from RolePreset.
 //   - Tenant membership + open visibility → read-only capabilities.
 //   - Neither → Unauthorized (403). All denials are indistinguishable on purpose.
