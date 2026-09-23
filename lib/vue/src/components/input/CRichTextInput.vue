@@ -351,18 +351,11 @@ import { ref, watch, nextTick, computed } from 'vue'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
-import Underline from '@tiptap/extension-underline'
-import TextStyle from '@tiptap/extension-text-style'
-import { Color } from '@tiptap/extension-color'
+import { TextStyle, Color } from '@tiptap/extension-text-style'
 import Highlight from '@tiptap/extension-highlight'
 import TextAlign from '@tiptap/extension-text-align'
-import Link from '@tiptap/extension-link'
-import Table from '@tiptap/extension-table'
-import TableRow from '@tiptap/extension-table-row'
-import TableHeader from '@tiptap/extension-table-header'
-import TableCell from '@tiptap/extension-table-cell'
-import TaskList from '@tiptap/extension-task-list'
-import TaskItem from '@tiptap/extension-task-item'
+import { Table, TableRow, TableHeader, TableCell } from '@tiptap/extension-table'
+import { TaskList, TaskItem } from '@tiptap/extension-list'
 import Emoji, { emojis as emojiData } from '@tiptap/extension-emoji'
 import emojiSuggestion from './CRichTextInput/emoji/suggestion.js'
 import CEmojiPicker from '../CEmojiPicker.vue'
@@ -490,13 +483,12 @@ const tableOps = [
 // Editor
 const editor = useEditor({
   extensions: [
-    StarterKit,
-    Underline,
+    // underline and link ship with the starter kit since tiptap 3
+    StarterKit.configure({ link: { openOnClick: false } }),
     TextStyle,
     Color,
     Highlight.configure({ multicolor: true }),
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
-    Link.configure({ openOnClick: false }),
     Table.configure({ resizable: true }),
     TableRow,
     TableHeader,
