@@ -46,6 +46,8 @@ in Human, and that nothing an app author writes can reach the viewer's token.
   app is offered and admitted on its own `access` grant.
 - `/app/:applicationID` for an application the user may not access, or that is
   not `kind: custom`, bounces to home with `denied` like any refused section.
+- A deleted application opens for nobody: the tile goes from the menu and the
+  route refuses it, so a link kept by someone stops working too.
 - `enabled: false` lands on the disabled screen like every application, except
   for whoever may change the app's page (`canManageSourceOnApplication`): they
   get the app, with a banner saying it is a switched-off preview. The rule is
@@ -55,7 +57,9 @@ in Human, and that nothing an app author writes can reach the viewer's token.
   nothing beyond them: what the page declares is resolved to IDs when it is
   stored (`sourceMeta.namespaceID`, `sourceMeta.moduleIDs`) and read by ID
   afterwards. A page stored before that carries handles only, and the view
-  falls back to looking them up, which does need `namespaces.search`.
+  falls back to looking them up, which does need `namespaces.search`. The same
+  fallback carries an application brought in from another instance, whose
+  stored IDs name nothing here: what it declared by name still does.
 
 ## Sandbox
 

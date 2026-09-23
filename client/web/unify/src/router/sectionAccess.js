@@ -29,7 +29,12 @@ export function sectionAllows(section, applications, application) {
 // A custom application speaking for itself: it exists, it is one this shell
 // can render, and the user holds `access` on it.
 export function applicationAllows(application) {
-  return !!application && application.unify?.kind === 'custom' && !!application.canAccessApplication
+  return (
+    !!application &&
+    !application.deletedAt &&
+    application.unify?.kind === 'custom' &&
+    !!application.canAccessApplication
+  )
 }
 
 export function makeSectionAccessGuard({ useApplications, sectionById, fallback = 'home' }) {

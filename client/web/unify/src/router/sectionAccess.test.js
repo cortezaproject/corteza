@@ -15,6 +15,11 @@ const SECTIONS = {
 const CUSTOM_APPS = {
   mine: { unify: { kind: 'custom' }, canAccessApplication: true },
   theirs: { unify: { kind: 'custom' }, canAccessApplication: false },
+  binned: {
+    unify: { kind: 'custom' },
+    canAccessApplication: true,
+    deletedAt: '2026-09-22T10:00:00Z',
+  },
   section: { unify: { kind: 'section' }, canAccessApplication: true },
 }
 
@@ -89,6 +94,13 @@ describe('section access guard', () => {
     // A registry entry pointing at a section has no source to render.
     const { guard } = guardWith([])
     expect(await guard(toApp('section'))).toEqual({ name: 'home', query: { denied: 'app' } })
+  })
+
+  // Deleting one takes its tile out of the menu; the link has to stop working
+  // too, or it stays open to whoever kept it.
+  it('refuses a deleted application', async () => {
+    const { guard } = guardWith([])
+    expect(await guard(toApp('binned'))).toEqual({ name: 'home', query: { denied: 'app' } })
   })
 
   it('refuses an application the user cannot even read', async () => {
