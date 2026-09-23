@@ -203,6 +203,7 @@ function confirmResolve(alteration) {
   confirm({
     message: t('module.edit.schemaAlterations.confirmResolve'),
     header: t('general.label.resolve'),
+    acceptProps: { label: t('general.label.resolve'), severity: 'primary' },
     onConfirm: () => onResolve(alteration),
   })
 }
@@ -211,6 +212,7 @@ function confirmDismiss(alteration) {
   confirm({
     message: t('module.edit.schemaAlterations.confirmDismiss'),
     header: t('general.label.dismiss'),
+    acceptProps: { label: t('general.label.dismiss') },
     onConfirm: () => onDismiss(alteration),
   })
 }
