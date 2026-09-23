@@ -165,6 +165,24 @@ def deploy(sid, page, prompt):
     return app["applicationID"], ""
 
 
+def written_state(sid, prompt):
+    """What the modules a brief may change look like right now.
+
+    Enough to tell afterwards whether anything was written: how many records
+    there are, and the latest moment any of them was touched."""
+    state = {}
+    for module in prompt.get("writes") or []:
+        found, _ = call_tool(sid, "compose_record_lookup", {
+            "namespace": prompt["namespace"], "module": module, "limit": "500",
+        })
+        records = (found or {}).get("records") or []
+        state[module] = (
+            len(records),
+            max((r.get("updatedAt") or r.get("createdAt") or "") for r in records) if records else "",
+        )
+    return state
+
+
 def renders(app_id, prompt, outdir):
     """Open the deployed app in a browser and read what it drew.
 
@@ -215,12 +233,24 @@ def score(sid, skill, calls, final, prompt, outdir):
     faults = []
     if app_id:
         try:
+            before = written_state(sid, prompt)
             ok, faults = renders(app_id, prompt, outdir)
             checks["renders"] = ok
+            # A brief asking for a page that saves is not answered by a page
+            # that only draws. The probe works the standard controls; a page
+            # that hides its save behind something of its own invention is out
+            # of its reach, and that has to read as unproven, never as passed.
+            if prompt.get("writes"):
+                changed = written_state(sid, prompt) != before
+                checks["saves"] = changed
+                if not changed:
+                    faults.append("nothing was written: the page's own controls never reached a save")
         finally:
             call_tool(sid, "system_application_delete", {"application": app_id})
     else:
         checks["renders"] = False
+        if prompt.get("writes"):
+            checks["saves"] = False
     return page, checks, why, faults
 
 
