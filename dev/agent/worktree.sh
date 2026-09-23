@@ -375,11 +375,15 @@ cmd_up() {
   # setsid forks when the caller is already a group leader, so $! names the
   # wrapper and not the leader. Letting the leader write its own $$ is the only
   # reading that survives that.
+  #
+  # The launching subshell gets its own descriptors: it inherits the caller's
+  # stdout otherwise, and a caller reading this script through a pipe waits on
+  # that copy long after the service is up.
   start_svc() { # start_svc PIDFILE LOGFILE DIR CMD...
     local pidfile="$1" logfile="$2" dir="$3"
     shift 3
     (cd "$dir" && setsid bash -c 'echo $$ >"$1"; shift; exec "$@"' _ "$pidfile" "$@" \
-      >"$logfile" 2>&1 &)
+      >"$logfile" 2>&1 &) >/dev/null 2>&1 </dev/null
   }
 
   if [[ ! -d "$path/node_modules" ]]; then

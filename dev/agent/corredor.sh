@@ -55,7 +55,9 @@ cmd_up() {
   mkdir -p "$RUN_DIR" "$BUNDLE_DIR"
 
   # setsid so the whole tree stops with one signal, and so it outlives the
-  # shell that started it.
+  # shell that started it. The subshell gets its own descriptors: it inherits
+  # the caller's stdout otherwise, and a caller reading this script through a
+  # pipe waits on that copy long after corredor is up.
   (
     cd "$REPO_DIR/corredor" && setsid bash -c 'echo $$ >"$1"; shift; exec "$@"' _ "$PID_FILE" \
       env CORREDOR_ENVIRONMENT=dev \
@@ -69,7 +71,7 @@ cmd_up() {
       CORREDOR_EXEC_CSERVERS_API_BASEURL_TEMPLATE='http://{host}/api/{service}' \
       CORREDOR_EXEC_CTX_FRONTEND_BASEURL="$HUMAN_WEBAPP" \
       pnpm serve >"$LOG_FILE" 2>&1 &
-  )
+  ) >/dev/null 2>&1 </dev/null
 
   for _ in $(seq 1 100); do
     listening "$port" && break

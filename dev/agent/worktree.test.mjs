@@ -12,7 +12,15 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync, copyFileSync, readFileSync } from 'node:fs'
+import {
+  mkdtempSync,
+  mkdirSync,
+  rmSync,
+  writeFileSync,
+  copyFileSync,
+  readFileSync,
+  existsSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -137,4 +145,43 @@ test('down frees a port held outside the recorded process group', async t => {
 
   assert.match(out, /stopped server/)
   assert.ok(await waitFor(() => !portBusy(api), 3000), `port ${api} still bound after down`)
+})
+
+// `up` starts each service in a subshell that forked from this script, and a
+// fork inherits the caller's stdout. A caller reading `up` through a pipe then
+// waits on that copy for as long as the service runs — the command looks hung
+// and is killed by whatever timeout the caller has.
+test('a started service does not hold the caller end of a pipe', async t => {
+  const dir = mkdtempSync(join(tmpdir(), 'wt-svc-'))
+  const pidfile = join(dir, 'svc.pid')
+  const runner = join(dir, 'run.sh')
+  t.after(() => {
+    try {
+      const leader = readFileSync(pidfile, 'utf8').trim()
+      execFileSync('bash', ['-c', `kill -TERM -${leader} 2>/dev/null || true`])
+    } catch {}
+    rmSync(dir, { recursive: true, force: true })
+  })
+
+  // The shipped definition, lifted out of cmd_up rather than restated here.
+  writeFileSync(
+    runner,
+    'set -euo pipefail\n' +
+      `cd ${JSON.stringify(HERE)}\n` +
+      `eval "$(awk '/^  start_svc\\(\\)/{f=1} f{print} f&&/^  \\}$/{exit}' worktree.sh | sed -E 's/^  //')"\n` +
+      `start_svc ${JSON.stringify(pidfile)} ${JSON.stringify(join(dir, 'svc.log'))} ${JSON.stringify(dir)} sleep 120\n` +
+      'echo returning\n',
+  )
+
+  // `cat` is the caller: it reads until every writer has let go. timeout's exit
+  // code says whether one never did.
+  const out = execFileSync(
+    'bash',
+    ['-c', `timeout 6 bash -c 'bash ${JSON.stringify(runner)} | cat'; echo "rc=$?"`],
+    { encoding: 'utf8', timeout: 30000 },
+  )
+
+  assert.match(out, /returning/, 'start_svc never returned')
+  assert.match(out, /rc=0/, 'the pipe stayed open after the service started — rc=124 is timeout')
+  assert.ok(await waitFor(() => existsSync(pidfile)), 'the service never recorded its leader')
 })
