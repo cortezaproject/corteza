@@ -20,6 +20,22 @@ through the `human` bridge. The same file must also run in your own preview,
 where there is no bridge — so every app carries sample data and says which mode
 it is in.
 
+## Whether it wants a custom app at all
+
+Human already shows records without one. A compose page lists them, filters and
+sorts them, opens one to read or edit, and does it under the same permissions
+with nothing to maintain — so a request that amounts to "somewhere to see and
+enter these" is a compose page, and building a custom app for it is work
+nobody needed.
+
+A custom app earns its place when the answer is a picture of the data rather
+than the data: a layout compose blocks do not have, figures worked out across
+records, a comparison side by side, something drawn, or a way of moving through
+it that a list cannot express. Asked for a dashboard, a report view, an
+overview, or anything described by what it should look like, that is this.
+
+Unsure, say which you think it is and why, in one line, and build that.
+
 ## Before writing
 
 0. Find out whether the data is there at all: `compose_namespace_lookup`, then
@@ -28,11 +44,19 @@ it is in.
    are missing, they come first — writing the page first means inventing field
    names, and every one of them is wrong the moment the real module appears.
 
-   Say what you propose to create, in one short message — the namespace, the
-   modules, and each module's fields with the kind each one holds — and create
-   it once the person agrees. A namespace is a lasting change to their
-   instance, and a module handle cannot be renamed later without breaking
-   every app that declared it. Then:
+   Say what the model is either way, in one short message: the modules, and
+   each module's fields with the kind each one holds. Whether to build it or
+   to wait turns on what it would cost to be wrong.
+   - A new namespace, or several modules pointing at each other, waits for the
+     person to agree. A namespace is where their data lives from then on, and
+     a module handle cannot be renamed later without breaking every app that
+     declared it — a guess at that scale is expensive to undo.
+   - One more module in a namespace they already have, for the thing they just
+     asked for, is built. Say what was made and what each field holds; a
+     single module nobody wanted is deleted in a moment, and the round trip
+     costs more than it saves.
+
+   Then:
    - Name fields the way the business says them, not the way a table would:
      `last_contacted`, not `dt2`.
    - Use the kind that fits, because the bridge and the page both read it: a
