@@ -31,8 +31,14 @@ function applyTheme(ctx?: McpUiHostContext) {
 //
 // Only the PrimeVue components lib/vue's reused components expect to find
 // registered are registered: registering them all quadruples every view.
-export async function mount(root: Component, name: string, version = '0.1.0') {
-  const bridge = new McpApp({ name, version })
+// `components` adds what a view's reused lib/vue components expect registered
+// beyond that, so only the view that needs them pays for them.
+export async function mount(
+  root: Component,
+  name: string,
+  components: Record<string, Component> = {},
+) {
+  const bridge = new McpApp({ name, version: '0.1.0' })
 
   const app = createApp({
     setup() {
@@ -51,6 +57,7 @@ export async function mount(root: Component, name: string, version = '0.1.0') {
     },
   })
   app.component('DataTable', DataTable).component('Column', Column).component('Menu', Menu)
+  for (const [n, c] of Object.entries(components)) app.component(n, c)
 
   const i18n = createI18n({ legacy: false, locale: 'en', fallbackLocale: 'en', messages })
   app.use(i18n)

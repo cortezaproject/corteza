@@ -13,3 +13,16 @@ recordReport:
   group: Group
   table: Table
   waiting: Waiting for the report result…
+recordForm:
+  edit: Proposed changes to an existing record
+  missing: 'Fill in the required fields first: {fields}'
+  moreChoices: Only the first choices are listed; ask in the chat for another one
+  new: New record
+  notSaved: Nothing is saved until you save it here.
+  open: Open in Human
+  readOnly: Change this field in Human
+  save: Save record
+  saveFailed: 'Could not save: {error}'
+  saved: Saved
+  saving: Saving…
+  waiting: Waiting for the draft…

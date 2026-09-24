@@ -19,6 +19,7 @@ import (
 const (
 	uiRecordLookup = "ui://human/compose/record-lookup"
 	uiRecordReport = "ui://human/compose/record-report"
+	uiRecordForm   = "ui://human/compose/record-form"
 )
 
 var (
@@ -27,6 +28,9 @@ var (
 
 	//go:embed mcpui/record_report.gen.html
 	uiRecordReportHTML []byte
+
+	//go:embed mcpui/record_form.gen.html
+	uiRecordFormHTML []byte
 )
 
 func registerUIResources(reg toolRegistrar) {
@@ -41,6 +45,12 @@ func registerUIResources(reg toolRegistrar) {
 		Name:        "Record report",
 		Description: "Charts the groups a compose_record_report call returned.",
 		HTML:        uiRecordReportHTML,
+	})
+	reg.RegisterUIResource(hmcp.UIResource{
+		URI:         uiRecordForm,
+		Name:        "Record form",
+		Description: "Lets the user edit and save the record a compose_record_draft call proposed.",
+		HTML:        uiRecordFormHTML,
 	})
 }
 
@@ -67,6 +77,37 @@ type (
 	reportMetric struct {
 		Key   string `json:"key"`
 		Field string `json:"field,omitempty"`
+	}
+
+	// recordFormView is what the record form needs to edit a draft: every
+	// field with its full options, what each reference field can point at, and
+	// where the record opens when it already exists.
+	recordFormView struct {
+		Module  recordViewModule        `json:"module"`
+		Fields  []formField             `json:"fields"`
+		Choices map[string]fieldChoices `json:"choices,omitempty"`
+		Link    string                  `json:"link,omitempty"`
+	}
+
+	formField struct {
+		Name     string                      `json:"name"`
+		Label    string                      `json:"label,omitempty"`
+		Kind     string                      `json:"kind"`
+		Multi    bool                        `json:"multi,omitempty"`
+		Required bool                        `json:"required,omitempty"`
+		Options  cmpTypes.ModuleFieldOptions `json:"options,omitempty"`
+	}
+
+	// fieldChoices is what a Record or User field offers; More says there are
+	// others the form was not given.
+	fieldChoices struct {
+		Items []fieldChoice `json:"items"`
+		More  bool          `json:"more,omitempty"`
+	}
+
+	fieldChoice struct {
+		ID    string `json:"id"`
+		Label string `json:"label"`
 	}
 
 	recordViewModule struct {
@@ -172,4 +213,24 @@ func reportMetrics(metrics string) []reportMetric {
 		out = append(out, rm)
 	}
 	return out
+}
+
+// recordFormViewOf describes mod's fields for the record form.
+func recordFormViewOf(mod *cmpTypes.Module, choices map[string]fieldChoices) recordFormView {
+	v := recordFormView{
+		Module:  recordViewModule{Name: mod.Name, Handle: mod.Handle},
+		Fields:  make([]formField, 0, len(mod.Fields)),
+		Choices: choices,
+	}
+	for _, f := range mod.Fields {
+		v.Fields = append(v.Fields, formField{
+			Name:     f.Name,
+			Label:    f.Label,
+			Kind:     f.Kind,
+			Multi:    f.Multi,
+			Required: f.Required,
+			Options:  f.Options,
+		})
+	}
+	return v
 }

@@ -445,6 +445,19 @@ Delete a record by ID. Requires a record ID — use compose_record_lookup with a
 | `namespace` | string | Yes | Namespace name, handle, slug, or ID (as string to prevent precision loss) |
 | `recordID` | string | Yes | Record ID (as string to prevent precision loss) |
 
+### `compose_record_draft` {#compose_record_draft}
+
+<Badge type="tip" text="Reads" /> Listed under `/api/mcp/usage`.
+
+Put a proposed record in front of the user as an editable form, without saving anything. Use this instead of compose_record_create or compose_record_update when the user should review or complete the values first — a new entry they will fill in, or a change they want to check. The user saves from the form; the draft itself writes nothing. With 'recordID' it proposes changes to that record: the fields named in 'values' replace the record's own and the rest are shown as they are. 'values' may be partial or omitted.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `module` | string | Yes | Module name, handle, or ID (as string to prevent precision loss) |
+| `namespace` | string | Yes | Namespace name, handle, slug, or ID (as string to prevent precision loss) |
+| `recordID` | string |  | Record ID to propose changes to (as string to prevent precision loss). Omit to draft a new record. |
+| `values` | string |  | JSON object of field name to value: {"title":"Kickoff","attendees":42,"done":true}. A MULTI-VALUE field takes an array, and each element becomes one of the record's values in the order given: {"tags":["red","blue"]}. A field whose value is itself structured takes an object, stored as its JSON — a Geometry point is {"geo":{"coordinates":[46.05,14.51]}} (latitude first). Anything else is refused rather than guessed at. A field you leave out is stored as no value at all, which is a different state from a false or an empty one and does not match a query for it: omitting a Bool rather than sending false means "done = false" finds none of those records, and the same goes for a prefilter or a Metric block filter built on that field. Send every field a filter or chart will group on, including the false ones. |
+
 ### `compose_record_lookup` {#compose_record_lookup}
 
 <Badge type="tip" text="Reads" /> Listed under `/api/mcp/usage`.

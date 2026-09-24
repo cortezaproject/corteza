@@ -105,6 +105,29 @@ func (h *recordHandler) register() {
 	)
 
 	h.reg.RegisterTool(
+		mcp.NewTool("compose_record_draft",
+			mcp.WithDescription(
+				"Put a proposed record in front of the user as an editable form, without saving anything. "+
+					"Use this instead of compose_record_create or compose_record_update when the user should "+
+					"review or complete the values first — a new entry they will fill in, or a change they "+
+					"want to check. The user saves from the form; the draft itself writes nothing. "+
+					"With 'recordID' it proposes changes to that record: the fields named in 'values' replace "+
+					"the record's own and the rest are shown as they are. 'values' may be partial or omitted.",
+			),
+			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
+			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
+			mcp.WithString("recordID", mcp.Description("Record ID to propose changes to (as string to prevent precision loss). Omit to draft a new record.")),
+			mcp.WithString("values", mcp.Description(recordValuesDoc)),
+			hmcp.InGroup(hmcp.GroupUsage),
+			hmcp.WithKeywords("form", "review", "fill", "prefill"),
+			hmcp.WithRisk(hmcp.RiskRead),
+			hmcp.WithUI(uiRecordForm),
+		),
+		"Draft record",
+		h.draft,
+	)
+
+	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_create",
 			mcp.WithDescription("Create a new record. If you do not know the field names, call compose_module_lookup first to get them."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
