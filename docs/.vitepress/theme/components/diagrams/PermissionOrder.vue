@@ -145,14 +145,6 @@ const levels = ['Contextual roles', 'Ordinary roles', 'Authenticated', 'Anonymou
   border: 1px solid var(--vp-c-divider);
 }
 
-:global(.dark) .allow {
-  color: #6fd1b1;
-}
-
-:global(.dark) .deny {
-  color: #f08a76;
-}
-
 @media (max-width: 560px) {
   .step {
     grid-template-columns: auto 1fr;
@@ -162,5 +154,15 @@ const levels = ['Contextual roles', 'Ordinary roles', 'Authenticated', 'Anonymou
     grid-column: 2;
     justify-self: start;
   }
+}
+</style>
+
+<style>
+.dark .perm-order .allow {
+  color: #6fd1b1;
+}
+
+.dark .perm-order .deny {
+  color: #f08a76;
 }
 </style>
