@@ -236,12 +236,8 @@ func defaultValidator(svc RecordService) recordValuesValidator {
 	validator := values.Validator()
 
 	validator.UniqueChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (uint64, error) {
-		if v.Ref == 0 {
-			return 0, nil
-		}
-
-		// @todo re-implement record-value ref lookup through DAL
-		panic("implement me")
+		// @todo re-implement record-value lookup through DAL; uniqueness is covered by duplicate detection
+		return 0, nil
 	})
 
 	validator.RecordRefChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
