@@ -256,3 +256,26 @@ func Test_validator_customExpr(t *testing.T) {
 	rve = vldtr.Run(context.Background(), nil, m, r)
 	require.True(t, rve.IsValid())
 }
+
+func Test_validator_emptyValueDoesNotSkipOthers(t *testing.T) {
+	var (
+		vldtr = validator{localeSvc: makeLocaleService()}
+		m     = &types.Module{Fields: types.ModuleFieldSet{
+			{Name: "req", Kind: "String", Required: true},
+			{Name: "mail", Kind: "Email"},
+		}}
+		r = &types.Record{}
+	)
+
+	// empty required value must still be reported
+	r.Values = r.Values.Set(&types.RecordValue{Name: "req", Value: "", Updated: true})
+	require.False(t, vldtr.Run(context.Background(), nil, m, r).IsValid())
+
+	// empty value must not skip validation of the values after it
+	r.Values = types.RecordValueSet{
+		{Name: "req", Value: "x", Updated: true},
+		{Name: "mail", Value: "", Updated: true, Place: 0},
+		{Name: "mail", Value: "not-an-email", Updated: true, Place: 1},
+	}
+	require.False(t, vldtr.Run(context.Background(), nil, m, r).IsValid())
+}

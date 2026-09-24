@@ -188,7 +188,7 @@ fields:
 		if !(f.Expressions.DisableDefaultValidators && len(f.Expressions.Validators) > 0) {
 			if v.Value == "" {
 				// Nothing to do with empty value
-				return nil
+				continue
 			}
 
 			// Per field type validators
@@ -276,7 +276,7 @@ fields:
 		}
 
 		if vldtr.uniqueCheckerFn == nil {
-			return nil
+			break
 		}
 		duplicateRecordID, err := vldtr.uniqueCheckerFn(ctx, s, v, f, m)
 		if err != nil {
