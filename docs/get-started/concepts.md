@@ -3,6 +3,10 @@ title: Core concepts
 description: The terms the rest of the Human docs use, and how they fit together.
 ---
 
+<script setup>
+import DataModel from '../.vitepress/theme/components/diagrams/DataModel.vue'
+</script>
+
 # Core concepts
 
 A short tour of the terms the rest of the docs use. Each one is a thing you can
@@ -33,13 +37,7 @@ Metric, Calendar, Map, Content, Tabs, Comments, Agent Chat and more.
 scatter charts, plus funnel, gauge and radar. You place a chart on a page with a
 Chart block.
 
-```
-Namespace
- ├─ Module ── Fields
- │    └─ Records
- ├─ Page ── Blocks (Record list, Chart, …)
- └─ Chart
-```
+<DataModel />
 
 ## Automation
 

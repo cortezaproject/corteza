@@ -3,20 +3,17 @@ title: How building works
 description: How data, pages, automation, agents and permissions fit together when you build on Human.
 ---
 
+<script setup>
+import LayerStack from '../.vitepress/theme/components/diagrams/LayerStack.vue'
+</script>
+
 # How building works
 
 Everything you build on Human is made from the same few layers. You rarely use
 all of them at once, and you can add each one later. This page explains what
 each layer is for and how they connect.
 
-```
- People and access     roles and permissions, applied to everything below
- ─────────────────────────────────────────────────────────────────────────
- AI                    agents that read and act on your data
- Automation            TAQs that react to changes, run on schedules or on demand
- Interface             pages, blocks and charts people work in
- Data                  namespaces, modules, fields and records
-```
+<LayerStack />
 
 ## Data: start with what you keep track of
 

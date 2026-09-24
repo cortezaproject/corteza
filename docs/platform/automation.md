@@ -3,6 +3,10 @@ title: Automation (TAQ)
 description: What a TAQ is, the triggers that start it, the steps, branches and loops it is built from, and how it runs.
 ---
 
+<script setup>
+import TaqFlow from '../.vitepress/theme/components/diagrams/TaqFlow.vue'
+</script>
+
 # Automation (TAQ)
 
 Automations in Human are **TAQs**, short for **Trigger Action Query**. A TAQ is
@@ -10,10 +14,7 @@ a flow drawn on a canvas: one or more **triggers** start it, **steps** do the
 work, and **branches** and **loops** decide which steps run and how often. You
 build TAQs in the **Automation (TAQ)** application.
 
-```
-Trigger ─► Step ─► Branch ─┬─► Step ─► End
-                           └─► Loop ─► Step
-```
+<TaqFlow />
 
 ## Anatomy of a TAQ
 

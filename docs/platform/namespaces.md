@@ -3,19 +3,17 @@ title: Namespaces and data
 description: Namespaces, modules and fields, records, pages and blocks, charts, and how people use an app built in Human.
 ---
 
+<script setup>
+import DataModel from '../.vitepress/theme/components/diagrams/DataModel.vue'
+</script>
+
 # Namespaces and data
 
 Apps in Human are built in **namespaces**. A namespace holds one app's data
 model, its records and the pages people use to work with them. You find them
 under **Namespaces** in the menu.
 
-```
-Namespace
- ├─ Modules ── Fields
- │    └─ Records
- ├─ Pages ── Layouts ── Blocks
- └─ Charts
-```
+<DataModel layouts />
 
 ## Namespaces
 

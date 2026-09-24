@@ -3,6 +3,10 @@ title: Administration
 description: The Admin Area — people, roles and the permission model, the application registry, LLM providers, connections, email, templates and the action log.
 ---
 
+<script setup>
+import PermissionOrder from '../.vitepress/theme/components/diagrams/PermissionOrder.vue'
+</script>
+
 # Administration
 
 The **Admin Area** is where an instance is configured as a whole: who can sign
@@ -66,13 +70,9 @@ module or _execute_ on a TAQ. Each role can have a rule for each operation:
 | **Inherit** | No rule; the decision is left to other rules and roles. |
 
 A rule can apply to every resource of a kind (every module) or to one resource
-(this module). When Human checks an operation:
+(this module). When Human checks an operation, it decides like this:
 
-1. A member of a bypass role is allowed.
-2. Otherwise Human looks at the user's roles in order: context roles first, then
-   ordinary roles, then the automatic ones. At the first level where any of
-   the user's roles has a matching rule, a **Deny** wins over an **Allow**.
-3. If no rule matches anywhere, the operation is denied.
+<PermissionOrder />
 
 Permissions are edited as a grid of roles against operations, where clicking a
 cell cycles it through allow, deny and inherit. There is one grid per
