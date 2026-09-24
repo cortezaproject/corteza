@@ -408,9 +408,13 @@ test.describe.serial('custom app gotchas', () => {
     await expect(page.locator('iframe[srcdoc]')).toHaveCount(1)
   })
 
+  // Four ways out of the page, each wanting its own load of the app: the
+  // default per-test budget is not enough for that on a busy machine, and the
+  // run before this one timed out on the fourth.
   test('a link or form that leaves the page does nothing, and the app keeps running', async ({
     page,
   }) => {
+    test.setTimeout(120000)
     test.skip(!linksApp, 'the links app was not created')
     for (const id of ['site', 'mail', 'handled', 'submit']) {
       await page.goto(`/app/${linksApp}`)
