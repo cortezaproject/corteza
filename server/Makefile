@@ -1,4 +1,4 @@
-.PHONY: dev build help qa critic vet codegen provision webapp
+.PHONY: dev build help qa critic vet codegen provision webapp docs-reference
 
 include Makefile.inc
 
@@ -168,6 +168,11 @@ cue.fmt: $(CUE)
 	$(CUE) fmt compose/*.cue
 	$(CUE) fmt automation/*.cue
 	$(CUE) fmt federation/*.cue
+
+# Regenerate the docs/reference pages that are held to the code by tests
+docs-reference:
+	HUMAN_UPDATE_DOCS=1 go test ./tests/mcp/ -run TestToolReferenceIsCurrent -count=1
+	HUMAN_UPDATE_DOCS=1 go test ./tests/automation/ -run TestDocsCatalog -count=1
 
 codegen-legacy: $(CODEGEN)
 	@ $(CODEGEN) -v -d $(DOCS_DIR)

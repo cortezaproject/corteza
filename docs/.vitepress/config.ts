@@ -14,6 +14,8 @@ export default defineConfig({
     'reference/environment.gen.md': 'reference/environment.md',
     'reference/permissions/:name.gen.md': 'reference/permissions/:name.md',
     'reference/expressions/:name.gen.md': 'reference/expressions/:name.md',
+    'reference/taq/:name.gen.md': 'reference/taq/:name.md',
+    'reference/mcp-tools.gen.md': 'reference/mcp-tools.md',
   },
 
   head: [
@@ -72,6 +74,9 @@ export default defineConfig({
           { text: 'Expressions', link: '/reference/expressions/' },
           { text: 'Expression functions', link: '/reference/expressions/functions' },
           { text: 'Expression types', link: '/reference/expressions/types' },
+          { text: 'TAQ triggers', link: '/reference/taq/triggers' },
+          { text: 'TAQ steps', link: '/reference/taq/steps' },
+          { text: 'MCP tools', link: '/reference/mcp-tools' },
           { text: 'Environment variables', link: '/reference/environment' },
           {
             text: 'Permissions',
