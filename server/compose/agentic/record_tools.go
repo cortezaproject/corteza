@@ -98,6 +98,7 @@ func (h *recordHandler) register() {
 			hmcp.InGroup(hmcp.GroupUsage),
 			recordKeywords,
 			hmcp.WithRisk(hmcp.RiskRead),
+			hmcp.WithUI(uiRecordReport),
 		),
 		"Aggregate records",
 		h.report,

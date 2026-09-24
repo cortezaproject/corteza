@@ -6,3 +6,10 @@ recordLookup:
   moreAvailable: More records are available
   openInHuman: Open this record in Human
   waiting: Waiting for the lookup result…
+recordReport:
+  chart: Chart
+  count: Number of records
+  empty: (empty)
+  group: Group
+  table: Table
+  waiting: Waiting for the report result…

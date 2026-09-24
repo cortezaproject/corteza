@@ -7,7 +7,7 @@ import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import Menu from 'primevue/menu'
 import messages from 'virtual:human-locale'
-import { type Component, createApp, provide, h } from 'vue'
+import { type Component, createApp, provide, h, ref } from 'vue'
 import { createI18n } from 'vue-i18n'
 import './styles.css'
 
@@ -15,8 +15,12 @@ export const mcpAppKey = Symbol('mcpApp')
 
 type Theme = 'light' | 'dark'
 
+// The host's current theme, for what reads it outside CSS (echarts).
+export const hostTheme = ref<Theme>('light')
+
 function applyTheme(ctx?: McpUiHostContext) {
   const theme: Theme = ctx?.theme === 'dark' ? 'dark' : 'light'
+  hostTheme.value = theme
   applyDocumentTheme(theme)
   return getTheme(theme)
 }

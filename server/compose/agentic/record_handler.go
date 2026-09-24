@@ -309,7 +309,11 @@ func (h *recordHandler) report(ctx context.Context, req mcp.CallToolRequest) (*m
 		}
 	}
 
-	return toolkit.JSONResult(res)
+	result, err := toolkit.JSONResult(res)
+	if mod != nil {
+		result = hmcp.WithViewData(result, reportViewOf(mod, dimension, metrics))
+	}
+	return result, err
 }
 
 // reportError names the fields that do exist when the caller asked for one that
