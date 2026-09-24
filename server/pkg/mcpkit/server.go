@@ -69,6 +69,7 @@ func NewMCPServer(reg *Registry, name, version string) *MCPServer {
 		server.WithToolFilter(m.listFilter()),
 		server.WithToolHandlerMiddleware(m.riskCeiling()),
 		server.WithToolHandlerMiddleware(m.rejectUnknownArguments()),
+		server.WithToolHandlerMiddleware(m.structuredForUI()),
 	)
 
 	for _, t := range reg.tools {

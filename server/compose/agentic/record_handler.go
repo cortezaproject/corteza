@@ -120,6 +120,7 @@ func duplicateWarningNote(dd *cmpTypes.RecordValueErrorSet) string {
 type (
 	toolRegistrar interface {
 		RegisterTool(tool mcp.Tool, title string, handler server.ToolHandlerFunc, opts ...hmcp.RegisterOption)
+		RegisterUIResource(ui hmcp.UIResource)
 	}
 
 	recordHandler struct {

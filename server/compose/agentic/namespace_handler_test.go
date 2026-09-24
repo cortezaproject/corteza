@@ -18,6 +18,8 @@ func (s *stubRegistrar) RegisterTool(tool mcp.Tool, _ string, _ server.ToolHandl
 	s.names = append(s.names, tool.Name)
 }
 
+func (s *stubRegistrar) RegisterUIResource(hmcp.UIResource) {}
+
 func TestNamespaceHandlerRegistersTools(t *testing.T) {
 	reg := &stubRegistrar{}
 	NamespaceHandler(reg, nil)

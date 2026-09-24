@@ -11,6 +11,8 @@ import (
 var recordKeywords = hmcp.WithKeywords("data", "row", "entry", "item")
 
 func (h *recordHandler) register() {
+	registerUIResources(h.reg)
+
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_lookup",
 			mcp.WithDescription(
@@ -51,6 +53,7 @@ func (h *recordHandler) register() {
 			hmcp.InGroup(hmcp.GroupUsage),
 			recordKeywords,
 			hmcp.WithRisk(hmcp.RiskRead),
+			hmcp.WithUI(uiRecordLookup),
 		),
 		"Lookup record",
 		h.lookup,
