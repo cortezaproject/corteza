@@ -70,7 +70,7 @@ could not carry it) and shown as:
     outer <iframe srcdoc> — same origin, carries
       <meta http-equiv="Content-Security-Policy" content="frame-src 'none'">
       and the host script below
-        inner <iframe sandbox="allow-scripts" srcdoc> — the app, prefixed with
+        inner <iframe sandbox="allow-scripts allow-forms" srcdoc> — the app, prefixed with
           <meta CSP: default-src 'none'; script-src 'unsafe-inline' cdnjs;
            style-src 'unsafe-inline'; img-src data:; connect-src 'none';
            form-action 'none'>

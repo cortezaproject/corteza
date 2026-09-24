@@ -147,6 +147,9 @@ test.describe.serial('custom application in the editor', () => {
     const namespaceName = (await namespace.innerText()).trim()
     test.skip(!namespaceName, 'this stack has no namespace to declare')
     await namespace.click()
+    // The list that answered this click is still closing; opening the next one
+    // while it is there hands back an option belonging to the one just used.
+    await expect(page.getByRole('option')).toHaveCount(0)
 
     await page.locator('[data-test-id="custom-modules"]').click()
     const module = page.getByRole('option').first()
@@ -176,7 +179,7 @@ test.describe.serial('custom application in the editor', () => {
       page
         .frameLocator('iframe[srcdoc]')
         .first()
-        .frameLocator('iframe[sandbox="allow-scripts"]')
+        .frameLocator('iframe[sandbox^="allow-scripts"]')
         .first()
         .locator('#hello'),
     ).toHaveText('hello from the stored page')
