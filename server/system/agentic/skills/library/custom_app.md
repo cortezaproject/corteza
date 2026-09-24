@@ -143,7 +143,10 @@ createdAt, updatedAt}`. `values` is an object keyed by field name, multi-value
   and `"12.50"` the MCP tools show you.
 - The snippet's `v: 2` is the contract a page is written against. Keep it as it
   is; a page with `v: 1` gets the older, string-only values.
-- `limit` is capped at 500.
+- One call answers with at most 200 records however large a `limit` asks for,
+  and sets `nextPageCursor` when there are more. A page meaning to show
+  everything follows that cursor until it comes back empty; one that does not
+  shows the first 200 and looks complete, which is worse than saying so.
 - A report groups by one field, named `dimension`, and every row comes back as
   `{dimension_0, count}` — the record count is there without asking for it:
 

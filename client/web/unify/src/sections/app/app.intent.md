@@ -135,7 +135,9 @@ Rules the host enforces, whatever the app asks:
 
 - `module` must be one of `sourceMeta.modules`, in `sourceMeta.namespace`;
   anything else is refused with `module "<x>" is not declared for this app`.
-- `limit` is capped at 500.
+- `limit` is capped at 500 here, but the store answers with at most 200 records
+  a call and sets `nextPageCursor` when there are more, so the cap is not the
+  page size and a page showing everything has to follow the cursor.
 - A record arrives as `{recordID, values: {Field: value | [values]}, ownedBy,
 createdAt, updatedAt}` — `values` is a plain object keyed by field name,
   multi-value fields as arrays, an empty value absent.
