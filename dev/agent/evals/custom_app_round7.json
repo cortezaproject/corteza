@@ -1,0 +1,19 @@
+{
+  "skill": "custom_app",
+  "needs": ["contacts_crm"],
+  "prompts": [
+    {
+      "id": "nothing-to-build-on",
+      "prompt": "We want to start tracking site visits for our field engineers in Human \u2014 which customer, who went, when, what was done, and whether it still needs a follow-up. Build me a page for it.",
+      "modelled": ["visit"],
+      "expect": []
+    },
+    {
+      "id": "half-there",
+      "prompt": "In our Human contacts_crm namespace, I want to start logging the calls we make to contacts \u2014 who was called, when, how it went \u2014 and a page to see them. Build it.",
+      "namespace": "contacts_crm",
+      "modelled": ["call"],
+      "expect": []
+    }
+  ]
+}

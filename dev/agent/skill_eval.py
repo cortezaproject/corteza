@@ -231,7 +231,43 @@ def written_page(calls):
     return ""
 
 
+# The field kinds a proposal has to choose between to be a proposal at all.
+KINDS = re.compile(r"\b(select|record|bool|boolean|datetime|date|number|email|url|user)\b", re.I)
+
+
+def score_model_first(skill, calls, final, prompt):
+    """A brief whose data does not exist yet is answered by a model, not a page.
+
+    Asked for something Human has no module for, a session is told to find that
+    out, say what it would create, and wait — so there is nothing to deploy and
+    nothing to render, and the page checks would all fail on a session that did
+    exactly the right thing."""
+    names = [name for name, _ in calls]
+    looked = next((i for i, n in enumerate(names) if n in
+                   ("compose_namespace_lookup", "compose_module_lookup")), None)
+    made = next((i for i, n in enumerate(names) if n in
+                 ("compose_module_create", "compose_namespace_create")), None)
+    deployed = next((i for i, n in enumerate(names) if n == "system_application_source_set"), None)
+
+    proposed = sum(1 for _ in KINDS.finditer(final)) >= 2 and any(
+        word.lower() in final.lower() for word in prompt.get("modelled", [])
+    )
+
+    return {
+        "read skill first": read_skill_first(calls, skill),
+        "looked for the data": looked is not None,
+        # Creating a namespace on somebody's instance is theirs to agree to,
+        # and there is nobody here to agree.
+        "did not create unasked": made is None,
+        "did not build on nothing": deployed is None or (made is not None and made < deployed),
+        "proposed a model": proposed,
+    }
+
+
 def score(sid, skill, calls, final, prompt, outdir, again=None):
+    if prompt.get("modelled"):
+        return page_of(final), score_model_first(skill, calls, final, prompt), "", [], 0.0
+
     page = page_of(final) or written_page(calls)
     checks = {
         "read skill first": read_skill_first(calls, skill),
@@ -312,7 +348,7 @@ def main():
 
     # Without a value only the instance holds, a rendered page proves nothing:
     # an app drawing its own sample rows looks exactly like one drawing yours.
-    blind = [p["id"] for p in suite["prompts"] if not p.get("expect")]
+    blind = [p["id"] for p in suite["prompts"] if not p.get("expect") and not p.get("modelled")]
     if blind:
         print(f"note: no expected live text for {', '.join(blind)} — rendering is scored blind there\n")
 
@@ -358,7 +394,7 @@ def main():
             failed += not ok
             marks = "  ".join(("✓ " if v else "✗ ") + k for k, v in checks.items())
             print(f"{'PASS' if ok else 'FAIL'}  {p['id']:<26} ${cost or 0:.2f}  {marks}")
-            if not checks["guard accepts"] and why:
+            if not checks.get("guard accepts", True) and why:
                 print(f"      guard: {why[:160]}")
             for f in faults:
                 print(f"      render: {f[:160]}")
