@@ -235,18 +235,27 @@ def written_page(calls):
 KINDS = re.compile(r"\b(select|record|bool|boolean|datetime|date|number|email|url|user)\b", re.I)
 
 
-def score_model_first(skill, calls, final, prompt):
-    """A brief whose data does not exist yet is answered by a model, not a page.
+# A proposal that stops without asking anything leaves the person nothing to
+# answer, which is not the same as waiting for them.
+ASKS = re.compile(r"\?|shall i|should i|want me to|let me know|confirm|go ahead", re.I)
 
-    Asked for something Human has no module for, a session is told to find that
-    out, say what it would create, and wait — so there is nothing to deploy and
-    nothing to render, and the page checks would all fail on a session that did
-    exactly the right thing."""
+
+def score_model_first(skill, calls, final, prompt):
+    """A brief whose model would be expensive to get wrong is answered by a
+    proposal, not a page.
+
+    A whole namespace is where somebody's data lives from then on, so a session
+    says what it would build and waits — there is nothing to deploy and nothing
+    to render, and the page checks would all fail on a session that did exactly
+    the right thing."""
     names = [name for name, _ in calls]
     looked = next((i for i, n in enumerate(names) if n in
                    ("compose_namespace_lookup", "compose_module_lookup")), None)
-    made = next((i for i, n in enumerate(names) if n in
-                 ("compose_module_create", "compose_namespace_create")), None)
+    # What the rule reserves for agreement is a namespace, not any creation:
+    # one more module in a namespace they already have is theirs to build.
+    made = next((i for i, n in enumerate(names) if n == "compose_namespace_create"), None)
+    built = next((i for i, n in enumerate(names) if n in
+                  ("compose_module_create", "compose_namespace_create")), None)
     deployed = next((i for i, n in enumerate(names) if n == "system_application_source_set"), None)
 
     proposed = sum(1 for _ in KINDS.finditer(final)) >= 2 and any(
@@ -256,16 +265,17 @@ def score_model_first(skill, calls, final, prompt):
     return {
         "read skill first": read_skill_first(calls, skill),
         "looked for the data": looked is not None,
-        # Creating a namespace on somebody's instance is theirs to agree to,
-        # and there is nobody here to agree.
-        "did not create unasked": made is None,
-        "did not build on nothing": deployed is None or (made is not None and made < deployed),
+        # A namespace on somebody's instance is theirs to agree to.
+        "did not make a namespace unasked": made is None,
+        "did not build on nothing": deployed is None or (built is not None and built < deployed),
         "proposed a model": proposed,
+        # Stopping silently is not waiting: the person has to be asked something.
+        "asked": bool(ASKS.search(final)),
     }
 
 
 def score(sid, skill, calls, final, prompt, outdir, again=None):
-    if prompt.get("modelled"):
+    if prompt.get("waits"):
         return page_of(final), score_model_first(skill, calls, final, prompt), "", [], 0.0
 
     page = page_of(final) or written_page(calls)
@@ -281,6 +291,14 @@ def score(sid, skill, calls, final, prompt, outdir, again=None):
     # declaration and all, so the second session has something to find and
     # patch. Everywhere else the harness deploys, and the session only writes.
     spent_again = [0.0]
+
+    # A model small enough to be wrong about cheaply is built rather than
+    # proposed, and the page that follows has to read what was built.
+    if prompt.get("modelled"):
+        made = [a for n, a in calls if n == "compose_module_create"]
+        checks["built the model"] = bool(made)
+        checks["seeded it"] = any(n == "compose_record_create" for n, _ in calls)
+
     own = deployed_app(calls) if prompt.get("followup") else ""
     if prompt.get("followup"):
         checks["deployed it"] = bool(own)
@@ -371,7 +389,7 @@ def main():
         for p in prompts:
             run = os.path.join(outdir, model, p["id"])
             os.makedirs(os.path.dirname(run), exist_ok=True)
-            if p.get("writes") or p.get("click"):
+            if p.get("writes") or p.get("click") or p.get("modelled"):
                 reseed(p)
             calls, final, cost = run_session(p["prompt"], model, config, workdir, run + ".jsonl")
             def again(text, _run=run, _model=model):

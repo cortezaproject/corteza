@@ -4,16 +4,18 @@
   "prompts": [
     {
       "id": "nothing-to-build-on",
-      "prompt": "We want to start tracking site visits for our field engineers in Human \u2014 which customer, who went, when, what was done, and whether it still needs a follow-up. Build me a page for it.",
+      "prompt": "We want a separate area in Human for our field service work \u2014 the visits, the engineers who do them, and the equipment they service \u2014 and a dashboard showing visits per engineer this month and what is still waiting on a follow-up.",
       "modelled": ["visit"],
-      "expect": []
+      "expect": [],
+      "waits": true
     },
     {
       "id": "half-there",
-      "prompt": "In our Human contacts_crm namespace, I want to start logging the calls we make to contacts \u2014 who was called, when, how it went \u2014 and a page to see them. Build it.",
+      "prompt": "In our Human contacts_crm namespace I want to start logging the calls we make to contacts, and a dashboard of how the calling is going \u2014 how many per outcome, and who we have not called in a while.",
       "namespace": "contacts_crm",
       "modelled": ["call"],
-      "expect": []
+      "expect": ["Marko Zupan"],
+      "modules": ["contacts", "calls"]
     }
   ]
 }
