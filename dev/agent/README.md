@@ -306,6 +306,15 @@ DOM as it is; use a visibility assertion when visibility is the question.
   first, re-trigger the request, and prove the probe by asserting a call
   **is** seen somewhere in the same run.
 
+- **MCPJam 3.x cannot render an MCP App headless.** It opens on an account
+  sign-in before any server is shown. The ext-apps repo's
+  `examples/basic-host` is the host to drive instead: build it against the
+  published `@modelcontextprotocol/ext-apps` `dist`, run `serve.ts` with `tsx`
+  (it assumes bun), and put a local proxy in front of `/api/mcp` that adds the
+  bearer and CORS, exposing `mcp-session-id`. Its page never reaches
+  `networkidle` (the SSE stream stays open), so wait for `load`; the view sits
+  two iframes down.
+
 ## Conventions for agent-created data
 
 - **Clean up what you created, and only that.** `api.sh` and `mcp.py` record
