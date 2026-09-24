@@ -385,9 +385,9 @@ func (ip *iteratorProvider) resolveReferences(ctx context.Context, ds dal.FullSe
 				continue
 			}
 
-			aux := []string{}
-			for _, v := range value.Values {
-				aux = append(aux, fmt.Sprintf("recordID=%s", v))
+			aux := refIDTerms(value.Values)
+			if len(aux) == 0 {
+				continue
 			}
 
 			var relRecords types.RecordSet
@@ -410,23 +410,28 @@ func (ip *iteratorProvider) resolveReferences(ctx context.Context, ds dal.FullSe
 				resLab = refWrap.labelLvl2
 
 				// Iterate related records and collect lvl 2 identifiers
-				aux := []string{}
+				lvl2IDs := []string{}
 				for _, rec := range relRecords {
 					for _, v := range rec.Values.FilterByName(refWrap.labelLvl1) {
-						aux = append(aux, fmt.Sprintf("recordID=%s", v.Value))
+						lvl2IDs = append(lvl2IDs, v.Value)
 					}
 				}
 
-				qq := fmt.Sprintf("(%s)", strings.Join(aux, " OR "))
-				relRecords, _, err = dalutils.ComposeRecordsList(ctx, ds, refWrap.modLvl2, types.RecordFilter{
-					Query: qq,
-					Paging: filter.Paging{
-						Limit: uint(len(aux)),
-					},
-				})
+				aux := refIDTerms(lvl2IDs)
+				if len(aux) == 0 {
+					relRecords = nil
+				} else {
+					qq := fmt.Sprintf("(%s)", strings.Join(aux, " OR "))
+					relRecords, _, err = dalutils.ComposeRecordsList(ctx, ds, refWrap.modLvl2, types.RecordFilter{
+						Query: qq,
+						Paging: filter.Paging{
+							Limit: uint(len(aux)),
+						},
+					})
 
-				if err != nil {
-					return err
+					if err != nil {
+						return err
+					}
 				}
 			}
 
@@ -458,6 +463,17 @@ func (ip *iteratorProvider) resolveReferences(ctx context.Context, ds dal.FullSe
 		}
 	}
 
+	return
+}
+
+// refIDTerms builds recordID filter terms, skipping empty or non-ID values
+func refIDTerms(vv []string) (out []string) {
+	for _, v := range vv {
+		if id, err := strconv.ParseUint(v, 10, 64); err != nil || id == 0 {
+			continue
+		}
+		out = append(out, fmt.Sprintf("recordID=%s", v))
+	}
 	return
 }
 
