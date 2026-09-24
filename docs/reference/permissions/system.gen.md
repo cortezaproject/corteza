@@ -97,6 +97,7 @@ Every operation is denied unless a role is granted it.
 | `access` | Access application |
 | `update` | Update application |
 | `delete` | Delete application |
+| `source.manage` | Replace the HTML source of a custom application |
 
 ## Apigw Route
 

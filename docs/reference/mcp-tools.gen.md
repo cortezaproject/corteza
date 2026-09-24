@@ -134,7 +134,7 @@ Create a new module in a namespace. A module defines a data structure (like a ta
 | `namespace` | string | Yes | Namespace name, handle, slug, or ID (as string to prevent precision loss) |
 | `config` | string |  | JSON object for module-level configuration. Supports: recordDeDup (duplicate detection), recordRevisions (audit trail), privacy (data sensitivity). Rules live under a "rules" array — a bare rule object is accepted and silently stored as {}. Example: {"recordDeDup":{"rules":[{"name":"unique-email","strict":true,"constraints":[{"attribute":"email","modifier":"ignore-case\|case-sensitive\|fuzzy-match\|sounds-like","multiValue":"one-of\|equal"}]}]},"recordRevisions":{"enabled":true},"privacy":{"usageDisclosure":"text","sensitivityLevelID":"123"}} |
 | `detail` | string |  | How much of the stored module to echo back. "summary" (the default) confirms what was written — handle, name, and each field's name, kind, label, required/multi, select options and value expression. "full" adds every field's ID, timestamps and DAL storage config, which is thousands of tokens and is only useful when you need the field IDs. Issues with a field expression are reported either way. |
-| `fields` | string |  | JSON array of field definitions. Each field: {"name":"fieldName","kind":"String","label":"Field Label","isRequired":false,"isMulti":false,"options":{},"defaultValue":[{"name":"fieldName","value":"default"}],"expressions":{"value":"","sanitizers":[],"validators":[],"formatters":[]}}. Supported kinds: String, Number, Bool, DateTime, Select, Email, Url, File, User, Record, Geometry — these are the whole set, and a kind outside it is not a field type the webapp can render. Kind-specific options: Select→{"options":[{"value":"a","text":"A"}]}, Record→{"moduleID":"123","labelField":"name","queryFields":["name"],"selectType":"default"} (labelField is what the picker and every viewer show; without it they fall back to the module's first field. recordLabelField is only the second-level label for when labelField itself points at a Record field), Number→{"precision":2,"format":"0,0.00","prefix":"","suffix":""} (precision rounds what is STORED; display comes from format, so precision alone drops the decimals it kept), DateTime→{"onlyDate":false,"onlyTime":false}, Bool→{"trueLabel":"Yes","falseLabel":"No"}, Geometry→{"center":[46.05,14.51],"zoom":7}. "defaultValue" fills the field when a record is created without it; the "name" key is optional and is stored empty, because the field already says which field it is for. EXPRESSIONS. Each slot gets a different scope. String literals need DOUBLE quotes — a single-quoted string is a syntax error. "value" (the field value expression) sees the record's own fields by their BARE names (stage != "hired" && stage != "rejected"), plus "new" and "old" as whole records (new.values.stage, new.recordID, old.values.stage; on a create every "old" field is null). There is no "record" and no bare "values" — record.values.stage fails every save with 'unknown parameter record.values'. A value expression OVERWRITES whatever the caller sent for that field, so do not send it. "isRequired" on such a field means the expression must produce a value, not that a caller must supply one. "validators":[{"test":"…","error":"…"}] — test sees "value" (the value being saved, as a string), "oldValue" and "values.&lt;field>". READ THIS ONE TWICE: test names the condition under which the value is REJECTED. test "value >= 0 && value &lt;= 5" REFUSES 3 and stores 7 — the exact opposite of what it reads like, while showing an error message asserting the range. Write the rule you want as its rejection: "value &lt; 0 \|\| value > 5". "sanitizers" and "formatters" are transforms, not tests: each sees only "value" and its RESULT REPLACES the value — trim(value), toUpper(value). A sanitizer runs before validation and is stored; a formatter runs on the way out. The write result reports what cannot work under "issues"; no "issues" key is the clean result. |
+| `fields` | string |  | JSON array of field definitions. Each field: {"name":"fieldName","kind":"String","label":"Field Label","isRequired":false,"isMulti":false,"options":{},"defaultValue":[{"name":"fieldName","value":"default"}],"expressions":{"value":"","sanitizers":[],"validators":[],"formatters":[]}}. Supported kinds: String, Number, Bool, DateTime, Select, Email, Url, File, User, Record, Geometry — these are the whole set, and a kind outside it is not a field type the webapp can render. Kind-specific options: Select→{"options":[{"value":"a","text":"A"}]}, Record→{"moduleID":"123","labelField":"name","queryFields":["name"],"selectType":"default"} (labelField is what the picker and every viewer show; without it they fall back to the module's first field. recordLabelField is only the second-level label for when labelField itself points at a Record field), Number→{"precision":2,"format":"0,0.00","prefix":"","suffix":""} (precision rounds what is STORED; display comes from format, so precision alone drops the decimals it kept), DateTime→{"onlyDate":false,"onlyTime":false}, Bool→{"trueLabel":"Yes","falseLabel":"No"}, Geometry→{"center":[46.05,14.51],"zoom":7}. "defaultValue" fills the field when a record is created without it; the "name" key is optional and is stored empty, because the field already says which field it is for. Reserved field names, refused because the record already carries them as system fields: new, old, id, ID, recordID, tenantID, projectID, namespaceID, moduleID, revision, meta, ownedBy, createdAt, createdBy, createdByAgent, updatedAt, updatedBy, deletedAt, deletedBy; so are the query keywords NULL, TRUE, FALSE, IS, LIKE, NOT, AND, OR, XOR, IN, BETWEEN, DESC, ASC, INTERVAL in any casing, which record filters could never refer to — name an identifier field for what it identifies instead, e.g. IssueID. EXPRESSIONS. Each slot gets a different scope. String literals need DOUBLE quotes — a single-quoted string is a syntax error. "value" (the field value expression) sees the record's own fields by their BARE names (stage != "hired" && stage != "rejected"), plus "new" and "old" as whole records (new.values.stage, new.recordID, old.values.stage; on a create every "old" field is null). There is no "record" and no bare "values" — record.values.stage fails every save with 'unknown parameter record.values'. A value expression OVERWRITES whatever the caller sent for that field, so do not send it. "isRequired" on such a field means the expression must produce a value, not that a caller must supply one. "validators":[{"test":"…","error":"…"}] — test sees "value" (the value being saved, as a string), "oldValue" and "values.&lt;field>". READ THIS ONE TWICE: test names the condition under which the value is REJECTED. test "value >= 0 && value &lt;= 5" REFUSES 3 and stores 7 — the exact opposite of what it reads like, while showing an error message asserting the range. Write the rule you want as its rejection: "value &lt; 0 \|\| value > 5". "sanitizers" and "formatters" are transforms, not tests: each sees only "value" and its RESULT REPLACES the value — trim(value), toUpper(value). A sanitizer runs before validation and is stored; a formatter runs on the way out. The write result reports what cannot work under "issues"; no "issues" key is the clean result. |
 
 ### `compose_module_delete` {#compose_module_delete}
 
@@ -445,6 +445,19 @@ Delete a record by ID. Requires a record ID — use compose_record_lookup with a
 | `namespace` | string | Yes | Namespace name, handle, slug, or ID (as string to prevent precision loss) |
 | `recordID` | string | Yes | Record ID (as string to prevent precision loss) |
 
+### `compose_record_draft` {#compose_record_draft}
+
+<Badge type="tip" text="Reads" /> Listed under `/api/mcp/usage`.
+
+Put a proposed record in front of the user as an editable form, without saving anything. Use this instead of compose_record_create or compose_record_update when the user should review or complete the values first — a new entry they will fill in, or a change they want to check. The user saves from the form; the draft itself writes nothing. With 'recordID' it proposes changes to that record: the fields named in 'values' replace the record's own and the rest are shown as they are. 'values' may be partial or omitted.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `module` | string | Yes | Module name, handle, or ID (as string to prevent precision loss) |
+| `namespace` | string | Yes | Namespace name, handle, slug, or ID (as string to prevent precision loss) |
+| `recordID` | string |  | Record ID to propose changes to (as string to prevent precision loss). Omit to draft a new record. |
+| `values` | string |  | JSON object of field name to value: {"title":"Kickoff","attendees":42,"done":true}. A MULTI-VALUE field takes an array, and each element becomes one of the record's values in the order given: {"tags":["red","blue"]}. A field whose value is itself structured takes an object, stored as its JSON — a Geometry point is {"geo":{"coordinates":[46.05,14.51]}} (latitude first). Anything else is refused rather than guessed at. A field you leave out is stored as no value at all, which is a different state from a false or an empty one and does not match a query for it: omitting a Bool rather than sending false means "done = false" finds none of those records, and the same goes for a prefilter or a Metric block filter built on that field. Send every field a filter or chart will group on, including the false ones. |
+
 ### `compose_record_lookup` {#compose_record_lookup}
 
 <Badge type="tip" text="Reads" /> Listed under `/api/mcp/usage`.
@@ -596,13 +609,13 @@ Change an existing agent. An agent's configuration is five objects — meta, beh
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
 
-Create an application, adding an entry to this instance's app selector. 'name' is the administrative name used in listings; the 'unify' block is what users actually see, and an application with no unify URL has nothing to open. A new application is disabled and unlisted unless you say otherwise: pass enabled true and unify.listed true for it to reach users. It is also placed last in the ordering — this tool sets no weight, use system_application_reorder to position it. Call system_application_lookup on an existing application first if you are unsure what a working unify block looks like on this instance.
+Create an application, adding an entry to this instance's app selector. 'name' is the administrative name used in listings; the 'unify' block is what users actually see, and an application with no unify URL has nothing to open. A new application is disabled and unlisted unless you say otherwise: pass enabled true and unify.listed true for it to reach users. It is also placed last in the ordering — this tool sets no weight, use system_application_reorder to position it. With unify.kind "custom" the application is its own HTML document rather than a link to a section: leave unify.url out and it is filled in with app/&lt;applicationID> once the ID exists, and system_application_source_set is what gives it a body. Call system_application_lookup on an existing application first if you are unsure what a working unify block looks like on this instance.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `name` | string | Yes | Administrative name of the application, shown in admin listings. |
 | `enabled` | boolean |  | Whether the application is active. Defaults to false, which hides it from every user regardless of the unify block. |
-| `unify` | string |  | App selector configuration, as a JSON object. Keys: "name" (label in the selector, falls back to the application name), "listed" (boolean, whether users see it), "url" (where it opens), "config" (free-form configuration string), "icon" and "logo" (URLs), "iconID" and "logoID" (attachment IDs as strings). Example: {"name":"Reports","listed":true,"url":"/compose/ns/reports"} |
+| `unify` | string |  | App selector configuration, as a JSON object. Keys: "name" (label in the selector, falls back to the application name), "listed" (boolean, whether users see it), "url" (where it opens), "config" (free-form configuration string), "icon" and "logo" (URLs), "iconID" and "logoID" (attachment IDs as strings), "kind" ("custom" for an application whose UI is one HTML document, shown by the app view at /app/&lt;applicationID>; with no "url" of your own the server sets it to app/&lt;applicationID>). Example: {"name":"Reports","listed":true,"url":"/compose/ns/reports"} |
 
 ### `system_application_delete` {#system_application_delete}
 
@@ -651,6 +664,32 @@ Set the order applications appear in in the app selector. The applications you l
 | --- | --- | --- | --- |
 | `order` | string | Yes | JSON array of application IDs in the desired order, as strings to prevent precision loss, e.g. ["123","456","789"] |
 
+### `system_application_source_get` {#system_application_source_get}
+
+<Badge type="tip" text="Reads" /> Listed under `/api/mcp/configuring`.
+
+Read a custom application's HTML back, exactly as stored, with the meta the app view reads instead of the document: hash, byte size, and the namespace and modules the app is allowed to query. Neither system_application_lookup nor the listing carries the source — this is the only way to see it. Call it before patching with system_application_source_set, so 'old_string' is copied from what is actually stored rather than from what you believe you wrote. Needs 'access' on the application, the same grant that lets a user open it.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `application` | string | Yes | Exact application name, or an application ID as a string to prevent precision loss. |
+
+### `system_application_source_set` {#system_application_source_set}
+
+<Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
+
+Store the HTML of a custom application — the whole document the app view renders inside its sandbox. The application must already carry unify.kind "custom"; any other application is refused. Send it one of two ways: 'source' replaces the document outright, or 'old_string' with 'new_string' patches the stored one, which is how you edit an app without resending it. A patch is applied only when 'old_string' matches exactly once — zero or several matches are refused with the count, so include enough surrounding text to be unambiguous. 'namespace' and 'modules' declare the data the app may read: the bridge refuses every module not named here. A patch that sends neither keeps the declaration already stored. The document is plain HTML with inline script. JSX, ES modules and a React import are refused, and so are fetch, XMLHttpRequest and WebSocket — the sandbox's CSP blocks all of them, so an app using them fails in front of a user instead of here. Load the custom_app skill with system_skill_lookup before writing one.
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `application` | string | Yes | Exact application name, or an application ID as a string to prevent precision loss. |
+| `modules` | string |  | JSON array of module handles the app may query, as strings, e.g. ["Lead","Deal"]. This is the allowlist the bridge enforces; a module left out is refused at runtime. Omit in patch mode to keep the stored list. |
+| `namespace` | string |  | Handle of the compose namespace the app reads from. Omit in patch mode to keep the stored one. |
+| `new_string` | string |  | Patch mode: what old_string becomes. Pass an empty string to delete the matched text. Required whenever old_string is given. |
+| `old_string` | string |  | Patch mode: the exact text to replace, whitespace included. It must occur exactly once in the stored source — read it with system_application_source_get first. |
+| `source` | string |  | The whole HTML document, replacing whatever is stored. Capped at 256 KB; aim well under that. Cannot be combined with old_string. |
+| `writes` | string |  | JSON array of the declared module handles the app may also create and change records in, e.g. ["Lead"]; every one must be in modules too. Leave it out for a read-only app. Each viewer is asked once, in Human, before the app's first change, and changes run with that viewer's own permissions. Omit in patch mode to keep the stored list. |
+
 ### `system_application_undelete` {#system_application_undelete}
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
@@ -677,14 +716,14 @@ Take a flag off an application, reversing system_application_flag. 'mode' is req
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
 
-Update an application. Omit a field to leave it unchanged. 'unify' is merged key by key: the keys you send are applied, the ones you leave out keep their current value, and sending a key with an empty value clears it — so you can flip listed without resending the URL. This tool never changes the ordering weight; use system_application_reorder for that. To take an application away from users without deleting it, set enabled false — that is reversible and keeps every setting.
+Update an application. Omit a field to leave it unchanged. 'unify' is merged key by key: the keys you send are applied, the ones you leave out keep their current value, and sending a key with an empty value clears it — so you can flip listed without resending the URL. This tool never changes the ordering weight; use system_application_reorder for that. Setting unify.kind to "custom" on an application with no unify.url points the URL at app/&lt;applicationID>, which is where the app view serves the stored HTML. To take an application away from users without deleting it, set enabled false — that is reversible and keeps every setting.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `application` | string | Yes | Exact application name, or an application ID as a string to prevent precision loss. |
 | `enabled` | boolean |  | Whether the application is active. Omit to leave unchanged. |
 | `name` | string |  | New administrative name. Omit to leave unchanged; it cannot be set to an empty string. |
-| `unify` | string |  | App selector configuration to merge in, as a JSON object. Same keys as system_application_create. Only the keys present are touched, so {"listed":false} hides the application from the selector and leaves the URL, icon and logo alone. |
+| `unify` | string |  | App selector configuration to merge in, as a JSON object. Same keys as system_application_create, "kind" included. Only the keys present are touched, so {"listed":false} hides the application from the selector and leaves the URL, icon and logo alone. |
 
 ### `system_auth_client_create` {#system_auth_client_create}
 
