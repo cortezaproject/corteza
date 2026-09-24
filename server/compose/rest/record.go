@@ -592,6 +592,11 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 							qp = append(qp, fmt.Sprintf("recordID='%d'", rid))
 						}
 
+						// No IDs to check; avoid listing the whole module
+						if len(qp) == 0 {
+							return make([]uint64, len(idents)), nil
+						}
+
 						bong, _, err := dalutils.ComposeRecordsList(ctx, dal.Service(), mod, types.RecordFilter{
 							ModuleID:    mod.ID,
 							NamespaceID: mod.NamespaceID,
