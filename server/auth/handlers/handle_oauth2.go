@@ -303,6 +303,16 @@ func (h *AuthHandlers) oauth2authorizeDefaultClientProc(req *request.AuthReq) (e
 
 	if _, has := r.Form["code"]; has {
 		r.Form.Set("grant_type", oauth2def.AuthorizationCode.String())
+
+		// this endpoint adds the default client secret for the caller,
+		// never let it exchange codes issued for a foreign redirect URI
+		if redirectURI := r.Form.Get("redirect_uri"); redirectURI != "" {
+			allowed := oauth2.AllowedRedirectURIs(h.DefaultClient.RedirectURI, h.Opt.GetDefaultRedirectURIs())
+			if err = oauth2.ValidateRedirectURI(allowed, redirectURI); err != nil {
+				h.Log.Warn("invalid oauth2 redirect URI on default client token request", zap.String("sent", redirectURI), zap.Strings("valid", allowed))
+				return h.tokenError(req.Response, err)
+			}
+		}
 	} else if _, has := r.Form["refresh_token"]; has {
 		r.Form.Set("grant_type", oauth2def.Refreshing.String())
 	} else {
