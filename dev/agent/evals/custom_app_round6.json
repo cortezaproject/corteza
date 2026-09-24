@@ -9,10 +9,10 @@
       "modules": ["contacts", "companies"],
       "expect": ["Marko Zupan"],
       "followup": {
-        "prompt": "The app called Contact List in Human — add a column showing when each person was last contacted. Change the app that is already there.",
+        "prompt": "The app called Contact List in Human \u2014 add a column showing how many days it has been since each person was last contacted, as a number. Change the app that is already there.",
         "namespace": "contacts_crm",
         "modules": ["contacts", "companies"],
-        "expect": ["Marko Zupan", "Last contacted"]
+        "expect": ["Marko Zupan", "days"]
       }
     },
     {
@@ -22,7 +22,7 @@
       "modules": ["contacts", "companies"],
       "expect": ["Alpine Systems"],
       "followup": {
-        "prompt": "The Company Book app in Human — the company names are too quiet, make them stand out, and sort the companies by how many contacts they have. Edit the app that exists.",
+        "prompt": "The Company Book app in Human \u2014 the company names are too quiet, make them stand out, and sort the companies by how many contacts they have. Edit the app that exists.",
         "namespace": "contacts_crm",
         "modules": ["contacts", "companies"],
         "expect": ["Alpine Systems"]
