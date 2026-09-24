@@ -191,6 +191,9 @@ importers:
         specifier: workspace:*
         version: link:../../../lib/vue
     devDependencies:
+      js-yaml:
+        specifier: ^4.3.2
+        version: 4.3.2
       vite-plugin-singlefile:
         specifier: ^2.3.0
         version: 2.3.3(rollup@4.63.4)(vite@7.3.6(@types/node@22.19.6)(jiti@1.21.7)(sass@1.99.0)(terser@5.51.2)(tsx@4.21.0))

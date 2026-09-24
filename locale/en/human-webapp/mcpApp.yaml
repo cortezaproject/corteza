@@ -1,0 +1,8 @@
+recordLookup:
+  count: 'No records | One record | {count} records'
+  loadFailed: 'Could not load more records: {error}'
+  loadMore: Load more records
+  loading: Loading more records…
+  moreAvailable: More records are available
+  openInHuman: Open this record in Human
+  waiting: Waiting for the lookup result…

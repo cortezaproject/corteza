@@ -82,6 +82,27 @@ func (r *Registry) RegisterUIResource(ui UIResource) {
 	})
 }
 
+// MetaViewData is the result _meta key carrying what a UI resource renders
+// beyond the result itself — column definitions, links. Hosts pass result
+// _meta to the page and keep it out of the model's context.
+const MetaViewData = "human.dev/view"
+
+// WithViewData attaches v to a tool result for its UI resource. A nil result
+// or a nil v leaves the result as it was.
+func WithViewData(res *mcp.CallToolResult, v any) *mcp.CallToolResult {
+	if res == nil || v == nil {
+		return res
+	}
+	if res.Meta == nil {
+		res.Meta = &mcp.Meta{}
+	}
+	if res.Meta.AdditionalFields == nil {
+		res.Meta.AdditionalFields = map[string]any{}
+	}
+	res.Meta.AdditionalFields[MetaViewData] = v
+	return res
+}
+
 // structuredForUI copies a UI-linked tool's JSON text result into
 // structuredContent, which the host hands to the page and keeps out of the
 // model's context. The text content is left exactly as the handler wrote it.

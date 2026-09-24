@@ -171,12 +171,14 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		for k, v := range recordLinks(ctx, rec) {
 			extra[k] = v
 		}
-		if mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID); err == nil {
-			if refs := refLabels(ctx, mod, cmpTypes.RecordSet{rec}); refs != nil {
-				extra["refs"] = refs
-			}
+		mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID)
+		if err != nil {
+			mod = nil
+		} else if refs := refLabels(ctx, mod, cmpTypes.RecordSet{rec}); refs != nil {
+			extra["refs"] = refs
 		}
-		return toolkit.JSONResultWithAny(rec, extra)
+		res, err := toolkit.JSONResultWithAny(rec, extra)
+		return withRecordView(ctx, res, mod, cmpTypes.RecordSet{rec}), err
 	}
 
 	// A caller holding several IDs — the group keys of a report, say — asks for
@@ -236,7 +238,8 @@ func (h *recordHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*m
 		res["refs"] = refs
 	}
 
-	return toolkit.JSONResult(res)
+	result, err := toolkit.JSONResult(res)
+	return withRecordView(ctx, result, mod, set), err
 }
 
 // report aggregates server-side.
@@ -808,13 +811,15 @@ func (h *recordHandler) lookupByIDs(ctx context.Context, nsID, modID uint64, ids
 		res["note"] = fmt.Sprintf("%d of %d requested records were found; the rest do not exist in this module or are deleted", len(set), len(ids))
 	}
 
-	if mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID); err == nil {
-		if refs := refLabels(ctx, mod, set); refs != nil {
-			res["refs"] = refs
-		}
+	mod, err := cmpService.DefaultModule.FindByID(ctx, nsID, modID)
+	if err != nil {
+		mod = nil
+	} else if refs := refLabels(ctx, mod, set); refs != nil {
+		res["refs"] = refs
 	}
 
-	return toolkit.JSONResult(res)
+	out, err := toolkit.JSONResult(res)
+	return withRecordView(ctx, out, mod, set), err
 }
 
 // sortSpec is one "column DESC" ordering over report rows.

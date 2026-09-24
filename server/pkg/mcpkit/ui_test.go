@@ -26,6 +26,10 @@ func uiTestServer(t *testing.T) *MCPServer {
 		"UI array", result(`[1,2]`))
 	reg.RegisterTool(mcp.NewTool("plain_tool", InGroup(GroupUsage), WithRisk(RiskRead)),
 		"Plain tool", result(`{"records":[1,2]}`))
+	reg.RegisterTool(mcp.NewTool("ui_view", InGroup(GroupUsage), WithRisk(RiskRead), WithUI("ui://test/view")),
+		"UI view data", func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return WithViewData(mcp.NewToolResultText(`{"records":[]}`), map[string]any{"fields": []string{"title"}}), nil
+		})
 
 	reg.RegisterUIResource(UIResource{
 		URI:  "ui://test/view",
@@ -98,4 +102,16 @@ func TestUIToolResultCarriesStructuredContent(t *testing.T) {
 
 	assert.NotContains(t, call("plain_tool"), "structuredContent", "a tool without a UI gets text only")
 	assert.NotContains(t, call("ui_array"), "structuredContent", "structuredContent must be an object")
+}
+
+func TestViewDataTravelsInResultMeta(t *testing.T) {
+	m := uiTestServer(t)
+
+	res := rpc(t, m, "tools/call", map[string]any{"name": "ui_view", "arguments": map[string]any{}})
+
+	assert.Equal(t,
+		map[string]any{MetaViewData: map[string]any{"fields": []any{"title"}}},
+		res["_meta"])
+	assert.Equal(t, `{"records":[]}`, res["content"].([]any)[0].(map[string]any)["text"],
+		"view data never reaches the text the model reads")
 }
