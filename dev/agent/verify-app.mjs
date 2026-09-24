@@ -353,8 +353,11 @@ for (const id of ids) {
       faults.push(`${report.clipped}px of the page is cut off the right edge and cannot be reached`)
     for (const l of report.lost.slice(0, 3))
       faults.push(`text cut off with no way to read it: ${l}`)
+    // Case is the page's business: a heading it chose to capitalise, or that
+    // its own CSS uppercases, says nothing about whether the data is live.
+    const said = report.text.toLowerCase()
     for (const want of expects) {
-      if (!report.text.includes(want))
+      if (!said.includes(want.toLowerCase()))
         faults.push(`expected text not on the page: ${JSON.stringify(want)}`)
     }
     console.log(`  text        ${JSON.stringify(visible.slice(0, 200))}`)
