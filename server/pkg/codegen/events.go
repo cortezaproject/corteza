@@ -281,19 +281,6 @@ func makeEventGroup(pfix string, ee []string) (out []string) {
 	return
 }
 
-func genEventsDocs(tpl *template.Template, docsPath string, dd ...*eventsDef) (err error) {
-	var (
-		tplEventsAdoc = tpl.Lookup("events.gen.adoc.tpl")
-
-		dst string
-	)
-
-	dst = path.Join(docsPath, "resource-events.gen.adoc")
-	return plainTemplate(dst, tplEventsAdoc, map[string]interface{}{
-		"Definitions": dd,
-	})
-}
-
 func collectEventDefImports(basePkg string, dd ...*eventsDef) []string {
 	ii := make([]string, 0, len(dd))
 	for _, d := range dd {
