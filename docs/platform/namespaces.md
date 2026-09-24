@@ -37,6 +37,8 @@ has a **Name** (used in filters and automations), a **Title** (shown in forms
 and lists), a type, and whether it is **Multi** (holds several values) or
 **Required**.
 
+<Screenshot name="module-editor" alt="The module editor, listing the fields of a Deal module" />
+
 | Field type            | Holds                                              |
 | --------------------- | -------------------------------------------------- |
 | **Text**              | Text, on one line, several lines, or as rich text. |
@@ -71,6 +73,8 @@ and every one of those paths checks the same permissions. Deleted records can
 be restored.
 
 ## Pages, layouts and blocks
+
+<Screenshot name="page-builder" alt="The page builder, showing a dashboard of metrics and charts" />
 
 A **page** is one screen in a namespace. Pages form a tree, which becomes the
 navigation in the namespace's sidebar. There are two kinds:
@@ -141,6 +145,10 @@ with records:
 What each person can see and change, down to single fields, is decided by their
 roles. The [compose permissions reference](/reference/permissions/compose) lists
 every operation on namespaces, modules, records, pages and charts.
+
+<Screenshot name="record-list" alt="A list page of deals, as people using the app see it" />
+
+<Screenshot name="record-page" alt="A deal's record page, with a related list of the company's other deals" />
 
 ## Where to go next
 

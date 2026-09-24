@@ -20,6 +20,8 @@ The editor has a **Config** tab and, once the chatbot is saved, a **Sessions**
 tab. Beside it runs a live preview: the real widget, working against the real
 chatbot, so every change can be tried as you make it.
 
+<Screenshot name="chatbot-editor" alt="The chatbot editor, showing a journey step and the live preview" />
+
 **Config** has three panels.
 
 ### General

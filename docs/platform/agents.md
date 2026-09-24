@@ -35,6 +35,8 @@ The editor has three tabs, **Configuration**, **Inspect** and **History**, with
 a live chat beside them so you can test the agent as you change it.
 **Configuration** is split into panels.
 
+<Screenshot name="agent-editor" alt="The agent editor with its configuration panels and the test chat" />
+
 ### General
 
 The agent's **Name**, **Handle**, **Description** (shown to the people who use

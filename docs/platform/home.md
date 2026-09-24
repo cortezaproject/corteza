@@ -18,6 +18,8 @@ Human remembers the widths in that browser.
 | **Assistant**     | A chat with the agents your roles are allowed to see. Conversations are kept, and you can start new ones.          |
 | **Notifications** | Messages addressed to you, split into **Unread** and **All**, with actions to mark them read, delete or mute them. |
 
+<Screenshot name="home" alt="The home screen: the app menu, the Assistant with a sales agent, and notifications" />
+
 Everywhere else in Human the same three things are reachable from the top bar.
 The home screen shows them inline instead.
 

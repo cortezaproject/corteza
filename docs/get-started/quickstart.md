@@ -45,6 +45,8 @@ variables.
 
 ## 3. Look around
 
+<Screenshot name="home" alt="The home screen after signing in" />
+
 After you sign in, the home screen shows three columns: the **Menu** of apps,
 the **Assistant** for chatting with agents, and your **Notifications**. A new
 instance lists these apps:

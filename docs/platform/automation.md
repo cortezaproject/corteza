@@ -22,6 +22,8 @@ A TAQ has a **TAQ Name**, a **Description**, optional **Labels** for grouping,
 and a **Run as** user (see [Who a TAQ runs as](#who-a-taq-runs-as)). The rest is
 its flow.
 
+<Screenshot name="taq-builder" alt="The TAQ builder: a record trigger, a First Match branch and a notification step, with the branch condition open" />
+
 The builder lays the flow out automatically: you never position nodes by hand,
 the shape follows from how the steps connect. Every connection carries a **+**
 to insert a step at that point, and any node can be replaced by another of the

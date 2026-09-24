@@ -60,6 +60,8 @@ group can carry roles, which then apply to its members.
 
 ## The permission model
 
+<Screenshot name="permissions" alt="The permissions grid, with roles as columns and operations as rows" />
+
 A **permission** is one operation on one kind of resource, such as _read_ on a
 module or _execute_ on a TAQ. Each role can have a rule for each operation:
 
