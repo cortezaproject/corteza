@@ -1,13 +1,15 @@
 ---
 name: custom_app
-description: A custom app is one HTML document Human renders in a sandbox with no network and no storage — how to write one that runs both in a preview and inside Human, and how to deploy it.
+description: A custom app is one HTML document Human renders in a sandbox with no network and no storage — how to write one that runs both in a preview and inside Human, how to deploy it, and why the data model comes before the page.
 importance: high
-announce: Asked to build a page, dashboard, report view or small app for someone — even just a preview or an HTML artifact that uses Human data — the skill custom_app decides what that page may contain, and a page written without it cannot be deployed into Human.
+announce: Asked to build a page, dashboard, report view or small app for someone — even just a preview or an HTML artifact that uses Human data — the skill custom_app decides what that page may contain, what to do when the data it needs does not exist yet, and a page written without it cannot be deployed into Human.
 triggers:
   - system_application_create
   - system_application_update
   - system_application_source_set
   - system_application_source_get
+  - compose_module_create
+  - compose_namespace_create
 ---
 
 # Custom apps
@@ -19,6 +21,28 @@ where there is no bridge — so every app carries sample data and says which mod
 it is in.
 
 ## Before writing
+
+0. Find out whether the data is there at all: `compose_namespace_lookup`, then
+   `compose_module_lookup` for the namespace the app is about. A page is
+   written against a module that exists, so if the namespace or the modules
+   are missing, they come first — writing the page first means inventing field
+   names, and every one of them is wrong the moment the real module appears.
+
+   Say what you propose to create, in one short message — the namespace, the
+   modules, and each module's fields with the kind each one holds — and create
+   it once the person agrees. A namespace is a lasting change to their
+   instance, and a module handle cannot be renamed later without breaking
+   every app that declared it. Then:
+   - Name fields the way the business says them, not the way a table would:
+     `last_contacted`, not `dt2`.
+   - Use the kind that fits, because the bridge and the page both read it: a
+     `Select` with its real options rather than free text, a `Record` field to
+     point at another module rather than a copied name, `Bool` for a flag,
+     `DateTime` for a date, `Number` with the precision the figure needs.
+   - Put a handful of real records in (`compose_record_create`) before writing
+     the page. Sample data is built from records you have read, and a module
+     holding nothing leaves you inventing what it looks like — which is the
+     same mistake as inventing the fields, one step later.
 
 1. Read the modules the app uses (`compose_module_lookup`) and ten or so real
    records (`compose_record_lookup`). Use the real field names. Real data is
