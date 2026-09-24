@@ -13,7 +13,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { CInputDateTime } from '../../input'
+import CInputDateTime from '../../input/CInputDateTime.vue'
 
 const props = defineProps({
   field: {
