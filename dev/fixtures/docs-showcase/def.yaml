@@ -1,0 +1,176 @@
+# Docs showcase fixture — the "Sales" namespace the public docs screenshots
+# are taken from (docs/tools/screenshots). Data model + records only; charts
+# and pages live in ui.json and are applied through dev/agent/pagebuild.py.
+#
+# Seeded by docs/tools/screenshots/setup.py, not by a bare seed.sh: the
+# namespace slug is `sales`, not the directory name, and the deal owners
+# (deals.csv owner_email) are users that setup creates first. Field `label`
+# and the field order are applied by setup after the import, which keeps neither.
+
+namespace:
+  sales:
+    name: Sales
+    enabled: true
+
+    modules:
+      company:
+        name: Company
+        fields:
+          name:
+            label: Name
+            required: true
+          industry:
+            label: Industry
+            kind: Select
+            options:
+              options:
+                - value: software
+                  text: Software
+                - value: logistics
+                  text: Logistics
+                - value: manufacturing
+                  text: Manufacturing
+                - value: healthcare
+                  text: Healthcare
+                - value: energy
+                  text: Energy
+                - value: food
+                  text: Food and beverage
+                - value: education
+                  text: Education
+                - value: finance
+                  text: Finance
+                - value: media
+                  text: Media
+          employees:
+            label: Employees
+            kind: Number
+            options:
+              precision: 0
+              format: '0,0'
+          city:
+            label: City
+          website:
+            label: Website
+            kind: Url
+        source:
+          - from: companies.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: name
+                field: name
+              - column: industry
+                field: industry
+              - column: employees
+                field: employees
+              - column: city
+                field: city
+              - column: website
+                field: website
+
+      contact:
+        name: Contact
+        fields:
+          full_name:
+            label: Full name
+            required: true
+          job_title:
+            label: Job title
+          email:
+            label: Email
+            kind: Email
+          phone:
+            label: Phone
+          company:
+            label: Company
+            kind: Record
+            options:
+              module: company
+              labelField: name
+        source:
+          - from: contacts.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: full_name
+                field: full_name
+              - column: job_title
+                field: job_title
+              - column: email
+                field: email
+              - column: phone
+                field: phone
+              - column: company
+                field: company
+
+      deal:
+        name: Deal
+        fields:
+          name:
+            label: Deal name
+            required: true
+          company:
+            label: Company
+            kind: Record
+            options:
+              module: company
+              labelField: name
+          contact:
+            label: Contact
+            kind: Record
+            options:
+              module: contact
+              labelField: full_name
+          stage:
+            label: Stage
+            kind: Select
+            options:
+              options:
+                - value: qualification
+                  text: Qualification
+                - value: proposal
+                  text: Proposal
+                - value: negotiation
+                  text: Negotiation
+                - value: closed_won
+                  text: Closed won
+                - value: closed_lost
+                  text: Closed lost
+          value:
+            label: Value
+            kind: Number
+            options:
+              precision: 0
+              format: '0,0'
+              prefix: '€ '
+          close_date:
+            label: Expected close
+            kind: DateTime
+            options:
+              onlyDate: true
+          owner:
+            label: Deal owner
+            kind: User
+        source:
+          - from: deals.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: name
+                field: name
+              - column: company
+                field: company
+              - column: contact
+                field: contact
+              - column: stage
+                field: stage
+              - column: value
+                field: value
+              - column: close_date
+                field: close_date
+              - column: owner_email
+                skip: true

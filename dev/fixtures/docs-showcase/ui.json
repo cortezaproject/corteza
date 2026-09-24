@@ -1,0 +1,455 @@
+{
+  "charts": [
+    {
+      "handle": "pipeline_by_stage",
+      "name": "Pipeline value by stage",
+      "config": {
+        "colorScheme": "tableau.Tableau10",
+        "reports": [
+          {
+            "module": "deal",
+            "filter": "stage != 'closed_lost'",
+            "dimensions": [
+              {
+                "field": "stage",
+                "modifier": "(no grouping / buckets)",
+                "conditions": {}
+              }
+            ],
+            "metrics": [
+              {
+                "field": "value",
+                "aggregate": "SUM",
+                "type": "bar",
+                "label": "Value (€)",
+                "fixTooltips": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "handle": "deals_by_stage",
+      "name": "Open deals by stage",
+      "config": {
+        "colorScheme": "tableau.Tableau10",
+        "reports": [
+          {
+            "module": "deal",
+            "filter": "stage != 'closed_won' AND stage != 'closed_lost'",
+            "dimensions": [
+              {
+                "field": "stage",
+                "modifier": "(no grouping / buckets)",
+                "conditions": {}
+              }
+            ],
+            "metrics": [
+              {
+                "field": "count",
+                "type": "doughnut",
+                "label": "Deals",
+                "fixTooltips": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "pages": [
+    {
+      "handle": "dashboard",
+      "title": "Dashboard",
+      "visible": true,
+      "weight": 1,
+      "blocks": [
+        {
+          "kind": "Metric",
+          "title": "",
+          "xywh": [
+            0,
+            0,
+            12,
+            20
+          ],
+          "options": {
+            "metrics": [
+              {
+                "label": "Open pipeline",
+                "module": "deal",
+                "metricField": "value",
+                "operation": "sum",
+                "filter": "stage != 'closed_won' AND stage != 'closed_lost'",
+                "prefix": "€ ",
+                "suffix": "",
+                "numberFormat": "0,0"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "Metric",
+          "title": "",
+          "xywh": [
+            12,
+            0,
+            12,
+            20
+          ],
+          "options": {
+            "metrics": [
+              {
+                "label": "Open deals",
+                "module": "deal",
+                "metricField": "count",
+                "operation": "",
+                "filter": "stage != 'closed_won' AND stage != 'closed_lost'",
+                "prefix": "",
+                "suffix": "",
+                "numberFormat": ""
+              }
+            ]
+          }
+        },
+        {
+          "kind": "Metric",
+          "title": "",
+          "xywh": [
+            24,
+            0,
+            12,
+            20
+          ],
+          "options": {
+            "metrics": [
+              {
+                "label": "Won",
+                "module": "deal",
+                "metricField": "value",
+                "operation": "sum",
+                "filter": "stage = 'closed_won'",
+                "prefix": "€ ",
+                "suffix": "",
+                "numberFormat": "0,0"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "Metric",
+          "title": "",
+          "xywh": [
+            36,
+            0,
+            12,
+            20
+          ],
+          "options": {
+            "metrics": [
+              {
+                "label": "Companies",
+                "module": "company",
+                "metricField": "count",
+                "operation": "",
+                "filter": "",
+                "prefix": "",
+                "suffix": "",
+                "numberFormat": ""
+              }
+            ]
+          }
+        },
+        {
+          "kind": "Chart",
+          "title": "Pipeline value by stage",
+          "xywh": [
+            0,
+            20,
+            28,
+            40
+          ],
+          "options": {
+            "chart": "pipeline_by_stage"
+          }
+        },
+        {
+          "kind": "Chart",
+          "title": "Open deals by stage",
+          "xywh": [
+            28,
+            20,
+            20,
+            40
+          ],
+          "options": {
+            "chart": "deals_by_stage"
+          }
+        }
+      ]
+    },
+    {
+      "handle": "deals",
+      "title": "Deals",
+      "visible": true,
+      "weight": 2,
+      "blocks": [
+        {
+          "kind": "RecordList",
+          "title": "Deals",
+          "xywh": [
+            0,
+            0,
+            48,
+            70
+          ],
+          "options": {
+            "module": "deal",
+            "fields": [
+              {
+                "name": "name"
+              },
+              {
+                "name": "company"
+              },
+              {
+                "name": "stage"
+              },
+              {
+                "name": "value"
+              },
+              {
+                "name": "close_date"
+              },
+              {
+                "name": "owner"
+              }
+            ],
+            "presort": "close_date ASC",
+            "perPage": 12,
+            "showTotalCount": true
+          }
+        }
+      ]
+    },
+    {
+      "handle": "companies",
+      "title": "Companies",
+      "visible": true,
+      "weight": 3,
+      "blocks": [
+        {
+          "kind": "RecordList",
+          "title": "Companies",
+          "xywh": [
+            0,
+            0,
+            48,
+            70
+          ],
+          "options": {
+            "module": "company",
+            "fields": [
+              {
+                "name": "name"
+              },
+              {
+                "name": "industry"
+              },
+              {
+                "name": "employees"
+              },
+              {
+                "name": "city"
+              },
+              {
+                "name": "website"
+              }
+            ],
+            "presort": "name ASC",
+            "perPage": 12,
+            "showTotalCount": true
+          }
+        }
+      ]
+    },
+    {
+      "handle": "contacts",
+      "title": "Contacts",
+      "visible": true,
+      "weight": 4,
+      "blocks": [
+        {
+          "kind": "RecordList",
+          "title": "Contacts",
+          "xywh": [
+            0,
+            0,
+            48,
+            70
+          ],
+          "options": {
+            "module": "contact",
+            "fields": [
+              {
+                "name": "full_name"
+              },
+              {
+                "name": "job_title"
+              },
+              {
+                "name": "company"
+              },
+              {
+                "name": "email"
+              },
+              {
+                "name": "phone"
+              }
+            ],
+            "presort": "full_name ASC",
+            "perPage": 12,
+            "showTotalCount": true
+          }
+        }
+      ]
+    },
+    {
+      "handle": "deal_record",
+      "title": "Deal",
+      "module": "deal",
+      "visible": false,
+      "blocks": [
+        {
+          "kind": "Record",
+          "title": "Deal",
+          "xywh": [
+            0,
+            0,
+            28,
+            66
+          ],
+          "options": {
+            "fields": [
+              {
+                "name": "name"
+              },
+              {
+                "name": "company"
+              },
+              {
+                "name": "contact"
+              },
+              {
+                "name": "stage"
+              },
+              {
+                "name": "value"
+              },
+              {
+                "name": "close_date"
+              },
+              {
+                "name": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "RecordList",
+          "title": "Other deals with this company",
+          "xywh": [
+            28,
+            0,
+            20,
+            40
+          ],
+          "options": {
+            "module": "deal",
+            "fields": [
+              {
+                "name": "name"
+              },
+              {
+                "name": "value"
+              }
+            ],
+            "prefilter": "company = ${record.values.company} AND id != ${record.recordID}",
+            "hideSearch": true,
+            "hideAddButton": true,
+            "hideImportButton": true,
+            "hideConfigureFieldsButton": true,
+            "perPage": 10,
+            "hideFiltering": true
+          }
+        }
+      ]
+    },
+    {
+      "handle": "company_record",
+      "title": "Company",
+      "module": "company",
+      "visible": false,
+      "blocks": [
+        {
+          "kind": "Record",
+          "title": "Company",
+          "xywh": [
+            0,
+            0,
+            24,
+            40
+          ],
+          "options": {}
+        },
+        {
+          "kind": "RecordList",
+          "title": "Deals",
+          "xywh": [
+            24,
+            0,
+            24,
+            40
+          ],
+          "options": {
+            "module": "deal",
+            "fields": [
+              {
+                "name": "name"
+              },
+              {
+                "name": "stage"
+              },
+              {
+                "name": "value"
+              }
+            ],
+            "prefilter": "company = ${recordID}",
+            "hideSearch": true,
+            "perPage": 10
+          }
+        }
+      ]
+    },
+    {
+      "handle": "contact_record",
+      "title": "Contact",
+      "module": "contact",
+      "visible": false,
+      "blocks": [
+        {
+          "kind": "Record",
+          "title": "Contact",
+          "xywh": [
+            0,
+            0,
+            48,
+            40
+          ],
+          "options": {}
+        }
+      ]
+    }
+  ]
+}

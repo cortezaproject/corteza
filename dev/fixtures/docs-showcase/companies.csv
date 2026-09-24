@@ -1,0 +1,11 @@
+ID,name,industry,employees,city,website
+co1,Bluefin Analytics,software,120,Lisbon,https://bluefin-analytics.example
+co2,Kestrel Freight,logistics,480,Rotterdam,https://kestrel-freight.example
+co3,Oakhollow Furniture,manufacturing,65,Porto,https://oakhollow.example
+co4,Halden Health Clinics,healthcare,900,Oslo,https://halden-health.example
+co5,Meridale Solar,energy,210,Valencia,https://meridale-solar.example
+co6,Copperleaf Bakeries,food,150,Lyon,https://copperleaf.example
+co7,Tidewater Robotics,manufacturing,340,Hamburg,https://tidewater-robotics.example
+co8,Juniper Learning,education,75,Dublin,https://juniper-learning.example
+co9,Stonebridge Insurance,finance,1200,Zurich,https://stonebridge.example
+co10,Foxglove Studio,media,28,Ljubljana,https://foxglove.example

@@ -1,0 +1,13 @@
+ID,name,company,contact,stage,value,close_date,owner_email
+d1,Analytics platform renewal,co1,ct1,negotiation,48000,2026-10-16,docs@example.com
+d2,Fleet tracking rollout,co2,ct2,proposal,72500,2026-11-06,priya.shah@example.com
+d3,Showroom inventory system,co3,ct3,qualification,9800,2026-12-04,daniel.okafor@example.com
+d4,Patient scheduling suite,co4,ct4,closed_won,126000,2026-09-11,docs@example.com
+d5,Site monitoring dashboards,co5,ct5,proposal,34200,2026-10-30,priya.shah@example.com
+d6,Supplier portal,co6,ct6,negotiation,21500,2026-10-23,daniel.okafor@example.com
+d7,Production line analytics,co7,ct7,qualification,58000,2026-12-11,docs@example.com
+d8,Course enrolment workflows,co8,ct8,closed_won,16400,2026-09-04,priya.shah@example.com
+d9,Claims intake automation,co9,ct9,negotiation,94000,2026-11-13,docs@example.com
+d10,Client review portal,co10,ct10,closed_lost,7200,2026-08-28,daniel.okafor@example.com
+d11,Data warehouse migration,co1,ct11,qualification,39500,2026-12-18,priya.shah@example.com
+d12,Clinic expansion licences,co4,ct12,proposal,27800,2026-11-20,docs@example.com
