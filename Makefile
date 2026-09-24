@@ -1,4 +1,4 @@
-.PHONY: e2e e2e-ui setup setup-agent doctor claude claude-yolo intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen tag ftag
+.PHONY: e2e e2e-ui setup setup-agent doctor claude claude-yolo intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen mcp-apps tag ftag
 
 WEB_APPS := unify
 
@@ -9,6 +9,11 @@ codegen:
 	@(cd $(CURDIR)/server && make codegen codegen-legacy) || (echo "Failed to run server codegen"; exit 1)
 	@echo "---Running lib codegen---"
 	@(cd $(CURDIR)/lib && make codegen) || (echo "Failed to run lib codegen"; exit 1)
+
+# MCP Apps views: one self-contained HTML per view, committed where the server
+# embeds it (server/compose/agentic/mcpui).
+mcp-apps:
+	@(cd $(CURDIR)/client/web/mcp-apps && pnpm build)
 
 dev:
 	@echo "---Installing dependencies---"

@@ -1,0 +1,15 @@
+{
+  "name": "human-webapp-mcp-apps",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^2.0.0",
+    "@planetcrust/human-vue": "workspace:*"
+  },
+  "devDependencies": {
+    "vite-plugin-singlefile": "^2.3.0"
+  }
+}

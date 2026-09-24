@@ -1,0 +1,16 @@
+@layer tailwind-base, primevue, tailwind-utilities;
+
+@layer tailwind-base {
+  @tailwind base;
+}
+
+@layer tailwind-utilities {
+  @tailwind components;
+  @tailwind utilities;
+}
+
+/* The host draws the surface around the view. */
+html,
+body {
+  background: transparent !important;
+}

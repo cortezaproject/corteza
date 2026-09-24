@@ -11,7 +11,7 @@ import (
 
 const uiRecordLookup = "ui://human/compose/record-lookup"
 
-//go:embed mcpui/record_lookup.html
+//go:embed mcpui/record_lookup.gen.html
 var uiRecordLookupHTML []byte
 
 func registerUIResources(reg toolRegistrar) {
