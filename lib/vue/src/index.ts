@@ -62,6 +62,7 @@ export {
   changedAt,
   changedAtField,
   changedAtText,
+  resourceState,
 } from './composables/useChangedAt'
 export { getTheme, setThemes, useTheme } from './composables/useTheme'
 export { useDeferredBusy } from './composables/useDeferredBusy'

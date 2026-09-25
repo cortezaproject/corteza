@@ -5,6 +5,7 @@ import {
   changedAt,
   changedAtField,
   changedAtText,
+  resourceState,
 } from './useChangedAt'
 
 describe('changedAt', () => {
@@ -75,5 +76,21 @@ describe('changedAtField', () => {
 
   it('takes overrides for lists the server cannot sort', () => {
     expect(changedAtField('Last change', { sortable: false }).sortable).toBe(false)
+  })
+})
+
+describe('resourceState', () => {
+  it('names the most final state a row carries', () => {
+    const at = '2026-03-03T10:00:00Z'
+    expect(resourceState({ deletedAt: at, suspendedAt: at, archivedAt: at })).toBe('deleted')
+    expect(resourceState({ suspendedAt: at, archivedAt: at })).toBe('suspended')
+    expect(resourceState({ archivedAt: new Date(at) })).toBe('archived')
+  })
+
+  it('has no state for a live row, null stamps or the zero time', () => {
+    expect(resourceState({ updatedAt: '2026-03-03T10:00:00Z' })).toBeUndefined()
+    expect(resourceState({ deletedAt: null, archivedAt: '' })).toBeUndefined()
+    expect(resourceState({ deletedAt: '0001-01-01T00:00:00Z' })).toBeUndefined()
+    expect(resourceState(undefined)).toBeUndefined()
   })
 })

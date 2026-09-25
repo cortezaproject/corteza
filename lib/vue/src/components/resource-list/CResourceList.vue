@@ -94,6 +94,12 @@
               <i :class="[iconClass, 'pi pi-spin pi-spinner']" />
             </template>
             <template #body="slotProps">
+              <Tag
+                v-if="field.key === CHANGED_AT_KEY && resourceState(slotProps.data)"
+                :value="t(`general.resourceList.state.${resourceState(slotProps.data)}`)"
+                :severity="STATE_SEVERITY[resourceState(slotProps.data)]"
+                class="mr-2"
+              />
               <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
                 {{ slotProps.data[field.key] }}
               </slot>
@@ -193,6 +199,8 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CInputSearch from '../input/CInputSearch.vue'
 import CPager from './CPager.vue'
+import Tag from 'primevue/tag'
+import { CHANGED_AT_KEY, resourceState } from '../../composables/useChangedAt'
 import { useTableBusy } from '../../composables/useTableBusy'
 import { useGrowOnlyColumns } from '../../composables/useGrowOnlyColumns'
 
@@ -364,9 +372,12 @@ const handlePerPageChange = value => {
   emit('page-change', { pageCursor: '', page: 1, limit: value })
 }
 
-const rowClass = () => {
+const STATE_SEVERITY = { deleted: 'warn', suspended: 'danger', archived: 'secondary' }
+
+const rowClass = row => {
   return {
     'cursor-pointer': props.clickable,
+    '[&>td]:text-muted-color': resourceState(row) === 'deleted',
   }
 }
 </script>

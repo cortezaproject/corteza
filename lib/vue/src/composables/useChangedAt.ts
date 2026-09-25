@@ -51,6 +51,16 @@ export function changedAtText(resource: any): string {
   return value ? locFullDateTime(value) : ''
 }
 
+/** A row's lifecycle state, shown as a tag in the column; the most final wins. */
+export type ResourceState = 'deleted' | 'suspended' | 'archived'
+
+export function resourceState(resource: any): ResourceState | undefined {
+  if (stamped(resource?.deletedAt)) return 'deleted'
+  if (stamped(resource?.suspendedAt)) return 'suspended'
+  if (stamped(resource?.archivedAt)) return 'archived'
+  return undefined
+}
+
 interface ChangedAtField {
   key: string
   header: string
