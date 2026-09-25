@@ -60,6 +60,29 @@ func Test_generateSorting(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:     "isnull sorting",
+			sort:     filter.SortExpr{},
+			columns:  []string{"deletedat"},
+			modifier: "isnull",
+			sortables: map[string]string{
+				"deletedat": "deleted_at",
+			},
+			wantOut: goqu.L("CASE WHEN ? IS NULL THEN 0 ELSE 1 END", goqu.I("deleted_at")),
+			wantErr: false,
+		},
+		{
+			name:     "isnull takes one column",
+			sort:     filter.SortExpr{},
+			columns:  []string{"deletedat", "createdat"},
+			modifier: "isnull",
+			sortables: map[string]string{
+				"deletedat": "deleted_at",
+				"createdat": "created_at",
+			},
+			wantOut: nil,
+			wantErr: true,
+		},
+		{
 			name:     "invalid coalesce multiple column sorting",
 			sort:     filter.SortExpr{},
 			columns:  []string{"createdat", "deletedat"},
@@ -87,4 +110,3 @@ func Test_generateSorting(t *testing.T) {
 		})
 	}
 }
-

@@ -590,6 +590,13 @@ func generateSorting(dialect drivers.Dialect, sortables map[string]string, s *fi
 			}
 		}
 
+		if toLower(s.Modifier()) == filter.ISNULL {
+			if len(literalCols) != 1 {
+				return nil, fmt.Errorf("invalid sorting with %s modifier and columns: %s", s.Modifier(), s.Columns())
+			}
+			out = goqu.L("CASE WHEN ? IS NULL THEN 0 ELSE 1 END", literalCols[0])
+		}
+
 		if toLower(s.Modifier()) == COALESCE {
 			if len(literalCols) > 0 {
 				out = goqu.COALESCE(literalCols...)

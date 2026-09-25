@@ -1,6 +1,7 @@
 package rdbms
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/crusttech/human/server/pkg/filter"
@@ -101,4 +102,39 @@ func Test_buildCursorCond(t *testing.T) {
 			req.Equal(tt.esql, sql[15:])
 		})
 	}
+}
+
+func Test_buildCursorCondIsNull(t *testing.T) {
+	var (
+		req = require.New(t)
+		cur = &filter.PagingCursor{}
+	)
+
+	cur.SetModifier("deletedAt", 1, false, filter.ISNULL, "deletedAt")
+	cur.Set("name", "b", false)
+
+	sql, args, err := CursorCondition(cur, nil, map[string]string{"deletedat": "deleted_at", "name": "name"}).ToSQL()
+	req.NoError(err)
+	req.Equal("((((CASE WHEN deleted_at IS NULL THEN 0 ELSE 1 END) IS NOT NULL AND 1=0) OR ((CASE WHEN deleted_at IS NULL THEN 0 ELSE 1 END) > ?)) OR ((((CASE WHEN deleted_at IS NULL THEN 0 ELSE 1 END) IS NULL AND 1=0) OR (CASE WHEN deleted_at IS NULL THEN 0 ELSE 1 END) = ?) AND ((name IS NOT NULL AND 1=0) OR (name > ?))))", sql)
+	req.Equal([]any{1, 1, "b"}, args)
+}
+
+// The expression builder serves resources sorted on a JSON value; it has to
+// honour the same modifiers the raw-SQL builder does.
+func Test_cursorExpressionModifiers(t *testing.T) {
+	var (
+		req = require.New(t)
+		cur = &filter.PagingCursor{}
+	)
+
+	cur.SetModifier("deletedAt", 0, false, filter.ISNULL, "deletedAt")
+	cur.SetModifier("", "2026-01-01", true, filter.COALESCE, "deletedAt", "updatedAt")
+
+	ee, err := CursorExpression(cur, nil, nil)
+	req.NoError(err)
+	sql, args, err := goqu.Dialect("sqlite3").Select().Where(ee).ToSQL()
+	req.NoError(err)
+	req.Contains(sql, `((CASE WHEN "deletedAt" IS NULL THEN 0 ELSE 1 END) > ?)`)
+	req.Contains(sql, `(COALESCE("deletedAt", "updatedAt") < ?)`)
+	req.Equal("[0 0 2026-01-01]", fmt.Sprint(args))
 }

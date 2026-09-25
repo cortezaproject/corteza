@@ -145,6 +145,7 @@ func TestParseSortRefusesAnUnknownModifier(t *testing.T) {
 		{name: "no modifier", in: "createdAt DESC"},
 		{name: "the one known modifier", in: "coalesce(deletedAt, updatedAt, createdAt) DESC"},
 		{name: "modifier casing is not significant", in: "COALESCE(deletedAt, createdAt)"},
+		{name: "isnull ahead of the last-change column", in: "isnull(deletedAt), coalesce(deletedAt, updatedAt, createdAt) DESC"},
 		{name: "a typo is refused, not dropped", in: "coalese(createdAt)", wantErr: true},
 		{name: "an invented modifier is refused", in: "nonsense(createdAt)", wantErr: true},
 		{name: "a bad modifier on a later term still fails", in: "createdAt, nonsense(updatedAt)", wantErr: true},

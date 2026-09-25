@@ -223,6 +223,12 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 				}
 				colName = fmt.Sprintf("COALESCE(%s)", strings.Join(tmp, ", "))
 			}
+
+			if len(kk[i]) == 1 && strings.ToLower(mm[i]) == filter.ISNULL {
+				if v, ok := c.sortableCols[strings.ToLower(kk[i][0])]; ok {
+					colName = fmt.Sprintf("(CASE WHEN %s IS NULL THEN 0 ELSE 1 END)", v)
+				}
+			}
 		}
 
 		km, err := c.keyMapper(colName)
@@ -270,6 +276,8 @@ func CursorExpression(
 	var (
 		cc = cur.Keys()
 		vv = cur.Values()
+		kk = cur.KK()
+		mm = cur.Modifiers()
 
 		value any
 
@@ -321,19 +329,45 @@ func CursorExpression(
 
 	// ((($1 IS NOT NULL AND FALSE) OR ($2 > $3)) OR (((? IS NULL AND FALSE) OR ? = ?) AND (("test_tbl"."id" IS NOT NULL AND FALSE) OR ("test_tbl"."id" > ?))))
 
+	lookup := func(col string) (exp.Expression, error) {
+		if identLookup != nil {
+			return identLookup(col)
+		}
+		return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", "", col)), nil
+	}
+
 	// going from the last key/column to the 1st one
 	for i := len(cc) - 1; i >= 0; i-- {
-		if identLookup != nil {
-			// Get the key context so we know how to format fields and format typecasts
-			ident, err = identLookup(cc[i])
-			if err != nil {
-				return
-			}
-		} else {
-			ident = exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", "", cc[i]))
+		modifier := ""
+		if i < len(mm) && i < len(kk) {
+			modifier = strings.ToLower(mm[i])
 		}
 
-		if castFn == nil {
+		switch {
+		case modifier == filter.COALESCE && len(kk[i]) > 0:
+			parts := make([]interface{}, len(kk[i]))
+			for p, col := range kk[i] {
+				if parts[p], err = lookup(col); err != nil {
+					return
+				}
+			}
+			ident = exp.NewLiteralExpression("COALESCE("+strings.TrimSuffix(strings.Repeat("?, ", len(parts)), ", ")+")", parts...)
+
+		case modifier == filter.ISNULL && len(kk[i]) == 1:
+			var col exp.Expression
+			if col, err = lookup(kk[i][0]); err != nil {
+				return
+			}
+			ident = exp.NewLiteralExpression("(CASE WHEN ? IS NULL THEN 0 ELSE 1 END)", col)
+
+		default:
+			// Get the key context so we know how to format fields and format typecasts
+			if ident, err = lookup(cc[i]); err != nil {
+				return
+			}
+		}
+
+		if castFn == nil || modifier == filter.ISNULL {
 			value = vv[i]
 		} else {
 			value, err = castFn(cc[i], vv[i])

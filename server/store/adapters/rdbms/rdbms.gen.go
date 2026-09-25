@@ -414,6 +414,12 @@ func (s *Store) collectActionlogCursorValues(res *actionlogType.Action, cc ...*f
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -1130,6 +1136,12 @@ func (s *Store) collectAgentCursorValues(res *systemType.Agent, cc ...*filter.So
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -1826,6 +1838,12 @@ func (s *Store) collectAiConversationCursorValues(res *systemType.AiConversation
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -2538,6 +2556,12 @@ func (s *Store) collectApigwFilterCursorValues(res *systemType.ApigwFilter, cc .
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -3256,6 +3280,12 @@ func (s *Store) collectApigwRouteCursorValues(res *systemType.ApigwRoute, cc ...
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -3925,6 +3955,12 @@ func (s *Store) collectApplicationCursorValues(res *systemType.Application, cc .
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -4587,6 +4623,12 @@ func (s *Store) collectAttachmentCursorValues(res *systemType.Attachment, cc ...
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -5318,6 +5360,12 @@ func (s *Store) collectAuthClientCursorValues(res *systemType.AuthClient, cc ...
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -5682,6 +5730,12 @@ func (s *Store) collectAuthConfirmedClientCursorValues(res *systemType.AuthConfi
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -6144,6 +6198,12 @@ func (s *Store) collectAuthOa2tokenCursorValues(res *systemType.AuthOa2token, cc
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -6473,6 +6533,12 @@ func (s *Store) collectAuthSessionCursorValues(res *systemType.AuthSession, cc .
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -7194,6 +7260,12 @@ func (s *Store) collectAutomationNgAutomationCursorValues(res *automationType.Ng
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -7908,6 +7980,12 @@ func (s *Store) collectAutomationSessionCursorValues(res *automationType.Session
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -8581,6 +8659,12 @@ func (s *Store) collectAutomationTriggerCursorValues(res *automationType.Trigger
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -9299,6 +9383,12 @@ func (s *Store) collectAutomationWorkflowCursorValues(res *automationType.Workfl
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -10089,6 +10179,12 @@ func (s *Store) collectChatbotCursorValues(res *systemType.Chatbot, cc ...*filte
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -10863,6 +10959,12 @@ func (s *Store) collectChatbotSessionCursorValues(res *systemType.ChatbotSession
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -11626,6 +11728,12 @@ func (s *Store) collectChatbotSessionHandoffCursorValues(res *systemType.Chatbot
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -12381,6 +12489,12 @@ func (s *Store) collectChatbotSessionStepCursorValues(res *systemType.ChatbotSes
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -13047,6 +13161,12 @@ func (s *Store) collectComposeAttachmentCursorValues(res *composeType.Attachment
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -13758,6 +13878,12 @@ func (s *Store) collectComposeChartCursorValues(res *composeType.Chart, cc ...*f
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -14515,6 +14641,12 @@ func (s *Store) collectComposeModuleCursorValues(res *composeType.Module, cc ...
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -14939,6 +15071,12 @@ func (s *Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleFie
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -15683,6 +15821,12 @@ func (s *Store) collectComposeNamespaceCursorValues(res *composeType.Namespace, 
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -16477,6 +16621,12 @@ func (s *Store) collectComposePageCursorValues(res *composeType.Page, cc ...*fil
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -17241,6 +17391,12 @@ func (s *Store) collectComposePageLayoutCursorValues(res *composeType.PageLayout
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -17909,6 +18065,12 @@ func (s *Store) collectConfiguredConnectionCursorValues(res *systemType.Configur
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -18632,6 +18794,12 @@ func (s *Store) collectConnectionCursorValues(res *systemType.Connection, cc ...
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -19005,6 +19173,12 @@ func (s *Store) collectCredentialCursorValues(res *systemType.Credential, cc ...
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -19722,6 +19896,12 @@ func (s *Store) collectDalConnectionCursorValues(res *systemType.DalConnection, 
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -20361,6 +20541,12 @@ func (s *Store) collectDalSchemaAlterationCursorValues(res *systemType.DalSchema
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -21028,6 +21214,12 @@ func (s *Store) collectDalSensitivityLevelCursorValues(res *systemType.DalSensit
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -21704,6 +21896,12 @@ func (s *Store) collectDataPrivacyRequestCursorValues(res *systemType.DataPrivac
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -22318,6 +22516,12 @@ func (s *Store) collectDataPrivacyRequestCommentCursorValues(res *systemType.Dat
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -23023,6 +23227,12 @@ func (s *Store) collectDmlConnectionCursorValues(res *systemType.DmlConnection, 
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -23746,6 +23956,12 @@ func (s *Store) collectDmlImportRunCursorValues(res *systemType.DmlImportRun, cc
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -24456,6 +24672,12 @@ func (s *Store) collectDmlMappingCursorValues(res *systemType.DmlMapping, cc ...
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -25125,6 +25347,12 @@ func (s *Store) collectFederationExposedModuleCursorValues(res *federationType.E
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -25821,6 +26049,12 @@ func (s *Store) collectFederationModuleMappingCursorValues(res *federationType.M
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -26582,6 +26816,12 @@ func (s *Store) collectFederationNodeCursorValues(res *federationType.Node, cc .
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -27282,6 +27522,12 @@ func (s *Store) collectFederationNodeSyncCursorValues(res *federationType.NodeSy
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -27954,6 +28200,12 @@ func (s *Store) collectFederationSharedModuleCursorValues(res *federationType.Sh
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -28298,6 +28550,12 @@ func (s *Store) collectFlagCursorValues(res *flagType.Flag, cc ...*filter.SortEx
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -29018,6 +29276,12 @@ func (s *Store) collectKnowledgeBaseCursorValues(res *systemType.KnowledgeBase, 
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -29384,6 +29648,12 @@ func (s *Store) collectLabelCursorValues(res *labelsType.Label, cc ...*filter.So
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -30110,6 +30380,12 @@ func (s *Store) collectLlmProviderCursorValues(res *systemType.LlmProvider, cc .
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -30803,6 +31079,12 @@ func (s *Store) collectNotificationCursorValues(res *systemType.Notification, cc
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -31530,6 +31812,12 @@ func (s *Store) collectProjectCursorValues(res *systemType.Project, cc ...*filte
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -32268,6 +32556,12 @@ func (s *Store) collectProjectAiSystemCursorValues(res *systemType.ProjectAiSyst
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -32637,6 +32931,12 @@ func (s *Store) collectProjectAiSystemEntryCursorValues(res *systemType.ProjectA
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -33323,6 +33623,12 @@ func (s *Store) collectProjectBacklogItemCursorValues(res *systemType.ProjectBac
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -34021,6 +34327,12 @@ func (s *Store) collectProjectFeatureCursorValues(res *systemType.ProjectFeature
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -34689,6 +35001,12 @@ func (s *Store) collectProjectFriaScenarioCursorValues(res *systemType.ProjectFr
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -35385,6 +35703,12 @@ func (s *Store) collectProjectIncidentCursorValues(res *systemType.ProjectIncide
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -36089,6 +36413,12 @@ func (s *Store) collectProjectMemberCursorValues(res *systemType.ProjectMember, 
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -36821,6 +37151,12 @@ func (s *Store) collectProjectPrivacyCursorValues(res *systemType.ProjectPrivacy
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -37508,6 +37844,12 @@ func (s *Store) collectProjectReviewCursorValues(res *systemType.ProjectReview, 
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -38203,6 +38545,12 @@ func (s *Store) collectProjectTaskCursorValues(res *systemType.ProjectTask, cc .
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -38911,6 +39259,12 @@ func (s *Store) collectQueueCursorValues(res *systemType.Queue, cc ...*filter.So
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -39468,6 +39822,12 @@ func (s *Store) collectQueueMessageCursorValues(res *systemType.QueueMessage, cc
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -39760,6 +40120,12 @@ func (s *Store) collectRbacRuleCursorValues(res *rbacType.Rule, cc ...*filter.So
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -40439,6 +40805,12 @@ func (s *Store) collectReminderCursorValues(res *systemType.Reminder, cc ...*fil
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -41156,6 +41528,12 @@ func (s *Store) collectReportCursorValues(res *systemType.Report, cc ...*filter.
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -41468,6 +41846,12 @@ func (s *Store) collectResourceActivityCursorValues(res *discoveryType.ResourceA
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -42071,6 +42455,12 @@ func (s *Store) collectResourceTranslationCursorValues(res *systemType.ResourceT
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -42926,6 +43316,12 @@ func (s *Store) collectRoleCursorValues(res *systemType.Role, cc ...*filter.Sort
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -43284,6 +43680,12 @@ func (s *Store) collectRoleMemberCursorValues(res *systemType.RoleMember, cc ...
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -43620,6 +44022,12 @@ func (s *Store) collectSettingValueCursorValues(res *systemType.SettingValue, cc
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -44348,6 +44756,12 @@ func (s *Store) collectTemplateCursorValues(res *systemType.Template, cc ...*fil
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -45094,6 +45508,12 @@ func (s *Store) collectTenantCursorValues(res *systemType.Tenant, cc ...*filter.
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -45868,6 +46288,12 @@ func (s *Store) collectTenantMembershipCursorValues(res *systemType.TenantMember
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
@@ -46687,6 +47113,12 @@ func (s *Store) collectUserCursorValues(res *systemType.User, cc ...*filter.Sort
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}
@@ -47494,6 +47926,12 @@ func (s *Store) collectUserGroupCursorValues(res *systemType.UserGroup, cc ...*f
 						if reflect2.IsNil(val) {
 							val = getVal(col)
 						}
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:

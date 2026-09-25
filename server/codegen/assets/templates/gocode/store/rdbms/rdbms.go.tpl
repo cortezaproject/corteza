@@ -785,6 +785,12 @@ func (s *Store) {{ .fnIdent }}(res *{{ .goType }}, cc ...*filter.SortExpr) *filt
 						}
 					}
 					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
+				case filter.ISNULL:
+					val := 1
+					if reflect2.IsNil(getVal(c.Column)) {
+						val = 0
+					}
+					cur.SetModifier(c.Column, val, c.Descending, c.Modifier(), c.Columns()...)
 				default:
 					cur.Set(c.Column, getVal(c.Column), c.Descending)
 				}

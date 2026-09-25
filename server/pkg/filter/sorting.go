@@ -30,6 +30,10 @@ type (
 
 const (
 	COALESCE = "coalesce"
+
+	// ISNULL sorts on whether a column is empty: 0 when it is, 1 otherwise, so
+	// ascending puts rows without a value first on every database.
+	ISNULL = "isnull"
 )
 
 func NewSorting(sort string) (s Sorting, err error) {
@@ -293,7 +297,7 @@ func (s *SortExpr) SetModifier(modifier string) error {
 	switch strings.ToLower(modifier) {
 	case "":
 		// No modifier at all — the ordinary "createdAt DESC" form.
-	case COALESCE:
+	case COALESCE, ISNULL:
 		s.modifier = modifier
 	default:
 		// Guarding on s.modifier instead would test the value being assigned,
