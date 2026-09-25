@@ -69,9 +69,9 @@ defineProps({
   // type in. `prevent-on-filter` stays off so the control still takes the
   // click and places its caret; filtering only declines to start a drag.
   //
-  // No `a` here on purpose: CAppList's rows ARE anchors, and SortableJS matches
-  // the filter against the item root as well as its descendants, so listing it
-  // would make that list undraggable rather than protecting anything.
+  // No `a` here on purpose: a row may itself be an anchor, and SortableJS
+  // matches the filter against the item root as well as its descendants, so
+  // listing it would make that list undraggable rather than protecting anything.
   filter: {
     type: String,
     default: 'input, textarea, select, button, [contenteditable="true"]',

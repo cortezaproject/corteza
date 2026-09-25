@@ -54,6 +54,10 @@ type (
 		PreferredLanguage string `json:"preferredLanguage"`
 		Theme             string `json:"theme"`
 
+		// The application `/` opens on entry for this user, over the
+		// instance-wide home application
+		HomeApplicationID uint64 `json:"homeApplicationID,string,omitempty"`
+
 		// User's security policy settings
 		SecurityPolicy struct {
 			// settings for multi-factor authentication

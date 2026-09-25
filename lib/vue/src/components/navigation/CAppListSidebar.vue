@@ -40,6 +40,7 @@
             variant="list"
             :no-apps-text="labels.noApps"
             :no-results-text="labels.noResults"
+            :labels="labels"
           />
         </div>
       </div>

@@ -277,6 +277,8 @@ applications:
       config:
         description: Application configuration (JSON)
         label: Configuration
+      home: Home page for everyone
+      homeDescription: Opens this application instead of the application list when someone signs in or selects Home, unless they picked their own home page. Only one application can be the home page; turning it on here turns it off on the one that had it.
       kind:
         custom: Custom app (its own HTML page)
         description: A custom app shows its own HTML page inside Human, in a sandbox; anything else opens a section of Human or a link.

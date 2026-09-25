@@ -63,7 +63,8 @@
         "iconID": "uint64",
         "logo": "string",
         "logoID": "uint64",
-        "kind": "string"
+        "kind": "string",
+        "home": "bool"
       },
       "-": "string",
       "sourceMeta": {

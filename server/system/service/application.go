@@ -124,7 +124,7 @@ func (svc *application) beforeCreate(ctx context.Context, new *types.Application
 		new.OwnerID = a.GetIdentityFromContext(ctx).Identity()
 	}
 
-	return nil
+	return svc.claimHome(ctx, new.ID, false, new.Unify.Home)
 }
 
 func (svc *application) beforeUpdate(ctx context.Context, upd, res *types.Application) error {
@@ -137,6 +137,11 @@ func (svc *application) beforeUpdate(ctx context.Context, upd, res *types.Applic
 	}
 
 	if upd.Unify != nil {
+		wasHome := res.Unify != nil && res.Unify.Home
+		if err := svc.claimHome(ctx, res.ID, wasHome, upd.Unify.Home); err != nil {
+			return err
+		}
+
 		res.Unify = upd.Unify
 	}
 
@@ -145,6 +150,41 @@ func (svc *application) beforeUpdate(ctx context.Context, upd, res *types.Applic
 	// nothing.
 	if res.Unify != nil && res.Unify.Kind == ApplicationKindCustom {
 		res.Unify.Url = CustomApplicationPath(res.ID)
+	}
+
+	return nil
+}
+
+// claimHome guards `unify.home`, the instance-wide home application: changing
+// it takes the global flag permission, and setting it clears it on every other
+// application, so at most one holds it.
+func (svc *application) claimHome(ctx context.Context, ID uint64, was, is bool) error {
+	if was == is {
+		return nil
+	}
+
+	if !svc.ac.CanGlobalApplicationFlag(ctx) {
+		return ApplicationErrNotAllowedToManageFlagGlobal()
+	}
+
+	if !is {
+		return nil
+	}
+
+	aa, _, err := store.SearchApplications(ctx, svc.store, types.ApplicationFilter{Deleted: filter.StateInclusive})
+	if err != nil {
+		return err
+	}
+
+	for _, other := range aa {
+		if other.ID == ID || other.Unify == nil || !other.Unify.Home {
+			continue
+		}
+
+		other.Unify.Home = false
+		if err = store.UpdateApplication(ctx, svc.store, other); err != nil {
+			return err
+		}
 	}
 
 	return nil

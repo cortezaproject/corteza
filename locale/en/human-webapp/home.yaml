@@ -1,6 +1,8 @@
 apps:
   denied: You do not have access to /{app}. Ask an administrator to grant you access to this application.
   empty: No applications are available to your account. Ask an administrator to grant you access.
+  homeUnavailable: Your home page application {app} could not be opened, so the application list is shown instead. It may be switched off, deleted, or no longer available to you.
+  homeUnavailableUnnamed: Your home page application could not be opened, so the application list is shown instead. It may be switched off, deleted, or no longer available to you.
   noResults: No applications found
 assistant:
   noAgents: No assistant agents are configured for your account.

@@ -68,7 +68,7 @@
           >
             <SelectButton
               id="unifyKind"
-              v-model="application.unify.kind"
+              v-model="kindModel"
               :options="kindOptions"
               option-label="label"
               option-value="value"
@@ -107,6 +107,14 @@
             :description="$t('system.applications.editor.unify.listedDescription')"
             class="self-start"
             :disabled="!canEdit"
+          />
+
+          <CInputToggleCard
+            v-model="application.unify.home"
+            :label="$t('system.applications.editor.unify.home')"
+            :description="$t('system.applications.editor.unify.homeDescription')"
+            class="self-start"
+            :disabled="!canEdit || !canSetHome"
           />
 
           <div class="flex flex-col gap-2">
@@ -296,6 +304,7 @@ import {
   resolveAppLogoUrl,
   useDraftGuard,
   useApplicationsStore,
+  useRBACStore,
 } from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
 
@@ -353,9 +362,19 @@ const isCustomLogo = computed(() => {
 const isEdit = computed(() => !!route.params.applicationID)
 
 const kindOptions = computed(() => [
-  { label: t('system.applications.editor.unify.kind.section'), value: '' },
+  { label: t('system.applications.editor.unify.kind.section'), value: 'section' },
   { label: t('system.applications.editor.unify.kind.custom'), value: 'custom' },
 ])
+
+// The section kind is stored as ''. Inside a Form, PrimeVue reads an empty
+// string as "no value" and shows no option selected, so the control speaks
+// 'section' and the draft keeps ''.
+const kindModel = computed({
+  get: () => application.value?.unify?.kind || 'section',
+  set: kind => {
+    application.value.unify.kind = kind === 'section' ? '' : kind
+  },
+})
 
 const isCustom = computed(() => application.value?.unify?.kind === 'custom')
 
@@ -547,6 +566,10 @@ function copySource() {
 // Read-only is one condition, used by the fields, the banner and Save alike —
 // a form the user cannot save must not invite them to fill it in.
 const canEdit = computed(() => !isEdit.value || !!application.value?.canUpdateApplication)
+
+// The instance-wide home application is the global application flag's to set.
+const rbac = useRBACStore()
+const canSetHome = computed(() => rbac.can('system/', 'application.flag.global'))
 
 const pageTitle = computed(() =>
   isEdit.value

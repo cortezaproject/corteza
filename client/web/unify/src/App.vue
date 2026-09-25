@@ -25,6 +25,7 @@
           v-model:sidebar-expanded="expanded"
           :sidebar-disabled="sidebarDisabled"
           :settings="topbarSettings"
+          :home-url="topbarHomeURL"
           :labels="{
             appMenu: $t('navigation.appMenu'),
             home: $t('navigation.home'),
@@ -85,6 +86,16 @@
         search: $t('navigation.appList.search'),
         noResults: $t('navigation.appList.noResults'),
         noApps: $t('navigation.appList.noApps'),
+        tileMenu: $t('navigation.appList.tileMenu'),
+        setHome: $t('navigation.appList.setHome'),
+        clearHome: $t('navigation.appList.clearHome'),
+        homeSet: $t('navigation.appList.homeSet', { app: '{app}' }),
+        homeSetTitle: $t('navigation.appList.homeSetTitle'),
+        homeClearedTitle: $t('navigation.appList.homeClearedTitle'),
+        homeErrorTitle: $t('navigation.appList.homeErrorTitle'),
+        homeCleared: $t('navigation.appList.homeCleared', { app: '{app}' }),
+        homeOwn: $t('navigation.appList.homeOwn'),
+        homeGlobal: $t('navigation.appList.homeGlobal'),
       }"
     />
 
@@ -110,6 +121,7 @@
 </template>
 
 <script setup>
+import { homeHref } from '@/router'
 import { sectionById } from '@/sections'
 import { previewsSwitchedOffApp } from '@/sections/app/preview'
 import {
@@ -194,6 +206,9 @@ const appEnabled = computed(
 const currentWebapp = computed(() => route.meta.section || APP_KIND)
 const sidebarComponent = computed(() => activeSection.value?.sidebar || null)
 const hasSidebar = computed(() => !!sidebarComponent.value)
+
+// The home button leads to the home application, like opening `/` does.
+const topbarHomeURL = computed(() => homeHref())
 
 const topbarSettings = computed(() => ({
   ...$Settings.get('ui.topbar', {}),

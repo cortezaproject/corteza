@@ -15,12 +15,32 @@
         {{ $t('home.apps.denied', { app: deniedSection }) }}
       </Message>
 
+      <Message v-if="homeUnavailable !== undefined" severity="warn" class="mx-3 mb-2 shrink-0">
+        {{
+          homeUnavailable
+            ? $t('home.apps.homeUnavailable', { app: homeUnavailable })
+            : $t('home.apps.homeUnavailableUnnamed')
+        }}
+      </Message>
+
       <div class="flex-1 overflow-y-auto px-3 pb-3">
         <CAppList
           variant="list"
           :query="appsQuery"
           :no-apps-text="$t('home.apps.empty')"
           :no-results-text="$t('home.apps.noResults')"
+          :labels="{
+            tileMenu: $t('navigation.appList.tileMenu'),
+            setHome: $t('navigation.appList.setHome'),
+            clearHome: $t('navigation.appList.clearHome'),
+            homeSet: $t('navigation.appList.homeSet', { app: '{app}' }),
+            homeSetTitle: $t('navigation.appList.homeSetTitle'),
+            homeClearedTitle: $t('navigation.appList.homeClearedTitle'),
+            homeErrorTitle: $t('navigation.appList.homeErrorTitle'),
+            homeCleared: $t('navigation.appList.homeCleared', { app: '{app}' }),
+            homeOwn: $t('navigation.appList.homeOwn'),
+            homeGlobal: $t('navigation.appList.homeGlobal'),
+          }"
         />
       </div>
     </div>
@@ -70,6 +90,12 @@ const appsQuery = ref('')
 // denied deep link looks like the app simply ignored the address.
 const route = useRoute()
 const deniedSection = computed(() => String(route.query.denied || '').replace(/^\//, ''))
+
+// The home application the entry redirect could not open, by name ('' when it
+// has none the user can see); undefined when there was no such redirect.
+const homeUnavailable = computed(() =>
+  route.query.homeUnavailable === undefined ? undefined : String(route.query.homeUnavailable),
+)
 
 // ── Notifications column ─────────────────────────────────────
 useNotificationsStore()

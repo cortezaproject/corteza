@@ -18,6 +18,7 @@ interface UserMeta {
   avatarColor?: string
   avatarBgColor?: string
   theme?: string
+  homeApplicationID?: string
 }
 
 interface SecurityPolicy {

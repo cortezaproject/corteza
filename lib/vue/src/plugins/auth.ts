@@ -417,6 +417,7 @@ export class Auth {
               preferredLanguage: data.preferred_language || 'en',
               avatarID: data.avatarID,
               theme: data.theme,
+              homeApplicationID: data.home_application_id,
             },
             ...data,
           })
@@ -644,6 +645,7 @@ export class Auth {
         preferredLanguage: oa2tkn.preferred_language || 'en',
         avatarID: oa2tkn.avatarID,
         theme: oa2tkn.theme,
+        homeApplicationID: oa2tkn.home_application_id,
       },
       ...oa2tkn,
     })

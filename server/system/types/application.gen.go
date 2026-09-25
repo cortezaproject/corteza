@@ -50,6 +50,7 @@ type (
 		Logo   string `json:"logo,omitempty"`
 		LogoID uint64 `json:"logoID,string"`
 		Kind   string `json:"kind,omitempty"`
+		Home   bool   `json:"home,omitempty"`
 	}
 
 	ApplicationSourceMeta struct {
@@ -247,6 +248,10 @@ func (r ApplicationUnify) Diff(cmp *ApplicationUnify) []*revisions.Change {
 
 	if r.Kind != cmp.Kind {
 		out = append(out, &revisions.Change{Key: "kind", Old: []any{cmp.Kind}, New: []any{r.Kind}})
+	}
+
+	if r.Home != cmp.Home {
+		out = append(out, &revisions.Change{Key: "home", Old: []any{cmp.Home}, New: []any{r.Home}})
 	}
 
 	return out

@@ -20,6 +20,9 @@ _applicationDefs: {
 				// "" or "section" opens a shell section or a link; "custom" opens
 				// the application's own HTML source in the sandboxed app view.
 				{ name: "Kind", type: "string", json: "kind,omitempty" },
+				// The instance-wide home application: `/` opens it on entry for a
+				// user who has not picked their own. At most one application holds it.
+				{ name: "Home", type: "bool", json: "home,omitempty" },
 			]}
 			// What the app view needs to know about the source without loading
 			// it: the launcher payload carries this, never the HTML itself.

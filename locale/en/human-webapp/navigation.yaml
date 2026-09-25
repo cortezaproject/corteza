@@ -1,9 +1,19 @@
 adminPanel: Admin panel
 agents: Agents
 appList:
+  clearHome: Remove as Home
+  homeCleared: '{app} no longer opens when you sign in or select Home. You will see the application list instead, or the home page an administrator set for everyone.'
+  homeClearedTitle: Home page removed
+  homeErrorTitle: Your home page could not be changed
+  homeGlobal: This application is the home page for everyone. It opens when you sign in or select Home.
+  homeOwn: This application is your home page. It opens when you sign in or select Home.
+  homeSet: '{app} now opens when you sign in or select Home.'
+  homeSetTitle: Home page set
   noApps: No applications available
   noResults: No applications found
   search: Search...
+  setHome: Set as Home
+  tileMenu: Application options
   title: Menu
 appMenu: Menu
 automation:

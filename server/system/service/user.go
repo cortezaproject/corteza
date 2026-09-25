@@ -77,6 +77,7 @@ type (
 		CanUnsuspendUser(context.Context, *types.User) bool
 		CanUnmaskEmailOnUser(context.Context, *types.User) bool
 		CanUnmaskNameOnUser(context.Context, *types.User) bool
+		CanSelfApplicationFlag(context.Context) bool
 	}
 
 	UserService interface {
@@ -665,6 +666,7 @@ func (svc *user) onUpdate(ctx context.Context, s store.Storer, upd, res *types.U
 
 	res.Kind = upd.Kind
 	if upd.Meta != nil {
+		svc.keepHomeApplication(ctx, upd, res)
 		res.Meta = upd.Meta
 	}
 
@@ -694,6 +696,29 @@ func (svc *user) onUpdate(ctx context.Context, s store.Storer, upd, res *types.U
 
 	_ = svc.services.eventbus.WaitFor(ctx, event.UserAfterUpdate(upd, res))
 	return nil
+}
+
+// keepHomeApplication keeps the user's home application as it was when they
+// change their own without the permission to pick one.
+func (svc *user) keepHomeApplication(ctx context.Context, upd, res *types.User) {
+	var was uint64
+	if res.Meta != nil {
+		was = res.Meta.HomeApplicationID
+	}
+
+	if upd.Meta.HomeApplicationID == was || upd.ID != internalAuth.GetIdentityFromContext(ctx).Identity() {
+		return
+	}
+
+	if svc.ac.CanSelfApplicationFlag(ctx) {
+		return
+	}
+
+	logger.Default().Warn(
+		"ignoring home application change on user self-update, permission to pick one is required",
+		zap.Uint64("userID", res.ID),
+	)
+	upd.Meta.HomeApplicationID = was
 }
 
 // ignoredOnSelfUpdate returns restricted fields the update tried to change

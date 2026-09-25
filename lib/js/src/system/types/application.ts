@@ -23,6 +23,8 @@ interface Unify {
   // '' serves a shell section or a link; 'custom' serves the application's own
   // HTML source in the app view.
   kind?: string
+  // The instance-wide home application; at most one holds it.
+  home?: boolean
 }
 
 // What is known about a custom application's source without loading it.
@@ -55,6 +57,7 @@ export class Application {
     iconID: NoID,
     logoID: NoID,
     kind: '',
+    home: false,
   }
 
   public sourceMeta?: SourceMeta = { size: 0 }

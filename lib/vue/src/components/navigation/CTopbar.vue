@@ -164,6 +164,11 @@ const props = defineProps({
     type: String,
     default: '/',
   },
+  // Where the home button leads; the shell's root when unset.
+  homeUrl: {
+    type: String,
+    default: '',
+  },
   labels: {
     type: Object,
     required: true,
@@ -225,7 +230,7 @@ onBeforeUnmount(() => {
   if (window.__pageButtonsOrigReplace) history.replaceState = window.__pageButtonsOrigReplace
 })
 
-const homeURL = computed(() => window.location.origin)
+const homeURL = computed(() => props.homeUrl || window.location.origin)
 
 const visiblePageButtons = computed(() => {
   const buttons = settings.value?.pageButtons || []

@@ -513,6 +513,10 @@ func (h *AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Au
 	//include user's theme
 	response["theme"] = user.Meta.Theme
 
+	if user.Meta.HomeApplicationID != 0 {
+		response["home_application_id"] = strconv.FormatUint(user.Meta.HomeApplicationID, 10)
+	}
+
 	// in case client is configured with "openid" scope,
 	// we'll add "id_token" with all required (by OIDC) details encoded
 	if strings.Contains(client.Scope, "openid") {
