@@ -259,6 +259,15 @@ list:
   enabled:
     'off': Disabled
     'on': Enabled
+  filterForm:
+    deleted:
+      label: Deleted chatbots
+    excluded:
+      label: Without
+    exclusive:
+      label: Only
+    inclusive:
+      label: Including
   searchPlaceholder: Search for chatbots
   title: Chatbots
   unnamed: (unnamed)

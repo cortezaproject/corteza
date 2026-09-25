@@ -68,7 +68,43 @@
       <template #body-changedAt="{ data }">
         {{ changedAtText(data) }}
       </template>
+      <template #filter>
+        <Button
+          :label="$t('general.filter.label')"
+          icon="pi pi-filter"
+          severity="secondary"
+          size="small"
+          outlined
+          @click="toggleFilterMenu"
+        />
+      </template>
     </CResourceList>
+
+    <Popover ref="filterMenu">
+      <div class="flex flex-col gap-2 p-2 w-64">
+        <span class="font-medium text-sm text-primary">
+          {{ $t('agent.list.filterForm.deleted.label') }}
+        </span>
+        <div class="flex items-center gap-2">
+          <RadioButton v-model="filter.deleted" inputId="del0" value="0" />
+          <label for="del0" class="text-sm cursor-pointer">
+            {{ $t('agent.list.filterForm.excluded.label') }}
+          </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <RadioButton v-model="filter.deleted" inputId="del1" value="1" />
+          <label for="del1" class="text-sm cursor-pointer">
+            {{ $t('agent.list.filterForm.inclusive.label') }}
+          </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <RadioButton v-model="filter.deleted" inputId="del2" value="2" />
+          <label for="del2" class="text-sm cursor-pointer">
+            {{ $t('agent.list.filterForm.exclusive.label') }}
+          </label>
+        </div>
+      </div>
+    </Popover>
   </div>
 </template>
 
@@ -102,6 +138,11 @@ const { open: openPermissions } = usePermissions()
 
 const resourceListRef = ref()
 
+const filterMenu = ref()
+function toggleFilterMenu(event) {
+  filterMenu.value.toggle(event)
+}
+
 // Column definitions
 const agentFields = [
   {
@@ -128,7 +169,7 @@ const {
   handlePageChange,
   filterList,
 } = useResourceList(params => $SystemAPI.agentListCancellable(params), {
-  filter: { query: '' },
+  filter: { query: '', deleted: '0' },
   pagination: { limit: 50 },
 })
 
