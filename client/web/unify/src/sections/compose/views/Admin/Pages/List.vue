@@ -418,15 +418,21 @@ async function onNodeDrop(event) {
 
   try {
     await reorderTree(newTree, '0')
+  } catch (e) {
+    console.error('Failed to reorder pages:', e)
+    $toast.toastErrorHandler(t('page.pageMoveFailed'))(e)
+  }
 
-    // Refetch tree to stay in sync with server
+  // The server's order either way: the new one after a save, and after a
+  // failure whatever it kept, rather than the drop it rejected
+  try {
     await reloadTree()
 
     // Reload the flat page list so the sidebar reflects the new order
     await pageStore.load({ namespaceID: props.namespace.namespaceID })
   } catch (e) {
-    console.error('Failed to reorder pages:', e)
-    $toast.toastErrorHandler(t('page.pageMoveFailed'))(e)
+    console.error('Failed to reload the page tree:', e)
+    $toast.toastDanger(t('notification.page.listFailed'))
   }
 }
 

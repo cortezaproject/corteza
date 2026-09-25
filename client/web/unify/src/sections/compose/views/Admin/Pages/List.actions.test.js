@@ -11,6 +11,8 @@ const push = vi.fn()
 const openPermissions = vi.fn()
 const confirmDelete = vi.fn()
 const pageDelete = vi.fn()
+const pageUpdate = vi.fn()
+const pageReorder = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push }),
@@ -26,7 +28,13 @@ vi.mock('@planetcrust/human-vue', () => ({
   useConfirmDelete: () => ({ confirmDelete }),
   usePermissions: () => ({ open: openPermissions }),
   useModuleStore: () => ({ getByID: id => (id === '301' ? { name: 'Leads' } : undefined) }),
-  usePageStore: () => ({ loadTree: async () => tree, delete: pageDelete }),
+  usePageStore: () => ({
+    loadTree: async () => tree,
+    delete: pageDelete,
+    update: pageUpdate,
+    reorder: pageReorder,
+    load: vi.fn(),
+  }),
   components: {
     CInputSearch: { template: '<div />' },
     CPermissionsButton: { template: '<div />' },
@@ -227,6 +235,23 @@ describe('page tree actions', () => {
     await flushPromises()
     expect(treeStub().exists()).toBe(false)
     expect(wrapper.text()).toContain('general.label.noResults')
+  })
+
+  it('shows the server order again when a drop fails to save', async () => {
+    tree = [page('101', { title: 'First' }), page('102', { title: 'Second' })]
+    await mountList()
+    const treeStub = () => wrapper.findComponent(Tree)
+    const [first, second] = treeStub().props('value')
+    pageReorder.mockRejectedValueOnce(new Error('denied'))
+
+    treeStub().vm.$emit('node-drop', { value: [second, first] })
+    await flushPromises()
+
+    expect(
+      treeStub()
+        .props('value')
+        .map(n => n.label),
+    ).toEqual(['First', 'Second'])
   })
 
   it('hides what the viewer may not do', async () => {
