@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-2 min-w-0">
     <!-- An empty range takes a line, not the chart's height -->
-    <div v-if="empty" class="flex items-center text-sm text-muted-color py-2">
+    <div v-if="empty" class="flex items-center text-base text-muted-color py-2">
       {{ $t('dashboard.empty') }}
     </div>
     <div v-else :style="{ height: height + 'px' }" class="min-w-0">
@@ -11,7 +11,7 @@
     <!-- Identity never rides on colour alone: two or more series get a legend -->
     <div
       v-if="series.length > 1 && !empty"
-      class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-color"
+      class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-color"
     >
       <span v-for="s in series" :key="s.key" class="inline-flex items-center gap-1.5">
         <span class="inline-block h-2 w-2 rounded-full" :style="{ backgroundColor: s.color }" />
@@ -102,7 +102,7 @@ const option = computed(() => {
       axisPointer: { type: props.series.some(s => s.type === 'line') ? 'line' : 'shadow' },
       backgroundColor: c.surface,
       borderColor: c.grid,
-      textStyle: { color: c.text, fontSize: 12 },
+      textStyle: { color: c.text, fontSize: 13 },
       formatter: params => {
         const i = params[0]?.dataIndex ?? 0
         const head = props.rangeLabels[i] || props.labels[i] || ''
@@ -118,14 +118,14 @@ const option = computed(() => {
     xAxis: {
       type: 'category',
       data: props.labels,
-      axisLabel: { color: c.muted, fontSize: 11, interval: 'auto', hideOverlap: true },
+      axisLabel: { color: c.muted, fontSize: 12, interval: 'auto', hideOverlap: true },
       axisLine: { lineStyle: { color: c.grid } },
       axisTick: { show: false },
     },
     yAxis: {
       type: 'value',
       minInterval: 1,
-      axisLabel: { color: c.muted, fontSize: 11 },
+      axisLabel: { color: c.muted, fontSize: 12 },
       splitLine: { lineStyle: { color: c.grid, type: 'solid' } },
       splitNumber: 3,
     },

@@ -10,7 +10,7 @@
         class="h-full rounded-full"
       />
     </div>
-    <div v-if="!compact" class="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-color">
+    <div v-if="!compact" class="flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-muted-color">
       <span
         v-for="s in segments"
         :key="s.key"

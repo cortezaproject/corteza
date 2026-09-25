@@ -7,7 +7,7 @@
     data-testid="dashboard-resource-dialog"
     @update:visible="$emit('update:visible', $event)"
   >
-    <div v-if="error" class="text-sm text-red-500">{{ $t('dashboard.loadFailed') }}</div>
+    <div v-if="error" class="text-base text-red-500">{{ $t('dashboard.loadFailed') }}</div>
 
     <div v-else-if="!detail" class="flex items-center justify-center py-10">
       <ProgressSpinner style="width: 32px; height: 32px" />
@@ -16,7 +16,7 @@
     <div v-else class="flex flex-col gap-5">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div v-for="f in figures" :key="f.key" class="flex flex-col gap-0.5">
-          <span class="text-xs text-muted-color">{{ f.label }}</span>
+          <span class="text-sm text-muted-color">{{ f.label }}</span>
           <span class="text-2xl font-semibold leading-none text-color">
             {{ f.value.toLocaleString() }}
           </span>
@@ -26,7 +26,7 @@
       <StatusBar :status="detail.status" :order="order" />
 
       <section class="flex flex-col gap-2">
-        <h3 class="text-sm font-semibold text-color">{{ $t('dashboard.dialog.movement') }}</h3>
+        <h3 class="text-base font-semibold text-color">{{ $t('dashboard.dialog.movement') }}</h3>
         <TrendChart
           :labels="bucketLabels"
           :range-labels="rangeLabels"
@@ -36,8 +36,8 @@
       </section>
 
       <section class="flex flex-col gap-2">
-        <h3 class="text-sm font-semibold text-color">{{ $t('dashboard.dialog.recent') }}</h3>
-        <div v-if="!detail.recent.length" class="text-sm text-muted-color">
+        <h3 class="text-base font-semibold text-color">{{ $t('dashboard.dialog.recent') }}</h3>
+        <div v-if="!detail.recent.length" class="text-base text-muted-color">
           {{ $t('dashboard.empty') }}
         </div>
         <ul v-else class="divide-y divide-surface">
@@ -54,22 +54,22 @@
               <component
                 :is="linkTo(it) ? 'router-link' : 'span'"
                 :to="linkTo(it)"
-                class="text-sm text-color break-words"
+                class="text-base text-color break-words"
                 :class="linkTo(it) ? 'hover:underline' : ''"
               >
                 {{ it.label || it.handle || it.id }}
               </component>
               <div
                 v-if="it.handle && it.handle !== it.label"
-                class="text-xs text-muted-color break-all"
+                class="text-sm text-muted-color break-all"
               >
                 {{ it.handle }}
               </div>
             </div>
-            <span class="text-xs text-muted-color whitespace-nowrap">
+            <span class="text-sm text-muted-color whitespace-nowrap">
               {{ statusLabel(it.status) }}
             </span>
-            <span class="text-xs text-muted-color whitespace-nowrap">
+            <span class="text-sm text-muted-color whitespace-nowrap">
               {{ locDate(it.createdAt) }}
             </span>
           </li>

@@ -49,8 +49,8 @@
           @click="inspect(tile.key)"
         >
           <div class="flex items-baseline justify-between gap-2">
-            <span class="text-sm font-medium text-color truncate">{{ tile.label }}</span>
-            <span v-if="tile.created" class="text-xs text-muted-color whitespace-nowrap">
+            <span class="text-base font-medium text-color truncate">{{ tile.label }}</span>
+            <span v-if="tile.created" class="text-sm text-muted-color whitespace-nowrap">
               {{ $t('dashboard.tile.newInRange', { n: tile.created }) }}
             </span>
           </div>
@@ -59,7 +59,7 @@
               <span class="text-3xl font-semibold leading-none text-color">
                 {{ tile.live.toLocaleString() }}
               </span>
-              <span v-if="tile.total !== tile.live" class="text-sm text-muted-color ml-1">
+              <span v-if="tile.total !== tile.live" class="text-base text-muted-color ml-1">
                 / {{ tile.total.toLocaleString() }}
               </span>
             </div>
@@ -114,7 +114,7 @@
         >
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div v-if="d.workflows.value" class="min-w-0">
-              <div class="text-xs text-muted-color mb-1">
+              <div class="text-sm text-muted-color mb-1">
                 {{ $t('dashboard.runs.workflowRuns') }} ·
                 {{
                   $t('dashboard.runs.subtitle', {
@@ -132,7 +132,7 @@
               />
             </div>
             <div v-if="d.taqs.value" class="min-w-0">
-              <div class="text-xs text-muted-color mb-1">
+              <div class="text-sm text-muted-color mb-1">
                 {{ $t('dashboard.runs.taqRuns') }} ·
                 {{
                   $t('dashboard.runs.subtitle', {
