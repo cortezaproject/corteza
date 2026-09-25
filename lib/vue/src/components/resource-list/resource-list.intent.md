@@ -35,8 +35,8 @@ composing a DataTable by hand.
   column with one centralized TieredMenu (recreated per open so anchoring never
   goes stale); a `fields` entry keyed `actions` is then dropped. Items support
   `route` for router-links. `hideActionsMenu()` is exposed.
-- Row state belongs to the shell, not the screen: the `changedAt` cell leads
-  with a Deleted / Suspended / Archived tag (`resourceState`, the most final
+- Row state belongs to the shell, not the screen: the `changedAt` cell ends
+  with a Deleted / Suspended / Archived tag after the date (`resourceState`, the most final
   one wins), and a deleted row's text is muted. A list does not render state
   itself.
 - Active filters show as a bar of removable chips above the table. A screen

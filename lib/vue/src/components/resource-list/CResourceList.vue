@@ -124,15 +124,15 @@
               <i :class="[iconClass, 'pi pi-spin pi-spinner']" />
             </template>
             <template #body="slotProps">
+              <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
+                {{ slotProps.data[field.key] }}
+              </slot>
               <Tag
                 v-if="field.key === CHANGED_AT_KEY && resourceState(slotProps.data)"
                 :value="t(`general.resourceList.state.${resourceState(slotProps.data)}`)"
                 :severity="STATE_SEVERITY[resourceState(slotProps.data)]"
-                class="mr-2"
+                class="ml-2"
               />
-              <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
-                {{ slotProps.data[field.key] }}
-              </slot>
             </template>
           </Column>
 
