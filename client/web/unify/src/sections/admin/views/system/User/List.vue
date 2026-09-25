@@ -61,20 +61,6 @@
         {{ data.handle || '-' }}
       </template>
 
-      <template #body-state="{ data }">
-        <Tag
-          v-if="data.suspendedAt"
-          :value="$t('system.users.list.rows.filters.suspended')"
-          severity="danger"
-        />
-        <Tag
-          v-else-if="data.deletedAt"
-          :value="$t('system.users.list.rows.filters.deleted')"
-          severity="warning"
-        />
-        <Tag v-else :value="$t('system.users.list.columns.enabled')" severity="success" />
-      </template>
-
       <template #body-changedAt="{ data }">
         {{ changedAtText(data) }}
       </template>
@@ -198,11 +184,6 @@ const userListFields = [
     key: 'handle',
     sortable: true,
     header: t('system.users.list.columns.handle'),
-  },
-  {
-    key: 'state',
-    sortable: false,
-    header: t('system.users.list.columns.state'),
   },
   changedAtField(t('general.columns.changedAt')),
 ]

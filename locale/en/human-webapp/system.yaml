@@ -1490,10 +1490,8 @@ users:
     columns:
       actions: ''
       email: Email
-      enabled: Enabled
       handle: Handle
       name: Name
-      state: State
     delete: Delete
     export: Export
     filterForm:
@@ -1514,10 +1512,6 @@ users:
     new: New User
     permissions: Permissions
     revokeActiveSession: Revoke Session
-    rows:
-      filters:
-        deleted: Deleted
-        suspended: Suspended
     suspend: Suspend
     title: Users
     unsuspend: Unsuspend
