@@ -326,7 +326,7 @@ resourceList:
     exclusive: Only
     excluded: Without
     inclusive: Including
-    reset: Reset filters
+    reset: Reset filter
   noItems: No items to show
   notFound: Not found
   pagination:
@@ -339,6 +339,7 @@ resourceList:
   state:
     archived: Archived
     deleted: Deleted
+    disabled: Disabled
     suspended: Suspended
 save: Save
 subworkflow: Subworkflow

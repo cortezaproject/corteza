@@ -72,11 +72,13 @@ describe('CResourceList active filters', () => {
   it('shows a chip per changed filter, state and custom alike', () => {
     const w = mountFiltered({ query: '', deleted: '2', status: 'draft' })
     const chips = w.findAll('[data-test-id="active-filters"] [data-pc-name="chip"]')
-    const parts = chips.map(c => c.findAll('span:not([data-pc-section])').map(s => s.text()))
-    expect(parts).toEqual([
-      ['Deleted roles', 'general.resourceList.filter.exclusive'],
-      ['Status', 'is draft'],
-    ])
+    const state = chips[0]
+    expect(state.find('span').text()).toBe('general.resourceList.filter.exclusive')
+    const tag = state.find('[data-pc-name="tag"]')
+    expect(tag.text()).toBe('general.resourceList.state.deleted')
+    expect(tag.attributes('data-p')).toBe('warn')
+    const custom = chips[1].findAll('span:not([data-pc-section])').map(s => s.text())
+    expect(custom).toEqual(['Status', 'is draft'])
   })
 
   it('puts a removed chip, or all of them on reset, back to the default', async () => {

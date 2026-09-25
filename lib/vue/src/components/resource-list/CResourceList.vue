@@ -46,8 +46,14 @@
             class="text-sm rounded-border"
             @remove="clearFilters([chip.key])"
           >
-            <span class="font-semibold text-primary">{{ chip.label }}</span>
-            <span>{{ chip.value }}</span>
+            <template v-if="chip.tag">
+              <span>{{ chip.value }}</span>
+              <Tag :value="chip.tag.value" :severity="chip.tag.severity" />
+            </template>
+            <template v-else>
+              <span class="font-semibold text-primary">{{ chip.label }}</span>
+              <span>{{ chip.value }}</span>
+            </template>
           </Chip>
           <Button
             :label="t('general.resourceList.filter.reset')"
@@ -281,7 +287,8 @@ const props = defineProps({
     default: () => ({}),
   },
   // Filter keys shown as chips: `{ key: label }` for a without/including/only
-  // state filter ('0'/'1'/'2'), or `{ key: { label, value: v => text } }`.
+  // state filter ('0'/'1'/'2'), shown as the option and the row-state tag, or
+  // `{ key: { label, value: v => text } }`.
   filterLabels: {
     type: Object,
     default: () => ({}),
@@ -407,6 +414,13 @@ const handlePerPageChange = value => {
   emit('page-change', { pageCursor: '', page: 1, limit: value })
 }
 
+const STATE_SEVERITY = {
+  deleted: 'warn',
+  suspended: 'danger',
+  archived: 'secondary',
+  disabled: 'secondary',
+}
+
 const STATE_FILTER = { 0: 'excluded', 1: 'inclusive', 2: 'exclusive' }
 
 const filterChips = computed(() =>
@@ -414,13 +428,20 @@ const filterChips = computed(() =>
     .filter(([key]) => String(props.filter[key] ?? '') !== String(props.filterDefaults[key] ?? ''))
     .map(([key, label]) => {
       const value = props.filter[key]
-      if (typeof label === 'string') {
-        const state = STATE_FILTER[value]
+      const option = STATE_FILTER[value]
+      if (typeof label === 'string' && option) {
+        const known = key in STATE_SEVERITY
         return {
           key,
-          label,
-          value: state ? t(`general.resourceList.filter.${state}`) : String(value ?? ''),
+          value: t(`general.resourceList.filter.${option}`),
+          tag: {
+            value: known ? t(`general.resourceList.state.${key}`) : label,
+            severity: known ? STATE_SEVERITY[key] : 'secondary',
+          },
         }
+      }
+      if (typeof label === 'string') {
+        return { key, label, value: String(value ?? '') }
       }
       return { key, label: label.label, value: label.value(value) }
     }),
@@ -429,8 +450,6 @@ const filterChips = computed(() =>
 function clearFilters(keys) {
   emit('update:filter', Object.fromEntries(keys.map(k => [k, props.filterDefaults[k]])))
 }
-
-const STATE_SEVERITY = { deleted: 'warn', suspended: 'danger', archived: 'secondary' }
 
 const rowClass = row => {
   return {
