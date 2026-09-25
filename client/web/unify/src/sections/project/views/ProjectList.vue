@@ -10,6 +10,13 @@
       :fields="fields"
       :items="projects"
       :filter="filter"
+      :filter-defaults="filterDefaults"
+      :filter-labels="{
+        status: {
+          label: $t('project.list.filterByStatus'),
+          value: v => $t(`project.status.${v}`),
+        },
+      }"
       @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
@@ -151,6 +158,7 @@ const {
   items: projects,
   loading,
   filter,
+  filterDefaults,
   sorting,
   pagination,
   handleSort,

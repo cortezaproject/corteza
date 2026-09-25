@@ -10,6 +10,8 @@
       :fields="fields"
       :items="chatbots"
       :filter="filter"
+      :filter-defaults="filterDefaults"
+      :filter-labels="{ deleted: $t('chatbot.list.filterForm.deleted.label') }"
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
@@ -155,6 +157,7 @@ const {
   items: chatbots,
   loading,
   filter,
+  filterDefaults,
   sorting,
   pagination,
   handleSort,

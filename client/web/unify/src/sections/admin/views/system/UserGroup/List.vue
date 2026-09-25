@@ -10,6 +10,11 @@
       :fields="userGroupListFields"
       :items="userGroupList"
       :filter="filter"
+      :filter-defaults="filterDefaults"
+      :filter-labels="{
+        deleted: $t('system.user-groups.list.filterForm.deleted.label'),
+        archived: $t('system.user-groups.list.filterForm.archived.label'),
+      }"
       @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
@@ -195,6 +200,7 @@ const {
   items: userGroupList,
   loading,
   filter,
+  filterDefaults,
   sorting,
   pagination,
   handleSort,

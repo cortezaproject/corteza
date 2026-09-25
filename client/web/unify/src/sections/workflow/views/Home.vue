@@ -10,6 +10,12 @@
       :fields="workflowFields"
       :items="workflowList"
       :filter="filter"
+      :filter-defaults="filterDefaults"
+      :filter-labels="{
+        subWorkflow: $t('general.subworkflows'),
+        disabled: $t('general.disabled'),
+        deleted: $t('general.deleted'),
+      }"
       @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
@@ -274,6 +280,7 @@ const {
   items: workflowList,
   loading,
   filter,
+  filterDefaults,
   sorting,
   pagination,
   handleSort,

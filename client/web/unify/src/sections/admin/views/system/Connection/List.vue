@@ -10,6 +10,8 @@
       :fields="connectionListFields"
       :items="connectionList"
       :filter="filter"
+      :filter-defaults="filterDefaults"
+      :filter-labels="{ deleted: $t('system.connections.list.filterForm.deleted.label') }"
       @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
@@ -182,6 +184,7 @@ const {
   items: connectionList,
   loading,
   filter,
+  filterDefaults,
   sorting,
   pagination,
   handleSort,

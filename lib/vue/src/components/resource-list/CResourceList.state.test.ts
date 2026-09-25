@@ -44,3 +44,46 @@ describe('CResourceList row state', () => {
     expect(rows.map(r => r.classes('[&>td]:text-muted-color'))).toEqual([false, true, false, false])
   })
 })
+
+describe('CResourceList active filters', () => {
+  function mountFiltered(filter: Record<string, unknown>) {
+    return mount(CResourceList, {
+      props: {
+        primaryKey: 'id',
+        fields: [{ key: 'name', header: 'Name' }],
+        items,
+        filter,
+        filterDefaults: { query: '', deleted: '0', status: undefined },
+        filterLabels: {
+          deleted: 'Deleted roles',
+          status: { label: 'Status', value: (v: string) => `is ${v}` },
+        },
+        sorting: {},
+        pagination: { total: items.length, limit: 10, page: 1 },
+      },
+    })
+  }
+
+  it('shows no bar while every labelled filter is at its default', () => {
+    const w = mountFiltered({ query: 'searching', deleted: '0' })
+    expect(w.find('[data-test-id="active-filters"]').exists()).toBe(false)
+  })
+
+  it('shows a chip per changed filter, state and custom alike', () => {
+    const w = mountFiltered({ query: '', deleted: '2', status: 'draft' })
+    const chips = w.findAll('[data-test-id="active-filters"] [data-pc-name="chip"]')
+    const parts = chips.map(c => c.findAll('span:not([data-pc-section])').map(s => s.text()))
+    expect(parts).toEqual([
+      ['Deleted roles', 'general.resourceList.filter.exclusive'],
+      ['Status', 'is draft'],
+    ])
+  })
+
+  it('puts a removed chip, or all of them on reset, back to the default', async () => {
+    const w = mountFiltered({ query: 'q', deleted: '1', status: 'draft' })
+    await w.find('[data-pc-name="chip"] [data-pc-section="removeicon"]').trigger('click')
+    expect(w.emitted('update:filter')?.[0]).toEqual([{ deleted: '0' }])
+    await w.find('[data-test-id="active-filters"] button').trigger('click')
+    expect(w.emitted('update:filter')?.[1]).toEqual([{ deleted: '0', status: undefined }])
+  })
+})

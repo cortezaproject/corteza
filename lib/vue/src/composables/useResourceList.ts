@@ -48,6 +48,7 @@ export function useResourceList<T = any>(
 
   // Reactive state
   const filter = reactive<FilterState>({ ...options.filter })
+  const filterDefaults: Readonly<FilterState> = Object.freeze({ ...options.filter })
 
   // Lists open alphabetically. Naming `sorting` opts out, and a list whose
   // resource has no sortable `name` must: the server rejects the whole request
@@ -342,6 +343,7 @@ export function useResourceList<T = any>(
     loading: computed(() => loading.value),
     error: computed(() => error.value),
     filter,
+    filterDefaults,
     sorting,
     pagination,
 

@@ -34,6 +34,30 @@
 
     <template #content>
       <div class="flex-1 overflow-auto min-h-0 min-w-0 flex flex-col h-full w-full">
+        <div
+          v-if="filterChips.length"
+          data-test-id="active-filters"
+          class="flex items-center flex-wrap gap-2 px-3 py-2 border-b shrink-0"
+        >
+          <Chip
+            v-for="chip in filterChips"
+            :key="chip.key"
+            removable
+            class="text-sm rounded-border"
+            @remove="clearFilters([chip.key])"
+          >
+            <span class="font-semibold text-primary">{{ chip.label }}</span>
+            <span>{{ chip.value }}</span>
+          </Chip>
+          <Button
+            :label="t('general.resourceList.filter.reset')"
+            icon="pi pi-filter-slash"
+            severity="secondary"
+            text
+            size="small"
+            @click="clearFilters(filterChips.map(c => c.key))"
+          />
+        </div>
         <DataTable
           ref="tableRef"
           v-model:selection="selected"
@@ -199,7 +223,6 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CInputSearch from '../input/CInputSearch.vue'
 import CPager from './CPager.vue'
-import Tag from 'primevue/tag'
 import { CHANGED_AT_KEY, resourceState } from '../../composables/useChangedAt'
 import { useTableBusy } from '../../composables/useTableBusy'
 import { useGrowOnlyColumns } from '../../composables/useGrowOnlyColumns'
@@ -250,6 +273,18 @@ const props = defineProps({
   queryField: {
     type: String,
     default: 'query',
+  },
+  // What `filter` holds when nothing is filtered; a labelled key that differs
+  // from it shows as a chip above the table.
+  filterDefaults: {
+    type: Object,
+    default: () => ({}),
+  },
+  // Filter keys shown as chips: `{ key: label }` for a without/including/only
+  // state filter ('0'/'1'/'2'), or `{ key: { label, value: v => text } }`.
+  filterLabels: {
+    type: Object,
+    default: () => ({}),
   },
   hideSearch: {
     type: Boolean,
@@ -370,6 +405,29 @@ const goToPage = direction => {
 
 const handlePerPageChange = value => {
   emit('page-change', { pageCursor: '', page: 1, limit: value })
+}
+
+const STATE_FILTER = { 0: 'excluded', 1: 'inclusive', 2: 'exclusive' }
+
+const filterChips = computed(() =>
+  Object.entries(props.filterLabels)
+    .filter(([key]) => String(props.filter[key] ?? '') !== String(props.filterDefaults[key] ?? ''))
+    .map(([key, label]) => {
+      const value = props.filter[key]
+      if (typeof label === 'string') {
+        const state = STATE_FILTER[value]
+        return {
+          key,
+          label,
+          value: state ? t(`general.resourceList.filter.${state}`) : String(value ?? ''),
+        }
+      }
+      return { key, label: label.label, value: label.value(value) }
+    }),
+)
+
+function clearFilters(keys) {
+  emit('update:filter', Object.fromEntries(keys.map(k => [k, props.filterDefaults[k]])))
 }
 
 const STATE_SEVERITY = { deleted: 'warn', suspended: 'danger', archived: 'secondary' }

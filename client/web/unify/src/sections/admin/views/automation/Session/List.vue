@@ -27,6 +27,8 @@
                 :fields="taqFields"
                 :items="taqItems"
                 :filter="taqFilter"
+                :filter-defaults="{ automationID: '', status: '' }"
+                :filter-labels="taqFilterLabels"
                 :sorting="{}"
                 :pagination="{}"
                 :loading="taqLoading"
@@ -37,6 +39,7 @@
                 hide-search
                 hide-pagination
                 class="h-full"
+                @update:filter="Object.assign(taqFilter, $event)"
               >
                 <template #body-status="{ data }">
                   <Tag :value="data.status" :severity="taqStatusSeverity(data.status)" />
@@ -101,6 +104,8 @@
                 :fields="workflowFields"
                 :items="workflowItems"
                 :filter="workflowFilter"
+                :filter-defaults="workflowFilterDefaults"
+                :filter-labels="workflowFilterLabels"
                 :sorting="workflowSorting"
                 :pagination="workflowPagination"
                 :loading="workflowLoading"
@@ -116,6 +121,7 @@
                 clickable
                 hide-search
                 class="h-full"
+                @update:filter="(Object.assign(workflowFilter, $event), workflowFilterList())"
                 @sort="handleWorkflowSort"
                 @row-click="
                   ({ data }) =>
@@ -378,6 +384,7 @@ const {
   items: workflowItems,
   loading: workflowLoading,
   filter: workflowFilter,
+  filterDefaults: workflowFilterDefaults,
   sorting: workflowSorting,
   pagination: workflowPagination,
   handleSort: handleWorkflowSort,
@@ -402,4 +409,26 @@ const selectedWorkflowStatus = computed({
     workflowFilterList()
   },
 })
+
+const WORKFLOW_STATUS = ['started', 'prompted', 'suspended', 'failed', 'completed', 'canceled']
+
+const taqFilterLabels = computed(() => ({
+  status: {
+    label: t('automation.sessions.list.columns.status'),
+    value: v => taqStatusOptions.find(o => o.value === v)?.label ?? v,
+  },
+  automationID: {
+    label: t('automation.sessions.list.taqColumns.automationID'),
+    value: v => v,
+  },
+}))
+
+const workflowFilterLabels = computed(() => ({
+  status: {
+    label: t('automation.sessions.list.columns.status'),
+    value: v => t(`automation.sessions.list.filterForm.${WORKFLOW_STATUS[v]}.label`),
+  },
+  sessionID: { label: t('automation.sessions.list.columns.sessionID'), value: v => v },
+  workflowID: { label: t('automation.sessions.list.columns.workflowID'), value: v => v },
+}))
 </script>

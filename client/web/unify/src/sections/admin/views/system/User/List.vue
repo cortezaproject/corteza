@@ -10,6 +10,11 @@
       :fields="userListFields"
       :items="userList"
       :filter="filter"
+      :filter-defaults="filterDefaults"
+      :filter-labels="{
+        suspended: $t('system.users.list.filterForm.suspended.label'),
+        deleted: $t('system.users.list.filterForm.deleted.label'),
+      }"
       @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
@@ -193,6 +198,7 @@ const {
   items: userList,
   loading,
   filter,
+  filterDefaults,
   sorting,
   pagination,
   handleSort,

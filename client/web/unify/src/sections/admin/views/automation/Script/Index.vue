@@ -27,6 +27,8 @@
         :fields="fields"
         :items="paged"
         :filter="filter"
+        :filter-defaults="filterDefaults"
+        :filter-labels="filterLabels"
         :sorting="sorting"
         :pagination="paginationState"
         :loading="loading"
@@ -228,7 +230,7 @@ const status = ref({})
 
 const filterMenu = ref()
 
-const filter = reactive({
+const filterDefaults = Object.freeze({
   query: '',
   extension: ANY_EXTENSION,
   incScriptsWithErrors: false,
@@ -238,6 +240,7 @@ const filter = reactive({
   incServerScripts: false,
   incClientScripts: false,
 })
+const filter = reactive({ ...filterDefaults })
 
 const sorting = reactive({ sortBy: 'name', sortDesc: false })
 const pagination = reactive({ page: 1, limit: 50 })
@@ -408,6 +411,19 @@ const extensionOptions = computed(() => [
       : t('automation.scripts.list.filterForm.extension.none', { count: group.items.length }),
   })),
 ])
+
+const filterLabels = computed(() => {
+  const option = (label, options) =>
+    Object.fromEntries(options.map(o => [o.key, { label, value: () => o.label }]))
+  return {
+    ...option(t('automation.scripts.list.filterForm.has.label'), capabilityOptions.value),
+    ...option(t('automation.scripts.list.filterForm.kind.label'), kindOptions.value),
+    extension: {
+      label: t('automation.scripts.list.filterForm.extension.label'),
+      value: v => extensionOptions.value.find(o => o.value === v)?.label ?? v,
+    },
+  }
+})
 
 function toggleFilterMenu(event) {
   filterMenu.value.toggle(event)

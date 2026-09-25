@@ -322,6 +322,11 @@ recordNavigation:
   prev: Previous record
 reset: Reset
 resourceList:
+  filter:
+    exclusive: Only
+    excluded: Without
+    inclusive: Including
+    reset: Reset filters
   noItems: No items to show
   notFound: Not found
   pagination:

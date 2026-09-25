@@ -10,6 +10,11 @@
       :fields="roleListFields"
       :items="roleList"
       :filter="filter"
+      :filter-defaults="filterDefaults"
+      :filter-labels="{
+        deleted: $t('system.roles.list.filterForm.deleted.label'),
+        archived: $t('system.roles.list.filterForm.archived.label'),
+      }"
       @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
@@ -186,6 +191,7 @@ const {
   items: roleList,
   loading,
   filter,
+  filterDefaults,
   sorting,
   pagination,
   handleSort,

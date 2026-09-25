@@ -10,6 +10,8 @@
       :fields="fields"
       :items="items"
       :filter="filter"
+      :filter-defaults="filterDefaults"
+      :filter-labels="{ deleted: $t('system.templates.list.filterForm.deleted.label') }"
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
@@ -163,11 +165,20 @@ const fields = [
   changedAtField(t('general.columns.changedAt')),
 ]
 
-const { items, loading, filter, sorting, pagination, handleSort, handlePageChange, filterList } =
-  useResourceList(params => $SystemAPI.templateListCancellable({ ...params }), {
-    filter: { query: '', deleted: '0' },
-    pagination: { limit: 50 },
-  })
+const {
+  items,
+  loading,
+  filter,
+  filterDefaults,
+  sorting,
+  pagination,
+  handleSort,
+  handlePageChange,
+  filterList,
+} = useResourceList(params => $SystemAPI.templateListCancellable({ ...params }), {
+  filter: { query: '', deleted: '0' },
+  pagination: { limit: 50 },
+})
 
 function getActionsMenuItems(item) {
   const menuItems = []
