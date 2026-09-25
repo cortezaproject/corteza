@@ -19,8 +19,8 @@ the editor or queue permissions.
 
 ## UX capabilities
 
-- Search, sort, paginate via `useResourceList`; tri-state deleted filter
-  (excluded/inclusive/exclusive) in a popover.
+- Search, sort, paginate via `useResourceList`; status filter (Active /
+  Deleted) in a popover.
 - Wildcard permissions button (`queue/*`, gated by system `grant`); per-row
   permissions (row `canGrant` OR the system-wide `grant`) and delete
   (`canDeleteQueue`) in the action menu.

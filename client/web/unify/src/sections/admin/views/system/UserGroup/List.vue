@@ -11,10 +11,7 @@
       :items="userGroupList"
       :filter="filter"
       :filter-defaults="filterDefaults"
-      :filter-labels="{
-        deleted: $t('system.user-groups.list.filterForm.deleted.label'),
-        archived: $t('system.user-groups.list.filterForm.archived.label'),
-      }"
+      :states="['archived', 'deleted']"
       @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
@@ -84,53 +81,11 @@
 
     <Popover ref="filterMenu">
       <div class="flex flex-col gap-4 p-2 w-64">
-        <div class="flex flex-col gap-2">
-          <span class="font-medium text-sm text-primary">
-            {{ $t('system.user-groups.list.filterForm.deleted.label') }}
-          </span>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.deleted" inputId="del0" value="0" />
-            <label for="del0" class="text-sm cursor-pointer">
-              {{ $t('system.user-groups.list.filterForm.excluded.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.deleted" inputId="del1" value="1" />
-            <label for="del1" class="text-sm cursor-pointer">
-              {{ $t('system.user-groups.list.filterForm.inclusive.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.deleted" inputId="del2" value="2" />
-            <label for="del2" class="text-sm cursor-pointer">
-              {{ $t('system.user-groups.list.filterForm.exclusive.label') }}
-            </label>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <span class="font-medium text-sm text-primary">
-            {{ $t('system.user-groups.list.filterForm.archived.label') }}
-          </span>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.archived" inputId="arch0" value="0" />
-            <label for="arch0" class="text-sm cursor-pointer">
-              {{ $t('system.user-groups.list.filterForm.excluded.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.archived" inputId="arch1" value="1" />
-            <label for="arch1" class="text-sm cursor-pointer">
-              {{ $t('system.user-groups.list.filterForm.inclusive.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.archived" inputId="arch2" value="2" />
-            <label for="arch2" class="text-sm cursor-pointer">
-              {{ $t('system.user-groups.list.filterForm.exclusive.label') }}
-            </label>
-          </div>
-        </div>
+        <CResourceStatusFilter
+          :filter="filter"
+          :states="['archived', 'deleted']"
+          @update:filter="Object.assign(filter, $event)"
+        />
       </div>
     </Popover>
 
@@ -159,7 +114,7 @@ import { useRouter } from 'vue-router'
 import UserGroupDeleteBlocked from '@/sections/admin/components/UserGroup/UserGroupDeleteBlocked.vue'
 import { userGroupDeleteBlockers } from '@/sections/admin/components/UserGroup/deleteBlockers'
 
-const { CResourceList, CRouterLinkButton, CViewContainer } = components
+const { CResourceList, CResourceStatusFilter, CRouterLinkButton, CViewContainer } = components
 
 const router = useRouter()
 const { t } = useI18n()

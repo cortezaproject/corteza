@@ -39,13 +39,20 @@ composing a DataTable by hand.
   with a Deleted / Suspended / Archived tag after the date (`resourceState`, the most final
   one wins), and a deleted row's text is muted. A list does not render state
   itself.
-- Active filters show as a bar of removable chips above the table. A screen
-  passes `filterDefaults` (from `useResourceList`) and `filterLabels`; a
-  labelled key whose value differs from its default is a chip. A plain label
-  marks a Without / Including / Only filter ('0'/'1'/'2') and reads as the
-  option plus the row-state tag ("Including [Suspended]"); `{ label, value }`
-  labels anything else. Removing a chip, or Reset filter, emits `update:filter`
-  with the defaults. The search box is never a chip.
+- A list shows one status at a time: Active, or exactly one of the states its
+  resource has (`states`: deleted, suspended, archived, disabled).
+  `CResourceStatusFilter` is the one picker, a dropdown inside the list's
+  filter popover. A status maps onto the API's per-state '0'/'1'/'2' filters
+  (`statusFilter`): Active excludes every state; a state is "only" that one and
+  excludes the rest, except Deleted, which keeps its rows whatever else they
+  carry. There are no Without / Including / Only choices for states.
+- Active filters show as a bar of removable chips above the table. A status
+  other than Active is one chip, "Status" plus the row-state tag. Any other
+  filter a screen labels in `filterLabels` (compared against `filterDefaults`
+  from `useResourceList`) is a chip too: `{ key: label }` for a '0'/'1'/'2'
+  filter that is not a state, `{ key: { label, value } }` for anything else.
+  Removing a chip, or Reset filter, emits `update:filter` with Active and the
+  defaults. The search box is never a chip.
 - Cell content via `body-<field.key>` slots; also `header`, `filter`, `footer`,
   `expansion` slots. `translations` prop carries all user-facing strings.
 - useResourceList(apiFn, options): `apiFn` gets encoded params ({ limit, sort,
@@ -55,18 +62,9 @@ composing a DataTable by hand.
   `handleSort`, `handlePageChange`, `abortRequests`) that map 1:1 onto
   CResourceList's props/events. State round-trips through the route query so
   lists are deep-linkable; in-flight requests are cancelled on refetch.
-- A filter whose default is '0'/'1'/'2' is a state filter, and Only excludes
-  every other one. Choosing Only puts the other state filters back to their
-  defaults, so "only deleted" never silently intersects with another
-  narrowing; changing another state filter while one holds Only turns that
-  one into Including.
-- Sorting by last change groups by state when a state filter is set to
-  Including: `isnull(deletedAt)` (then `suspendedAt`, `archivedAt`) ahead of the
-  COALESCE, so live rows come first and deleted ones last, each group in date
-  order. A deleted row that is also suspended sorts after the other deleted
-  rows. Screens must not call
-  `filterList` from a radio's `@change`: the route write it makes lands after
-  the reset and restores the old values; the filter watcher already refetches.
+- Screens must not call `filterList` from a radio's `@change`: the route write
+  it makes lands after the next change and restores the old values; the filter
+  watcher already refetches.
 - Row navigation is NOT part of the pairing: every list screen binds its own
   `@row-click`, because the target route is per-resource. (The composable also
   returns a `handleRowClick`, but it is hardcoded to `namespace.edit` and no

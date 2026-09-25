@@ -11,11 +11,8 @@
       :items="workflowList"
       :filter="filter"
       :filter-defaults="filterDefaults"
-      :filter-labels="{
-        subWorkflow: $t('general.subworkflows'),
-        disabled: $t('general.disabled'),
-        deleted: $t('general.deleted'),
-      }"
+      :states="['disabled', 'deleted']"
+      :filter-labels="{ subWorkflow: $t('general.subworkflows') }"
       @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
@@ -130,6 +127,12 @@
 
     <Popover ref="filterMenu">
       <div class="flex flex-col gap-4 p-2 w-72">
+        <CResourceStatusFilter
+          :filter="filter"
+          :states="['disabled', 'deleted']"
+          @update:filter="Object.assign(filter, $event)"
+        />
+
         <!-- SubWorkflow filter -->
         <div class="flex flex-col gap-2">
           <span class="font-medium text-sm text-primary">{{ $t('general.subworkflows') }}</span>
@@ -140,36 +143,6 @@
               :value="opt.value"
             />
             <label :for="'sw' + opt.value" class="text-sm cursor-pointer">{{ opt.label }}</label>
-          </div>
-        </div>
-
-        <!-- Disabled filter -->
-        <div class="flex flex-col gap-2">
-          <span class="font-medium text-sm text-primary">{{ $t('general.disabled') }}</span>
-          <div
-            v-for="opt in radioOptions"
-            :key="'dis-' + opt.value"
-            class="flex items-center gap-2"
-          >
-            <RadioButton
-              v-model="filter.disabled"
-              :inputId="'dis' + opt.value"
-              :value="opt.value"
-            />
-            <label :for="'dis' + opt.value" class="text-sm cursor-pointer">{{ opt.label }}</label>
-          </div>
-        </div>
-
-        <!-- Deleted filter -->
-        <div class="flex flex-col gap-2">
-          <span class="font-medium text-sm text-primary">{{ $t('general.deleted') }}</span>
-          <div
-            v-for="opt in radioOptions"
-            :key="'del-' + opt.value"
-            class="flex items-center gap-2"
-          >
-            <RadioButton v-model="filter.deleted" :inputId="'del' + opt.value" :value="opt.value" />
-            <label :for="'del' + opt.value" class="text-sm cursor-pointer">{{ opt.label }}</label>
           </div>
         </div>
 
@@ -206,7 +179,7 @@ import Import from '../components/Import.vue'
 import Export from '../components/Export.vue'
 import NamespaceModuleSelector from '../components/NamespaceModuleSelector.vue'
 
-const { CResourceList, CRouterLinkButton } = components
+const { CResourceList, CResourceStatusFilter, CRouterLinkButton } = components
 
 const router = useRouter()
 const { t } = useI18n()
@@ -282,7 +255,7 @@ const {
 } = useResourceList(
   params => $AutomationAPI.workflowListCancellable({ ...params, labels: labelsFilter.value }),
   {
-    filter: { query: '', subWorkflow: '1', disabled: '1', deleted: '0' },
+    filter: { query: '', subWorkflow: '1', disabled: '0', deleted: '0' },
     pagination: { limit: 50 },
   },
 )

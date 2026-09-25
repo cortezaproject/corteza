@@ -18,7 +18,7 @@ Browse user groups and reach the group editor, permissions, or delete.
 
 ## UX capabilities
 
-- Search + tri-state deleted AND archived filters (popover); sort/paginate
+- Search + status filter (Active / Archived / Deleted, popover); sort/paginate
   via `useResourceList`; name column shows `meta.short` with description.
 - The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
 - Create button gated by `user-group.create`; wildcard permissions

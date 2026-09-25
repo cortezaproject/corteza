@@ -20,7 +20,7 @@ without opening the editor, and reach per-user permissions.
 
 ## UX capabilities
 
-- Search + tri-state suspended AND deleted filters (popover); sort/paginate
+- Search + status filter (Active / Suspended / Deleted, popover); sort/paginate
   via `useResourceList`. A suspended or deleted user is marked by the shared
   row-state tag in the last-change cell; the list has no state column of its own.
 - The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.

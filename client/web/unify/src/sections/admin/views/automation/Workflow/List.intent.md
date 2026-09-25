@@ -21,7 +21,7 @@ lifecycle (delete) and permissions from the list.
 
 - Paginated, searchable, sortable list (name/handle/enabled/changedAt); rows open the editor.
 - The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.
-- Tri-state disabled/deleted filters (excluded/inclusive/exclusive) in a popover; defaults include disabled, exclude deleted.
+- Status filter (Active / Disabled / Deleted, one at a time) in a popover; Active, the default, is enabled and not deleted.
 - Wildcard permissions button gated by `automation/` grant; per-row permissions/delete gated by item `canGrant` / `canDeleteWorkflow`.
 - Delete confirms, syncs `useWorkflowStore`, and refetches the list.
 

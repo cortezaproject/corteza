@@ -19,8 +19,8 @@ language, and reach the editor, permissions, or delete.
 
 ## UX capabilities
 
-- Search, sort, paginate via `useResourceList`; tri-state deleted filter in
-  a popover; name column shows `meta.short` with description underneath.
+- Search, sort, paginate via `useResourceList`; status filter (Active /
+  Deleted) in a popover; name column shows `meta.short` with description underneath.
 - Wildcard permissions button (`template/*`) gated by system `grant`;
   per-row permissions (row `canGrant`) and delete (`canDeleteTemplate`) in
   the action menu.

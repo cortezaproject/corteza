@@ -143,16 +143,6 @@ taq:
       handle: Handle
       name: Name
     filterForm:
-      deleted:
-        label: Deleted TAQs
-      disabled:
-        label: Disabled TAQs
-      excluded:
-        label: Without deleted
-      exclusive:
-        label: Only deleted
-      inclusive:
-        label: Including deleted
       query:
         placeholder: Search for TAQs
     new: New TAQ
@@ -198,16 +188,6 @@ workflows:
     delete: Delete
     export: Export
     filterForm:
-      deleted:
-        label: Deleted workflows
-      disabled:
-        label: Disabled workflows
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
-      inclusive:
-        label: Including
       query:
         label: Filter workflows list
         placeholder: Search for workflows

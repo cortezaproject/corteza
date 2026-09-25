@@ -50,14 +50,6 @@ export function useResourceList<T = any>(
   const filter = reactive<FilterState>({ ...options.filter })
   const filterDefaults: Readonly<FilterState> = Object.freeze({ ...options.filter })
 
-  // A state filter set to Including groups the last-change column: live rows
-  // first, deleted ones last, each group in date order.
-  const STATE_COLUMNS = [
-    ['deleted', 'deletedAt'],
-    ['suspended', 'suspendedAt'],
-    ['archived', 'archivedAt'],
-  ]
-
   // Lists open alphabetically. Naming `sorting` opts out, and a list whose
   // resource has no sortable `name` must: the server rejects the whole request
   // with "invalid column name: name" rather than ignoring it. `{}` means a
@@ -157,15 +149,11 @@ export function useResourceList<T = any>(
     let { sortBy, sortDesc } = sorting
     const { limit, pageCursor } = pagination
 
-    let groups = ''
     if (sortBy === CHANGED_AT_KEY) {
       sortBy = CHANGED_AT_SORT
-      groups = STATE_COLUMNS.filter(([key]) => String(filter[key]) === '1')
-        .map(([, column]) => `isnull(${column}), `)
-        .join('')
     }
 
-    const sort = sortBy ? `${groups}${sortBy} ${sortDesc ? 'DESC' : 'ASC'}` : undefined
+    const sort = sortBy ? `${sortBy} ${sortDesc ? 'DESC' : 'ASC'}` : undefined
 
     const filterParams: Record<string, any> = {}
     for (const [key, value] of Object.entries(filter)) {
@@ -310,40 +298,11 @@ export function useResourceList<T = any>(
     router.push({ name: 'namespace.edit', params: { slug: slug || namespaceID } })
   }
 
-  // Without/including/only state filters ('0'/'1'/'2'). "Only" excludes every
-  // other state filter: choosing it puts the others back to their defaults,
-  // and touching another one while it holds turns it into "including".
-  const stateKeys = Object.keys(filterDefaults).filter(k =>
-    ['0', '1', '2'].includes(String(filterDefaults[k])),
-  )
-  // Set while the watcher run our own writes trigger is still to come.
-  let settling = false
-  function reconcileStates(now: FilterState, before: FilterState) {
-    if (settling) {
-      settling = false
-      return
-    }
-    const changed = stateKeys.filter(k => String(now[k]) !== String(before[k]))
-    if (!changed.length) return
-
-    const only = changed.find(k => String(now[k]) === '2')
-    const writes: [string, unknown][] = only
-      ? stateKeys
-          .filter(k => k !== only && String(filter[k]) !== String(filterDefaults[k]))
-          .map(k => [k, filterDefaults[k]])
-      : stateKeys.filter(k => !changed.includes(k) && String(filter[k]) === '2').map(k => [k, '1'])
-    if (!writes.length) return
-
-    settling = true
-    for (const [k, v] of writes) filter[k] = v
-  }
-
   // Debounced watcher on filter changes — auto-search as user types
   let filterDebounceTimer: ReturnType<typeof setTimeout> | null = null
   watch(
     () => ({ ...filter }),
-    (now, before) => {
-      reconcileStates(now, before)
+    () => {
       if (filterDebounceTimer) clearTimeout(filterDebounceTimer)
       filterDebounceTimer = setTimeout(() => {
         filterList()

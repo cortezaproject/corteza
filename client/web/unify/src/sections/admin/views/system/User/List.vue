@@ -11,10 +11,7 @@
       :items="userList"
       :filter="filter"
       :filter-defaults="filterDefaults"
-      :filter-labels="{
-        suspended: $t('system.users.list.filterForm.suspended.label'),
-        deleted: $t('system.users.list.filterForm.deleted.label'),
-      }"
+      :states="['suspended', 'deleted']"
       @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
@@ -84,53 +81,11 @@
 
     <Popover ref="filterMenu">
       <div class="flex flex-col gap-4 p-2 w-64">
-        <div class="flex flex-col gap-2">
-          <span class="font-medium text-sm text-primary">
-            {{ $t('system.users.list.filterForm.suspended.label') }}
-          </span>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.suspended" :inputId="'susp0'" value="0" />
-            <label for="susp0" class="text-sm cursor-pointer">
-              {{ $t('system.users.list.filterForm.excluded.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.suspended" :inputId="'susp1'" value="1" />
-            <label for="susp1" class="text-sm cursor-pointer">
-              {{ $t('system.users.list.filterForm.inclusive.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.suspended" :inputId="'susp2'" value="2" />
-            <label for="susp2" class="text-sm cursor-pointer">
-              {{ $t('system.users.list.filterForm.exclusive.label') }}
-            </label>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <span class="font-medium text-sm text-primary">
-            {{ $t('system.users.list.filterForm.deleted.label') }}
-          </span>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.deleted" :inputId="'del0'" value="0" />
-            <label for="del0" class="text-sm cursor-pointer">
-              {{ $t('system.users.list.filterForm.excluded.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.deleted" :inputId="'del1'" value="1" />
-            <label for="del1" class="text-sm cursor-pointer">
-              {{ $t('system.users.list.filterForm.inclusive.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.deleted" :inputId="'del2'" value="2" />
-            <label for="del2" class="text-sm cursor-pointer">
-              {{ $t('system.users.list.filterForm.exclusive.label') }}
-            </label>
-          </div>
-        </div>
+        <CResourceStatusFilter
+          :filter="filter"
+          :states="['suspended', 'deleted']"
+          @update:filter="Object.assign(filter, $event)"
+        />
       </div>
     </Popover>
   </CViewContainer>
@@ -152,7 +107,7 @@ import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { CResourceList, CRouterLinkButton, CViewContainer } = components
+const { CResourceList, CResourceStatusFilter, CRouterLinkButton, CViewContainer } = components
 
 const router = useRouter()
 const { t } = useI18n()

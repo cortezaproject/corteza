@@ -147,16 +147,8 @@ apigw:
     delete: Delete
     export: Export
     filterForm:
-      deleted:
-        label: Deleted routes
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
       handle:
         placeholder: Filter endpoints by path
-      inclusive:
-        label: Including
       query:
         label: Filter route list
         placeholder: Search for routes
@@ -317,14 +309,6 @@ applications:
     delete: Delete
     export: Export
     filterForm:
-      deleted:
-        label: Deleted applications
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
-      inclusive:
-        label: Including
       query:
         label: Filter applications list
         placeholder: Search for applications
@@ -436,14 +420,6 @@ authclients:
       validGrant: Grant type
     delete: Delete
     filterForm:
-      deleted:
-        label: Deleted clients
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
-      inclusive:
-        label: Including
       query:
         label: Filter clients list
         placeholder: Search for auth clients
@@ -559,15 +535,6 @@ connections:
     createCustom: Create custom connection
     createLabel: New Connection
     deleteConfirm: Are you sure you want to delete this connection?
-    filterForm:
-      deleted:
-        label: Deleted connections
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
-      inclusive:
-        label: Including
     resourceSingle: connection
     searchPlaceholder: Search for connections
     sourceValues:
@@ -679,14 +646,6 @@ data-sources:
       type: Type
     delete: Delete
     filterForm:
-      deleted:
-        label: Deleted Data Sources
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
-      inclusive:
-        label: Including
       query:
         placeholder: Search for data sources
     loading: Loading Data Sources
@@ -872,17 +831,9 @@ queues:
     delete: Delete
     export: Export
     filterForm:
-      deleted:
-        label: Deleted queues
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
       handle:
         label: Filter queues list
         placeholder: Search for queues
-      inclusive:
-        label: Including
     loading: Loading messaging queues
     new: New Queue
     rows:
@@ -940,16 +891,6 @@ roles:
       state: State
     delete: Delete
     filterForm:
-      archived:
-        label: Archived roles
-      deleted:
-        label: Deleted roles
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
-      inclusive:
-        label: Including
       query:
         label: Filter roles list
         placeholder: Search for roles
@@ -1253,17 +1194,9 @@ templates:
     delete: Delete
     export: Export
     filterForm:
-      deleted:
-        label: Deleted templates
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
       handle:
         label: Filter templates list
         placeholder: Search for templates
-      inclusive:
-        label: Including
     loading: Loading templates
     new: New Template
     permissions: Permissions
@@ -1357,16 +1290,6 @@ user-groups:
     delete: Delete
     export: Export
     filterForm:
-      archived:
-        label: Archived user groups
-      deleted:
-        label: Deleted user groups
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
-      inclusive:
-        label: Including
       query:
         label: Filter user groups list
         placeholder: Search for user groups
@@ -1495,19 +1418,9 @@ users:
     delete: Delete
     export: Export
     filterForm:
-      deleted:
-        label: Deleted users
-      excluded:
-        label: Without
-      exclusive:
-        label: Only
-      inclusive:
-        label: Including
       query:
         label: Filter users list
         placeholder: Search for users
-      suspended:
-        label: Suspended users
     loading: Loading users
     new: New User
     permissions: Permissions

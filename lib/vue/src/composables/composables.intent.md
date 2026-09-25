@@ -39,7 +39,8 @@ Sections use these instead of re-implementing per-app variants.
 - usePermissions.ts — provide/inject context for the app-level permission dialog (`providePermissions` once in App).
 - useRBAC.ts — `useRBACStore`: effective permission rules from all APIs; `can(resource, op)` defaults to deny.
 - useChangedAt.ts — the one "last change" column every resource list ends with: `changedAtField(header)` for the field, `changedAt`/`changedAtText` for the cell, `resourceState` for the row's lifecycle tag (deleted, then suspended, then archived). The value is the most recent of deletedAt/updatedAt/createdAt, read from either a wire row (strings) or a lib/js model (Dates), and Go's zero time counts as no timestamp.
-- useResourceList.ts — full list-view state machine: filter/sort/cursor pagination synced to route query, abortable requests; exposes `filterDefaults`; Only on one state filter resets the others, and touching another turns an Only into Including; a last-change sort is grouped by every state filter set to Including.
+- useResourceList.ts — full list-view state machine: filter/sort/cursor pagination synced to route query, abortable requests; exposes `filterDefaults`.
+- useResourceStatus.ts — a list's one-at-a-time status: `statusOf(filter, states)` reads it, `statusFilter(status, states)` writes the per-state filters (Deleted keeps rows that also carry another state).
 - useRightSidebarResize.ts — mouse-drag resize state for the right sidebar (280–800px clamp).
 - useTheme.ts — PrimeVue preset construction from theme variables, light/dark handling.
 - useDraftGuard.ts — the unsaved-changes guard for a screen editing one resource: owns the baseline, the deep comparison and the busy suppression; `capture()` marks the current state saved, `extra` covers state held beside the draft.
@@ -57,7 +58,7 @@ Sections use these instead of re-implementing per-app variants.
   it displays. Sorting such a column on `updatedAt` alone gives every
   never-updated row a NULL key, which the database groups at one end.
 - `changedAtText` returns '' for a resource with no timestamp. The date filters
-  parse through moment, which reads a missing value as *now* — an unguarded
+  parse through moment, which reads a missing value as _now_ — an unguarded
   call renders today for a record that was never written.
 - `usePermissions` throws when no provider exists — keep `providePermissions`
   in the app root.

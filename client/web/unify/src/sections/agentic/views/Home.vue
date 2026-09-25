@@ -11,7 +11,7 @@
       :items="agentList"
       :filter="filter"
       :filter-defaults="filterDefaults"
-      :filter-labels="{ deleted: $t('agent.list.filterForm.deleted.label') }"
+      :states="['deleted']"
       @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
@@ -83,28 +83,12 @@
     </CResourceList>
 
     <Popover ref="filterMenu">
-      <div class="flex flex-col gap-2 p-2 w-64">
-        <span class="font-medium text-sm text-primary">
-          {{ $t('agent.list.filterForm.deleted.label') }}
-        </span>
-        <div class="flex items-center gap-2">
-          <RadioButton v-model="filter.deleted" inputId="del0" value="0" />
-          <label for="del0" class="text-sm cursor-pointer">
-            {{ $t('agent.list.filterForm.excluded.label') }}
-          </label>
-        </div>
-        <div class="flex items-center gap-2">
-          <RadioButton v-model="filter.deleted" inputId="del1" value="1" />
-          <label for="del1" class="text-sm cursor-pointer">
-            {{ $t('agent.list.filterForm.inclusive.label') }}
-          </label>
-        </div>
-        <div class="flex items-center gap-2">
-          <RadioButton v-model="filter.deleted" inputId="del2" value="2" />
-          <label for="del2" class="text-sm cursor-pointer">
-            {{ $t('agent.list.filterForm.exclusive.label') }}
-          </label>
-        </div>
+      <div class="p-2 w-64">
+        <CResourceStatusFilter
+          :filter="filter"
+          :states="['deleted']"
+          @update:filter="Object.assign(filter, $event)"
+        />
       </div>
     </Popover>
   </div>
@@ -125,7 +109,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAgentStore } from '@planetcrust/human-vue'
 
-const { CResourceList, CRouterLinkButton } = components
+const { CResourceList, CResourceStatusFilter, CRouterLinkButton } = components
 
 const router = useRouter()
 const { t } = useI18n()

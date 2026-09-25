@@ -22,8 +22,8 @@ export/import) without opening the editor; entry point to the canvas.
 
 ## UX capabilities
 
-- Search/sort/paginate via `useResourceList`; filter popover: tri-state
-  subWorkflow / disabled / deleted radios + namespace/module label filter
+- Search/sort/paginate via `useResourceList`; filter popover: status
+  (Active / Disabled / Deleted), tri-state subWorkflow radios + namespace/module label filter
   (`ref_namespace=[…]` / `ref_module=[…]` label queries); rows resolve
   namespace/module tags through the labels store.
 - The last column is the shared "Last change" column (`changedAtField`): the most recent of deletedAt/updatedAt/createdAt, sorted by the same COALESCE expression.

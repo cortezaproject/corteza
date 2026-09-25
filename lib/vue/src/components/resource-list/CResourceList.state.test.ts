@@ -59,39 +59,48 @@ describe('CResourceList active filters', () => {
         fields: [{ key: 'name', header: 'Name' }],
         items,
         filter,
-        filterDefaults: { query: '', deleted: '0', status: undefined },
-        filterLabels: {
-          deleted: 'Deleted roles',
-          status: { label: 'Status', value: (v: string) => `is ${v}` },
-        },
+        states: ['suspended', 'deleted'],
+        filterDefaults: { query: '', suspended: '0', deleted: '0', kind: undefined },
+        filterLabels: { kind: { label: 'Kind', value: (v: string) => `is ${v}` } },
         sorting: {},
         pagination: { total: items.length, limit: 10, page: 1 },
       },
     })
   }
 
-  it('shows no bar while every labelled filter is at its default', () => {
-    const w = mountFiltered({ query: 'searching', deleted: '0' })
+  const chipsOf = (w: ReturnType<typeof mountFiltered>) =>
+    w.findAll('[data-test-id="active-filters"] [data-pc-name="chip"]')
+
+  it('shows no bar while the status is Active and nothing else is set', () => {
+    const w = mountFiltered({ query: 'searching', suspended: '0', deleted: '0' })
     expect(w.find('[data-test-id="active-filters"]').exists()).toBe(false)
   })
 
-  it('shows a chip per changed filter, state and custom alike', () => {
-    const w = mountFiltered({ query: '', deleted: '2', status: 'draft' })
-    const chips = w.findAll('[data-test-id="active-filters"] [data-pc-name="chip"]')
-    const state = chips[0]
-    expect(state.find('span').text()).toBe('general.resourceList.filter.exclusive')
-    const tag = state.find('[data-pc-name="tag"]')
+  it('shows the status as one chip with its row-state tag', () => {
+    const w = mountFiltered({ query: '', suspended: '1', deleted: '2' })
+    const chips = chipsOf(w)
+    expect(chips).toHaveLength(1)
+    expect(chips[0].find('span').text()).toBe('general.resourceList.status.label')
+    const tag = chips[0].find('[data-pc-name="tag"]')
     expect(tag.text()).toBe('general.resourceList.state.deleted')
     expect(tag.attributes('data-p')).toBe('danger')
-    const custom = chips[1].findAll('span:not([data-pc-section])').map(s => s.text())
-    expect(custom).toEqual(['Status', 'is draft'])
   })
 
-  it('puts a removed chip, or all of them on reset, back to the default', async () => {
-    const w = mountFiltered({ query: 'q', deleted: '1', status: 'draft' })
+  it('shows other labelled filters beside it', () => {
+    const w = mountFiltered({ suspended: '2', deleted: '0', kind: 'bot' })
+    const custom = chipsOf(w)[1]
+      .findAll('span:not([data-pc-section])')
+      .map(s => s.text())
+    expect(custom).toEqual(['Kind', 'is bot'])
+  })
+
+  it('puts a removed status back to Active, and reset clears everything', async () => {
+    const w = mountFiltered({ query: 'q', suspended: '1', deleted: '2', kind: 'bot' })
     await w.find('[data-pc-name="chip"] [data-pc-section="removeicon"]').trigger('click')
-    expect(w.emitted('update:filter')?.[0]).toEqual([{ deleted: '0' }])
+    expect(w.emitted('update:filter')?.[0]).toEqual([{ suspended: '0', deleted: '0' }])
     await w.find('[data-test-id="active-filters"] button').trigger('click')
-    expect(w.emitted('update:filter')?.[1]).toEqual([{ deleted: '0', status: undefined }])
+    expect(w.emitted('update:filter')?.[1]).toEqual([
+      { suspended: '0', deleted: '0', kind: undefined },
+    ])
   })
 })

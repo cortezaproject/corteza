@@ -335,7 +335,10 @@ resourceList:
     recordsPerPage: Per Page
     showing: '{from} - {to} of {count} {data}'
     single: No {data} | One {data} | {count} {data}
+  status:
+    label: Status
   state:
+    active: Active
     archived: Archived
     deleted: Deleted
     disabled: Disabled

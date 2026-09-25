@@ -11,10 +11,7 @@
       :items="items"
       :filter="filter"
       :filter-defaults="filterDefaults"
-      :filter-labels="{
-        disabled: $t('automation.taq.list.filterForm.disabled.label'),
-        deleted: $t('automation.taq.list.filterForm.deleted.label'),
-      }"
+      :states="['disabled', 'deleted']"
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
@@ -94,53 +91,11 @@
 
     <Popover ref="filterMenu">
       <div class="flex flex-col gap-4 p-2 w-64">
-        <div class="flex flex-col gap-2">
-          <span class="font-medium text-sm text-primary">
-            {{ $t('automation.taq.list.filterForm.disabled.label') }}
-          </span>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.disabled" inputId="dis0" value="0" />
-            <label for="dis0" class="text-sm cursor-pointer">
-              {{ $t('automation.taq.list.filterForm.excluded.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.disabled" inputId="dis1" value="1" />
-            <label for="dis1" class="text-sm cursor-pointer">
-              {{ $t('automation.taq.list.filterForm.inclusive.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.disabled" inputId="dis2" value="2" />
-            <label for="dis2" class="text-sm cursor-pointer">
-              {{ $t('automation.taq.list.filterForm.exclusive.label') }}
-            </label>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <span class="font-medium text-sm text-primary">
-            {{ $t('automation.taq.list.filterForm.deleted.label') }}
-          </span>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.deleted" inputId="del0" value="0" />
-            <label for="del0" class="text-sm cursor-pointer">
-              {{ $t('automation.taq.list.filterForm.excluded.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.deleted" inputId="del1" value="1" />
-            <label for="del1" class="text-sm cursor-pointer">
-              {{ $t('automation.taq.list.filterForm.inclusive.label') }}
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <RadioButton v-model="filter.deleted" inputId="del2" value="2" />
-            <label for="del2" class="text-sm cursor-pointer">
-              {{ $t('automation.taq.list.filterForm.exclusive.label') }}
-            </label>
-          </div>
-        </div>
+        <CResourceStatusFilter
+          :filter="filter"
+          :states="['disabled', 'deleted']"
+          @update:filter="Object.assign(filter, $event)"
+        />
       </div>
     </Popover>
   </CViewContainer>
@@ -160,7 +115,7 @@ import {
 } from '@planetcrust/human-vue'
 import { useAutomationStore } from '@planetcrust/human-vue'
 
-const { CResourceList, CViewContainer } = components
+const { CResourceList, CResourceStatusFilter, CViewContainer } = components
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()
@@ -210,7 +165,7 @@ const {
   handlePageChange,
   filterList,
 } = useResourceList(params => $AutomationAPI.ngAutomationListCancellable({ ...params }), {
-  filter: { query: '', deleted: '0', disabled: '1' },
+  filter: { query: '', deleted: '0', disabled: '0' },
   pagination: { limit: 50 },
 })
 

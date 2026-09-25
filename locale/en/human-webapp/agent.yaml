@@ -259,15 +259,6 @@ list:
     status: Status
   create: Create agent
   delete: Are you sure you want to delete this agent?
-  filterForm:
-    deleted:
-      label: Deleted agents
-    excluded:
-      label: Without
-    exclusive:
-      label: Only
-    inclusive:
-      label: Including
   searchPlaceholder: Search for agents
   status:
     active: Active

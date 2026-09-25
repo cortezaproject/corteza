@@ -87,29 +87,6 @@ describe('useResourceList', () => {
       )
     })
 
-    it('groups the last-change sort by every state filter set to including', async () => {
-      const api = makeAPI([])
-      mountList(api, {
-        sorting: { sortBy: 'changedAt', sortDesc: true },
-        filter: { deleted: '1', suspended: '1', archived: '0' },
-      })
-      await flushPromises()
-
-      expect(api).toHaveBeenCalledWith(
-        expect.objectContaining({
-          sort: 'isnull(deletedAt), isnull(suspendedAt), coalesce(deletedAt, updatedAt, createdAt) DESC',
-        }),
-      )
-    })
-
-    it('leaves other sorts ungrouped', async () => {
-      const api = makeAPI([])
-      mountList(api, { sorting: { sortBy: 'name', sortDesc: false }, filter: { deleted: '1' } })
-      await flushPromises()
-
-      expect(api).toHaveBeenCalledWith(expect.objectContaining({ sort: 'name ASC' }))
-    })
-
     it('treats an empty sorting as opting out, for a resource the server cannot sort', async () => {
       const api = makeAPI([])
       mountList(api, { sorting: {} })
@@ -366,56 +343,6 @@ describe('useResourceList', () => {
       await flushPromises()
       expect(list.error.value).toBeInstanceOf(Error)
       expect(list.loading.value).toBe(false)
-    })
-  })
-
-  describe('state filters', () => {
-    it('puts the other state filters back to default when one is set to only', async () => {
-      const { list } = mountList(makeAPI(), {
-        filter: { query: '', deleted: '0', archived: '0', disabled: '1' },
-      })
-      await flushPromises()
-      list.filter.archived = '1'
-      list.filter.disabled = '0'
-      await nextTick()
-      list.filter.deleted = '2'
-      await nextTick()
-      expect({ ...list.filter }).toEqual({ query: '', deleted: '2', archived: '0', disabled: '1' })
-    })
-
-    it('turns an only into including when another state filter is touched', async () => {
-      const { list } = mountList(makeAPI(), { filter: { deleted: '0', archived: '0' } })
-      await flushPromises()
-      list.filter.archived = '2'
-      await nextTick()
-      list.filter.deleted = '1'
-      await nextTick()
-      await nextTick()
-      expect({ ...list.filter }).toEqual({ deleted: '1', archived: '1' })
-    })
-
-    it('keeps the only it just set when the reset settles', async () => {
-      const { list } = mountList(makeAPI(), { filter: { deleted: '0', archived: '0' } })
-      await flushPromises()
-      list.filter.archived = '1'
-      await nextTick()
-      list.filter.deleted = '2'
-      await nextTick()
-      await nextTick()
-      expect({ ...list.filter }).toEqual({ deleted: '2', archived: '0' })
-      list.filter.archived = '1'
-      await nextTick()
-      await nextTick()
-      expect({ ...list.filter }).toEqual({ deleted: '1', archived: '1' })
-    })
-
-    it('leaves a non-state filter change alone', async () => {
-      const { list } = mountList(makeAPI(), { filter: { query: '', deleted: '2', archived: '0' } })
-      await flushPromises()
-      list.filter.query = 'x'
-      await nextTick()
-      await nextTick()
-      expect(list.filter.deleted).toBe('2')
     })
   })
 })

@@ -577,7 +577,7 @@
       "t": "2026-09-22"
     },
     "client/web/unify/src/sections/admin/views/system/UserGroup/List.vue": {
-      "h": "04cab3f74dcd",
+      "h": "b30079db3030",
       "doc": "client/web/unify/src/sections/admin/views/system/UserGroup/List.intent.md",
       "t": "2026-09-25"
     },
@@ -4637,7 +4637,7 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/components/resource-list/CResourceList.state.test.ts": {
-      "h": "3127198a2fa1",
+      "h": "a894e483d3ab",
       "doc": "lib/vue/src/components/resource-list/resource-list.intent.md",
       "t": "2026-09-25"
     },
@@ -4645,6 +4645,16 @@
       "h": "cac90deea881",
       "doc": "lib/vue/src/components/resource-list/resource-list.intent.md",
       "t": "2026-07-23"
+    },
+    "lib/vue/src/components/resource-list/CResourceStatusFilter.test.ts": {
+      "h": "011a4bfaa172",
+      "doc": "lib/vue/src/components/resource-list/resource-list.intent.md",
+      "t": "2026-09-25"
+    },
+    "lib/vue/src/components/resource-list/CResourceStatusFilter.vue": {
+      "h": "a69c3ef86919",
+      "doc": "lib/vue/src/components/resource-list/resource-list.intent.md",
+      "t": "2026-09-25"
     },
     "lib/vue/src/components/resource-list/index.ts": {
       "h": "b62ad0d2d8d7",
@@ -4781,6 +4791,16 @@
       "doc": "lib/vue/src/composables/composables.intent.md",
       "t": "2026-08-21"
     },
+    "lib/vue/src/composables/useResourceStatus.test.ts": {
+      "h": "e0a5cd8c8c90",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-09-25"
+    },
+    "lib/vue/src/composables/useResourceStatus.ts": {
+      "h": "e742b0ba0d61",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-09-25"
+    },
     "lib/vue/src/composables/useRightSidebarResize.ts": {
       "h": "2d501bcad76e",
       "doc": "lib/vue/src/composables/composables.intent.md",
@@ -4887,7 +4907,7 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/index.ts": {
-      "h": "8fa55df68ada",
+      "h": "5c3d3220ef7d",
       "doc": "lib/vue/vue.intent.md",
       "t": "2026-09-25"
     },

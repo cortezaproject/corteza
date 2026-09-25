@@ -230,6 +230,7 @@ import { useI18n } from 'vue-i18n'
 import CInputSearch from '../input/CInputSearch.vue'
 import CPager from './CPager.vue'
 import { CHANGED_AT_KEY, resourceState } from '../../composables/useChangedAt'
+import { statusFilter, statusOf } from '../../composables/useResourceStatus'
 import { useTableBusy } from '../../composables/useTableBusy'
 import { useGrowOnlyColumns } from '../../composables/useGrowOnlyColumns'
 
@@ -285,6 +286,12 @@ const props = defineProps({
   filterDefaults: {
     type: Object,
     default: () => ({}),
+  },
+  // The lifecycle states the list's status filter picks from (deleted,
+  // suspended, archived, disabled); a status other than Active is a chip.
+  states: {
+    type: Array,
+    default: () => [],
   },
   // Filter keys shown as chips: `{ key: label }` for a without/including/only
   // state filter ('0'/'1'/'2'), shown as the option and the row-state tag, or
@@ -423,32 +430,47 @@ const STATE_SEVERITY = {
 
 const STATE_FILTER = { 0: 'excluded', 1: 'inclusive', 2: 'exclusive' }
 
-const filterChips = computed(() =>
-  Object.entries(props.filterLabels)
-    .filter(([key]) => String(props.filter[key] ?? '') !== String(props.filterDefaults[key] ?? ''))
-    .map(([key, label]) => {
-      const value = props.filter[key]
-      const option = STATE_FILTER[value]
-      if (typeof label === 'string' && option) {
-        const known = key in STATE_SEVERITY
-        return {
-          key,
-          value: t(`general.resourceList.filter.${option}`),
-          tag: {
-            value: known ? t(`general.resourceList.state.${key}`) : label,
-            severity: known ? STATE_SEVERITY[key] : 'secondary',
-          },
-        }
-      }
-      if (typeof label === 'string') {
-        return { key, label, value: String(value ?? '') }
-      }
-      return { key, label: label.label, value: label.value(value) }
-    }),
-)
+const STATUS_CHIP = '__status'
+
+const filterChips = computed(() => {
+  const chips = []
+
+  const status = statusOf(props.filter, props.states)
+  if (status !== 'active') {
+    chips.push({
+      key: STATUS_CHIP,
+      value: t('general.resourceList.status.label'),
+      tag: { value: t(`general.resourceList.state.${status}`), severity: STATE_SEVERITY[status] },
+    })
+  }
+
+  for (const [key, label] of Object.entries(props.filterLabels)) {
+    if (String(props.filter[key] ?? '') === String(props.filterDefaults[key] ?? '')) continue
+    const value = props.filter[key]
+    const option = STATE_FILTER[value]
+    if (typeof label === 'string' && option) {
+      chips.push({
+        key,
+        value: t(`general.resourceList.filter.${option}`),
+        tag: { value: label, severity: 'secondary' },
+      })
+    } else if (typeof label === 'string') {
+      chips.push({ key, label, value: String(value ?? '') })
+    } else {
+      chips.push({ key, label: label.label, value: label.value(value) })
+    }
+  }
+
+  return chips
+})
 
 function clearFilters(keys) {
-  emit('update:filter', Object.fromEntries(keys.map(k => [k, props.filterDefaults[k]])))
+  const reset = {}
+  for (const k of keys) {
+    if (k === STATUS_CHIP) Object.assign(reset, statusFilter('active', props.states))
+    else reset[k] = props.filterDefaults[k]
+  }
+  emit('update:filter', reset)
 }
 
 const rowClass = row => {

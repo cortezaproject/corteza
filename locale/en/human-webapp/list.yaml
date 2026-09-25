@@ -25,16 +25,6 @@ dialog:
     nameRequired: Name is required
 disabled: Disabled
 filterForm:
-  deleted:
-    label: Deleted automations
-  disabled:
-    label: Disabled automations
-  excluded:
-    label: Without
-  exclusive:
-    label: Only
-  inclusive:
-    label: Including
   query:
     placeholder: Search for TAQs
 new: New TAQ
