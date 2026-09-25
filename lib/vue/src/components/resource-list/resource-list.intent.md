@@ -59,7 +59,12 @@ composing a DataTable by hand.
   every other one. Choosing Only puts the other state filters back to their
   defaults, so "only deleted" never silently intersects with another
   narrowing; changing another state filter while one holds Only turns that
-  one into Including. Screens must not call
+  one into Including.
+- Sorting by last change groups by state when a state filter is set to
+  Including: `isnull(deletedAt)` (then `suspendedAt`, `archivedAt`) ahead of the
+  COALESCE, so live rows come first and deleted ones last, each group in date
+  order. A deleted row that is also suspended sorts after the other deleted
+  rows. Screens must not call
   `filterList` from a radio's `@change`: the route write it makes lands after
   the reset and restores the old values; the filter watcher already refetches.
 - Row navigation is NOT part of the pairing: every list screen binds its own

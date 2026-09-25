@@ -87,6 +87,29 @@ describe('useResourceList', () => {
       )
     })
 
+    it('groups the last-change sort by every state filter set to including', async () => {
+      const api = makeAPI([])
+      mountList(api, {
+        sorting: { sortBy: 'changedAt', sortDesc: true },
+        filter: { deleted: '1', suspended: '1', archived: '0' },
+      })
+      await flushPromises()
+
+      expect(api).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sort: 'isnull(deletedAt), isnull(suspendedAt), coalesce(deletedAt, updatedAt, createdAt) DESC',
+        }),
+      )
+    })
+
+    it('leaves other sorts ungrouped', async () => {
+      const api = makeAPI([])
+      mountList(api, { sorting: { sortBy: 'name', sortDesc: false }, filter: { deleted: '1' } })
+      await flushPromises()
+
+      expect(api).toHaveBeenCalledWith(expect.objectContaining({ sort: 'name ASC' }))
+    })
+
     it('treats an empty sorting as opting out, for a resource the server cannot sort', async () => {
       const api = makeAPI([])
       mountList(api, { sorting: {} })

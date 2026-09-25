@@ -50,6 +50,14 @@ export function useResourceList<T = any>(
   const filter = reactive<FilterState>({ ...options.filter })
   const filterDefaults: Readonly<FilterState> = Object.freeze({ ...options.filter })
 
+  // A state filter set to Including groups the last-change column: live rows
+  // first, deleted ones last, each group in date order.
+  const STATE_COLUMNS = [
+    ['deleted', 'deletedAt'],
+    ['suspended', 'suspendedAt'],
+    ['archived', 'archivedAt'],
+  ]
+
   // Lists open alphabetically. Naming `sorting` opts out, and a list whose
   // resource has no sortable `name` must: the server rejects the whole request
   // with "invalid column name: name" rather than ignoring it. `{}` means a
@@ -149,11 +157,15 @@ export function useResourceList<T = any>(
     let { sortBy, sortDesc } = sorting
     const { limit, pageCursor } = pagination
 
+    let groups = ''
     if (sortBy === CHANGED_AT_KEY) {
       sortBy = CHANGED_AT_SORT
+      groups = STATE_COLUMNS.filter(([key]) => String(filter[key]) === '1')
+        .map(([, column]) => `isnull(${column}), `)
+        .join('')
     }
 
-    const sort = sortBy ? `${sortBy} ${sortDesc ? 'DESC' : 'ASC'}` : undefined
+    const sort = sortBy ? `${groups}${sortBy} ${sortDesc ? 'DESC' : 'ASC'}` : undefined
 
     const filterParams: Record<string, any> = {}
     for (const [key, value] of Object.entries(filter)) {
