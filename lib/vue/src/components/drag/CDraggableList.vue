@@ -13,17 +13,18 @@
     :animation="150"
     :fallback-tolerance="5"
     :scroll-sensitivity="60"
-    force-fallback
-    fallback-on-body
-    scroll
-    bubble-scroll
+    :force-fallback="true"
+    :fallback-on-body="true"
+    :scroll="true"
+    :bubble-scroll="true"
     ghost-class="c-drag-ghost"
     chosen-class="c-drag-chosen"
     drag-class="c-drag-image"
+    @start="onStart"
     @add="e => emit('add', normalize(e))"
     @update="e => emit('update', normalize(e))"
     @remove="e => emit('remove', normalize(e))"
-    @end="e => emit('end', normalize(e))"
+    @end="onEnd"
   >
     <slot />
   </VueDraggable>
@@ -49,7 +50,9 @@ import { VueDraggable } from 'vue-draggable-plus'
 // force-fallback replaces the browser's native drag image with a clone
 // SortableJS positions itself. That is what makes touch work at all — native
 // HTML5 drag never fires on a touchscreen — and what keeps the lifted card
-// looking identical across browsers.
+// looking identical across browsers. The wrapper's props are untyped, so a
+// boolean option is bound as `true`: a bare attribute reaches SortableJS as ""
+// and turns the option off.
 
 const items = defineModel({ type: Array, required: true })
 
@@ -89,6 +92,18 @@ defineProps({
 
 const emit = defineEmits(['add', 'update', 'remove', 'end'])
 
+// The page selects no text while an item is carried across it: SortableJS
+// clears the selection as the drag starts, and this keeps a new one from
+// following the pointer over every row it passes.
+function onStart(e) {
+  document.body.classList.add('c-dragging')
+}
+
+function onEnd(e) {
+  document.body.classList.remove('c-dragging')
+  emit('end', normalize(e))
+}
+
 function normalize(e) {
   return {
     item: e.data,
@@ -120,11 +135,19 @@ function normalize(e) {
   cursor: grabbing;
 }
 
+/* The clone of an <li> sits under <body>, outside any list, where it would
+   grow the bullet its list suppresses. */
 .c-drag-image {
   cursor: grabbing;
   opacity: 0.9;
+  list-style: none;
   background: var(--p-content-background);
   border-radius: var(--p-content-border-radius);
   box-shadow: var(--p-overlay-popover-shadow, 0 8px 24px rgb(0 0 0 / 25%));
+}
+
+body.c-dragging {
+  user-select: none;
+  -webkit-user-select: none;
 }
 </style>
