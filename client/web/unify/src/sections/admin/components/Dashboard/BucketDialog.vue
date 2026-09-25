@@ -7,7 +7,10 @@
     data-testid="dashboard-bucket-dialog"
     @update:visible="$emit('update:visible', $event)"
   >
-    <div v-if="error" class="text-base text-red-500">{{ $t('dashboard.loadFailed') }}</div>
+    <div v-if="error" class="flex flex-col gap-1">
+      <span class="text-base text-red-500">{{ $t('dashboard.loadFailed') }}</span>
+      <span class="text-sm text-muted-color break-words">{{ error.message || String(error) }}</span>
+    </div>
 
     <div v-else-if="!events" class="flex items-center justify-center py-10">
       <ProgressSpinner style="width: 32px; height: 32px" />
