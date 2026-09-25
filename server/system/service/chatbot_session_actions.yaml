@@ -76,7 +76,7 @@ errors:
     severity: warning
 
   - error: agentNotConfigured
-    message: "agent not configured for system invocation"
+    message: "conversation step has no run-as user"
     severity: warning
 
   - error: handoffNotFound

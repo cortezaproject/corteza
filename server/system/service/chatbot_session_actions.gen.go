@@ -658,7 +658,7 @@ func ChatbotSessionErrAgentNotConfigured(mm ...*chatbotSessionActionProps) *erro
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("agent not configured for system invocation", nil),
+		p.Format("conversation step has no run-as user", nil),
 
 		errors.Meta("type", "agentNotConfigured"),
 		errors.Meta("resource", "system:chatbot-session"),
