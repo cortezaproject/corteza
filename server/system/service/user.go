@@ -432,10 +432,14 @@ func (svc user) generateUserAvatarInitial(ctx context.Context, u *types.User) (e
 	}
 
 	if u.Meta.AvatarID != 0 {
-		if att, err = svc.services.att.FindByID(ctx, u.Meta.AvatarID); err != nil {
+		att, err = svc.services.att.FindByID(ctx, u.Meta.AvatarID)
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
+	}
 
+	// An avatar whose attachment is gone is replaced like a missing one.
+	if att != nil {
 		if att.Meta.Labels["key"] == types.AttachmentKindAvatar {
 			return nil
 		}
