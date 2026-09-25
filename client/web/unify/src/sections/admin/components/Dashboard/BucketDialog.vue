@@ -129,9 +129,11 @@ watch(
   { immediate: true },
 )
 
-const title = computed(() => `${t(`dashboard.bucket.${props.kind}`)} · ${props.label}`)
-const countLabel = computed(() => t(`dashboard.bucket.count.${props.kind}`))
-const listLabel = computed(() => t(`dashboard.bucket.list.${props.kind}`))
+const title = computed(() =>
+  props.kind ? `${t(`dashboard.bucket.${props.kind}`)} · ${props.label}` : '',
+)
+const countLabel = computed(() => (props.kind ? t(`dashboard.bucket.count.${props.kind}`) : ''))
+const listLabel = computed(() => (props.kind ? t(`dashboard.bucket.list.${props.kind}`) : ''))
 const barColor = computed(() => seriesColor('activity', isDark.value))
 
 const maxCount = computed(() => Math.max(1, ...(events.value?.ranking || []).map(r => r.count)))
