@@ -48,10 +48,11 @@
 
                 <template #filter>
                   <Button
+                    :label="$t('general.filter.label')"
                     icon="pi pi-filter"
                     severity="secondary"
                     size="small"
-                    text
+                    outlined
                     @click="toggleTaqFilterMenu"
                   />
                 </template>
@@ -135,10 +136,11 @@
 
                 <template #filter>
                   <Button
+                    :label="$t('general.filter.label')"
                     icon="pi pi-filter"
                     severity="secondary"
                     size="small"
-                    text
+                    outlined
                     @click="toggleWorkflowFilterMenu"
                   />
                 </template>

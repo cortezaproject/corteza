@@ -47,12 +47,11 @@
       >
         <template #filter>
           <Button
-            v-tooltip.bottom="$t('automation.scripts.list.filterForm.title')"
-            :aria-label="$t('automation.scripts.list.filterForm.title')"
+            :label="$t('general.filter.label')"
             icon="pi pi-filter"
             severity="secondary"
             size="small"
-            text
+            outlined
             @click="toggleFilterMenu"
           />
         </template>

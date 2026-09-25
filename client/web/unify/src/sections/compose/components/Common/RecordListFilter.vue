@@ -2,10 +2,10 @@
   <div class="inline-flex">
     <Button
       ref="filterBtnRef"
-      v-tooltip.bottom="$t('block.recordList.filter.title')"
+      :label="$t('general.filter.label')"
       :icon="hasActiveFilters ? 'pi pi-filter-fill' : 'pi pi-filter'"
       :severity="hasActiveFilters ? 'primary' : 'secondary'"
-      text
+      outlined
       size="small"
       @click="toggle"
     />

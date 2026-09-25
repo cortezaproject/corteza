@@ -67,10 +67,11 @@
 
       <template #filter>
         <Button
+          :label="$t('general.filter.label')"
           icon="pi pi-filter"
           severity="secondary"
           size="small"
-          text
+          outlined
           @click="toggleFilterMenu"
         />
       </template>
