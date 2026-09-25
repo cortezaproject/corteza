@@ -109,54 +109,59 @@
         </Card>
       </div>
 
-      <Card
-        v-if="d.workflows.value || d.taqs.value"
-        :title="$t('dashboard.runs.title')"
-        :subtitle="runsSubtitle"
-      >
-        <div class="flex flex-col gap-5">
-          <div v-if="d.workflows.value" class="min-w-0">
-            <div class="text-sm text-muted-color mb-1">
-              {{ $t('dashboard.runs.workflowRuns') }} ·
-              {{
-                $t('dashboard.runs.subtitle', {
-                  n: d.workflows.value.total,
-                  failed: d.workflows.value.failed,
-                })
-              }}
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <Card
+          v-if="d.workflows.value || d.taqs.value"
+          :title="$t('dashboard.runs.title')"
+          :subtitle="runsSubtitle"
+        >
+          <div class="flex flex-col gap-5">
+            <div v-if="d.workflows.value" class="min-w-0">
+              <div class="text-sm text-muted-color mb-1">
+                {{ $t('dashboard.runs.workflowRuns') }} ·
+                {{
+                  $t('dashboard.runs.subtitle', {
+                    n: d.workflows.value.total,
+                    failed: d.workflows.value.failed,
+                  })
+                }}
+              </div>
+              <TrendChart
+                :labels="bucketLabels"
+                :range-labels="rangeLabels"
+                :series="d.workflows.value.series"
+                stacked
+                :height="180"
+              />
             </div>
-            <TrendChart
-              :labels="bucketLabels"
-              :range-labels="rangeLabels"
-              :series="d.workflows.value.series"
-              stacked
-              :height="180"
-            />
-          </div>
-          <div v-if="d.taqs.value" class="min-w-0">
-            <div class="text-sm text-muted-color mb-1">
-              {{ $t('dashboard.runs.taqRuns') }} ·
-              {{
-                $t('dashboard.runs.subtitle', {
-                  n: d.taqs.value.total,
-                  failed: d.taqs.value.failed,
-                })
-              }}
+            <div v-if="d.taqs.value" class="min-w-0">
+              <div class="text-sm text-muted-color mb-1">
+                {{ $t('dashboard.runs.taqRuns') }} ·
+                {{
+                  $t('dashboard.runs.subtitle', {
+                    n: d.taqs.value.total,
+                    failed: d.taqs.value.failed,
+                  })
+                }}
+              </div>
+              <TrendChart
+                :labels="bucketLabels"
+                :range-labels="rangeLabels"
+                :series="d.taqs.value.series"
+                stacked
+                :height="180"
+              />
             </div>
-            <TrendChart
-              :labels="bucketLabels"
-              :range-labels="rangeLabels"
-              :series="d.taqs.value.series"
-              stacked
-              :height="180"
-            />
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      <Card :title="$t('dashboard.attention.title')" :subtitle="$t('dashboard.attention.subtitle')">
-        <AttentionList :items="d.attention.value" :empty-text="$t('dashboard.attention.empty')" />
-      </Card>
+        <Card
+          :title="$t('dashboard.attention.title')"
+          :subtitle="$t('dashboard.attention.subtitle')"
+        >
+          <AttentionList :items="d.attention.value" :empty-text="$t('dashboard.attention.empty')" />
+        </Card>
+      </div>
     </div>
 
     <ResourceDialog v-model:visible="dialogOpen" :resource="dialogResource" :range="range" />
