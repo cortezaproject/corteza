@@ -110,7 +110,6 @@ label:
       view: Namespace
     page:
       builder: PageBuilder - {label}
-      edit: Edit Page - {label}
       list: Pages - {label}
       record: Record - {label}
   application:

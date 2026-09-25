@@ -215,7 +215,6 @@ tooltip:
     block: Drag to move block
   edit:
     block: Edit block
-    page: Edit page
   preview-link: Preview link
   removeFromLayout: Remove from layout
   saveAsCopy: Cannot duplicate record page
