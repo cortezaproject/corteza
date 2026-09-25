@@ -1,3 +1,6 @@
+imports:
+  - github.com/crusttech/human/server/system/types
+
 name: agent
 
 functions:
@@ -27,3 +30,21 @@ functions:
         wf: String
       conversationID:
         wf: ID
+
+  lookup:
+    meta:
+      short: Agent lookup
+      description: Find a specific agent by ID or handle; a handle shared by several agents resolves to the first
+    labels:
+      agent: "step,workflow"
+    params:
+      lookup:
+        meta: { label: Lookup }
+        required: true
+        types:
+          - { wf: ID }
+          - { wf: Handle }
+          - { wf: Agent, suffix: res }
+    results:
+      agent:
+        wf: Agent

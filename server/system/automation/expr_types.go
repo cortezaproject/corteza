@@ -1,6 +1,7 @@
 package automation
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -166,6 +167,91 @@ func (t *Template) AssignFieldValue(p expr.Pather, val expr.TypedValue) (err err
 	return assignToTemplateMeta(&t.value.Meta, p.Get(), val)
 }
 
+func CastToAgent(val interface{}) (out *types.Agent, err error) {
+	switch val := val.(type) {
+	case expr.Iterator:
+		out = &types.Agent{}
+		return out, val.Each(func(k string, v expr.TypedValue) error {
+			return assignToAgent(out, k, v)
+		})
+	}
+
+	switch val := expr.UntypedValue(val).(type) {
+	case *types.Agent:
+		return val, nil
+	case map[string]interface{}:
+		out = &types.Agent{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, out)
+		return out, nil
+	case nil:
+		return &types.Agent{}, nil
+	default:
+		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}
+
+func CastToAgentMeta(val interface{}) (out types.AgentMeta, err error) {
+	switch val := val.(type) {
+	case expr.Iterator:
+		out = types.AgentMeta{}
+		return out, val.Each(func(k string, v expr.TypedValue) error {
+			return assignToAgentMeta(&out, k, v)
+		})
+	}
+
+	switch val := expr.UntypedValue(val).(type) {
+	case types.AgentMeta:
+		return val, nil
+	case map[string]interface{}:
+		out = types.AgentMeta{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, &out)
+		return out, nil
+	case nil:
+		return types.AgentMeta{}, nil
+	default:
+		return types.AgentMeta{}, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}
+
+// SelectGVal implements gval's Selector for *types.Agent.
+//
+// The generated selector hands "meta" to gval as a plain struct, which gval can
+// only read by Go field name; a typed value lets an expression reach
+// agent.meta.short the way the field is documented.
+func (t *Agent) SelectGVal(_ context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
+	if t.value != nil && k == "meta" {
+		return NewAgentMeta(t.value.Meta)
+	}
+
+	return agentGValSelector(t.value, k)
+}
+
+var _ expr.DeepFieldAssigner = &Agent{}
+
+// AssignFieldValue implements expr.DeepFieldAssigner
+//
+// Meta is a value struct; assigning to its fields through the generated
+// selector would modify a copy, so we reroute it to the agent's own meta
+func (t *Agent) AssignFieldValue(p expr.Pather, val expr.TypedValue) (err error) {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+
+	if p.Get() != "meta" || p.IsLast() {
+		return assignToAgent(t.value, p.Get(), val)
+	}
+
+	if err = p.Next(); err != nil {
+		return
+	}
+
+	return assignToAgentMeta(&t.value.Meta, p.Get(), val)
+}
+
 func CastToRenderedDocument(val interface{}) (out *renderedDocument, err error) {
 	switch val := val.(type) {
 	case expr.Iterator:
@@ -303,6 +389,15 @@ func (v *Reminder) Clone() (expr.TypedValue, error) {
 	}
 	aux := *v.value
 	return NewReminder(&aux)
+}
+
+func (v *Agent) Clone() (expr.TypedValue, error) {
+	aux := v.value.Clone()
+	return NewAgent(aux)
+}
+
+func (v *AgentMeta) Clone() (expr.TypedValue, error) {
+	return NewAgentMeta(v.value)
 }
 
 func (v *Role) Clone() (expr.TypedValue, error) {

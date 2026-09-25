@@ -70,6 +70,348 @@ func (t *Action) Assign(val interface{}) error {
 	}
 }
 
+// Agent is an expression type, wrapper for *types.Agent type
+type Agent struct {
+	value *types.Agent
+	mux   sync.RWMutex
+}
+
+// NewAgent creates new instance of Agent expression type
+func NewAgent(val interface{}) (*Agent, error) {
+	if c, err := CastToAgent(val); err != nil {
+		return nil, fmt.Errorf("unable to create Agent: %w", err)
+	} else {
+		return &Agent{value: c}, nil
+	}
+}
+
+// Get return underlying value on Agent
+func (t *Agent) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on Agent
+func (t *Agent) GetValue() *types.Agent {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (Agent) Type() string { return "Agent" }
+
+// Cast converts value to *types.Agent
+func (Agent) Cast(val interface{}) (TypedValue, error) {
+	return NewAgent(val)
+}
+
+// Assign new value to Agent
+//
+// value is first passed through CastToAgent
+func (t *Agent) Assign(val interface{}) error {
+	if c, err := CastToAgent(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+// GetID implements IDProvider interface, returning the resource's primary ID.
+func (t *Agent) GetID() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return 0
+	}
+	return t.value.ID
+}
+
+// GetHandle implements HandleProvider interface, returning the resource's handle.
+func (t *Agent) GetHandle() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	if t.value == nil {
+		return ""
+	}
+	return t.value.Handle
+}
+
+// Select is field accessor for *types.Agent
+//
+// Similar to SelectGVal but returns typed values
+func (t *Agent) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return agentTypedValueSelector(t.value, k)
+}
+
+func (t *Agent) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	switch k {
+	case "ID", "agentID":
+		return true
+	case "handle":
+		return true
+	case "status":
+		return true
+	case "meta":
+		return true
+	case "labels":
+		return true
+	case "createdAt":
+		return true
+	case "updatedAt":
+		return true
+	case "deletedAt":
+		return true
+	}
+	return false
+}
+
+// agentGValSelector is field accessor for *types.Agent
+func agentGValSelector(res *types.Agent, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "ID", "agentID":
+		return res.ID, nil
+	case "handle":
+		return res.Handle, nil
+	case "status":
+		return res.Status, nil
+	case "meta":
+		return res.Meta, nil
+	case "labels":
+		return res.Labels, nil
+	case "createdAt":
+		return res.CreatedAt, nil
+	case "updatedAt":
+		return res.UpdatedAt, nil
+	case "deletedAt":
+		return res.DeletedAt, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// agentTypedValueSelector is field accessor for *types.Agent
+func agentTypedValueSelector(res *types.Agent, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "ID", "agentID":
+		return NewID(res.ID)
+	case "handle":
+		return NewHandle(res.Handle)
+	case "status":
+		return NewString(res.Status)
+	case "meta":
+		return NewAgentMeta(res.Meta)
+	case "labels":
+		return NewLabelValue(res.Labels)
+	case "createdAt":
+		return NewDateTime(res.CreatedAt)
+	case "updatedAt":
+		return NewDateTime(res.UpdatedAt)
+	case "deletedAt":
+		return NewDateTime(res.DeletedAt)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToAgent is field value setter for *types.Agent
+//
+// Value types are passed by pointer, otherwise assigned values are lost
+func assignToAgent(res *types.Agent, k string, val interface{}) error {
+	switch k {
+	case "ID", "agentID":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "handle":
+		aux, err := CastToHandle(val)
+		if err != nil {
+			return err
+		}
+
+		res.Handle = aux
+		return nil
+	case "status":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Status = aux
+		return nil
+	case "meta":
+		aux, err := CastToAgentMeta(val)
+		if err != nil {
+			return err
+		}
+
+		res.Meta = aux
+		return nil
+	case "labels":
+		aux, err := CastToLabelValue(val)
+		if err != nil {
+			return err
+		}
+
+		res.Labels = aux
+		return nil
+	case "createdAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "updatedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "deletedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
+// AgentMeta is an expression type, wrapper for types.AgentMeta type
+type AgentMeta struct {
+	value types.AgentMeta
+	mux   sync.RWMutex
+}
+
+// NewAgentMeta creates new instance of AgentMeta expression type
+func NewAgentMeta(val interface{}) (*AgentMeta, error) {
+	if c, err := CastToAgentMeta(val); err != nil {
+		return nil, fmt.Errorf("unable to create AgentMeta: %w", err)
+	} else {
+		return &AgentMeta{value: c}, nil
+	}
+}
+
+// Get return underlying value on AgentMeta
+func (t *AgentMeta) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on AgentMeta
+func (t *AgentMeta) GetValue() types.AgentMeta {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (AgentMeta) Type() string { return "AgentMeta" }
+
+// Cast converts value to types.AgentMeta
+func (AgentMeta) Cast(val interface{}) (TypedValue, error) {
+	return NewAgentMeta(val)
+}
+
+// Assign new value to AgentMeta
+//
+// value is first passed through CastToAgentMeta
+func (t *AgentMeta) Assign(val interface{}) error {
+	if c, err := CastToAgentMeta(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *AgentMeta) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+	return assignToAgentMeta(&t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access AgentMeta's underlying value (types.AgentMeta)
+// and it's fields
+func (t *AgentMeta) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return agentMetaGValSelector(t.value, k)
+}
+
+// Select is field accessor for types.AgentMeta
+//
+// Similar to SelectGVal but returns typed values
+func (t *AgentMeta) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return agentMetaTypedValueSelector(t.value, k)
+}
+
+func (t *AgentMeta) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	switch k {
+	case "short":
+		return true
+	case "description":
+		return true
+	}
+	return false
+}
+
+// agentMetaGValSelector is field accessor for types.AgentMeta
+func agentMetaGValSelector(res types.AgentMeta, k string) (interface{}, error) {
+	switch k {
+	case "short":
+		return res.Short, nil
+	case "description":
+		return res.Description, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// agentMetaTypedValueSelector is field accessor for types.AgentMeta
+func agentMetaTypedValueSelector(res types.AgentMeta, k string) (TypedValue, error) {
+	switch k {
+	case "short":
+		return NewString(res.Short)
+	case "description":
+		return NewString(res.Description)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToAgentMeta is field value setter for types.AgentMeta
+//
+// Value types are passed by pointer, otherwise assigned values are lost
+func assignToAgentMeta(res *types.AgentMeta, k string, val interface{}) error {
+	switch k {
+	case "short":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Short = aux
+		return nil
+	case "description":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Description = aux
+		return nil
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
 // DocumentType is an expression type, wrapper for types.DocumentType type
 type DocumentType struct {
 	value types.DocumentType

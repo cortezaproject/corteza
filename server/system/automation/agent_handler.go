@@ -2,6 +2,7 @@ package automation
 
 import (
 	"context"
+	"fmt"
 
 	agenticRuntime "github.com/crusttech/human/server/system/agentic/runtime"
 	"github.com/crusttech/human/server/system/types"
@@ -20,6 +21,11 @@ type (
 
 	agentHandlerAgentService interface {
 		FindByID(ctx context.Context, ID uint64) (*types.Agent, error)
+		Search(ctx context.Context, f types.AgentFilter) (types.AgentSet, types.AgentFilter, error)
+	}
+
+	agentLookup interface {
+		GetLookup() (bool, uint64, string, *types.Agent)
 	}
 )
 
@@ -50,4 +56,36 @@ func (h agentHandler) run(ctx context.Context, args *agentRunArgs) (*agentRunRes
 		Output:         resp.Output,
 		ConversationID: resp.ConversationID,
 	}, nil
+}
+
+func (h agentHandler) lookup(ctx context.Context, args *agentLookupArgs) (results *agentLookupResults, err error) {
+	results = &agentLookupResults{}
+	results.Agent, err = lookupAgent(ctx, h.agents, args)
+	return
+}
+
+// lookupAgent resolves an agent given as a resource, an ID or a handle.
+//
+// Agent handles are not unique, so a handle resolves to the first agent the
+// search returns; a workflow that needs one agent in particular names its ID.
+func lookupAgent(ctx context.Context, svc agentHandlerAgentService, args agentLookup) (*types.Agent, error) {
+	_, ID, handle, agent := args.GetLookup()
+
+	switch {
+	case agent != nil:
+		return agent, nil
+	case ID > 0:
+		return svc.FindByID(ctx, ID)
+	case len(handle) > 0:
+		set, _, err := svc.Search(ctx, types.AgentFilter{Handle: handle})
+		if err != nil {
+			return nil, err
+		}
+		if len(set) == 0 {
+			return nil, fmt.Errorf("agent %q not found", handle)
+		}
+		return set[0], nil
+	}
+
+	return nil, fmt.Errorf("empty lookup params")
 }

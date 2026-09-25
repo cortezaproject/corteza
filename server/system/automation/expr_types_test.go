@@ -146,3 +146,35 @@ func TestCastToRbacResource(t *testing.T) {
 		req.Contains(err.Error(), "unable to cast type int to")
 	})
 }
+
+func TestAgent_Expr(t *testing.T) {
+	var (
+		req   = require.New(t)
+		a, _  = NewAgent(&types.Agent{Handle: "guide", Meta: types.AgentMeta{Short: "Catalogue Guide"}})
+		scope = &expr.Vars{}
+	)
+
+	req.NoError(scope.Set("agent", a))
+
+	for path, want := range map[string]string{
+		"agent.handle":     "guide",
+		"agent.meta.short": "Catalogue Guide",
+	} {
+		eval, err := expr.NewParser().Parse(path)
+		req.NoError(err)
+
+		res, err := eval.Eval(context.Background(), scope)
+		req.NoError(err, path)
+		req.Equal(want, res, path)
+	}
+}
+
+func TestAgent_metaAssign(t *testing.T) {
+	var (
+		req  = require.New(t)
+		a, _ = NewAgent(&types.Agent{})
+	)
+
+	req.NoError(expr.Assign(a, "meta.short", expr.Must(expr.NewString("renamed"))))
+	req.Equal("renamed", a.value.Meta.Short)
+}

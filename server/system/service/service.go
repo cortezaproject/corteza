@@ -403,6 +403,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automationService.Registry().AddTypes(
 		automation.User{},
 		automation.Role{},
+		automation.Agent{},
+		automation.AgentMeta{},
 		automation.Template{},
 		automation.RenderOptions{},
 		automation.RenderedDocument{},
