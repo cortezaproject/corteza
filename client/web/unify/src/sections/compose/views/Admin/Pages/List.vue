@@ -33,79 +33,80 @@
       </template>
 
       <template #content>
-        <p
-          v-if="canReorder && treeNodes.length"
-          class="flex items-center gap-2 px-4 pt-3 text-xs text-muted-color"
-        >
-          <span class="pi pi-arrows-v" />
-          {{ $t('page.instructions') }}
-        </p>
+        <div class="p-3 flex flex-col gap-2">
+          <p
+            v-if="canReorder && treeNodes.length"
+            class="flex items-center gap-2 text-xs text-muted-color"
+          >
+            <span class="pi pi-arrows-v" />
+            {{ $t('page.instructions') }}
+          </p>
 
-        <Tree
-          v-if="treeNodes.length"
-          v-model:value="treeNodes"
-          v-model:expanded-keys="expandedKeys"
-          :filter="!!filterValue"
-          :filter-value="filterValue"
-          filter-mode="lenient"
-          filter-by="label"
-          :draggable-nodes="canReorder"
-          :droppable-nodes="canReorder"
-          :pt="treePT"
-          selection-mode="single"
-          class="p-3"
-          @node-select="onNodeSelect"
-          @node-drop="onNodeDrop"
-        >
-          <template #default="{ node }">
-            <div class="flex items-center gap-2 min-w-0" data-test-id="page-tree-node">
-              <span
-                class="whitespace-normal break-words"
-                :class="{ 'font-semibold': node.data.selfID === '0' }"
-              >
-                {{ node.label }}
-              </span>
-              <span
-                v-if="node.data.description"
-                class="text-xs text-muted-color truncate min-w-0"
-                :title="node.data.description"
-              >
-                {{ node.data.description }}
-              </span>
+          <Tree
+            v-if="treeNodes.length"
+            v-model:value="treeNodes"
+            v-model:expanded-keys="expandedKeys"
+            :filter="!!filterValue"
+            :filter-value="filterValue"
+            filter-mode="lenient"
+            filter-by="label"
+            :draggable-nodes="canReorder"
+            :droppable-nodes="canReorder"
+            :pt="treePT"
+            selection-mode="single"
+            class="page-tree p-0 [--page-tree-guide:var(--p-surface-300)] dark:[--page-tree-guide:var(--p-surface-600)]"
+            @node-select="onNodeSelect"
+            @node-drop="onNodeDrop"
+          >
+            <template #default="{ node }">
+              <div class="flex items-center gap-2 min-w-0" data-test-id="page-tree-node">
+                <span
+                  class="whitespace-normal break-words"
+                  :class="{ 'font-semibold': node.data.selfID === '0' }"
+                >
+                  {{ node.label }}
+                </span>
+                <span
+                  v-if="node.data.description"
+                  class="text-xs text-muted-color truncate min-w-0"
+                  :title="node.data.description"
+                >
+                  {{ node.data.description }}
+                </span>
 
-              <Tag
-                v-if="node.data.isRecordPage"
-                :value="recordPageLabel(node.data)"
-                severity="secondary"
-                class="text-xs shrink-0"
-              />
-              <Tag
-                v-else-if="!node.data.visible"
-                v-tooltip.bottom="$t('page.list.hiddenTooltip')"
-                :value="$t('page.notVisible')"
-                icon="pi pi-eye-slash"
-                severity="warn"
-                class="text-xs shrink-0"
-              />
-              <Button
-                v-if="actionItems(node.data).length"
-                v-tooltip.bottom="$t('general.label.actions')"
-                icon="pi pi-ellipsis-v"
-                text
-                rounded
-                severity="secondary"
-                size="small"
-                class="shrink-0"
-                :aria-label="$t('general.label.actions')"
-                data-test-id="page-tree-actions"
-                @click.stop="showActionsMenu($event, node.data)"
-              />
-            </div>
-          </template>
-        </Tree>
+                <Tag
+                  v-if="node.data.isRecordPage"
+                  :value="recordPageLabel(node.data)"
+                  severity="secondary"
+                  class="text-xs leading-none py-0.5 shrink-0"
+                />
+                <Tag
+                  v-else-if="!node.data.visible"
+                  v-tooltip.bottom="$t('page.list.hiddenTooltip')"
+                  :value="$t('page.notVisible')"
+                  icon="pi pi-eye-slash"
+                  severity="warn"
+                  class="text-xs leading-none py-0.5 shrink-0"
+                />
+                <Button
+                  v-if="actionItems(node.data).length"
+                  v-tooltip.bottom="$t('general.label.actions')"
+                  icon="pi pi-ellipsis-v"
+                  text
+                  severity="secondary"
+                  size="small"
+                  class="shrink-0 opacity-40 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                  :aria-label="$t('general.label.actions')"
+                  data-test-id="page-tree-actions"
+                  @click.stop="showActionsMenu($event, node.data)"
+                />
+              </div>
+            </template>
+          </Tree>
 
-        <div v-else-if="!loading" class="flex items-center justify-center h-32 text-muted-color">
-          {{ $t('page.noPages') }}
+          <div v-else-if="!loading" class="flex items-center justify-center h-32 text-muted-color">
+            {{ $t('page.noPages') }}
+          </div>
         </div>
       </template>
     </Card>
@@ -169,14 +170,12 @@ const canReorder = computed(() => !!props.namespace?.canCreatePage)
 
 const treePT = {
   rootChildren: { class: 'flex flex-col items-start gap-1.5' },
-  nodeChildren: {
-    class: 'flex flex-col items-start gap-1.5 pt-1.5 ml-3 pl-4 border-l border-surface',
-  },
+  nodeChildren: { class: 'flex flex-col items-start gap-1.5 pt-1.5 ml-5 pl-4' },
   // A row is as wide as its own content, so the hierarchy reads by shape and
   // not only by indent.
   nodeContent: {
     class:
-      'inline-flex flex-row items-center gap-1 w-fit max-w-full border rounded-md transition-colors hover:bg-emphasis cursor-pointer px-1.5 py-1',
+      'group inline-flex flex-row items-center gap-1 w-fit max-w-full border rounded-md transition-colors hover:bg-emphasis cursor-pointer px-1.5 py-1',
   },
   nodeToggleButton: { class: 'shrink-0' },
   nodeLabel: { class: 'min-w-0' },
@@ -444,3 +443,39 @@ async function reorderTree(nodes, parentID) {
   }
 }
 </script>
+
+<style scoped>
+/* Tree guides. The trunk is drawn per node so a branch ends at its last child
+ * instead of running past it, and the elbow hangs off the row itself so it
+ * meets the row's middle whatever the row holds. */
+.page-tree :deep(.p-tree-node-children > .p-tree-node) {
+  position: relative;
+}
+
+.page-tree :deep(.p-tree-node-children > .p-tree-node)::before {
+  content: '';
+  position: absolute;
+  left: -15px;
+  top: -6px;
+  bottom: 0;
+  border-left: 1px solid var(--page-tree-guide);
+}
+
+.page-tree :deep(.p-tree-node-children > .p-tree-node:last-child)::before {
+  bottom: auto;
+  height: 27px;
+}
+
+.page-tree :deep(.p-tree-node-children > .p-tree-node > .p-tree-node-content) {
+  position: relative;
+}
+
+.page-tree :deep(.p-tree-node-children > .p-tree-node > .p-tree-node-content)::before {
+  content: '';
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  width: 11px;
+  border-top: 1px solid var(--page-tree-guide);
+}
+</style>
