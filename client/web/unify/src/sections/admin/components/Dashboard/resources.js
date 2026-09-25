@@ -1,35 +1,82 @@
 // The inventory the dashboard shows: one row per resource the stats endpoint
-// counts, in display order, with where a click lands and how its statuses
-// stack. Status keys not listed here are still shown, after the listed ones.
+// counts, in display order, with the admin sidebar's icon, where a click
+// lands and how its statuses stack. Status keys not listed here are still shown, after the listed ones.
 export const RESOURCES = [
-  { key: 'users', route: { name: 'system.users' }, statuses: ['active', 'suspended', 'deleted'] },
-  { key: 'roles', route: { name: 'system.roles' }, statuses: ['active', 'archived', 'deleted'] },
+  {
+    key: 'users',
+    icon: 'pi pi-users',
+    route: { name: 'system.users' },
+    statuses: ['active', 'suspended', 'deleted'],
+  },
+  {
+    key: 'roles',
+    icon: 'pi pi-id-card',
+    route: { name: 'system.roles' },
+    statuses: ['active', 'archived', 'deleted'],
+  },
   {
     key: 'projects',
+    icon: 'pi pi-folder',
     route: { name: 'project.list' },
     statuses: ['active', 'published', 'draft', 'suspended', 'archived', 'deprecated', 'deleted'],
   },
   {
     key: 'namespaces',
+    icon: 'pi pi-box',
     route: { name: 'namespace.list' },
     statuses: ['active', 'disabled', 'deleted'],
   },
-  { key: 'modules', route: { name: 'namespace.list' }, statuses: ['active', 'deleted'] },
+  {
+    key: 'modules',
+    icon: 'pi pi-table',
+    route: { name: 'namespace.list' },
+    statuses: ['active', 'deleted'],
+  },
   {
     key: 'workflows',
+    icon: 'pi pi-share-alt',
     route: { name: 'automation.workflows' },
     statuses: ['enabled', 'disabled', 'deleted'],
   },
-  { key: 'taqs', route: { name: 'automation.taq' }, statuses: ['enabled', 'disabled', 'deleted'] },
-  { key: 'agents', route: { name: 'agentic' }, statuses: ['active', 'deleted'] },
-  { key: 'chatbots', route: { name: 'chatbot' }, statuses: ['enabled', 'disabled', 'deleted'] },
+  {
+    key: 'taqs',
+    icon: 'pi pi-microchip-ai',
+    route: { name: 'automation.taq' },
+    statuses: ['enabled', 'disabled', 'deleted'],
+  },
+  {
+    key: 'agents',
+    icon: 'pi pi-android',
+    route: { name: 'agentic' },
+    statuses: ['active', 'deleted'],
+  },
+  {
+    key: 'chatbots',
+    icon: 'pi pi-comments',
+    route: { name: 'chatbot' },
+    statuses: ['enabled', 'disabled', 'deleted'],
+  },
+  {
+    key: 'connections',
+    icon: 'pi pi-link',
+    route: { name: 'system.connections' },
+    statuses: ['active', 'draft', 'deleted'],
+  },
+  {
+    key: 'dataSources',
+    icon: 'pi pi-database',
+    route: { name: 'system.dataSources' },
+    statuses: ['active', 'deleted'],
+  },
   {
     key: 'applications',
+    icon: 'pi pi-th-large',
     route: { name: 'system.applications' },
     statuses: ['enabled', 'disabled', 'deleted'],
   },
   {
     key: 'authClients',
+    icon: 'pi pi-key',
     route: { name: 'system.authClients' },
     statuses: ['enabled', 'disabled', 'deleted'],
   },

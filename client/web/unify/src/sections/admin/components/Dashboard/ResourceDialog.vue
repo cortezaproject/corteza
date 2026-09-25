@@ -205,6 +205,8 @@ const EDIT_ROUTES = {
   agents: id => ({ name: 'agentic.edit', params: { agentID: id } }),
   chatbots: id => ({ name: 'chatbot.edit', params: { chatbotID: id } }),
   projects: id => ({ name: 'project.overview', params: { projectId: id } }),
+  connections: id => ({ name: 'system.connections.edit', params: { connectionID: id } }),
+  dataSources: id => ({ name: 'system.dataSources.edit', params: { connectionID: id } }),
 }
 
 function linkTo(it) {

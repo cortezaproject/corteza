@@ -17,6 +17,8 @@ resources:
   taqs: TAQs
   agents: Agents
   chatbots: Chatbots
+  connections: Connections
+  dataSources: Data sources
   applications: Applications
   authClients: Auth clients
 status:

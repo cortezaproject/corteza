@@ -26,6 +26,7 @@ export function useDashboardData(stats, isDark, bucketLabels, rangeLabels) {
       return {
         key: r.key,
         label: t(`dashboard.resources.${r.key}`),
+        icon: r.icon,
         route: r.route,
         total: s.total,
         live: liveCount(s.status),

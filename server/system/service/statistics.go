@@ -68,6 +68,8 @@ var (
 		types.SystemStatsTaqs:         {"ng-automations.search", automationComponent},
 		types.SystemStatsNamespaces:   {"namespaces.search", composeComponent},
 		types.SystemStatsModules:      {"namespaces.search", composeComponent},
+		types.SystemStatsConnections:  {"connections.search", systemComponent},
+		types.SystemStatsDataSources:  {"dal-connections.search", systemComponent},
 	}
 
 	statsSessionOutcomes = []string{"completed", "failed", "canceled", "started", "prompted", "suspended"}

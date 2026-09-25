@@ -49,7 +49,10 @@
           @click="inspect(tile.key)"
         >
           <div class="flex items-baseline justify-between gap-2">
-            <span class="text-base font-medium text-color truncate">{{ tile.label }}</span>
+            <span class="flex items-center gap-2 min-w-0">
+              <i :class="tile.icon" class="text-muted-color" aria-hidden="true" />
+              <span class="text-base font-medium text-color truncate">{{ tile.label }}</span>
+            </span>
             <span v-if="tile.created" class="text-sm text-muted-color whitespace-nowrap">
               {{ $t('dashboard.tile.newInRange', { n: tile.created }) }}
             </span>
@@ -106,59 +109,54 @@
         </Card>
       </div>
 
-      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <Card
-          v-if="d.workflows.value || d.taqs.value"
-          :title="$t('dashboard.runs.title')"
-          :subtitle="runsSubtitle"
-        >
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div v-if="d.workflows.value" class="min-w-0">
-              <div class="text-sm text-muted-color mb-1">
-                {{ $t('dashboard.runs.workflowRuns') }} ·
-                {{
-                  $t('dashboard.runs.subtitle', {
-                    n: d.workflows.value.total,
-                    failed: d.workflows.value.failed,
-                  })
-                }}
-              </div>
-              <TrendChart
-                :labels="bucketLabels"
-                :range-labels="rangeLabels"
-                :series="d.workflows.value.series"
-                stacked
-                :height="160"
-              />
+      <Card
+        v-if="d.workflows.value || d.taqs.value"
+        :title="$t('dashboard.runs.title')"
+        :subtitle="runsSubtitle"
+      >
+        <div class="flex flex-col gap-5">
+          <div v-if="d.workflows.value" class="min-w-0">
+            <div class="text-sm text-muted-color mb-1">
+              {{ $t('dashboard.runs.workflowRuns') }} ·
+              {{
+                $t('dashboard.runs.subtitle', {
+                  n: d.workflows.value.total,
+                  failed: d.workflows.value.failed,
+                })
+              }}
             </div>
-            <div v-if="d.taqs.value" class="min-w-0">
-              <div class="text-sm text-muted-color mb-1">
-                {{ $t('dashboard.runs.taqRuns') }} ·
-                {{
-                  $t('dashboard.runs.subtitle', {
-                    n: d.taqs.value.total,
-                    failed: d.taqs.value.failed,
-                  })
-                }}
-              </div>
-              <TrendChart
-                :labels="bucketLabels"
-                :range-labels="rangeLabels"
-                :series="d.taqs.value.series"
-                stacked
-                :height="160"
-              />
-            </div>
+            <TrendChart
+              :labels="bucketLabels"
+              :range-labels="rangeLabels"
+              :series="d.workflows.value.series"
+              stacked
+              :height="180"
+            />
           </div>
-        </Card>
+          <div v-if="d.taqs.value" class="min-w-0">
+            <div class="text-sm text-muted-color mb-1">
+              {{ $t('dashboard.runs.taqRuns') }} ·
+              {{
+                $t('dashboard.runs.subtitle', {
+                  n: d.taqs.value.total,
+                  failed: d.taqs.value.failed,
+                })
+              }}
+            </div>
+            <TrendChart
+              :labels="bucketLabels"
+              :range-labels="rangeLabels"
+              :series="d.taqs.value.series"
+              stacked
+              :height="180"
+            />
+          </div>
+        </div>
+      </Card>
 
-        <Card
-          :title="$t('dashboard.attention.title')"
-          :subtitle="$t('dashboard.attention.subtitle')"
-        >
-          <AttentionList :items="d.attention.value" :empty-text="$t('dashboard.attention.empty')" />
-        </Card>
-      </div>
+      <Card :title="$t('dashboard.attention.title')" :subtitle="$t('dashboard.attention.subtitle')">
+        <AttentionList :items="d.attention.value" :empty-text="$t('dashboard.attention.empty')" />
+      </Card>
     </div>
 
     <ResourceDialog v-model:visible="dialogOpen" :resource="dialogResource" :range="range" />

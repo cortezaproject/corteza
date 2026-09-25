@@ -108,6 +108,8 @@ const (
 	SystemStatsTaqs         = "taqs"
 	SystemStatsNamespaces   = "namespaces"
 	SystemStatsModules      = "modules"
+	SystemStatsConnections  = "connections"
+	SystemStatsDataSources  = "dataSources"
 )
 
 type (

@@ -127,6 +127,16 @@ var (
 			classes:  []statsClass{statsDeleted},
 			fallback: goqu.V("active"),
 		},
+		systemType.SystemStatsConnections: {
+			table:    connectionTable,
+			classes:  []statsClass{statsDeleted},
+			fallback: goqu.C("status"),
+		},
+		systemType.SystemStatsDataSources: {
+			table:    dalConnectionTable,
+			classes:  []statsClass{statsDeleted},
+			fallback: goqu.V("active"),
+		},
 	}
 )
 
@@ -142,6 +152,8 @@ var statsLabels = map[string]statsLabel{
 	systemType.SystemStatsTaqs:         {metaName: "short", handle: "handle"},
 	systemType.SystemStatsNamespaces:   {label: "name", handle: "slug"},
 	systemType.SystemStatsModules:      {label: "name", handle: "handle"},
+	systemType.SystemStatsConnections:  {metaName: "name", handle: "handle"},
+	systemType.SystemStatsDataSources:  {metaName: "name", handle: "handle"},
 }
 
 func (s *Store) SystemStats(ctx context.Context, r systemType.SystemStatsRange) (raw *systemType.SystemStatsRaw, err error) {
