@@ -182,6 +182,62 @@ func (svc statistics) Metrics(ctx context.Context, req StatisticsRequest) (rval 
 	return rval, svc.recordAction(ctx, &statisticsActionProps{}, StatisticsActionServe, err)
 }
 
+// Detail answers the dashboard's drill-down for one inventory resource.
+func (svc statistics) Detail(ctx context.Context, resource string, req StatisticsRequest) (rval *types.SystemStatsDetail, err error) {
+	err = func() error {
+		p, ok := statsResourcePermissions[resource]
+		if !ok {
+			return fmt.Errorf("unknown inventory resource %q", resource)
+		}
+
+		if !svc.ac.can(ctx, p.op, p.res) {
+			return StatisticsErrNotAllowedToReadStatistics()
+		}
+
+		r, bucket, err := statsResolveRange(req, time.Now())
+		if err != nil {
+			return err
+		}
+
+		raw, err := store.SystemStatsResourceDetail(ctx, svc.store, resource, r)
+		if err != nil {
+			return err
+		}
+
+		buckets := statsBuckets(r, bucket)
+		rolled := buckets.roll(raw.Movement)
+
+		rval = &types.SystemStatsDetail{
+			Resource: resource,
+			Range: types.SystemStatsRangeInfo{
+				From:    r.From,
+				To:      r.To,
+				Bucket:  bucket,
+				Buckets: buckets.labels,
+			},
+			Status:  raw.Status,
+			Series:  make(map[string][]uint, 3),
+			InRange: make(map[string]uint, 3),
+			Recent:  raw.Recent,
+		}
+
+		for _, c := range raw.Status {
+			rval.Total += c
+		}
+
+		for _, key := range []string{types.SystemStatsCreated, types.SystemStatsUpdated, types.SystemStatsDeleted} {
+			rval.Series[key] = buckets.orEmpty(rolled[key])
+			for _, n := range rval.Series[key] {
+				rval.InRange[key] += n
+			}
+		}
+
+		return nil
+	}()
+
+	return rval, svc.recordAction(ctx, &statisticsActionProps{}, StatisticsActionServe, err)
+}
+
 // visibleResources lists the inventory resources the caller may search, in payload order.
 func (svc statistics) visibleResources(ctx context.Context) (out []string) {
 	for name, p := range statsResourcePermissions {

@@ -5986,6 +5986,50 @@ export default class System {
     return '/stats/'
   }
 
+  // One inventory resource in depth, for the dashboard&#x27;s drill-down
+  async statsDetail(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { resource, from, to, bucket } = (a as KV) || {}
+    if (!resource) {
+      throw Error('field resource is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.statsDetailEndpoint({
+        resource,
+      }),
+    }
+    cfg.params = {
+      from,
+      to,
+      bucket,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  statsDetailCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.statsDetail(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  statsDetailEndpoint(a: KV): string {
+    const { resource } = a || {}
+    return `/stats/${resource}`
+  }
+
   // List all available automation scripts for system resources
   async automationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {

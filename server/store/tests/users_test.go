@@ -454,6 +454,42 @@ func testUsers(t *testing.T, s store.Users) {
 		req.NotNil(raw.Signins)
 	})
 
+	t.Run("system stats detail", func(t *testing.T) {
+		var (
+			req = require.New(t)
+
+			day  = time.Date(2026, 9, 20, 10, 0, 0, 0, time.UTC)
+			next = day.AddDate(0, 0, 1)
+
+			r = types.SystemStatsRange{From: day.AddDate(0, 0, -7), To: next.AddDate(0, 0, 1)}
+		)
+
+		req.NoError(s.TruncateUsers(ctx))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: day, Email: "detail-1@crust.test", Name: "First"}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: next, UpdatedAt: &next, Email: "detail-2@crust.test"}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: next, DeletedAt: &next, Email: "detail-3@crust.test"}))
+
+		raw, err := store.SystemStatsResourceDetail(ctx, s, types.SystemStatsUsers, r)
+		req.NoError(err)
+		req.Equal(map[string]uint{"active": 2, "deleted": 1}, raw.Status)
+		req.Len(raw.Movement, 4)
+		req.Len(raw.Recent, 3)
+		// newest first; the label falls back to the email when the name is empty
+		req.Equal("detail-2@crust.test", raw.Recent[0].Label)
+		req.Equal("First", raw.Recent[2].Label)
+		req.Equal("detail-1@crust.test", raw.Recent[2].Handle)
+		for _, it := range raw.Recent {
+			if it.DeletedAt != nil {
+				req.Equal("deleted", it.Status)
+			} else {
+				req.Equal("active", it.Status)
+			}
+		}
+
+		_, err = store.SystemStatsResourceDetail(ctx, s, "nope", r)
+		req.Error(err)
+	})
+
 	t.Run("count", func(t *testing.T) {
 		var (
 			req = require.New(t)

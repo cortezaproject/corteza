@@ -346,6 +346,11 @@ user: {
 					expIdent: "SystemStats"
 					args: [ {ident: "r", goType: "types.SystemStatsRange"}]
 					return: [ "*types.SystemStatsRaw"]
+				}, {
+					// one inventory resource in depth: movement series and the newest rows
+					expIdent: "SystemStatsResourceDetail"
+					args: [ {ident: "resource", goType: "string"}, {ident: "r", goType: "types.SystemStatsRange"}]
+					return: [ "*types.SystemStatsDetailRaw"]
 				},
 			]
 		}

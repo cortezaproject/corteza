@@ -35,6 +35,15 @@ type (
 		name string
 		cond exp.Expression
 	}
+
+	// statsLabel says which columns name a row of an inventory table: the
+	// label is the first non-empty of label, metaName (a key of the meta
+	// JSON) and handle.
+	statsLabel struct {
+		label    string
+		metaName string
+		handle   string
+	}
 )
 
 const (
@@ -120,6 +129,20 @@ var (
 		},
 	}
 )
+
+var statsLabels = map[string]statsLabel{
+	systemType.SystemStatsUsers:        {label: "name", handle: "email"},
+	systemType.SystemStatsRoles:        {label: "name", handle: "handle"},
+	systemType.SystemStatsApplications: {label: "name"},
+	systemType.SystemStatsAuthClients:  {handle: "handle"},
+	systemType.SystemStatsAgents:       {metaName: "short", handle: "handle"},
+	systemType.SystemStatsChatbots:     {label: "name", handle: "handle"},
+	systemType.SystemStatsProjects:     {metaName: "name", handle: "handle"},
+	systemType.SystemStatsWorkflows:    {metaName: "name", handle: "handle"},
+	systemType.SystemStatsTaqs:         {metaName: "short", handle: "handle"},
+	systemType.SystemStatsNamespaces:   {label: "name", handle: "slug"},
+	systemType.SystemStatsModules:      {label: "name", handle: "handle"},
+}
 
 func (s *Store) SystemStats(ctx context.Context, r systemType.SystemStatsRange) (raw *systemType.SystemStatsRaw, err error) {
 	raw = &systemType.SystemStatsRaw{
@@ -286,10 +309,15 @@ func (s *Store) statsWorkflowRuns(ctx context.Context, r systemType.SystemStatsR
 		raw.WorkflowRunTotals[name] += d.Count
 	}
 
+	wfName, err := s.Dialect.JsonExtractUnquote(goqu.I("w.meta"), "name")
+	if err != nil {
+		return err
+	}
+
 	query := s.Dialect.GOQU().
 		From(automationSessionTable.As("s")).
 		LeftJoin(automationWorkflowTable.As("w"), goqu.On(goqu.I("w.id").Eq(goqu.I("s.rel_workflow")))).
-		Select(goqu.I("s.id"), goqu.I("s.rel_workflow"), goqu.COALESCE(goqu.I("w.handle"), goqu.V("")), goqu.I("s.event_type"), goqu.I("s.error"), goqu.I("s.created_at")).
+		Select(goqu.I("s.id"), goqu.I("s.rel_workflow"), goqu.COALESCE(goqu.I("w.handle"), goqu.V("")), goqu.COALESCE(wfName, goqu.V("")), goqu.I("s.event_type"), goqu.I("s.error"), goqu.I("s.created_at")).
 		Where(append(
 			[]exp.Expression{goqu.I("s.status").Eq(int(automationType.SessionFailed))},
 			statsRangeWhere(goqu.I("s.created_at"), r)...,
@@ -308,7 +336,7 @@ func (s *Store) statsWorkflowRuns(ctx context.Context, r systemType.SystemStatsR
 	for rows.Next() {
 		f := &systemType.SystemStatsWorkflowFailure{}
 		var errText sql.NullString
-		if err = rows.Scan(&f.SessionID, &f.WorkflowID, &f.WorkflowHandle, &f.EventType, &errText, &f.CreatedAt); err != nil {
+		if err = rows.Scan(&f.SessionID, &f.WorkflowID, &f.WorkflowHandle, &f.WorkflowName, &f.EventType, &errText, &f.CreatedAt); err != nil {
 			return err
 		}
 		f.Error = errText.String
@@ -549,4 +577,103 @@ func statsResourceType(resource string) string {
 	}
 
 	return resource
+}
+
+// SystemStatsResourceDetail answers the drill-down for one inventory resource.
+func (s *Store) SystemStatsResourceDetail(ctx context.Context, resource string, r systemType.SystemStatsRange) (raw *systemType.SystemStatsDetailRaw, err error) {
+	res, ok := statsResources[resource]
+	if !ok {
+		return nil, fmt.Errorf("unknown inventory resource %q", resource)
+	}
+
+	raw = &systemType.SystemStatsDetailRaw{}
+
+	if raw.Status, err = s.statsStatusCounts(ctx, res); err != nil {
+		return nil, fmt.Errorf("%s status: %w", resource, err)
+	}
+
+	raw.Movement = make([]systemType.SystemStatsDaily, 0)
+	for _, mv := range []struct{ key, col string }{
+		{systemType.SystemStatsCreated, "created_at"},
+		{systemType.SystemStatsUpdated, "updated_at"},
+		{systemType.SystemStatsDeleted, "deleted_at"},
+	} {
+		daily, err := s.statsDaily(ctx, res.table, mv.col, r, res.where, nil)
+		if err != nil {
+			return nil, fmt.Errorf("%s %s: %w", resource, mv.key, err)
+		}
+
+		for _, d := range daily {
+			d.Key = mv.key
+			raw.Movement = append(raw.Movement, d)
+		}
+	}
+
+	if raw.Recent, err = s.statsRecent(ctx, resource, res); err != nil {
+		return nil, fmt.Errorf("%s recent: %w", resource, err)
+	}
+
+	return raw, nil
+}
+
+// statsRecent lists the newest rows of an inventory table, deleted ones included.
+func (s *Store) statsRecent(ctx context.Context, resource string, res statsResource) ([]*systemType.SystemStatsItem, error) {
+	var (
+		lbl                   = statsLabels[resource]
+		empty                 = goqu.V("")
+		label                 = []any{}
+		handle exp.Expression = empty
+	)
+
+	if lbl.label != "" {
+		label = append(label, goqu.Func("NULLIF", goqu.C(lbl.label), empty))
+	}
+	if lbl.metaName != "" {
+		name, err := s.Dialect.JsonExtractUnquote(goqu.C("meta"), lbl.metaName)
+		if err != nil {
+			return nil, err
+		}
+		label = append(label, goqu.Func("NULLIF", name, empty))
+	}
+	if lbl.handle != "" {
+		handle = goqu.COALESCE(goqu.C(lbl.handle), empty)
+		label = append(label, goqu.C(lbl.handle))
+	}
+	label = append(label, empty)
+
+	c := goqu.Case()
+	for _, cls := range res.classes {
+		c = c.When(cls.cond, goqu.V(cls.name))
+	}
+
+	query := s.Dialect.GOQU().
+		From(res.table).
+		Select(goqu.C("id"), goqu.COALESCE(label...), handle, c.Else(res.fallback), goqu.C("created_at"), goqu.C("updated_at"), goqu.C("deleted_at")).
+		Where(res.where...).
+		Order(goqu.C("created_at").Desc()).
+		Limit(statsRecentLimit + 2)
+
+	rows, err := s.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	out := make([]*systemType.SystemStatsItem, 0)
+	for rows.Next() {
+		var (
+			it     = &systemType.SystemStatsItem{}
+			status any
+		)
+
+		if err = rows.Scan(&it.ID, &it.Label, &it.Handle, &status, &it.CreatedAt, &it.UpdatedAt, &it.DeletedAt); err != nil {
+			return nil, err
+		}
+
+		it.Status = statsKey(status)
+		out = append(out, it)
+	}
+
+	return out, rows.Err()
 }

@@ -340,7 +340,8 @@
       "dml mappingUpdate": "dmlMappingUpdate",
       "dml mappingDelete": "dmlMappingDelete",
       "dml importRun": "dmlImportRun",
-      "dml importRunRead": "dmlImportRunRead"
+      "dml importRunRead": "dmlImportRunRead",
+      "stats detail": "statsDetail"
     },
     "compose": {
       "namespace list": "findNamespaces",

@@ -41,6 +41,7 @@ type (
 		SessionID      uint64    `json:"sessionID,string"`
 		WorkflowID     uint64    `json:"workflowID,string"`
 		WorkflowHandle string    `json:"workflowHandle"`
+		WorkflowName   string    `json:"workflowName"`
 		EventType      string    `json:"eventType"`
 		Error          string    `json:"error"`
 		CreatedAt      time.Time `json:"createdAt"`
@@ -163,4 +164,44 @@ type (
 		Live   uint   `json:"live"`
 		Series []uint `json:"series"`
 	}
+)
+
+type (
+	// SystemStatsItem is one row of an inventory resource, as the drill-down lists it.
+	SystemStatsItem struct {
+		ID        uint64     `json:"id,string"`
+		Label     string     `json:"label"`
+		Handle    string     `json:"handle"`
+		Status    string     `json:"status"`
+		CreatedAt time.Time  `json:"createdAt"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+	}
+
+	// SystemStatsDetailRaw is the store's answer for one resource: status
+	// counts over the whole table, movement rows per day within the range
+	// (keys created, updated, deleted) and the newest rows.
+	SystemStatsDetailRaw struct {
+		Status   map[string]uint
+		Movement []SystemStatsDaily
+		Recent   []*SystemStatsItem
+	}
+
+	// SystemStatsDetail is the drill-down payload.
+	SystemStatsDetail struct {
+		Resource string               `json:"resource"`
+		Range    SystemStatsRangeInfo `json:"range"`
+		Total    uint                 `json:"total"`
+		Status   map[string]uint      `json:"status"`
+		Series   map[string][]uint    `json:"series"`
+		InRange  map[string]uint      `json:"inRange"`
+		Recent   []*SystemStatsItem   `json:"recent"`
+	}
+)
+
+// Movement keys of a resource detail.
+const (
+	SystemStatsCreated = "created"
+	SystemStatsUpdated = "updated"
+	SystemStatsDeleted = "deleted"
 )

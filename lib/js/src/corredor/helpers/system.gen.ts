@@ -1043,6 +1043,12 @@ export default class GeneratedSystemHelper {
     return this.SystemAPI.statsList(args, extra)
   }
 
+  // One inventory resource in depth, for the dashboard's drill-down
+  statsDetail(a: Args = {}, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const args = argsOf(a)
+    return this.SystemAPI.statsDetail(args, extra)
+  }
+
   // List all available automation scripts for system resources
   automationList(a: Args = {}, extra: AxiosRequestConfig = {}): Promise<KV> {
     const args = argsOf(a)

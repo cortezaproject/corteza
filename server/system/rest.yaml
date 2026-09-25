@@ -2654,6 +2654,29 @@ endpoints:
               type: string
               required: false
               title: Series granularity (day, week, month); defaults by range length
+      - name: detail
+        method: GET
+        title: One inventory resource in depth, for the dashboard's drill-down
+        path: '/{resource}'
+        parameters:
+          path:
+            - name: resource
+              type: string
+              required: true
+              title: Inventory resource name (users, roles, workflows, ...)
+          get:
+            - name: from
+              type: '*time.Time'
+              required: false
+              title: Start of the reporting range (inclusive); defaults to 30 days before `to`
+            - name: to
+              type: '*time.Time'
+              required: false
+              title: End of the reporting range (exclusive); defaults to now
+            - name: bucket
+              type: string
+              required: false
+              title: Series granularity (day, week, month); defaults by range length
   - title: System automation scripts
     path: '/automation'
     entrypoint: automation

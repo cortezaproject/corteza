@@ -20,11 +20,13 @@ type (
 	// Internal API interface
 	StatsAPI interface {
 		List(context.Context, *request.StatsList) (interface{}, error)
+		Detail(context.Context, *request.StatsDetail) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Stats struct {
-		List func(http.ResponseWriter, *http.Request)
+		List   func(http.ResponseWriter, *http.Request)
+		Detail func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -46,6 +48,22 @@ func NewStats(h StatsAPI) *Stats {
 
 			api.Send(w, r, value)
 		},
+		Detail: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewStatsDetail()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Detail(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -53,5 +71,6 @@ func (h Stats) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/stats/", h.List)
+		r.Get("/stats/{resource}", h.Detail)
 	})
 }

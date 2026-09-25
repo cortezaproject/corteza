@@ -1043,6 +1043,7 @@ type (
 		LookupUserByUsername(ctx context.Context, username string) (*systemType.User, error)
 		CountUsers(ctx context.Context, u systemType.UserFilter) (uint, error)
 		SystemStats(ctx context.Context, r systemType.SystemStatsRange) (*systemType.SystemStatsRaw, error)
+		SystemStatsResourceDetail(ctx context.Context, resource string, r systemType.SystemStatsRange) (*systemType.SystemStatsDetailRaw, error)
 	}
 
 	UserGroups interface {
@@ -5665,6 +5666,13 @@ func CountUsers(ctx context.Context, s Users, u systemType.UserFilter) (uint, er
 // This function is auto-generated
 func SystemStats(ctx context.Context, s Users, r systemType.SystemStatsRange) (*systemType.SystemStatsRaw, error) {
 	return s.SystemStats(ctx, r)
+}
+
+// SystemStatsResourceDetail
+//
+// This function is auto-generated
+func SystemStatsResourceDetail(ctx context.Context, s Users, resource string, r systemType.SystemStatsRange) (*systemType.SystemStatsDetailRaw, error) {
+	return s.SystemStatsResourceDetail(ctx, resource, r)
 }
 
 // SearchUserGroups returns all matching UserGroups from store
