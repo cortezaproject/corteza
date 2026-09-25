@@ -415,8 +415,8 @@ const handlePerPageChange = value => {
 }
 
 const STATE_SEVERITY = {
-  deleted: 'warn',
-  suspended: 'danger',
+  deleted: 'danger',
+  suspended: 'contrast',
   archived: 'secondary',
   disabled: 'secondary',
 }

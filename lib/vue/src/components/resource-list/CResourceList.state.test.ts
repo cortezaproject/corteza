@@ -39,6 +39,12 @@ describe('CResourceList row state', () => {
     expect(rows[1].findAll('td')[1].find('[data-pc-name="tag"]').exists()).toBe(true)
   })
 
+  it('colours deleted red and suspended dark, so the two never blur', () => {
+    const rows = mountList().findAll('tbody tr')
+    const sev = (i: number) => rows[i].find('[data-pc-name="tag"]').attributes('data-p')
+    expect([sev(1), sev(2), sev(3)]).toEqual(['danger', 'contrast', 'secondary'])
+  })
+
   it('dims only the deleted row', () => {
     const rows = mountList().findAll('tbody tr')
     expect(rows.map(r => r.classes('[&>td]:text-muted-color'))).toEqual([false, true, false, false])
@@ -76,7 +82,7 @@ describe('CResourceList active filters', () => {
     expect(state.find('span').text()).toBe('general.resourceList.filter.exclusive')
     const tag = state.find('[data-pc-name="tag"]')
     expect(tag.text()).toBe('general.resourceList.state.deleted')
-    expect(tag.attributes('data-p')).toBe('warn')
+    expect(tag.attributes('data-p')).toBe('danger')
     const custom = chips[1].findAll('span:not([data-pc-section])').map(s => s.text())
     expect(custom).toEqual(['Status', 'is draft'])
   })
