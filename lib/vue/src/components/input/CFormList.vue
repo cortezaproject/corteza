@@ -55,10 +55,7 @@
         class="border-t border-surface first:border-t-0 p-3 flex flex-col gap-2 hover:bg-emphasis transition-colors"
       >
         <div :style="gridStyle" class="grid gap-2 items-center">
-          <i
-            v-if="draggable && !disabled"
-            class="c-drag-handle pi pi-bars text-muted-color cursor-grab text-center"
-          />
+          <span v-if="draggable && !disabled" class="c-drag-handle c-grip justify-self-center" />
           <slot name="row" :item="item" :index="index" />
           <div v-if="!hideRemove && !disabled" class="w-10 flex justify-end">
             <CInputDelete
@@ -158,3 +155,15 @@ function remove(index) {
   emit('change')
 }
 </script>
+
+<style scoped>
+.c-grip {
+  width: 10px;
+  height: 16px;
+  color: var(--p-text-muted-color);
+  background-image: radial-gradient(circle, currentColor 1.2px, transparent 1.7px);
+  background-size: 5px 5.5px;
+  cursor: grab;
+  opacity: 0.6;
+}
+</style>
