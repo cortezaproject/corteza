@@ -939,7 +939,7 @@ recordList:
       notEqual: Not equal
       notLike: Not Like
     presets: Filter presets
-    reset: Reset Filter
+    reset: Reset filter
     role:
       label: Role(s)
       placeholder: Select role(s) that will be able to use preset
