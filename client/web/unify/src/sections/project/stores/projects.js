@@ -1497,7 +1497,6 @@ export const useProjectsStore = defineStore('projects', () => {
       behavior: full.behavior,
       execution: full.execution,
       access: full.access,
-      invocation: full.invocation,
       updatedAt: full.updatedAt,
     })
     await loadAgents(projectId)

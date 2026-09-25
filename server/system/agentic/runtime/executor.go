@@ -43,11 +43,6 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	// system prompt generation, and input schema computation.
 	taqInfos := r.loadTAQInfos(ctx, agent)
 
-	// For system invocable agents, try to assure input schema
-	if agent.Invocation.System.Enabled && len(agent.Invocation.System.InputSchema) == 0 {
-		agent.Invocation.System.InputSchema = r.computeInputSchema(agent, taqInfos)
-	}
-
 	// 2. Get available tools
 	tools, err := r.getAvailableTools(ctx, agent, taqInfos)
 	if err != nil {
@@ -340,9 +335,9 @@ func (r *runtime) buildSystemPrompt(ctx context.Context, agent *types.Agent, taq
 		systemPrompt += "\n- Never perform a destructive action (delete, bulk delete) without confirming with the user first."
 	}
 
-	// Citation instructions — injected for user-facing agents only.
-	// System-invoked agents validate structured output programmatically.
-	if agent.Invocation.User.Enabled {
+	// Citation instructions are for a person reading the answer; an unattended
+	// run has its output checked programmatically instead.
+	if !unattended {
 		systemPrompt += "\n\n## CITATION REQUIREMENTS\n\n" +
 			"- When answering, reference which data source your answer came from.\n" +
 			"- Use natural references such as \"Based on the Package record with tracking number TRK-456...\" or \"According to the Shipment data...\"\n" +
@@ -1536,23 +1531,6 @@ func (r *runtime) hasDirectInvokeTrigger(ctx context.Context, a *autoTypes.NgAut
 		}
 	}
 	return false
-}
-
-func (r *runtime) computeInputSchema(agent *types.Agent, taqInfos map[uint64]*autoTypes.NgAutomation) json.RawMessage {
-	// If the agent specifies a direct-invoke TAQ, use its InputSchema
-	for _, t := range agent.Access.TAQs {
-		info, ok := taqInfos[t.ID]
-		if !ok {
-			continue
-		}
-
-		for _, trg := range info.Triggers {
-			if trg.ResourceType == "automation:trigger:agentic" {
-				return r.schemaToJSONSchema(trg.InputSchema)
-			}
-		}
-	}
-	return nil
 }
 
 func (r *runtime) schemaToJSONSchema(schema autoTypes.NgAutomationTriggerSchema) json.RawMessage {

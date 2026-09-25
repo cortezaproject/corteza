@@ -78,8 +78,6 @@ func (svc *agent) onCreate(ctx context.Context, new *types.Agent) (err error) {
 		new.Status = "active"
 	}
 
-	defaultInvocation(&new.Invocation)
-
 	if err = store.CreateAgent(ctx, svc.store, new); err != nil {
 		return
 	}
@@ -98,21 +96,6 @@ func validateAgent(res *types.Agent) error {
 		return AgentErrMissingName()
 	}
 	return nil
-}
-
-// defaultInvocation turns user invocation on for an agent that named no way of
-// being invoked at all.
-//
-// An agent with neither user nor system invocation is one nothing can ever run,
-// which is never what someone meant to build; the webapp's own Agent model
-// starts with user invocation enabled, so an agent created through the API
-// otherwise behaves differently from the identical one created in the editor
-// — and says so only at exec time, as "not available for user invocation".
-func defaultInvocation(inv *types.AgentInvocation) {
-	if inv.User.Enabled || inv.System.Enabled {
-		return
-	}
-	inv.User.Enabled = true
 }
 
 // onUpdate is the custom body for the generated Update. The generated method

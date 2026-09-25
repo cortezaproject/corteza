@@ -154,7 +154,7 @@ func (s *chatbotPreview) SubmitMessage(ctx context.Context, ps *ChatbotPreviewSe
 	if err != nil || agent == nil {
 		return ChatbotSessionErrAgentUnavailable()
 	}
-	if !agent.Invocation.System.Enabled || agent.Invocation.System.ServiceAccount == 0 {
+	if scenario.RunAs == 0 {
 		return ChatbotSessionErrAgentNotConfigured()
 	}
 
@@ -168,7 +168,7 @@ func (s *chatbotPreview) SubmitMessage(ctx context.Context, ps *ChatbotPreviewSe
 	// Mirrors the widget-side behavior in chatbot_session.SubmitMessage.
 	s.EmitUserMessage(ps, input)
 
-	saCtx := ImpersonateServiceAccount(context.Background(), s.store, agent.Invocation.System.ServiceAccount)
+	saCtx := ImpersonateServiceAccount(context.Background(), s.store, scenario.RunAs)
 	cid := ps.ConversationID
 	agentID := agent.ID
 	go func() {

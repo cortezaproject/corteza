@@ -37,8 +37,6 @@ editor:
       tokens: Tokens
     empty: No conversations recorded yet
     loadError: Failed to load conversations
-  inputSchema:
-    label: Input Schema (JSON)
   inspect:
     agentResponse: Agent Response
     args: Arguments
@@ -98,9 +96,6 @@ editor:
     help: A short, human-readable name for this agent
     label: Name
     required: Name is required
-  outputFormat:
-    help: Expected output format for system invocations (e.g. JSON schema)
-    label: Output Format
   outputTokens:
     help: Maximum number of tokens the agent can generate per single response
     label: Agent Response Limit
@@ -109,15 +104,11 @@ editor:
     behavior: Behavior
     execution: Execution
     general: General
-    invocation: Invocation
     knowledgeBase: Knowledge Base
   provider:
     help: The LLM provider to use for this agent
     label: LLM Provider
     required: LLM provider is required
-  serviceAccount:
-    help: The user account this agent impersonates when running system invocations
-    label: Service Account
   sidebarRoles:
     help: Select roles that will see this agent in their App Sidebar.
     label: Agent Sidebar Roles
@@ -126,9 +117,6 @@ editor:
   status:
     help: Only active agents can be invoked
     label: Status
-  systemEnabled:
-    help: Allow this agent to be invoked programmatically by the system (e.g. automation, chatbot)
-    label: Enable System Invocation
   systemPrompt:
     help: Instructions that define the agent's personality, capabilities, and constraints. This is sent to the LLM at the start of every conversation
     label: System Prompt
@@ -242,9 +230,6 @@ editor:
     help: Choose the tools this agent may call. A tool only ever does what the person
       invoking the agent is already allowed to do, so granting one never widens access.
     label: Tools
-  userEnabled:
-    help: Allow users to invoke this agent directly through chat
-    label: Enable User Chat Invocation
   workflows:
     descriptionPlaceholder: Optional description for this workflow...
     help: Select Workflows this agent can trigger

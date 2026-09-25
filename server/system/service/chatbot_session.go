@@ -705,7 +705,7 @@ func (svc *chatbotSession) SubmitMessage(ctx context.Context, cb *types.Chatbot,
 	if err != nil || agent == nil {
 		return ChatbotSessionErrAgentUnavailable()
 	}
-	if !agent.Invocation.System.Enabled || agent.Invocation.System.ServiceAccount == 0 {
+	if scenario.RunAs == 0 {
 		return ChatbotSessionErrAgentNotConfigured()
 	}
 
@@ -726,7 +726,7 @@ func (svc *chatbotSession) SubmitMessage(ctx context.Context, cb *types.Chatbot,
 	// already run.
 	svc.emit(convID, "user_message", map[string]any{"content": input})
 
-	saCtx := ImpersonateServiceAccount(context.Background(), svc.store, agent.Invocation.System.ServiceAccount)
+	saCtx := ImpersonateServiceAccount(context.Background(), svc.store, scenario.RunAs)
 	agentID := agent.ID
 	scenarioID := scenario.ID
 	go func() {

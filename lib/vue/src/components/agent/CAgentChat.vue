@@ -246,15 +246,14 @@ async function fetchAvailableAgents() {
     const allAgents = res.set || []
 
     if (usingAllowlist.value) {
-      // Block mode — only require user-invocable; allowlist does the rest.
-      localAgents.value = allAgents.filter((agent: any) => !!agent.invocation?.user?.enabled)
+      // Block mode — the allowlist decides.
+      localAgents.value = allAgents
       return
     }
 
     // Sidebar mode — apply sidebarRoles gating before publishing to the store.
     const userRoles = $Auth?.user?.roles || []
     const configuredAgents = allAgents.filter((agent: any) => {
-      if (!agent.invocation?.user?.enabled) return false
       const sidebarRoles = agent.meta?.sidebarRoles || []
       if (!Array.isArray(sidebarRoles) || sidebarRoles.length === 0) return false
       return userRoles.includes('2') || sidebarRoles.some((r: string) => userRoles.includes(r))

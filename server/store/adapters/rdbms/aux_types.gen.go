@@ -47,23 +47,22 @@ type (
 
 	// auxAgent is an auxiliary structure used for transporting to/from RDBMS store
 	auxAgent struct {
-		ID         uint64                     `db:"id"`
-		TenantID   uint64                     `db:"tenant_id"`
-		ProjectID  uint64                     `db:"project_id"`
-		Handle     string                     `db:"handle"`
-		Status     string                     `db:"status"`
-		Revision   int                        `db:"revision"`
-		Meta       systemType.AgentMeta       `db:"meta"`
-		Behavior   systemType.AgentBehavior   `db:"behavior"`
-		Execution  systemType.AgentExecution  `db:"execution"`
-		Access     systemType.AgentAccess     `db:"access"`
-		Invocation systemType.AgentInvocation `db:"invocation"`
-		CreatedAt  time.Time                  `db:"created_at"`
-		UpdatedAt  *time.Time                 `db:"updated_at"`
-		DeletedAt  *time.Time                 `db:"deleted_at"`
-		CreatedBy  uint64                     `db:"created_by"`
-		UpdatedBy  uint64                     `db:"updated_by"`
-		DeletedBy  uint64                     `db:"deleted_by"`
+		ID        uint64                    `db:"id"`
+		TenantID  uint64                    `db:"tenant_id"`
+		ProjectID uint64                    `db:"project_id"`
+		Handle    string                    `db:"handle"`
+		Status    string                    `db:"status"`
+		Revision  int                       `db:"revision"`
+		Meta      systemType.AgentMeta      `db:"meta"`
+		Behavior  systemType.AgentBehavior  `db:"behavior"`
+		Execution systemType.AgentExecution `db:"execution"`
+		Access    systemType.AgentAccess    `db:"access"`
+		CreatedAt time.Time                 `db:"created_at"`
+		UpdatedAt *time.Time                `db:"updated_at"`
+		DeletedAt *time.Time                `db:"deleted_at"`
+		CreatedBy uint64                    `db:"created_by"`
+		UpdatedBy uint64                    `db:"updated_by"`
+		DeletedBy uint64                    `db:"deleted_by"`
 	}
 
 	// auxAiConversation is an auxiliary structure used for transporting to/from RDBMS store
@@ -1353,7 +1352,6 @@ func (aux *auxAgent) encode(res *systemType.Agent) (_ error) {
 	aux.Behavior = res.Behavior
 	aux.Execution = res.Execution
 	aux.Access = res.Access
-	aux.Invocation = res.Invocation
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
@@ -1378,7 +1376,6 @@ func (aux auxAgent) decode() (res *systemType.Agent, _ error) {
 	res.Behavior = aux.Behavior
 	res.Execution = aux.Execution
 	res.Access = aux.Access
-	res.Invocation = aux.Invocation
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
@@ -1403,7 +1400,6 @@ func (aux *auxAgent) scan(row scanner) error {
 		&aux.Behavior,
 		&aux.Execution,
 		&aux.Access,
-		&aux.Invocation,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

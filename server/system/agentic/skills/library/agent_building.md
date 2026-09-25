@@ -20,8 +20,8 @@ so build the agent first.
 
 ## Every section replaces
 
-An agent's configuration is five objects — `meta`, `behavior`, `execution`,
-`access`, `invocation` — and a chatbot's is three: `handoff`, `styling`,
+An agent's configuration is four objects — `meta`, `behavior`, `execution`,
+`access` — and a chatbot's is three: `handoff`, `styling`,
 `scenarios`. Sending one **replaces that whole section**. To change one field,
 read the resource first with the matching `_lookup` and send an edited copy of
 the section, never a fragment.
@@ -91,10 +91,10 @@ TAQ step (`agentPrompt`) or a workflow step (`agentRun`).
 1. A `conversation` scenario carrying an `agentID`. Without one the **whole
    save is rejected** — "conversation scenario is missing an agent" — not just
    that scenario.
-2. The agent's `invocation.system` must be enabled with a `serviceAccount`. A
-   chatbot runs its agent under a service account, and without it the visitor's
-   first message fails with "agent not configured". `system_chatbot_create`
-   checks this and says so in its returned note — read it.
+2. The scenario's `runAs` user. A chatbot runs its agent as that user, and
+   without one the visitor's first message fails with "agent not configured".
+   `system_chatbot_create` checks this and says so in its returned note — read
+   it.
 3. `enabled` defaults to **false** on a new chatbot. It keeps its whole
    configuration and serves nobody until you turn it on.
 

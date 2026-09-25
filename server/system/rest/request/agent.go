@@ -125,11 +125,6 @@ type (
 		// Agent access
 		Access types.AgentAccess
 
-		// Invocation POST parameter
-		//
-		// Agent invocation
-		Invocation types.AgentInvocation
-
 		// Labels POST parameter
 		//
 		// Labels
@@ -178,11 +173,6 @@ type (
 		//
 		// Agent access
 		Access types.AgentAccess
-
-		// Invocation POST parameter
-		//
-		// Agent invocation
-		Invocation types.AgentInvocation
 
 		// Labels POST parameter
 		//
@@ -393,15 +383,14 @@ func NewAgentCreate() *AgentCreate {
 // Auditable returns all auditable/loggable parameters
 func (r AgentCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"handle":     r.Handle,
-		"projectID":  r.ProjectID,
-		"status":     r.Status,
-		"meta":       r.Meta,
-		"behavior":   r.Behavior,
-		"execution":  r.Execution,
-		"access":     r.Access,
-		"invocation": r.Invocation,
-		"labels":     r.Labels,
+		"handle":    r.Handle,
+		"projectID": r.ProjectID,
+		"status":    r.Status,
+		"meta":      r.Meta,
+		"behavior":  r.Behavior,
+		"execution": r.Execution,
+		"access":    r.Access,
+		"labels":    r.Labels,
 	}
 }
 
@@ -438,11 +427,6 @@ func (r AgentCreate) GetExecution() types.AgentExecution {
 // Auditable returns all auditable/loggable parameters
 func (r AgentCreate) GetAccess() types.AgentAccess {
 	return r.Access
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AgentCreate) GetInvocation() types.AgentInvocation {
-	return r.Invocation
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -540,18 +524,6 @@ func (r *AgentCreate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["invocation[]"]; ok {
-				r.Invocation, err = types.ParseAgentInvocation(val)
-				if err != nil {
-					return err
-				}
-			} else if val, ok := req.MultipartForm.Value["invocation"]; ok {
-				r.Invocation, err = types.ParseAgentInvocation(val)
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
 				r.Labels, err = label.ParseStrings(val)
 				if err != nil {
@@ -642,18 +614,6 @@ func (r *AgentCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["invocation[]"]; ok {
-			r.Invocation, err = types.ParseAgentInvocation(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["invocation"]; ok {
-			r.Invocation, err = types.ParseAgentInvocation(val)
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["labels[]"]; ok {
 			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
@@ -713,16 +673,15 @@ func NewAgentUpdate() *AgentUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r AgentUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"agentID":    r.AgentID,
-		"handle":     r.Handle,
-		"status":     r.Status,
-		"meta":       r.Meta,
-		"behavior":   r.Behavior,
-		"execution":  r.Execution,
-		"access":     r.Access,
-		"invocation": r.Invocation,
-		"labels":     r.Labels,
-		"updatedAt":  r.UpdatedAt,
+		"agentID":   r.AgentID,
+		"handle":    r.Handle,
+		"status":    r.Status,
+		"meta":      r.Meta,
+		"behavior":  r.Behavior,
+		"execution": r.Execution,
+		"access":    r.Access,
+		"labels":    r.Labels,
+		"updatedAt": r.UpdatedAt,
 	}
 }
 
@@ -759,11 +718,6 @@ func (r AgentUpdate) GetExecution() types.AgentExecution {
 // Auditable returns all auditable/loggable parameters
 func (r AgentUpdate) GetAccess() types.AgentAccess {
 	return r.Access
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AgentUpdate) GetInvocation() types.AgentInvocation {
-	return r.Invocation
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -859,18 +813,6 @@ func (r *AgentUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
-			if val, ok := req.MultipartForm.Value["invocation[]"]; ok {
-				r.Invocation, err = types.ParseAgentInvocation(val)
-				if err != nil {
-					return err
-				}
-			} else if val, ok := req.MultipartForm.Value["invocation"]; ok {
-				r.Invocation, err = types.ParseAgentInvocation(val)
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["labels[]"]; ok {
 				r.Labels, err = label.ParseStrings(val)
 				if err != nil {
@@ -956,18 +898,6 @@ func (r *AgentUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["access"]; ok {
 			r.Access, err = types.ParseAgentAccess(val)
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["invocation[]"]; ok {
-			r.Invocation, err = types.ParseAgentInvocation(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["invocation"]; ok {
-			r.Invocation, err = types.ParseAgentInvocation(val)
 			if err != nil {
 				return err
 			}

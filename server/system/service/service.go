@@ -464,7 +464,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		automationService.Registry(),
 		DefaultAgenticRuntime,
 		DefaultAgent,
-		DefaultUser,
 	)
 
 	automation.NgAgentHandler(

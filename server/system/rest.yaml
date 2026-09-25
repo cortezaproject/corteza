@@ -4272,12 +4272,6 @@ endpoints:
                 parser: 'types.ParseAgentAccess',
               }
             - {
-                type: 'types.AgentInvocation',
-                name: invocation,
-                title: Agent invocation,
-                parser: 'types.ParseAgentInvocation',
-              }
-            - {
                 type: 'map[string]labelTypes.LabelValue',
                 name: labels,
                 title: Labels,
@@ -4323,12 +4317,6 @@ endpoints:
                 name: access,
                 title: Agent access,
                 parser: 'types.ParseAgentAccess',
-              }
-            - {
-                type: 'types.AgentInvocation',
-                name: invocation,
-                title: Agent invocation,
-                parser: 'types.ParseAgentInvocation',
               }
             - {
                 type: 'map[string]labelTypes.LabelValue',

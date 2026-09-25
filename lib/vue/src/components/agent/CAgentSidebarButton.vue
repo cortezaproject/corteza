@@ -33,9 +33,6 @@ onMounted(async () => {
     const allAgents = res.set || []
     const userRoles = $Auth.user?.roles || []
     const configuredAgents = allAgents.filter((agent: any) => {
-      // Must have user invocation enabled
-      if (!agent.invocation?.user?.enabled) return false
-
       const sidebarRoles = agent.meta?.sidebarRoles || []
       if (!Array.isArray(sidebarRoles) || sidebarRoles.length === 0) return false
 

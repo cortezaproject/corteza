@@ -72,6 +72,7 @@ type (
 		Name       string                    `json:"name,omitempty"`
 		Type       string                    `json:"type"`
 		AgentID    uint64                    `json:"agentID,string,omitempty"`
+		RunAs      uint64                    `json:"runAs,string,omitempty"`
 		Config     json.RawMessage           `json:"config,omitempty"`
 		Automation ChatbotScenarioAutomation `json:"automation"`
 	}
@@ -404,6 +405,10 @@ func (r ChatbotScenario) Diff(cmp *ChatbotScenario) []*revisions.Change {
 
 	if r.AgentID != cmp.AgentID {
 		out = append(out, &revisions.Change{Key: "agentID", Old: []any{cmp.AgentID}, New: []any{r.AgentID}})
+	}
+
+	if r.RunAs != cmp.RunAs {
+		out = append(out, &revisions.Change{Key: "runAs", Old: []any{cmp.RunAs}, New: []any{r.RunAs}})
 	}
 
 	if !reflect.DeepEqual(r.Config, cmp.Config) {

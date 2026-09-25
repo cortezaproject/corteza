@@ -75,10 +75,10 @@ the payload it is given — there is no field-level merge. A partial update tool
 MUST load the agent first and apply only what the caller sent, or every section
 the caller omitted is wiped.
 
-**Five nested config sections**, each a struct: `meta`, `behavior`,
-`execution`, `access`, `invocation`. Per §8.2 each is one JSON-object param
+**Four nested config sections**, each a struct: `meta`, `behavior`,
+`execution`, `access`. Per §8.2 each is one JSON-object param
 that replaces that whole section when present and leaves it alone when absent.
-Flattening them would be ~25 params and would still not reach
+Flattening them would be ~20 params and would still not reach
 `access.tools[].allow[].moduleIDs`.
 
 **`Revision` is server-owned** — bumped on every update. Never a param.

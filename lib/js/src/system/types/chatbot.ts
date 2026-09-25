@@ -59,6 +59,7 @@ interface ChatbotScenario {
   name: string
   type: string
   agentID?: string
+  runAs?: string
   config: unknown
   automation?: ChatbotScenarioAutomation
 }
@@ -196,6 +197,7 @@ export class Chatbot {
         ? o.scenarios.map(s => ({
             ...s,
             agentID: s.agentID ? HumanID(s.agentID) : undefined,
+            runAs: s.runAs ? HumanID(s.runAs) : undefined,
             automation: normalizeScenarioAutomation(s.automation),
           }))
         : this.scenarios

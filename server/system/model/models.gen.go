@@ -89,14 +89,6 @@ var Agent = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Invocation",
-			Type: &dal.TypeJSON{
-				DefaultValue: "{}",
-			},
-			Store: &dal.CodecAlias{Ident: "invocation"},
-		},
-
-		&dal.Attribute{
 			Ident: "CreatedAt", Sortable: true,
 			Type: &dal.TypeTimestamp{
 				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,

@@ -84,22 +84,6 @@ interface AgentAccess {
   workflows: AgentAccessWorkflow[]
 }
 
-interface AgentInvocationUser {
-  enabled: boolean
-}
-
-interface AgentInvocationSystem {
-  enabled: boolean
-  serviceAccount: string
-  inputSchema: unknown
-  outputFormat: string
-}
-
-interface AgentInvocation {
-  user: AgentInvocationUser
-  system: AgentInvocationSystem
-}
-
 interface PartialAgent extends Partial<Omit<Agent, 'createdAt' | 'updatedAt' | 'deletedAt'>> {
   createdAt?: string | number | Date
   updatedAt?: string | number | Date
@@ -145,16 +129,6 @@ export class Agent {
     allow: [],
     taqs: [],
     workflows: [],
-  }
-
-  public invocation: AgentInvocation = {
-    user: { enabled: true },
-    system: {
-      enabled: false,
-      serviceAccount: NoID,
-      inputSchema: null,
-      outputFormat: '',
-    },
   }
 
   public createdAt?: Date = undefined
@@ -230,13 +204,6 @@ export class Agent {
         allow: Array.isArray(o.access?.allow) ? o.access.allow : this.access.allow,
         taqs: Array.isArray(o.access?.taqs) ? o.access.taqs : this.access.taqs,
         workflows: Array.isArray(o.access?.workflows) ? o.access.workflows : this.access.workflows,
-      }
-    }
-
-    if (IsOf(o, 'invocation')) {
-      this.invocation = {
-        user: { ...this.invocation.user, ...(o.invocation?.user || {}) },
-        system: { ...this.invocation.system, ...(o.invocation?.system || {}) },
       }
     }
   }

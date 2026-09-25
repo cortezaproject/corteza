@@ -51,16 +51,14 @@ func TestApplyAgentSectionsAcceptsADecodedObject(t *testing.T) {
 
 func TestApplyAgentSectionsLeavesEverythingAloneWhenNothingIsSent(t *testing.T) {
 	a := &sysTypes.Agent{
-		Meta:       sysTypes.AgentMeta{Short: "Kept"},
-		Access:     sysTypes.AgentAccess{Tools: []sysTypes.AgentAccessTool{{Name: "compose_record_lookup"}}},
-		Invocation: sysTypes.AgentInvocation{User: sysTypes.AgentInvocationUser{Enabled: true}},
+		Meta:   sysTypes.AgentMeta{Short: "Kept"},
+		Access: sysTypes.AgentAccess{Tools: []sysTypes.AgentAccessTool{{Name: "compose_record_lookup"}}},
 	}
 
 	require.NoError(t, applyAgentSections(a, map[string]any{"handle": "unrelated"}))
 
 	require.Equal(t, "Kept", a.Meta.Short)
 	require.Len(t, a.Access.Tools, 1)
-	require.True(t, a.Invocation.User.Enabled)
 }
 
 func TestApplyAgentSectionsRejectsMalformedJSON(t *testing.T) {

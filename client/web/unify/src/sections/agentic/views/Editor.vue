@@ -77,6 +77,19 @@
                       </CFormGroup>
                       <CFormGroup
                         class="md:col-span-2"
+                        :label="$t('agent.editor.sidebarRoles.label')"
+                        :description="$t('agent.editor.sidebarRoles.help')"
+                        input-id="sidebarRoles"
+                      >
+                        <CInputRole
+                          id="sidebarRoles"
+                          v-model="agent.meta.sidebarRoles"
+                          :multiple="true"
+                          :disabled="!canEdit"
+                        />
+                      </CFormGroup>
+                      <CFormGroup
+                        class="md:col-span-2"
                         :label="$t('agent.editor.description.label')"
                         :description="$t('agent.editor.description.help')"
                         input-id="description"
@@ -592,61 +605,6 @@
                       </CFormItemList>
                     </div>
                   </Panel>
-
-                  <Panel :header="$t('agent.editor.panels.invocation')" toggleable>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <!-- User Invocation Group -->
-                      <div class="flex flex-col gap-4">
-                        <CInputToggleCard
-                          v-model="agent.invocation.user.enabled"
-                          :label="$t('agent.editor.userEnabled.label')"
-                          :description="$t('agent.editor.userEnabled.help')"
-                          :disabled="!canEdit"
-                        />
-
-                        <CFormGroup
-                          :label="$t('agent.editor.sidebarRoles.label')"
-                          :description="$t('agent.editor.sidebarRoles.help')"
-                          input-id="sidebarRoles"
-                          :class="{
-                            'opacity-50 pointer-events-none': !agent.invocation.user.enabled,
-                          }"
-                        >
-                          <CInputRole
-                            id="sidebarRoles"
-                            v-model="agent.meta.sidebarRoles"
-                            :multiple="true"
-                            :disabled="!canEdit || !agent.invocation.user.enabled"
-                          />
-                        </CFormGroup>
-                      </div>
-
-                      <!-- System Invocation Group -->
-                      <div class="flex flex-col gap-4">
-                        <CInputToggleCard
-                          v-model="agent.invocation.system.enabled"
-                          :label="$t('agent.editor.systemEnabled.label')"
-                          :description="$t('agent.editor.systemEnabled.help')"
-                          :disabled="!canEdit"
-                        />
-
-                        <CFormGroup
-                          :label="$t('agent.editor.serviceAccount.label')"
-                          :description="$t('agent.editor.serviceAccount.help')"
-                          input-id="serviceAccount"
-                          :class="{
-                            'opacity-50 pointer-events-none': !agent.invocation.system.enabled,
-                          }"
-                        >
-                          <CInputUser
-                            id="serviceAccount"
-                            v-model="agent.invocation.system.serviceAccount"
-                            :disabled="!canEdit || !agent.invocation.system.enabled"
-                          />
-                        </CFormGroup>
-                      </div>
-                    </div>
-                  </Panel>
                 </TabPanel>
 
                 <TabPanel value="exec" class="h-full p-0 overflow-hidden">
@@ -819,7 +777,6 @@ const {
   CInputLLM,
   CInputModel,
   CInputDelete,
-  CInputUser,
   CInputKnowledgeBase,
   CInputToggleCard,
   CInputRole,

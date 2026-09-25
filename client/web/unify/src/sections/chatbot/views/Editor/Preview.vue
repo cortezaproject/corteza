@@ -36,6 +36,7 @@ function buildConfig() {
     name: s.name,
     type: s.type || 'conversation',
     agentID: cleanNumericID(s.agentID),
+    runAs: cleanNumericID(s.runAs),
     config: s.config || {},
     automation: s.automation,
   }))

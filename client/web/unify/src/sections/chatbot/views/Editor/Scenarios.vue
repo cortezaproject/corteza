@@ -124,6 +124,17 @@
                   </div>
                 </CFormGroup>
                 <CFormGroup
+                  :label="$t('chatbot.editor.scenarios.runAs.label')"
+                  :description="$t('chatbot.editor.scenarios.runAs.help')"
+                  required
+                >
+                  <CInputUser
+                    v-model="current.runAs"
+                    :placeholder="$t('chatbot.editor.scenarios.runAs.placeholder')"
+                    :disabled="disabled"
+                  />
+                </CFormGroup>
+                <CFormGroup
                   :label="$t('chatbot.editor.scenarios.conversation.placeholder')"
                   :description="$t('chatbot.editor.scenarios.conversation.placeholderHelp')"
                   class="xl:col-span-2"
@@ -334,7 +345,7 @@ import { components } from '@planetcrust/human-vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CInputTAQ, CInputToggleCard, CRichTextInput } = components
+const { CInputTAQ, CInputToggleCard, CInputUser, CRichTextInput } = components
 const { t } = useI18n()
 
 const AUTOMATION_PREFIX = 'corteza::automation:ng-automation/'

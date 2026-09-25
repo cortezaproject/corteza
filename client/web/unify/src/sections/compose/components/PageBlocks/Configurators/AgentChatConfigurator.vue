@@ -92,7 +92,7 @@ onMounted(async () => {
   loading.value = true
   try {
     const res = await $SystemAPI.agentList({ limit: 0 })
-    agents.value = (res?.set || []).filter(a => a.invocation?.user?.enabled)
+    agents.value = res?.set || []
   } catch (err) {
     console.warn('[agent-chat-configurator] agentList failed', err)
   } finally {

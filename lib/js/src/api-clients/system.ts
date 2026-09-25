@@ -10405,8 +10405,7 @@ export default class System {
 
   // Create agent
   async agentCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const { handle, projectID, status, meta, behavior, execution, access, invocation, labels } =
-      (a as KV) || {}
+    const { handle, projectID, status, meta, behavior, execution, access, labels } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -10420,7 +10419,6 @@ export default class System {
       behavior,
       execution,
       access,
-      invocation,
       labels,
     }
     return this.api()
@@ -10488,18 +10486,8 @@ export default class System {
 
   // Update agent details
   async agentUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      agentID,
-      handle,
-      status,
-      meta,
-      behavior,
-      execution,
-      access,
-      invocation,
-      labels,
-      updatedAt,
-    } = (a as KV) || {}
+    const { agentID, handle, status, meta, behavior, execution, access, labels, updatedAt } =
+      (a as KV) || {}
     if (!agentID) {
       throw Error('field agentID is empty')
     }
@@ -10517,7 +10505,6 @@ export default class System {
       behavior,
       execution,
       access,
-      invocation,
       labels,
       updatedAt,
     }

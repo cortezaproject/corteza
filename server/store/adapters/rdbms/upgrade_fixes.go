@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -92,6 +93,8 @@ var (
 		fix_2026_08_24_addMetaOnComposeCharts,
 		fix_2026_09_22_addSourceOnApplications,
 		fix_2026_09_22_addSourceMetaOnApplications,
+		fix_2026_09_25_moveAgentServiceAccountOntoChatbotScenarios,
+		fix_2026_09_25_dropInvocationOnAgents,
 	}, actionlogFixes...)
 
 	// actionlog-only additive column fixes. Shared here so both the main Upgrade
@@ -2175,4 +2178,126 @@ func fix_2026_08_14_addPrimaryLayoutToLayoutlessPages(ctx context.Context, s *St
 	}
 
 	return nil
+}
+
+// fix_2026_09_25_moveAgentServiceAccountOntoChatbotScenarios copies the
+// service account an agent used to carry onto every conversation scenario that
+// runs it, as the scenario's runAs; the column it is read from is dropped by
+// the fix that follows.
+func fix_2026_09_25_moveAgentServiceAccountOntoChatbotScenarios(ctx context.Context, s *Store) (err error) {
+	tbl, err := s.DataDefiner.TableLookup(ctx, "agents")
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	if tbl.ColumnByIdent("invocation") == nil {
+		return nil
+	}
+
+	log := s.log(ctx)
+
+	accounts := map[string]string{}
+	{
+		rows, err := s.DB.QueryContext(ctx, "SELECT id, invocation FROM agents")
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var (
+				id  uint64
+				raw []byte
+				inv struct {
+					System struct {
+						ServiceAccount string `json:"serviceAccount"`
+					} `json:"system"`
+				}
+			)
+			if err = rows.Scan(&id, &raw); err != nil {
+				return err
+			}
+			if len(raw) == 0 || json.Unmarshal(raw, &inv) != nil {
+				continue
+			}
+			if inv.System.ServiceAccount != "" && inv.System.ServiceAccount != "0" {
+				accounts[strconv.FormatUint(id, 10)] = inv.System.ServiceAccount
+			}
+		}
+	}
+	if len(accounts) == 0 {
+		return nil
+	}
+
+	type update struct {
+		id        uint64
+		scenarios []byte
+	}
+	var uu []update
+	{
+		rows, err := s.DB.QueryContext(ctx, "SELECT id, scenarios FROM chatbots")
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var (
+				id  uint64
+				raw []byte
+				ss  []map[string]any
+			)
+			if err = rows.Scan(&id, &raw); err != nil {
+				return err
+			}
+			if len(raw) == 0 || json.Unmarshal(raw, &ss) != nil {
+				continue
+			}
+
+			changed := false
+			for _, sc := range ss {
+				if sc["type"] != "conversation" {
+					continue
+				}
+				if runAs, _ := sc["runAs"].(string); runAs != "" && runAs != "0" {
+					continue
+				}
+				agentID, _ := sc["agentID"].(string)
+				if acct, ok := accounts[agentID]; ok {
+					sc["runAs"] = acct
+					changed = true
+				}
+			}
+			if !changed {
+				continue
+			}
+
+			packed, err := json.Marshal(ss)
+			if err != nil {
+				return err
+			}
+			uu = append(uu, update{id: id, scenarios: packed})
+		}
+	}
+
+	query := s.DB.Rebind("UPDATE chatbots SET scenarios = ? WHERE id = ?")
+	if strings.HasPrefix(s.DB.DriverName(), "postgres") {
+		query = "UPDATE chatbots SET scenarios = $1::jsonb WHERE id = $2"
+	}
+	for _, u := range uu {
+		log.Info("moving agent service account onto chatbot scenarios", logger.Uint64("chatbotID", u.id))
+		if _, err = s.DB.ExecContext(ctx, query, string(u.scenarios), u.id); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// fix_2026_09_25_dropInvocationOnAgents removes the invocation switches; an
+// agent no longer says who may run it.
+func fix_2026_09_25_dropInvocationOnAgents(ctx context.Context, s *Store) error {
+	return dropColumns(ctx, s, "agents", "invocation")
 }

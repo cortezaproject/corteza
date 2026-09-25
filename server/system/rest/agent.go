@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/crusttech/human/server/pkg/filter"
 	"github.com/crusttech/human/server/system/agentic/runtime"
@@ -93,7 +92,6 @@ func (ctrl *Agent) beforeCreate(ctx context.Context, res *types.Agent, r *reques
 	res.Behavior = r.Behavior
 	res.Execution = r.Execution
 	res.Access = r.Access
-	res.Invocation = r.Invocation
 	res.Labels = r.Labels
 	return nil
 }
@@ -106,19 +104,13 @@ func (ctrl *Agent) beforeUpdate(ctx context.Context, res *types.Agent, r *reques
 	res.Behavior = r.Behavior
 	res.Execution = r.Execution
 	res.Access = r.Access
-	res.Invocation = r.Invocation
 	res.Labels = r.Labels
 	return nil
 }
 
 func (ctrl *Agent) Exec(ctx context.Context, r *request.AgentExec) (interface{}, error) {
-	a, err := ctrl.agent.FindByID(ctx, r.AgentID)
-	if err != nil {
+	if _, err := ctrl.agent.FindByID(ctx, r.AgentID); err != nil {
 		return nil, err
-	}
-
-	if !a.Invocation.User.Enabled {
-		return nil, fmt.Errorf("agent %d is not available for user invocation — set invocation.user.enabled on it", a.ID)
 	}
 
 	return service.DefaultAgenticRuntime.Run(ctx, &runtime.AgentRequest{

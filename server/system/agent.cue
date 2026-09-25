@@ -43,22 +43,6 @@ _agentDefs: {
 				{name: "Workflows", goType: "[]AgentAccessWorkflow", json:       "workflows,omitempty"},
 	]}
 
-	AgentInvocation: {name: "AgentInvocation", fields: [
-				{name: "User", type:   _agentDefs.AgentInvocationUser, json:   "user"},
-				{name: "System", type: _agentDefs.AgentInvocationSystem, json: "system"},
-	]}
-
-	AgentInvocationUser: {name: "AgentInvocationUser", fields: [
-					{name: "Enabled", type: "bool", json: "enabled"},
-	]}
-
-	AgentInvocationSystem: {name: "AgentInvocationSystem", fields: [
-					{name: "Enabled", type:        "bool", json:            "enabled"},
-					{name: "ServiceAccount", type: "uint64", json:          "serviceAccount,string,omitempty"},
-					{name: "InputSchema", goType:  "json.RawMessage", json: "inputSchema,omitempty"},
-					{name: "OutputFormat", type:   "string", json:          "outputFormat,omitempty"},
-	]}
-
 	AgentAccessTAQ: {name: "AgentAccessTAQ", fields: [
 				{name: "ID", type:          "uint64", json:            "id,string"},
 				{name: "Description", type: "string", json:            "description,omitempty"},
@@ -150,12 +134,6 @@ agent: {
 			}
 			access: {
 				type: _agentDefs.AgentAccess
-				dal: {type: "JSON", defaultEmptyObject: true}
-				omitSetter: true
-				omitGetter: true
-			}
-			invocation: {
-				type: _agentDefs.AgentInvocation
 				dal: {type: "JSON", defaultEmptyObject: true}
 				omitSetter: true
 				omitGetter: true

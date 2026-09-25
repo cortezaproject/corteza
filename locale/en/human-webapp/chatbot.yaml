@@ -47,10 +47,14 @@ editor:
     add: Add step
     agent:
       create: Create new agent
-      help: The agent must have System Invocation enabled and a Service Account configured.
+      help: The agent that answers the visitor in this step.
       label: Agent
       open: Open agent
       placeholder: Select an agent
+    runAs:
+      help: The user account the agent runs as while answering a visitor. A visitor has no account of their own, so every tool the agent calls acts as this user; without one the step cannot answer.
+      label: Runs as user
+      placeholder: Select a user
     automation:
       after: After automation
       afterHelp: Runs after the step completes. Errors are logged only.

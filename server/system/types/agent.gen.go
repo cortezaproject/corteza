@@ -19,24 +19,23 @@ import (
 
 type (
 	Agent struct {
-		ID         uint64                           `json:"agentID,string"`
-		TenantID   uint64                           `json:"tenantID,string,omitempty"`
-		ProjectID  uint64                           `json:"projectID,string,omitempty"`
-		Handle     string                           `json:"handle"`
-		Status     string                           `json:"status"`
-		Revision   int                              `json:"revision"`
-		Meta       AgentMeta                        `json:"meta"`
-		Behavior   AgentBehavior                    `json:"behavior"`
-		Execution  AgentExecution                   `json:"execution"`
-		Access     AgentAccess                      `json:"access"`
-		Invocation AgentInvocation                  `json:"invocation"`
-		CreatedAt  time.Time                        `json:"createdAt,omitempty"`
-		UpdatedAt  *time.Time                       `json:"updatedAt,omitempty"`
-		DeletedAt  *time.Time                       `json:"deletedAt,omitempty"`
-		CreatedBy  uint64                           `json:"createdBy,string"`
-		UpdatedBy  uint64                           `json:"updatedBy,string,omitempty"`
-		DeletedBy  uint64                           `json:"deletedBy,string,omitempty"`
-		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+		ID        uint64                           `json:"agentID,string"`
+		TenantID  uint64                           `json:"tenantID,string,omitempty"`
+		ProjectID uint64                           `json:"projectID,string,omitempty"`
+		Handle    string                           `json:"handle"`
+		Status    string                           `json:"status"`
+		Revision  int                              `json:"revision"`
+		Meta      AgentMeta                        `json:"meta"`
+		Behavior  AgentBehavior                    `json:"behavior"`
+		Execution AgentExecution                   `json:"execution"`
+		Access    AgentAccess                      `json:"access"`
+		CreatedAt time.Time                        `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time                       `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time                       `json:"deletedAt,omitempty"`
+		CreatedBy uint64                           `json:"createdBy,string"`
+		UpdatedBy uint64                           `json:"updatedBy,string,omitempty"`
+		DeletedBy uint64                           `json:"deletedBy,string,omitempty"`
+		Labels    map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 	}
 
 	AgentMeta struct {
@@ -75,22 +74,6 @@ type (
 		Allow     []AgentAccessAllow    `json:"allow,omitempty"`
 		TAQs      []AgentAccessTAQ      `json:"taqs,omitempty"`
 		Workflows []AgentAccessWorkflow `json:"workflows,omitempty"`
-	}
-
-	AgentInvocation struct {
-		User   AgentInvocationUser   `json:"user"`
-		System AgentInvocationSystem `json:"system"`
-	}
-
-	AgentInvocationUser struct {
-		Enabled bool `json:"enabled"`
-	}
-
-	AgentInvocationSystem struct {
-		Enabled        bool            `json:"enabled"`
-		ServiceAccount uint64          `json:"serviceAccount,string,omitempty"`
-		InputSchema    json.RawMessage `json:"inputSchema,omitempty"`
-		OutputFormat   string          `json:"outputFormat,omitempty"`
 	}
 
 	AgentAccessTAQ struct {
@@ -139,8 +122,6 @@ func (r Agent) Clone() *Agent {
 	dup.Execution = *r.Execution.Clone()
 
 	dup.Access = *r.Access.Clone()
-
-	dup.Invocation = *r.Invocation.Clone()
 
 	if r.UpdatedAt != nil {
 		v := *r.UpdatedAt
@@ -207,11 +188,6 @@ func (r Agent) Diff(cmp *Agent) []*revisions.Change {
 
 	for _, c := range r.Access.Diff(&cmp.Access) {
 		c.Key = "access." + c.Key
-		out = append(out, c)
-	}
-
-	for _, c := range r.Invocation.Diff(&cmp.Invocation) {
-		c.Key = "invocation." + c.Key
 		out = append(out, c)
 	}
 
@@ -470,88 +446,6 @@ func (r AgentAccess) Diff(cmp *AgentAccess) []*revisions.Change {
 func (r *AgentAccess) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r AgentAccess) Value() (driver.Value, error) { return json.Marshal(r) }
 
-func (r AgentInvocation) Clone() *AgentInvocation {
-	dup := r
-	dup.User = *r.User.Clone()
-
-	dup.System = *r.System.Clone()
-
-	return &dup
-}
-
-func (r AgentInvocation) Diff(cmp *AgentInvocation) []*revisions.Change {
-	out := make([]*revisions.Change, 0)
-	if cmp == nil {
-		cmp = &AgentInvocation{}
-	}
-	for _, c := range r.User.Diff(&cmp.User) {
-		c.Key = "user." + c.Key
-		out = append(out, c)
-	}
-
-	for _, c := range r.System.Diff(&cmp.System) {
-		c.Key = "system." + c.Key
-		out = append(out, c)
-	}
-
-	return out
-}
-
-func (r *AgentInvocation) Scan(src any) error          { return sql.ParseJSON(src, r) }
-func (r AgentInvocation) Value() (driver.Value, error) { return json.Marshal(r) }
-
-func (r AgentInvocationUser) Clone() *AgentInvocationUser {
-	dup := r
-	return &dup
-}
-
-func (r AgentInvocationUser) Diff(cmp *AgentInvocationUser) []*revisions.Change {
-	out := make([]*revisions.Change, 0)
-	if cmp == nil {
-		cmp = &AgentInvocationUser{}
-	}
-	if r.Enabled != cmp.Enabled {
-		out = append(out, &revisions.Change{Key: "enabled", Old: []any{cmp.Enabled}, New: []any{r.Enabled}})
-	}
-
-	return out
-}
-
-func (r *AgentInvocationUser) Scan(src any) error          { return sql.ParseJSON(src, r) }
-func (r AgentInvocationUser) Value() (driver.Value, error) { return json.Marshal(r) }
-
-func (r AgentInvocationSystem) Clone() *AgentInvocationSystem {
-	dup := r
-	return &dup
-}
-
-func (r AgentInvocationSystem) Diff(cmp *AgentInvocationSystem) []*revisions.Change {
-	out := make([]*revisions.Change, 0)
-	if cmp == nil {
-		cmp = &AgentInvocationSystem{}
-	}
-	if r.Enabled != cmp.Enabled {
-		out = append(out, &revisions.Change{Key: "enabled", Old: []any{cmp.Enabled}, New: []any{r.Enabled}})
-	}
-
-	if r.ServiceAccount != cmp.ServiceAccount {
-		out = append(out, &revisions.Change{Key: "serviceAccount", Old: []any{cmp.ServiceAccount}, New: []any{r.ServiceAccount}})
-	}
-
-	if !reflect.DeepEqual(r.InputSchema, cmp.InputSchema) {
-		out = append(out, &revisions.Change{Key: "inputSchema", Old: []any{cmp.InputSchema}, New: []any{r.InputSchema}})
-	}
-
-	if r.OutputFormat != cmp.OutputFormat {
-		out = append(out, &revisions.Change{Key: "outputFormat", Old: []any{cmp.OutputFormat}, New: []any{r.OutputFormat}})
-	}
-
-	return out
-}
-
-func (r *AgentInvocationSystem) Scan(src any) error          { return sql.ParseJSON(src, r) }
-func (r AgentInvocationSystem) Value() (driver.Value, error) { return json.Marshal(r) }
-
 func (r AgentAccessTAQ) Clone() *AgentAccessTAQ {
 	dup := r
 	if r.Params != nil {
@@ -786,13 +680,6 @@ func ParseAgentExecution(ss []string) (p AgentExecution, err error) {
 }
 
 func ParseAgentAccess(ss []string) (p AgentAccess, err error) {
-	if len(ss) == 0 {
-		return
-	}
-	return p, json.Unmarshal([]byte(ss[0]), &p)
-}
-
-func ParseAgentInvocation(ss []string) (p AgentInvocation, err error) {
 	if len(ss) == 0 {
 		return
 	}

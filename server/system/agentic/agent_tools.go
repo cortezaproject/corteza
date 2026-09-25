@@ -13,8 +13,8 @@ import (
 // leaves it untouched when omitted (CONVENTIONS.md §8.2), so changing the
 // system prompt means sending the whole `behavior` object, not just the prompt.
 // Read the agent first with system_agent_lookup and send back an edited copy.
-const agentSectionDoc = "An agent's configuration is five objects — meta, behavior, execution, access " +
-	"and invocation. Send only the ones you are changing; each REPLACES that whole section, so " +
+const agentSectionDoc = "An agent's configuration is four objects — meta, behavior, execution " +
+	"and access. Send only the ones you are changing; each REPLACES that whole section, so " +
 	"read the agent first and send an edited copy of the section rather than a fragment of it."
 
 const (
@@ -41,10 +41,6 @@ const (
 		`An entry's "moduleIDs" narrows it to those modules; leave it EMPTY to mean every module in that namespace, now and in future. Prefer empty unless you actually need to withhold a module: an enumerated list has to be edited on every tool entry each time a module is added, and until it is the agent cannot see the new module and nothing says so. ` +
 		`Each entry may carry a "permission": "always" runs the tool unannounced, "ask" stops the run and puts it to the user (the exec call comes back with status "awaiting_approval" and the pending call; send it again with that tool in "approvedTools" to carry on), and "deny" refuses it whatever the scope says. Omit it and the mode follows the tool's risk — reading always, anything that writes asks. ` +
 		`An entry names ONE tool via "name", or a whole set via "group" plus "maxRisk" — {"group":"usage","maxRisk":"read","allow":[{"namespaceID":"<id>","moduleIDs":[]}]} grants every read-only data tool in that namespace and picks up tools added later. "group" is "usage" (data and execution) or "configuring" (schema and definitions); "maxRisk" is "read", "write" or "destructive" and defaults to "read". Set one or the other, never both. Prefer a group: naming tools one at a time is what makes an agent tedious to set up and stale afterwards.`
-
-	agentInvocationDoc = `JSON object: who may start it. ` +
-		`{"user":{"enabled":true},"system":{"enabled":false,"serviceAccount":"<userID>","inputSchema":{},"outputFormat":"json"}}. ` +
-		`'user' is a person invoking it from the webapp; 'system' is another automation doing so under the named service account.`
 )
 
 func (h *agentHandler) register() {
@@ -97,7 +93,6 @@ func (h *agentHandler) register() {
 					"namespace, so whatever tools you grant are confined to it. It does NOT grant any tool: an agent scoped "+
 					"here and granted nothing still reaches nothing. Ignored when 'access' already says "+
 					"something. It is not stored — what is stored is the scope it produced.")),
-			mcp.WithString("invocation", mcp.Description(agentInvocationDoc)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
 			hmcp.NeedsFullDocs(),
@@ -124,7 +119,6 @@ func (h *agentHandler) register() {
 			mcp.WithString("behavior", mcp.Description(agentBehaviorDoc)),
 			mcp.WithString("execution", mcp.Description(agentExecutionDoc)),
 			mcp.WithString("access", mcp.Description(agentAccessDoc)),
-			mcp.WithString("invocation", mcp.Description(agentInvocationDoc)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
 			hmcp.NeedsFullDocs(),
@@ -190,8 +184,6 @@ func (h *agentHandler) register() {
 					"\"ask\" stops the run this way every time. "+
 					"The agent runs as YOU. Its tool allow-list narrows what it may do; it never widens "+
 					"it, so the agent cannot reach anything you could not reach yourself. "+
-					"The agent must have invocation.user enabled, which is the default for one created "+
-					"through system_agent_create. "+
 					"An agent cannot call this tool to start another agent. Chaining agents is what a TAQ "+
 					"or workflow step is for — 'agentPrompt' in the construct library, 'agentRun' in the "+
 					"workflow registry.",

@@ -117,12 +117,12 @@ func (h *chatbotHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*
 // conditions a person can legitimately fix afterwards.
 //
 // A conversation scenario is driven by the system rather than by the visitor:
-// the session runs the agent under its service account. An agent whose system
-// invocation is off is therefore unreachable from a chatbot, and the visitor
-// gets "agent not configured" on their first message while the saved chatbot
-// looks entirely healthy. Building the chatbot before turning the agent on is a
-// reasonable order to work in, so this is said rather than refused.
-func chatbotReadinessNote(ctx context.Context, c *sysTypes.Chatbot) string {
+// the session runs the agent as the scenario's runAs user. A scenario without
+// one is therefore unreachable, and the visitor gets "agent not configured" on
+// their first message while the saved chatbot looks entirely healthy. Building
+// the chatbot before choosing the user is a reasonable order to work in, so
+// this is said rather than refused.
+func chatbotReadinessNote(c *sysTypes.Chatbot) string {
 	if c == nil {
 		return ""
 	}
@@ -133,13 +133,8 @@ func chatbotReadinessNote(ctx context.Context, c *sysTypes.Chatbot) string {
 			continue
 		}
 
-		a, err := sysService.DefaultAgent.FindByID(ctx, sc.AgentID)
-		if err != nil || a == nil {
-			continue
-		}
-
-		if !a.Invocation.System.Enabled || a.Invocation.System.ServiceAccount == 0 {
-			blocked = append(blocked, fmt.Sprintf("%q -> agent %d", sc.ID, sc.AgentID))
+		if sc.RunAs == 0 {
+			blocked = append(blocked, fmt.Sprintf("%q", sc.ID))
 		}
 	}
 
@@ -149,9 +144,8 @@ func chatbotReadinessNote(ctx context.Context, c *sysTypes.Chatbot) string {
 
 	return "Stored, but this chatbot cannot answer yet: scenario " +
 		strings.Join(blocked, ", ") +
-		" names an agent whose system invocation is off. A chatbot runs its agent under a service account, " +
-		"so set invocation.system.enabled and invocation.system.serviceAccount on the agent " +
-		"(system_agent_update) or the visitor's first message fails with \"agent not configured\"."
+		" names no runAs user. A chatbot runs its agent as that user, so set \"runAs\" (a user ID) on the " +
+		"scenario or the visitor's first message fails with \"agent not configured\"."
 }
 
 func (h *chatbotHandler) create(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -181,7 +175,7 @@ func (h *chatbotHandler) create(ctx context.Context, req mcp.CallToolRequest) (*
 		return nil, toolkit.Errf("chatbot creation", err)
 	}
 
-	return toolkit.JSONResultWith(c, withNote(chatbotLinks(c), chatbotReadinessNote(ctx, c)))
+	return toolkit.JSONResultWith(c, withNote(chatbotLinks(c), chatbotReadinessNote(c)))
 }
 
 func (h *chatbotHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -223,7 +217,7 @@ func (h *chatbotHandler) update(ctx context.Context, req mcp.CallToolRequest) (*
 		return nil, toolkit.Errf("chatbot update", err)
 	}
 
-	return toolkit.JSONResultWith(c, withNote(chatbotLinks(c), chatbotReadinessNote(ctx, c)))
+	return toolkit.JSONResultWith(c, withNote(chatbotLinks(c), chatbotReadinessNote(c)))
 }
 
 func (h *chatbotHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

@@ -777,17 +777,6 @@
           "permission": "string"
         }
       },
-      "invocation": {
-        "user": {
-          "enabled": "bool"
-        },
-        "system": {
-          "enabled": "bool",
-          "serviceAccount": "uint64",
-          "inputSchema": "json.RawMessage",
-          "outputFormat": "string"
-        }
-      },
       "createdAt": "time.Time",
       "updatedAt": "time.Time",
       "deletedAt": "time.Time",

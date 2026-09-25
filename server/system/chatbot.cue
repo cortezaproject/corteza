@@ -34,6 +34,7 @@ _chatbotDefs: {
 				{ name: "Name", type: "string", json: "name,omitempty" },
 				{ name: "Type", type: "string", json: "type" },
 				{ name: "AgentID", type: "uint64", json: "agentID,string,omitempty" },
+				{ name: "RunAs", type: "uint64", json: "runAs,string,omitempty" },
 				{ name: "Config", goType: "json.RawMessage", json: "config,omitempty" },
 				{ name: "Automation", type: _chatbotDefs.ChatbotScenarioAutomation, json: "automation" },
 			]}

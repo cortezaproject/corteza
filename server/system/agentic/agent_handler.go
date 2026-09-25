@@ -278,11 +278,10 @@ func (h *agentHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*
 // out not to be present after all, which an empty string is.
 func applyAgentSections(a *sysTypes.Agent, args map[string]any) error {
 	var (
-		meta       sysTypes.AgentMeta
-		behavior   sysTypes.AgentBehavior
-		execution  sysTypes.AgentExecution
-		access     sysTypes.AgentAccess
-		invocation sysTypes.AgentInvocation
+		meta      sysTypes.AgentMeta
+		behavior  sysTypes.AgentBehavior
+		execution sysTypes.AgentExecution
+		access    sysTypes.AgentAccess
 	)
 
 	sections := []struct {
@@ -295,7 +294,6 @@ func applyAgentSections(a *sysTypes.Agent, args map[string]any) error {
 		{"behavior", "agent behavior", &behavior, func() { a.Behavior = behavior }},
 		{"execution", "agent execution", &execution, func() { a.Execution = execution }},
 		{"access", "agent access", &access, func() { a.Access = access }},
-		{"invocation", "agent invocation", &invocation, func() { a.Invocation = invocation }},
 	}
 
 	for _, s := range sections {
@@ -314,8 +312,8 @@ func applyAgentSections(a *sysTypes.Agent, args map[string]any) error {
 // exec runs an agent through the agentic runtime.
 //
 // It mirrors the REST controller (system/rest/agent.go, Agent.Exec): resolve
-// the agent through the access-checked service, refuse one that is not open to
-// user invocation, then hand the request to the runtime. The runtime carries
+// the agent through the access-checked service, then hand the request to the
+// runtime. The runtime carries
 // the caller's identity, so every tool the agent calls is checked against the
 // caller and the agent's allow-list can only narrow that.
 //
@@ -343,10 +341,6 @@ func (h *agentHandler) exec(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	a, err := findAgent(ctx, ref)
 	if err != nil {
 		return nil, err
-	}
-
-	if !a.Invocation.User.Enabled {
-		return nil, fmt.Errorf("agent %d is not available for user invocation — set invocation.user.enabled with system_agent_update", a.ID)
 	}
 
 	conversationID, err := toolkit.ID(args, "conversationID")

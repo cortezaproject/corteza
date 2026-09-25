@@ -271,7 +271,6 @@ async function handleDuplicate(agent) {
       behavior: source.behavior || {},
       execution: source.execution || {},
       access: source.access || {},
-      invocation: source.invocation || {},
     }
 
     const created = await $SystemAPI.agentCreate(copy)
