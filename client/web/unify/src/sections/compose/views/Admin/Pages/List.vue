@@ -170,13 +170,13 @@ const loading = ref(false)
 const canReorder = computed(() => !!props.namespace?.canCreatePage)
 
 const treePT = {
-  rootChildren: { class: 'tree-branch flex flex-col items-start gap-1.5 ml-1 pl-4' },
-  nodeChildren: { class: 'tree-branch flex flex-col items-start gap-1.5 pt-1.5 ml-3 pl-4' },
+  rootChildren: { class: 'flex flex-col items-start gap-3' },
+  nodeChildren: { class: 'tree-branch flex flex-col items-start gap-3 pt-3 ml-3 pl-4' },
   // A row is as wide as its own content, so the hierarchy reads by shape and
   // not only by indent.
   nodeContent: {
     class:
-      'group inline-flex flex-row items-center gap-1 w-fit max-w-full border rounded-md transition-colors hover:bg-emphasis cursor-pointer pl-3 pr-1 py-1',
+      'group relative inline-flex flex-row items-center gap-1 w-fit max-w-full border rounded-md bg-[var(--p-content-background)] transition-colors hover:bg-emphasis cursor-pointer pl-3 pr-1 py-2',
   },
   // Every branch stays open, so there is nothing to toggle
   nodeToggleButton: { class: 'hidden' },
@@ -452,13 +452,13 @@ async function reorderTree(nodes, parentID) {
 </script>
 
 <style scoped>
-/* Tree guides, the root rail included. The trunk is drawn per node so a branch
- * ends at its last child instead of running past it, and the elbow hangs off
- * the row itself so it meets the row's middle whatever the row holds. The root
- * rail has nothing above it, so it starts at the first page's elbow.
+/* Tree guides. A parent's trunk drops from under its title to its children,
+ * and the elbow hangs off each child row so it meets the row's middle whatever
+ * the row holds. Below a top-level page the trunk runs on to the next one, so
+ * the top-level pages hang off one spine; it passes behind the opaque rows.
  * Keep each selector on one line: a wrapped :deep() compiles `X ::before`,
  * which blanks every icon glyph inside the row. */
-.page-tree :deep(.tree-branch > .p-tree-node) {
+.page-tree :deep(.p-tree-node) {
   position: relative;
 }
 
@@ -466,26 +466,23 @@ async function reorderTree(nodes, parentID) {
   content: '';
   position: absolute;
   left: -15px;
-  top: -6px;
+  top: -0.75rem;
   bottom: 0;
   border-left: 1px solid var(--page-tree-guide);
 }
 
 .page-tree :deep(.tree-branch > .p-tree-node:last-child)::before {
   bottom: auto;
-  height: 27px;
+  height: calc(0.75rem + 24px);
 }
 
-.page-tree :deep(.p-tree-root-children > .p-tree-node:first-child)::before {
-  top: 20px;
-}
-
-.page-tree :deep(.p-tree-root-children > .p-tree-node:only-child)::before {
-  display: none;
-}
-
-.page-tree :deep(.tree-branch > .p-tree-node > .p-tree-node-content) {
-  position: relative;
+.page-tree :deep(.p-tree-root-children > .p-tree-node:not(:last-child))::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 24px;
+  bottom: -0.75rem;
+  border-left: 1px solid var(--page-tree-guide);
 }
 
 .page-tree :deep(.tree-branch > .p-tree-node > .p-tree-node-content)::before {
