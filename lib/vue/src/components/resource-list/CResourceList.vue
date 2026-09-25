@@ -124,22 +124,7 @@
               <i :class="[iconClass, 'pi pi-spin pi-spinner']" />
             </template>
             <template #body="slotProps">
-              <div
-                v-if="field.key === computedFields[0]?.key && resourceState(slotProps.data)"
-                class="flex items-start gap-2 min-w-0"
-              >
-                <div class="min-w-0">
-                  <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
-                    {{ slotProps.data[field.key] }}
-                  </slot>
-                </div>
-                <Tag
-                  :value="t(`general.resourceList.state.${resourceState(slotProps.data)}`)"
-                  :severity="STATE_SEVERITY[resourceState(slotProps.data)]"
-                  class="shrink-0"
-                />
-              </div>
-              <slot v-else :name="`body-${field.key}`" :data="slotProps.data" :field="field">
+              <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
                 {{ slotProps.data[field.key] }}
               </slot>
             </template>

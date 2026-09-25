@@ -35,10 +35,9 @@ composing a DataTable by hand.
   column with one centralized TieredMenu (recreated per open so anchoring never
   goes stale); a `fields` entry keyed `actions` is then dropped. Items support
   `route` for router-links. `hideActionsMenu()` is exposed.
-- Row state belongs to the shell, not the screen: the first column carries a
-  Deleted / Suspended / Archived tag beside whatever the screen renders there
-  (`resourceState`, the most final one wins), and a deleted row's text is
-  muted. A list does not render state
+- Row state belongs to the shell, not the screen: rows carry no state tag, since
+  a list shows one status at a time and the status chip names it; a deleted
+  row's text is muted (`resourceState`). A list does not render state
   itself.
 - A list shows one status at a time: Active, or exactly one of the states its
   resource has (`states`: deleted, suspended, archived, disabled).

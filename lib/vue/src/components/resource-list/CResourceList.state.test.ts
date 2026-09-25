@@ -29,23 +29,8 @@ function mountList() {
 }
 
 describe('CResourceList row state', () => {
-  it('tags the name of a deleted, suspended or archived row', () => {
-    const rows = mountList().findAll('tbody tr')
-    const tag = (i: number) => rows[i].find('[data-pc-name="tag"]')
-    expect(tag(0).exists()).toBe(false)
-    expect(tag(1).text()).toBe('general.resourceList.state.deleted')
-    expect(tag(2).text()).toBe('general.resourceList.state.suspended')
-    expect(tag(3).text()).toBe('general.resourceList.state.archived')
-    const cells = rows[1].findAll('td')
-    expect(cells[0].find('[data-pc-name="tag"]').exists()).toBe(true)
-    expect(cells[0].text()).toContain('gone')
-    expect(cells[1].find('[data-pc-name="tag"]').exists()).toBe(false)
-  })
-
-  it('colours deleted red and suspended dark, so the two never blur', () => {
-    const rows = mountList().findAll('tbody tr')
-    const sev = (i: number) => rows[i].find('[data-pc-name="tag"]').attributes('data-p')
-    expect([sev(1), sev(2), sev(3)]).toEqual(['danger', 'contrast', 'secondary'])
+  it('marks no row with a state tag', () => {
+    expect(mountList().findAll('tbody [data-pc-name="tag"]')).toHaveLength(0)
   })
 
   it('dims only the deleted row', () => {
