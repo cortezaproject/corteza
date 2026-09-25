@@ -323,7 +323,7 @@
                       <div
                         v-for="f in systemFieldsForDisplay"
                         :key="f.name"
-                        class="border-t border-surface p-3 bg-highlight text-muted-color"
+                        class="system-field-row border-t border-surface p-3"
                         v-tooltip.left="$t('module.edit.systemField')"
                       >
                         <div :style="gridStyle" class="grid gap-2 items-center">
@@ -331,24 +331,8 @@
                           <InputText :model-value="f.name" class="w-full" size="small" disabled />
                           <InputText :model-value="f.label" class="w-full" size="small" disabled />
                           <InputText :model-value="f.kind" class="w-full" size="small" disabled />
-                          <div class="flex justify-center">
-                            <i
-                              :class="[
-                                'pi',
-                                f.isRequired
-                                  ? 'pi-check text-primary'
-                                  : 'pi-minus text-muted-color',
-                              ]"
-                            />
-                          </div>
-                          <div class="flex justify-center">
-                            <i
-                              :class="[
-                                'pi',
-                                f.isMulti ? 'pi-check text-primary' : 'pi-minus text-muted-color',
-                              ]"
-                            />
-                          </div>
+                          <span />
+                          <span />
                           <span />
                           <span />
                         </div>
