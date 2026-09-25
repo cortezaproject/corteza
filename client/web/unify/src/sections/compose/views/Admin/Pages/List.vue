@@ -4,7 +4,10 @@
   </Teleport>
 
   <div class="container mx-auto p-4 h-full flex flex-col overflow-hidden min-w-0">
-    <Card class="flex-1 overflow-auto min-w-0" :pt="{ body: { class: 'p-0' } }">
+    <Card
+      class="flex-1 overflow-auto min-w-0 w-full max-w-3xl mx-auto"
+      :pt="{ body: { class: 'p-0' } }"
+    >
       <template #header>
         <!-- Header: Create + permissions on the left, search on the right -->
         <div class="flex items-center justify-between gap-3 p-3 border-b">
@@ -33,7 +36,9 @@
       </template>
 
       <template #content>
-        <div class="p-3 flex flex-col gap-2">
+        <div
+          class="p-3 flex flex-col gap-2 [--page-tree-guide:var(--p-surface-300)] dark:[--page-tree-guide:var(--p-surface-600)]"
+        >
           <p
             v-if="canReorder && treeNodes.length"
             class="flex items-center gap-2 text-xs text-muted-color"
@@ -42,10 +47,21 @@
             {{ $t('page.instructions') }}
           </p>
 
+          <!-- The namespace is the root the top-level pages hang from -->
+          <div
+            v-if="treeNodes.length"
+            class="flex items-center gap-2 text-sm font-semibold"
+            data-test-id="page-tree-root"
+          >
+            <span class="size-2 rounded-full bg-[var(--page-tree-guide)]" />
+            {{ namespace.name || namespace.slug }}
+          </div>
+
           <Tree
             v-if="treeNodes.length"
             v-model:value="treeNodes"
             v-model:expanded-keys="expandedKeys"
+            @node-collapse="expandAll"
             :filter="!!filterValue"
             :filter-value="filterValue"
             filter-mode="lenient"
@@ -54,7 +70,7 @@
             :droppable-nodes="canReorder"
             :pt="treePT"
             selection-mode="single"
-            class="page-tree p-0 [--page-tree-guide:var(--p-surface-300)] dark:[--page-tree-guide:var(--p-surface-600)]"
+            class="page-tree p-0 -mt-2"
             @node-select="onNodeSelect"
             @node-drop="onNodeDrop"
           >
@@ -169,15 +185,16 @@ const loading = ref(false)
 const canReorder = computed(() => !!props.namespace?.canCreatePage)
 
 const treePT = {
-  rootChildren: { class: 'flex flex-col items-start gap-1.5' },
-  nodeChildren: { class: 'flex flex-col items-start gap-1.5 pt-1.5 ml-5 pl-4' },
+  rootChildren: { class: 'tree-branch flex flex-col items-start gap-1.5 pt-1.5 ml-1 pl-4' },
+  nodeChildren: { class: 'tree-branch flex flex-col items-start gap-1.5 pt-1.5 ml-3 pl-4' },
   // A row is as wide as its own content, so the hierarchy reads by shape and
   // not only by indent.
   nodeContent: {
     class:
-      'group inline-flex flex-row items-center gap-1 w-fit max-w-full border rounded-md transition-colors hover:bg-emphasis cursor-pointer px-1.5 py-1',
+      'group inline-flex flex-row items-center gap-1 w-fit max-w-full border rounded-md transition-colors hover:bg-emphasis cursor-pointer pl-3 pr-1 py-1',
   },
-  nodeToggleButton: { class: 'shrink-0' },
+  // Every branch stays open, so there is nothing to toggle
+  nodeToggleButton: { class: 'hidden' },
   nodeLabel: { class: 'min-w-0' },
 }
 
@@ -350,7 +367,7 @@ function toTreeNodes(pages) {
     })
 }
 
-// Collect keys of all parent nodes so they start expanded
+// Collect keys of all parent nodes, which are always expanded
 function collectParentKeys(nodes, keys = {}) {
   for (const node of nodes) {
     if (node.children?.length) {
@@ -359,6 +376,11 @@ function collectParentKeys(nodes, keys = {}) {
     }
   }
   return keys
+}
+
+// Keyboard navigation can still collapse a node; open it again
+function expandAll() {
+  expandedKeys.value = collectParentKeys(treeNodes.value)
 }
 
 async function reloadTree() {
@@ -445,14 +467,16 @@ async function reorderTree(nodes, parentID) {
 </script>
 
 <style scoped>
-/* Tree guides. The trunk is drawn per node so a branch ends at its last child
- * instead of running past it, and the elbow hangs off the row itself so it
- * meets the row's middle whatever the row holds. */
-.page-tree :deep(.p-tree-node-children > .p-tree-node) {
+/* Tree guides, the namespace's trunk included. The trunk is drawn per node so
+ * a branch ends at its last child instead of running past it, and the elbow
+ * hangs off the row itself so it meets the row's middle whatever the row holds.
+ * Keep each selector on one line: a wrapped :deep() compiles `X ::before`,
+ * which blanks every icon glyph inside the row. */
+.page-tree :deep(.tree-branch > .p-tree-node) {
   position: relative;
 }
 
-.page-tree :deep(.p-tree-node-children > .p-tree-node)::before {
+.page-tree :deep(.tree-branch > .p-tree-node)::before {
   content: '';
   position: absolute;
   left: -15px;
@@ -461,16 +485,24 @@ async function reorderTree(nodes, parentID) {
   border-left: 1px solid var(--page-tree-guide);
 }
 
-.page-tree :deep(.p-tree-node-children > .p-tree-node:last-child)::before {
+.page-tree :deep(.p-tree-root-children > .p-tree-node:first-child)::before {
+  top: -11px;
+}
+
+.page-tree :deep(.tree-branch > .p-tree-node:last-child)::before {
   bottom: auto;
   height: 27px;
 }
 
-.page-tree :deep(.p-tree-node-children > .p-tree-node > .p-tree-node-content) {
+.page-tree :deep(.p-tree-root-children > .p-tree-node:only-child)::before {
+  height: 32px;
+}
+
+.page-tree :deep(.tree-branch > .p-tree-node > .p-tree-node-content) {
   position: relative;
 }
 
-.page-tree :deep(.p-tree-node-children > .p-tree-node > .p-tree-node-content)::before {
+.page-tree :deep(.tree-branch > .p-tree-node > .p-tree-node-content)::before {
   content: '';
   position: absolute;
   left: -15px;

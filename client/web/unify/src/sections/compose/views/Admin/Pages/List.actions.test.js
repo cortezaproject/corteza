@@ -38,8 +38,11 @@ import List from './List.vue'
 
 const Tree = {
   name: 'Tree',
-  props: { value: { type: Array, default: () => [] } },
-  emits: ['node-select', 'node-drop'],
+  props: {
+    value: { type: Array, default: () => [] },
+    expandedKeys: { type: Object, default: () => ({}) },
+  },
+  emits: ['node-select', 'node-drop', 'node-collapse', 'update:expandedKeys'],
   template: `<div><template v-for="n in value" :key="n.key"><slot :node="n" /></template></div>`,
 }
 
@@ -178,6 +181,19 @@ describe('page tree actions', () => {
     const tag = wrapper.findComponent(Tag)
     expect(tag.text()).toContain('page.notVisible')
     expect(tag.find('span.pi-eye-slash').exists()).toBe(true)
+  })
+
+  it('keeps every branch open, even after a collapse', async () => {
+    tree = [page('101', { children: [page('102', { selfID: '101', children: [page('103')] })] })]
+    await mountList()
+    const treeStub = wrapper.findComponent(Tree)
+    expect(treeStub.props('expandedKeys')).toEqual({ 101: true, 102: true })
+
+    treeStub.vm.$emit('update:expandedKeys', { 101: true })
+    treeStub.vm.$emit('node-collapse', treeStub.props('value')[0].children[0])
+    await flushPromises()
+
+    expect(treeStub.props('expandedKeys')).toEqual({ 101: true, 102: true })
   })
 
   it('hides what the viewer may not do', async () => {
