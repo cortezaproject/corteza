@@ -54,6 +54,7 @@ function:
     option-select: Select an option
     result: Result
     results: Results
+    search-agent: Select the agent to invoke
     search-workflow: Search for a workflow
     select-function: Select function
     target: Target

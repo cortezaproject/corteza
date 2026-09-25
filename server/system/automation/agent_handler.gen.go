@@ -70,7 +70,8 @@ func (h agentHandler) Run() *atypes.Function {
 				Name:  "agentID",
 				Types: []string{"ID"}, Required: true,
 				Meta: &atypes.ParamMeta{
-					Label: "Agent ID",
+					Label:  "Agent",
+					Visual: map[string]interface{}{"input": map[string]interface{}{"type": "agent"}},
 				},
 			},
 			{

@@ -9,7 +9,7 @@ functions:
       agent: "step,workflow"
     params:
       agentID:
-        meta: { label: Agent ID }
+        meta: { label: Agent, visual: { input: { type: agent } } }
         required: true
         types:
           - { wf: ID }

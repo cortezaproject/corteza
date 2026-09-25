@@ -99,6 +99,13 @@
                 @change="emitChange"
               />
 
+              <c-input-agent
+                v-else-if="a.input.type === 'agent'"
+                v-model="a.value"
+                :placeholder="$t('steps.function.configurator.search-agent')"
+                @update:modelValue="emitChange"
+              />
+
               <Select
                 v-else-if="a.input.type === 'select'"
                 v-model="a.value"
@@ -268,10 +275,11 @@ import ExpressionTable from '../ExpressionTable.vue'
 import ExpressionEditor from '../ExpressionEditor.vue'
 import eventBus from '../../lib/eventBus'
 import { components } from '@planetcrust/human-vue'
-const { CRichTextInput } = components
+const { CInputAgent, CRichTextInput } = components
 
 export default {
   components: {
+    CInputAgent,
     CRichTextInput,
     ExpressionEditor,
     ExpressionTable,
