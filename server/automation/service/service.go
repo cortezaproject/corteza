@@ -122,6 +122,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 				zap.Uint64("projectID", sc.ProjectID),
 			),
 			manager.Config{MaxConcurrent: 10},
+			runnerSvc.WithExecutionSink(recordNgAutomationRun),
 		)
 		if err != nil {
 			return err

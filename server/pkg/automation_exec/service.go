@@ -45,9 +45,17 @@ type (
 	}
 )
 
-func AutomationService(ctx context.Context, log *zap.Logger, cfg manager.Config) (*automationService, error) {
+// Option configures the ledger the service is built around
+type Option = ledger.Option
+
+// WithExecutionSink makes every terminal execution visible outside the in-memory ledger
+func WithExecutionSink(fn ledger.ExecutionSink) Option {
+	return ledger.WithTerminalSink(fn)
+}
+
+func AutomationService(ctx context.Context, log *zap.Logger, cfg manager.Config, opts ...Option) (*automationService, error) {
 	log.Debug("initializing ledger")
-	led := ledger.Ledger(log.Named("ledger"))
+	led := ledger.Ledger(log.Named("ledger"), opts...)
 	log.Debug("initialized ledger")
 
 	log.Debug("initializing governor")

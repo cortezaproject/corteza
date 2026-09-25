@@ -12,18 +12,42 @@ import (
 	"go.uber.org/zap"
 )
 
-type ledger struct {
-	mu sync.RWMutex
-	// ExecutableID -> ExecutionID -> Revision -> Execution
-	store map[id.ID]map[id.ID]map[int]*types.Execution
-	log   *zap.Logger
-}
+type (
+	ledger struct {
+		mu sync.RWMutex
+		// ExecutableID -> ExecutionID -> Revision -> Execution
+		store map[id.ID]map[id.ID]map[int]*types.Execution
+		log   *zap.Logger
 
-func Ledger(log *zap.Logger) *ledger {
-	return &ledger{
+		// sink receives a copy of every execution that reaches a terminal
+		// status; the ledger itself is in-memory, so this is the one place a
+		// run can be made durable
+		sink ExecutionSink
+	}
+
+	// ExecutionSink is called with a snapshot of an execution once it has
+	// completed, failed or been cancelled
+	ExecutionSink func(ctx context.Context, ex types.Execution)
+
+	Option func(*ledger)
+)
+
+func Ledger(log *zap.Logger, opts ...Option) *ledger {
+	l := &ledger{
 		store: make(map[id.ID]map[id.ID]map[int]*types.Execution),
 		log:   log,
 	}
+
+	for _, o := range opts {
+		o(l)
+	}
+
+	return l
+}
+
+// WithTerminalSink registers the function that receives every terminal execution
+func WithTerminalSink(fn ExecutionSink) Option {
+	return func(l *ledger) { l.sink = fn }
 }
 
 func (l *ledger) RegisterExecution(ctx context.Context, executableID, executionID id.ID, revision int, params types.ExecutionParams) error {
@@ -54,21 +78,39 @@ func (l *ledger) RegisterExecution(ctx context.Context, executableID, executionI
 }
 
 func (l *ledger) ExecutionCompleted(ctx context.Context, executableID, executionID id.ID, revision int) error {
-	return l.transition(executableID, executionID, revision, types.StatusCompleted, nil)
+	return l.transition(ctx, executableID, executionID, revision, types.StatusCompleted, nil)
 }
 
 func (l *ledger) ExecutionFailed(ctx context.Context, executableID, executionID id.ID, revision int, err error) error {
-	return l.transition(executableID, executionID, revision, types.StatusFailed, err)
+	return l.transition(ctx, executableID, executionID, revision, types.StatusFailed, err)
 }
 
-func (l *ledger) transition(executableID, executionID id.ID, revision int, status types.Status, err error) error {
+func (l *ledger) transition(ctx context.Context, executableID, executionID id.ID, revision int, status types.Status, err error) error {
+	snapshot, terminal, trErr := l.apply(executableID, executionID, revision, status, err)
+	if trErr != nil {
+		return trErr
+	}
+
+	// the sink runs outside the lock so it may read the ledger freely
+	if terminal && l.sink != nil {
+		l.sink(ctx, snapshot)
+	}
+
+	return nil
+}
+
+func (l *ledger) apply(executableID, executionID id.ID, revision int, status types.Status, err error) (snapshot types.Execution, terminal bool, _ error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
 	ex, ok := l.store[executableID][executionID][revision]
 	if !ok {
-		return fmt.Errorf("execution not found")
+		return snapshot, false, fmt.Errorf("execution not found")
 	}
+
+	// the runtime and its manager both report the end of a run; only the
+	// first report ends it
+	wasTerminal := isTerminal(ex.Status)
 
 	now := time.Now()
 	ex.Status = status
@@ -79,7 +121,12 @@ func (l *ledger) transition(executableID, executionID id.ID, revision int, statu
 		ex.EndedAt = &now
 	}
 
-	return nil
+	// trace and events are not copied: the sink records the outcome, not the steps
+	snapshot = *ex
+	snapshot.Trace = nil
+	snapshot.Events = nil
+
+	return snapshot, isTerminal(status) && !wasTerminal, nil
 }
 
 func (l *ledger) StepStarted(ctx context.Context, executableID, executionID, stepID id.ID, revision int) error {
@@ -115,7 +162,7 @@ func (l *ledger) ExecutionPaused(ctx context.Context, executableID, executionID,
 		return logErr
 	}
 
-	return l.transition(executableID, executionID, revision, types.StatusPaused, nil)
+	return l.transition(ctx, executableID, executionID, revision, types.StatusPaused, nil)
 }
 
 func (l *ledger) RecordFrame(ctx context.Context, executableID, executionID id.ID, revision int, frame types.StackFrame) error {
