@@ -3,7 +3,7 @@
     <span>{{ $t('page.navigation.page') }}</span>
   </Teleport>
 
-  <div class="max-w-4xl w-full mx-auto p-4 h-full flex flex-col overflow-hidden min-w-0">
+  <div class="container mx-auto p-4 h-full flex flex-col overflow-hidden min-w-0">
     <Card class="flex-1 overflow-auto min-w-0" :pt="{ body: { class: 'p-0' } }">
       <template #header>
         <!-- Header: Create + permissions on the left, search on the right -->
@@ -27,7 +27,7 @@
             v-model="filterValue"
             :placeholder="$t('page.searchPlaceholder')"
             size="small"
-            class="w-64"
+            class="w-80"
           />
         </div>
       </template>
@@ -60,11 +60,7 @@
           <template #default="{ node }">
             <div class="flex items-center gap-2 min-w-0" data-test-id="page-tree-node">
               <span
-                :class="node.data.isRecordPage ? 'pi pi-id-card' : 'pi pi-file'"
-                class="text-muted-color text-sm shrink-0"
-              />
-              <span
-                class="shrink-0 whitespace-normal break-words"
+                class="whitespace-normal break-words"
                 :class="{ 'font-semibold': node.data.selfID === '0' }"
               >
                 {{ node.label }}
@@ -77,34 +73,33 @@
                 {{ node.data.description }}
               </span>
 
-              <div class="ml-auto flex items-center gap-1.5 shrink-0">
-                <Tag
-                  v-if="node.data.isRecordPage"
-                  :value="recordPageLabel(node.data)"
-                  severity="secondary"
-                  class="text-xs"
-                />
-                <Tag
-                  v-else-if="!node.data.visible"
-                  v-tooltip.bottom="$t('page.list.hiddenTooltip')"
-                  :value="$t('page.notVisible')"
-                  icon="pi pi-eye-slash"
-                  severity="warn"
-                  class="text-xs"
-                />
-                <Button
-                  v-if="actionItems(node.data).length"
-                  v-tooltip.bottom="$t('general.label.actions')"
-                  icon="pi pi-ellipsis-v"
-                  text
-                  rounded
-                  severity="secondary"
-                  size="small"
-                  :aria-label="$t('general.label.actions')"
-                  data-test-id="page-tree-actions"
-                  @click.stop="showActionsMenu($event, node.data)"
-                />
-              </div>
+              <Tag
+                v-if="node.data.isRecordPage"
+                :value="recordPageLabel(node.data)"
+                severity="secondary"
+                class="text-xs shrink-0"
+              />
+              <Tag
+                v-else-if="!node.data.visible"
+                v-tooltip.bottom="$t('page.list.hiddenTooltip')"
+                :value="$t('page.notVisible')"
+                icon="pi pi-eye-slash"
+                severity="warn"
+                class="text-xs shrink-0"
+              />
+              <Button
+                v-if="actionItems(node.data).length"
+                v-tooltip.bottom="$t('general.label.actions')"
+                icon="pi pi-ellipsis-v"
+                text
+                rounded
+                severity="secondary"
+                size="small"
+                class="shrink-0"
+                :aria-label="$t('general.label.actions')"
+                data-test-id="page-tree-actions"
+                @click.stop="showActionsMenu($event, node.data)"
+              />
             </div>
           </template>
         </Tree>
@@ -173,14 +168,18 @@ const loading = ref(false)
 const canReorder = computed(() => !!props.namespace?.canCreatePage)
 
 const treePT = {
-  rootChildren: { class: 'flex flex-col gap-1.5' },
-  nodeChildren: { class: 'flex flex-col gap-1.5 pt-1.5 ml-3 pl-4 border-l border-surface' },
+  rootChildren: { class: 'flex flex-col items-start gap-1.5' },
+  nodeChildren: {
+    class: 'flex flex-col items-start gap-1.5 pt-1.5 ml-3 pl-4 border-l border-surface',
+  },
+  // A row is as wide as its own content, so the hierarchy reads by shape and
+  // not only by indent.
   nodeContent: {
     class:
-      'flex flex-row items-center gap-1 border rounded-md transition-colors hover:bg-emphasis cursor-pointer px-1.5 py-1',
+      'inline-flex flex-row items-center gap-1 w-fit max-w-full border rounded-md transition-colors hover:bg-emphasis cursor-pointer px-1.5 py-1',
   },
   nodeToggleButton: { class: 'shrink-0' },
-  nodeLabel: { class: 'flex-1 min-w-0' },
+  nodeLabel: { class: 'min-w-0' },
 }
 
 const actionsMenuRef = ref()

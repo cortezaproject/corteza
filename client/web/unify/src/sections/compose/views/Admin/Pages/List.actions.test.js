@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { compose } from '@planetcrust/human-js'
+import Tag from 'primevue/tag'
 
 // Each tree node's ⋮ menu is built from the page's and the namespace's
 // permission flags, and a row click goes to the builder only for a page the
@@ -69,12 +70,11 @@ async function mountList(namespace = admin) {
   wrapper = mount(List, {
     props: { namespace },
     global: {
-      components: { Tree, Menu },
+      components: { Tree, Menu, Tag },
       stubs: {
         Teleport: true,
         Card: { template: '<div><slot name="header" /><slot name="content" /></div>' },
         Button: true,
-        Tag: true,
       },
       directives: { tooltip: {}, ripple: {} },
       mocks: { $t: k => k },
@@ -169,6 +169,15 @@ describe('page tree actions', () => {
     expect(wrapper.vm.$.setupState.recordPageLabel(new compose.Page(tree[0]))).toBe(
       'page.list.recordPageOf:{"module":"Leads"}',
     )
+  })
+
+  it('marks a page missing from navigation with an eye-slash tag', async () => {
+    tree = [page('101', { visible: false })]
+    await mountList()
+
+    const tag = wrapper.findComponent(Tag)
+    expect(tag.text()).toContain('page.notVisible')
+    expect(tag.find('span.pi-eye-slash').exists()).toBe(true)
   })
 
   it('hides what the viewer may not do', async () => {
