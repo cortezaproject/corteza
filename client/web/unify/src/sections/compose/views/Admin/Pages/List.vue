@@ -47,16 +47,6 @@
             {{ $t('page.instructions') }}
           </p>
 
-          <!-- The namespace is the root the top-level pages hang from -->
-          <div
-            v-if="treeNodes.length"
-            class="flex items-center gap-2 text-sm font-semibold"
-            data-test-id="page-tree-root"
-          >
-            <span class="size-2 rounded-full bg-[var(--page-tree-guide)]" />
-            {{ namespace.name || namespace.slug }}
-          </div>
-
           <Tree
             v-if="treeNodes.length"
             v-model:value="treeNodes"
@@ -70,7 +60,7 @@
             :droppable-nodes="canReorder"
             :pt="treePT"
             selection-mode="single"
-            class="page-tree p-0 -mt-2"
+            class="page-tree p-0"
             @node-select="onNodeSelect"
             @node-drop="onNodeDrop"
           >
@@ -185,7 +175,7 @@ const loading = ref(false)
 const canReorder = computed(() => !!props.namespace?.canCreatePage)
 
 const treePT = {
-  rootChildren: { class: 'tree-branch flex flex-col items-start gap-1.5 pt-1.5 ml-1 pl-4' },
+  rootChildren: { class: 'flex flex-col items-start gap-1.5' },
   nodeChildren: { class: 'tree-branch flex flex-col items-start gap-1.5 pt-1.5 ml-3 pl-4' },
   // A row is as wide as its own content, so the hierarchy reads by shape and
   // not only by indent.
@@ -467,8 +457,8 @@ async function reorderTree(nodes, parentID) {
 </script>
 
 <style scoped>
-/* Tree guides, the namespace's trunk included. The trunk is drawn per node so
- * a branch ends at its last child instead of running past it, and the elbow
+/* Tree guides. The trunk is drawn per node so a branch ends at its last child
+ * instead of running past it, and the elbow
  * hangs off the row itself so it meets the row's middle whatever the row holds.
  * Keep each selector on one line: a wrapped :deep() compiles `X ::before`,
  * which blanks every icon glyph inside the row. */
@@ -485,17 +475,9 @@ async function reorderTree(nodes, parentID) {
   border-left: 1px solid var(--page-tree-guide);
 }
 
-.page-tree :deep(.p-tree-root-children > .p-tree-node:first-child)::before {
-  top: -11px;
-}
-
 .page-tree :deep(.tree-branch > .p-tree-node:last-child)::before {
   bottom: auto;
   height: 27px;
-}
-
-.page-tree :deep(.p-tree-root-children > .p-tree-node:only-child)::before {
-  height: 32px;
 }
 
 .page-tree :deep(.tree-branch > .p-tree-node > .p-tree-node-content) {
