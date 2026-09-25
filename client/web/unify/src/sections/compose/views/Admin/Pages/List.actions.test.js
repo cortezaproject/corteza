@@ -41,6 +41,7 @@ const Tree = {
   props: {
     value: { type: Array, default: () => [] },
     expandedKeys: { type: Object, default: () => ({}) },
+    draggableNodes: { type: Boolean, default: false },
   },
   emits: ['node-select', 'node-drop', 'node-collapse', 'update:expandedKeys'],
   template: `<div><template v-for="n in value" :key="n.key"><slot :node="n" /></template></div>`,
@@ -194,6 +195,38 @@ describe('page tree actions', () => {
     await flushPromises()
 
     expect(treeStub.props('expandedKeys')).toEqual({ 101: true, 102: true })
+  })
+
+  it('filters to matches, keeping the path down to them and what sits beneath', async () => {
+    tree = [
+      page('101', {
+        title: 'Sales',
+        children: [
+          page('102', {
+            title: 'Accounts',
+            selfID: '101',
+            children: [page('103', { title: 'Lead' })],
+          }),
+          page('104', { title: 'Contacts', selfID: '101' }),
+        ],
+      }),
+      page('105', { title: 'Reports' }),
+    ]
+    await mountList()
+    const treeStub = () => wrapper.findComponent(Tree)
+    const shape = nodes => nodes.map(n => [n.label, shape(n.children || [])])
+    expect(treeStub().props('draggableNodes')).toBe(true)
+
+    wrapper.vm.$.setupState.filterValue = ' acc '
+    await flushPromises()
+
+    expect(shape(treeStub().props('value'))).toEqual([['Sales', [['Accounts', [['Lead', []]]]]]])
+    expect(treeStub().props('draggableNodes')).toBe(false)
+
+    wrapper.vm.$.setupState.filterValue = 'nothing like it'
+    await flushPromises()
+    expect(treeStub().exists()).toBe(false)
+    expect(wrapper.text()).toContain('general.label.noResults')
   })
 
   it('hides what the viewer may not do', async () => {

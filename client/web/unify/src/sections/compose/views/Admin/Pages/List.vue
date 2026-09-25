@@ -39,25 +39,17 @@
         <div
           class="p-3 flex flex-col gap-2 [--page-tree-guide:var(--p-surface-300)] dark:[--page-tree-guide:var(--p-surface-600)]"
         >
-          <p
-            v-if="canReorder && treeNodes.length"
-            class="flex items-center gap-2 text-xs text-muted-color"
-          >
-            <span class="pi pi-arrows-v" />
+          <p v-if="canDrag && treeNodes.length" class="text-xs text-muted-color">
             {{ $t('page.instructions') }}
           </p>
 
           <Tree
-            v-if="treeNodes.length"
-            v-model:value="treeNodes"
+            v-if="shownNodes.length"
+            :value="shownNodes"
             v-model:expanded-keys="expandedKeys"
             @node-collapse="expandAll"
-            :filter="!!filterValue"
-            :filter-value="filterValue"
-            filter-mode="lenient"
-            filter-by="label"
-            :draggable-nodes="canReorder"
-            :droppable-nodes="canReorder"
+            :draggable-nodes="canDrag"
+            :droppable-nodes="canDrag"
             :pt="treePT"
             selection-mode="single"
             class="page-tree p-0"
@@ -106,7 +98,7 @@
           </Tree>
 
           <div v-else-if="!loading" class="flex items-center justify-center h-32 text-muted-color">
-            {{ $t('page.noPages') }}
+            {{ treeNodes.length ? $t('general.label.noResults') : $t('page.noPages') }}
           </div>
         </div>
       </template>
@@ -168,6 +160,25 @@ const loading = ref(false)
 // namespace's page-create permission at the root level (onReorder) — without it
 // no drop can land, so the tree is not draggable at all.
 const canReorder = computed(() => !!props.namespace?.canCreatePage)
+
+// A drop persists the whole tree it is given, so a filtered tree is never
+// draggable: it would reorder the pages the search hides.
+const canDrag = computed(() => canReorder.value && !filterValue.value.trim())
+
+// A page stays when its title matches, with everything beneath it; otherwise
+// it stays only as the path down to a match.
+function filterNodes(nodes, query) {
+  return nodes.flatMap(node => {
+    if (node.label.toLocaleLowerCase().includes(query)) return [node]
+    const children = filterNodes(node.children || [], query)
+    return children.length ? [{ ...node, children }] : []
+  })
+}
+
+const shownNodes = computed(() => {
+  const query = filterValue.value.trim().toLocaleLowerCase()
+  return query ? filterNodes(treeNodes.value, query) : treeNodes.value
+})
 
 const treePT = {
   rootChildren: { class: 'flex flex-col items-start gap-3' },
