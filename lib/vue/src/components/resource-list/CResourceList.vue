@@ -124,15 +124,24 @@
               <i :class="[iconClass, 'pi pi-spin pi-spinner']" />
             </template>
             <template #body="slotProps">
-              <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
+              <div
+                v-if="field.key === computedFields[0]?.key && resourceState(slotProps.data)"
+                class="flex items-start gap-2 min-w-0"
+              >
+                <div class="min-w-0">
+                  <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
+                    {{ slotProps.data[field.key] }}
+                  </slot>
+                </div>
+                <Tag
+                  :value="t(`general.resourceList.state.${resourceState(slotProps.data)}`)"
+                  :severity="STATE_SEVERITY[resourceState(slotProps.data)]"
+                  class="shrink-0"
+                />
+              </div>
+              <slot v-else :name="`body-${field.key}`" :data="slotProps.data" :field="field">
                 {{ slotProps.data[field.key] }}
               </slot>
-              <Tag
-                v-if="field.key === CHANGED_AT_KEY && resourceState(slotProps.data)"
-                :value="t(`general.resourceList.state.${resourceState(slotProps.data)}`)"
-                :severity="STATE_SEVERITY[resourceState(slotProps.data)]"
-                class="ml-2"
-              />
             </template>
           </Column>
 
@@ -229,7 +238,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CInputSearch from '../input/CInputSearch.vue'
 import CPager from './CPager.vue'
-import { CHANGED_AT_KEY, resourceState } from '../../composables/useChangedAt'
+import { resourceState } from '../../composables/useChangedAt'
 import { statusFilter, statusOf } from '../../composables/useResourceStatus'
 import { useTableBusy } from '../../composables/useTableBusy'
 import { useGrowOnlyColumns } from '../../composables/useGrowOnlyColumns'

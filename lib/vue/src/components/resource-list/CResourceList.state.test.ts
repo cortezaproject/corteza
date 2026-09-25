@@ -29,14 +29,17 @@ function mountList() {
 }
 
 describe('CResourceList row state', () => {
-  it('tags the last-change cell of a deleted, suspended or archived row', () => {
+  it('tags the name of a deleted, suspended or archived row', () => {
     const rows = mountList().findAll('tbody tr')
     const tag = (i: number) => rows[i].find('[data-pc-name="tag"]')
     expect(tag(0).exists()).toBe(false)
     expect(tag(1).text()).toBe('general.resourceList.state.deleted')
     expect(tag(2).text()).toBe('general.resourceList.state.suspended')
     expect(tag(3).text()).toBe('general.resourceList.state.archived')
-    expect(rows[1].findAll('td')[1].find('[data-pc-name="tag"]').exists()).toBe(true)
+    const cells = rows[1].findAll('td')
+    expect(cells[0].find('[data-pc-name="tag"]').exists()).toBe(true)
+    expect(cells[0].text()).toContain('gone')
+    expect(cells[1].find('[data-pc-name="tag"]').exists()).toBe(false)
   })
 
   it('colours deleted red and suspended dark, so the two never blur', () => {
