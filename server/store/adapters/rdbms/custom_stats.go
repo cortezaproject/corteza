@@ -49,6 +49,11 @@ type (
 const (
 	statsRecentLimit = 8
 	statsTopLimit    = 8
+	statsEventsLimit = 50
+
+	// action-log rows a sign-in leaves behind
+	statsSigninResource = "system:auth"
+	statsSigninAction   = "authenticate"
 
 	// action-log rows that count as an error on the activity chart
 	statsErrorSeverity = actionlog.Error
@@ -137,6 +142,21 @@ var (
 			classes:  []statsClass{statsDeleted},
 			fallback: goqu.V("active"),
 		},
+		systemType.SystemStatsUserGroups: {
+			table:    userGroupTable,
+			classes:  []statsClass{statsDeleted, {"archived", notNull("archived_at")}},
+			fallback: goqu.V("active"),
+		},
+		systemType.SystemStatsTemplates: {
+			table:    templateTable,
+			classes:  []statsClass{statsDeleted},
+			fallback: goqu.V("active"),
+		},
+		systemType.SystemStatsLlmProviders: {
+			table:    llmProviderTable,
+			classes:  []statsClass{statsDeleted},
+			fallback: goqu.C("status"),
+		},
 	}
 )
 
@@ -154,6 +174,9 @@ var statsLabels = map[string]statsLabel{
 	systemType.SystemStatsModules:      {label: "name", handle: "handle"},
 	systemType.SystemStatsConnections:  {metaName: "name", handle: "handle"},
 	systemType.SystemStatsDataSources:  {metaName: "name", handle: "handle"},
+	systemType.SystemStatsUserGroups:   {metaName: "short", handle: "handle"},
+	systemType.SystemStatsTemplates:    {metaName: "short", handle: "handle"},
+	systemType.SystemStatsLlmProviders: {metaName: "short", handle: "handle"},
 }
 
 func (s *Store) SystemStats(ctx context.Context, r systemType.SystemStatsRange) (raw *systemType.SystemStatsRaw, err error) {
@@ -379,7 +402,7 @@ func (s *Store) statsTaqRuns(ctx context.Context, r systemType.SystemStatsRange,
 		raw.TaqRunTotals[d.Key] += d.Count
 	}
 
-	raw.TaqFailures, err = s.statsLogEntries(ctx, r, append(where, goqu.C("error").Neq("")))
+	raw.TaqFailures, err = s.statsLogEntries(ctx, r, append(where, goqu.C("error").Neq("")), statsRecentLimit)
 	return
 }
 
@@ -397,7 +420,7 @@ func (s *Store) statsActivity(ctx context.Context, r systemType.SystemStatsRange
 		raw.ActivityTotals[d.Key] += d.Count
 	}
 
-	if raw.RecentErrors, err = s.statsLogEntries(ctx, r, []exp.Expression{isErr}); err != nil {
+	if raw.RecentErrors, err = s.statsLogEntries(ctx, r, []exp.Expression{isErr}, statsRecentLimit); err != nil {
 		return
 	}
 
@@ -406,13 +429,13 @@ func (s *Store) statsActivity(ctx context.Context, r systemType.SystemStatsRange
 }
 
 // statsLogEntries returns the newest action-log rows matching where, within the range.
-func (s *Store) statsLogEntries(ctx context.Context, r systemType.SystemStatsRange, where []exp.Expression) ([]*systemType.SystemStatsLogEntry, error) {
+func (s *Store) statsLogEntries(ctx context.Context, r systemType.SystemStatsRange, where []exp.Expression, limit uint) ([]*systemType.SystemStatsLogEntry, error) {
 	query := s.Dialect.GOQU().
 		From(actionlogTable).
 		Select("id", "ts", "resource", "action", "description", "error", "actor_id", "meta").
 		Where(append(where, statsRangeWhere(goqu.C("ts"), r)...)...).
 		Order(goqu.C("ts").Desc()).
-		Limit(statsRecentLimit)
+		Limit(limit)
 
 	rows, err := s.Query(ctx, query)
 	if err != nil {
@@ -685,6 +708,118 @@ func (s *Store) statsRecent(ctx context.Context, resource string, res statsResou
 
 		it.Status = statsKey(status)
 		out = append(out, it)
+	}
+
+	return out, rows.Err()
+}
+
+// SystemStatsEvents answers the drill-down behind one chart bucket.
+func (s *Store) SystemStatsEvents(ctx context.Context, kind string, r systemType.SystemStatsRange) (raw *systemType.SystemStatsEventsRaw, err error) {
+	raw = &systemType.SystemStatsEventsRaw{
+		Entries:  make([]*systemType.SystemStatsLogEntry, 0),
+		Sessions: make([]*systemType.SystemStatsSession, 0),
+		Ranking:  make([]systemType.SystemStatsKeyCount, 0),
+	}
+
+	switch kind {
+	case systemType.SystemStatsEventsActivity:
+		if raw.Total, err = s.statsCount(ctx, actionlogTable, statsRangeWhere(goqu.C("ts"), r)); err != nil {
+			return nil, err
+		}
+		if raw.Entries, err = s.statsLogEntries(ctx, r, nil, statsEventsLimit); err != nil {
+			return nil, err
+		}
+		raw.Ranking, err = s.statsTopResources(ctx, r)
+		return raw, err
+
+	case systemType.SystemStatsEventsSignins:
+		where := []exp.Expression{
+			goqu.C("resource").Eq(statsSigninResource),
+			goqu.C("action").Eq(statsSigninAction),
+		}
+		if raw.Total, err = s.statsCount(ctx, actionlogTable, append(where, statsRangeWhere(goqu.C("ts"), r)...)); err != nil {
+			return nil, err
+		}
+		raw.Entries, err = s.statsLogEntries(ctx, r, where, statsEventsLimit)
+		return raw, err
+
+	case systemType.SystemStatsEventsTaqs:
+		where := []exp.Expression{
+			goqu.C("resource").Eq(statsTaqRunResource),
+			goqu.C("action").Eq(statsTaqRunAction),
+		}
+		if raw.Total, err = s.statsCount(ctx, actionlogTable, append(where, statsRangeWhere(goqu.C("ts"), r)...)); err != nil {
+			return nil, err
+		}
+		raw.Entries, err = s.statsLogEntries(ctx, r, where, statsEventsLimit)
+		return raw, err
+
+	case systemType.SystemStatsEventsWorkflows:
+		if raw.Total, err = s.statsCount(ctx, automationSessionTable, statsRangeWhere(goqu.C("created_at"), r)); err != nil {
+			return nil, err
+		}
+		raw.Sessions, err = s.statsSessions(ctx, r)
+		return raw, err
+	}
+
+	return nil, fmt.Errorf("unknown event kind %q", kind)
+}
+
+func (s *Store) statsCount(ctx context.Context, tbl exp.IdentifierExpression, where []exp.Expression) (uint, error) {
+	aux := struct {
+		Count uint `db:"count"`
+	}{}
+
+	query := s.Dialect.GOQU().
+		From(tbl).
+		Select(goqu.COUNT(goqu.Star()).As("count")).
+		Where(where...)
+
+	return aux.Count, s.QueryOne(ctx, query, &aux)
+}
+
+// statsSessions lists the newest workflow sessions started within the range, any status.
+func (s *Store) statsSessions(ctx context.Context, r systemType.SystemStatsRange) ([]*systemType.SystemStatsSession, error) {
+	wfName, err := s.Dialect.JsonExtractUnquote(goqu.I("w.meta"), "name")
+	if err != nil {
+		return nil, err
+	}
+
+	query := s.Dialect.GOQU().
+		From(automationSessionTable.As("s")).
+		LeftJoin(automationWorkflowTable.As("w"), goqu.On(goqu.I("w.id").Eq(goqu.I("s.rel_workflow")))).
+		Select(
+			goqu.I("s.id"), goqu.I("s.rel_workflow"),
+			goqu.COALESCE(goqu.I("w.handle"), goqu.V("")), goqu.COALESCE(wfName, goqu.V("")),
+			goqu.I("s.status"), goqu.I("s.event_type"), goqu.I("s.resource_type"), goqu.I("s.error"),
+			goqu.I("s.created_by"), goqu.I("s.created_at"), goqu.I("s.completed_at"),
+		).
+		Where(statsRangeWhere(goqu.I("s.created_at"), r)...).
+		Order(goqu.I("s.created_at").Desc()).
+		Limit(statsEventsLimit)
+
+	rows, err := s.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	out := make([]*systemType.SystemStatsSession, 0)
+	for rows.Next() {
+		var (
+			ss      = &systemType.SystemStatsSession{}
+			status  int
+			errText sql.NullString
+		)
+
+		if err = rows.Scan(&ss.SessionID, &ss.WorkflowID, &ss.WorkflowHandle, &ss.WorkflowName, &status, &ss.EventType, &ss.ResourceType, &errText, &ss.CreatedBy, &ss.CreatedAt, &ss.CompletedAt); err != nil {
+			return nil, err
+		}
+
+		ss.Status = automationType.SessionStatus(status).String()
+		ss.Error = errText.String
+		out = append(out, ss)
 	}
 
 	return out, rows.Err()

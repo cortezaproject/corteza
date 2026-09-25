@@ -15,6 +15,12 @@ export const RESOURCES = [
     statuses: ['active', 'archived', 'deleted'],
   },
   {
+    key: 'userGroups',
+    icon: 'pi pi-sitemap',
+    route: { name: 'system.userGroups' },
+    statuses: ['active', 'archived', 'deleted'],
+  },
+  {
     key: 'projects',
     icon: 'pi pi-folder',
     route: { name: 'project.list' },
@@ -57,6 +63,12 @@ export const RESOURCES = [
     statuses: ['enabled', 'disabled', 'deleted'],
   },
   {
+    key: 'llmProviders',
+    icon: 'pi pi-sparkles',
+    route: { name: 'system.llmProviders' },
+    statuses: ['active', 'deleted'],
+  },
+  {
     key: 'connections',
     icon: 'pi pi-link',
     route: { name: 'system.connections' },
@@ -66,6 +78,12 @@ export const RESOURCES = [
     key: 'dataSources',
     icon: 'pi pi-database',
     route: { name: 'system.dataSources' },
+    statuses: ['active', 'deleted'],
+  },
+  {
+    key: 'templates',
+    icon: 'pi pi-file',
+    route: { name: 'system.templates' },
     statuses: ['active', 'deleted'],
   },
   {

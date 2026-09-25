@@ -12,8 +12,7 @@ const { locFullDateTime } = filters
 // three layouts differ in arrangement only. Every field is null when the
 // caller may not see that section.
 export function useDashboardData(stats, isDark, bucketLabels, rangeLabels) {
-  const i18n = useI18n()
-  const { t } = i18n
+  const { t } = useI18n()
 
   const n = computed(() => stats.value?.range?.buckets?.length || 0)
   const color = key => seriesColor(key, isDark.value)
@@ -61,12 +60,14 @@ export function useDashboardData(stats, isDark, bucketLabels, rangeLabels) {
       errorSpark: a.series.errors,
       recentErrors: a.recentErrors.map(e => ({
         id: e.actionID,
+        kind: 'log',
         at: e.timestamp,
-        title: describeEvent(i18n, e.resource, e.action),
+        title: describeEvent(e.resource, e.action),
         detail: e.error || e.description,
         time: locFullDateTime(e.timestamp),
         to: { name: 'system.actionLog' },
         color: SERIES.error,
+        raw: e,
       })),
     }
   })
@@ -119,6 +120,7 @@ export function useDashboardData(stats, isDark, bucketLabels, rangeLabels) {
       k => t(`dashboard.runs.${k}`),
       (w?.failures || []).map(f => ({
         id: f.sessionID,
+        kind: 'session',
         at: f.createdAt,
         title:
           f.workflowName || f.workflowHandle || t('dashboard.runs.workflow', { id: f.workflowID }),
@@ -126,6 +128,7 @@ export function useDashboardData(stats, isDark, bucketLabels, rangeLabels) {
         time: locFullDateTime(f.createdAt),
         to: { name: 'automation.sessions.view', params: { sessionID: f.sessionID } },
         color: SERIES.failed,
+        raw: { ...f, status: 'failed' },
       })),
     )
   })
@@ -138,6 +141,7 @@ export function useDashboardData(stats, isDark, bucketLabels, rangeLabels) {
       k => t(`dashboard.runs.${k}`),
       (q?.failures || []).map(f => ({
         id: f.actionID,
+        kind: 'log',
         at: f.timestamp,
         title: t('dashboard.runs.taq', { id: f.meta?.automationID || '' }),
         detail: f.error,
@@ -146,6 +150,7 @@ export function useDashboardData(stats, isDark, bucketLabels, rangeLabels) {
           ? { name: 'automation.taq.edit', params: { automationID: f.meta.automationID } }
           : { name: 'automation.sessions' },
         color: SERIES.failed,
+        raw: f,
       })),
     )
   })

@@ -16,6 +16,7 @@ type (
 	statsService interface {
 		Metrics(context.Context, service.StatisticsRequest) (*types.SystemStats, error)
 		Detail(context.Context, string, service.StatisticsRequest) (*types.SystemStatsDetail, error)
+		Events(context.Context, string, service.StatisticsRequest) (*types.SystemStatsEvents, error)
 	}
 )
 
@@ -38,5 +39,12 @@ func (ctrl *Stats) Detail(ctx context.Context, r *request.StatsDetail) (interfac
 		From:   r.From,
 		To:     r.To,
 		Bucket: r.Bucket,
+	})
+}
+
+func (ctrl *Stats) Events(ctx context.Context, r *request.StatsEvents) (interface{}, error) {
+	return ctrl.svc.Events(ctx, r.Kind, service.StatisticsRequest{
+		From: r.From,
+		To:   r.To,
 	})
 }

@@ -351,6 +351,11 @@ user: {
 					expIdent: "SystemStatsResourceDetail"
 					args: [ {ident: "resource", goType: "string"}, {ident: "r", goType: "types.SystemStatsRange"}]
 					return: [ "*types.SystemStatsDetailRaw"]
+				}, {
+					// the rows behind one chart bucket: action-log entries or workflow sessions
+					expIdent: "SystemStatsEvents"
+					args: [ {ident: "kind", goType: "string"}, {ident: "r", goType: "types.SystemStatsRange"}]
+					return: [ "*types.SystemStatsEventsRaw"]
 				},
 			]
 		}

@@ -1044,6 +1044,7 @@ type (
 		CountUsers(ctx context.Context, u systemType.UserFilter) (uint, error)
 		SystemStats(ctx context.Context, r systemType.SystemStatsRange) (*systemType.SystemStatsRaw, error)
 		SystemStatsResourceDetail(ctx context.Context, resource string, r systemType.SystemStatsRange) (*systemType.SystemStatsDetailRaw, error)
+		SystemStatsEvents(ctx context.Context, kind string, r systemType.SystemStatsRange) (*systemType.SystemStatsEventsRaw, error)
 	}
 
 	UserGroups interface {
@@ -5673,6 +5674,13 @@ func SystemStats(ctx context.Context, s Users, r systemType.SystemStatsRange) (*
 // This function is auto-generated
 func SystemStatsResourceDetail(ctx context.Context, s Users, resource string, r systemType.SystemStatsRange) (*systemType.SystemStatsDetailRaw, error) {
 	return s.SystemStatsResourceDetail(ctx, resource, r)
+}
+
+// SystemStatsEvents
+//
+// This function is auto-generated
+func SystemStatsEvents(ctx context.Context, s Users, kind string, r systemType.SystemStatsRange) (*systemType.SystemStatsEventsRaw, error) {
+	return s.SystemStatsEvents(ctx, kind, r)
 }
 
 // SearchUserGroups returns all matching UserGroups from store

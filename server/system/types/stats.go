@@ -110,6 +110,17 @@ const (
 	SystemStatsModules      = "modules"
 	SystemStatsConnections  = "connections"
 	SystemStatsDataSources  = "dataSources"
+	SystemStatsUserGroups   = "userGroups"
+	SystemStatsTemplates    = "templates"
+	SystemStatsLlmProviders = "llmProviders"
+)
+
+// Event kinds a chart bucket can be opened into.
+const (
+	SystemStatsEventsActivity  = "activity"
+	SystemStatsEventsSignins   = "signins"
+	SystemStatsEventsWorkflows = "workflows"
+	SystemStatsEventsTaqs      = "taqs"
 )
 
 type (
@@ -206,4 +217,42 @@ const (
 	SystemStatsCreated = "created"
 	SystemStatsUpdated = "updated"
 	SystemStatsDeleted = "deleted"
+)
+
+type (
+	// SystemStatsSession is one workflow session, as the drill-down lists it.
+	SystemStatsSession struct {
+		SessionID      uint64     `json:"sessionID,string"`
+		WorkflowID     uint64     `json:"workflowID,string"`
+		WorkflowHandle string     `json:"workflowHandle"`
+		WorkflowName   string     `json:"workflowName"`
+		Status         string     `json:"status"`
+		EventType      string     `json:"eventType"`
+		ResourceType   string     `json:"resourceType"`
+		Error          string     `json:"error"`
+		CreatedBy      uint64     `json:"createdBy,string"`
+		CreatedAt      time.Time  `json:"createdAt"`
+		CompletedAt    *time.Time `json:"completedAt,omitempty"`
+	}
+
+	// SystemStatsEventsRaw is the store's answer for one bucket of one kind:
+	// how many rows fall in it, the newest of them, and (for activity) which
+	// resource types they touched.
+	SystemStatsEventsRaw struct {
+		Total    uint
+		Entries  []*SystemStatsLogEntry
+		Sessions []*SystemStatsSession
+		Ranking  []SystemStatsKeyCount
+	}
+
+	// SystemStatsEvents is the drill-down payload for a chart bucket.
+	SystemStatsEvents struct {
+		Kind     string                 `json:"kind"`
+		From     time.Time              `json:"from"`
+		To       time.Time              `json:"to"`
+		Total    uint                   `json:"total"`
+		Entries  []*SystemStatsLogEntry `json:"entries"`
+		Sessions []*SystemStatsSession  `json:"sessions"`
+		Ranking  []SystemStatsKeyCount  `json:"ranking"`
+	}
 )

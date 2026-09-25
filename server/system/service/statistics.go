@@ -70,6 +70,17 @@ var (
 		types.SystemStatsModules:      {"namespaces.search", composeComponent},
 		types.SystemStatsConnections:  {"connections.search", systemComponent},
 		types.SystemStatsDataSources:  {"dal-connections.search", systemComponent},
+		types.SystemStatsUserGroups:   {"user-groups.search", systemComponent},
+		types.SystemStatsTemplates:    {"templates.search", systemComponent},
+		types.SystemStatsLlmProviders: {"llm-providers.search", systemComponent},
+	}
+
+	// every event kind is shown to whoever may read what it is made of
+	statsEventPermissions = map[string]statsPermission{
+		types.SystemStatsEventsActivity:  {"action-log.read", systemComponent},
+		types.SystemStatsEventsSignins:   {"action-log.read", systemComponent},
+		types.SystemStatsEventsWorkflows: {"workflows.search", automationComponent},
+		types.SystemStatsEventsTaqs:      {"ng-automations.search", automationComponent},
 	}
 
 	statsSessionOutcomes = []string{"completed", "failed", "canceled", "started", "prompted", "suspended"}
@@ -232,6 +243,44 @@ func (svc statistics) Detail(ctx context.Context, resource string, req Statistic
 			for _, n := range rval.Series[key] {
 				rval.InRange[key] += n
 			}
+		}
+
+		return nil
+	}()
+
+	return rval, svc.recordAction(ctx, &statisticsActionProps{}, StatisticsActionServe, err)
+}
+
+// Events answers the drill-down behind one chart bucket.
+func (svc statistics) Events(ctx context.Context, kind string, req StatisticsRequest) (rval *types.SystemStatsEvents, err error) {
+	err = func() error {
+		p, ok := statsEventPermissions[kind]
+		if !ok {
+			return fmt.Errorf("unknown event kind %q", kind)
+		}
+
+		if !svc.ac.can(ctx, p.op, p.res) {
+			return StatisticsErrNotAllowedToReadStatistics()
+		}
+
+		r, _, err := statsResolveRange(req, time.Now())
+		if err != nil {
+			return err
+		}
+
+		raw, err := store.SystemStatsEvents(ctx, svc.store, kind, r)
+		if err != nil {
+			return err
+		}
+
+		rval = &types.SystemStatsEvents{
+			Kind:     kind,
+			From:     r.From,
+			To:       r.To,
+			Total:    raw.Total,
+			Entries:  raw.Entries,
+			Sessions: raw.Sessions,
+			Ranking:  raw.Ranking,
 		}
 
 		return nil

@@ -1,36 +1,25 @@
 import { describe, expect, it } from 'vitest'
-import { describeEvent, humanizeAction, humanizeType, parseResource } from './eventLabel'
-
-const i18n = {
-  te: k =>
-    k === 'dashboard.events.resources.compose_namespace' || k === 'dashboard.events.actions.lookup',
-  t: k =>
-    ({
-      'dashboard.events.resources.compose_namespace': 'Namespace',
-      'dashboard.events.actions.lookup': 'lookup',
-    })[k],
-}
+import { describeEvent, humanizeAction } from './eventLabel'
 
 describe('event labels', () => {
-  it('parses stored resources', () => {
-    expect(parseResource('corteza::compose:namespace/123')).toEqual({
-      type: 'compose:namespace',
-      id: '123',
-    })
-    expect(parseResource('compose:namespace/*')).toEqual({ type: 'compose:namespace', id: '' })
-    expect(parseResource('system:user')).toEqual({ type: 'system:user', id: '' })
+  it('reads the resource type and action from the action-log vocabulary', () => {
+    expect(describeEvent('corteza::compose:namespace/*', 'lookup')).toBe('Namespace lookup')
+    expect(describeEvent('system:user-group', 'members')).toMatch(/^User group /)
   })
 
-  it('spells identifiers out', () => {
-    expect(humanizeType('system:user-group')).toBe('user group')
-    expect(humanizeAction('execAndWait')).toBe('exec and wait')
-    expect(humanizeAction('markAllAsRead')).toBe('mark all as read')
-  })
-
-  it('prefers translations and never shows raw identifiers', () => {
-    expect(describeEvent(i18n, 'corteza::compose:namespace/*', 'lookup')).toBe('Namespace lookup')
-    expect(describeEvent(i18n, 'system:dal-sensitivity-level', 'reloadSensitivityLevels')).toBe(
-      'Dal sensitivity level reload sensitivity levels',
+  it('spells unknown actions out, keeping acronyms', () => {
+    expect(humanizeAction('reloadDALModels')).toBe('reload DAL Models')
+    expect(describeEvent('corteza::compose:module', 'reloadDALModels')).toBe(
+      'Module reload DAL models',
     )
+    expect(describeEvent('system:user', 'execAndWait')).toBe('User exec and wait')
+  })
+
+  it('reads an unknown resource type from its last segment', () => {
+    expect(describeEvent('system:auth', 'authenticate')).toBe('Auth authenticate')
+  })
+
+  it('never shows a raw resource path', () => {
+    expect(describeEvent('corteza::compose:record/1/2/3', 'update')).not.toContain('/')
   })
 })

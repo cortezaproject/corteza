@@ -72,6 +72,23 @@ type (
 		// Series granularity (day, week, month); defaults by range length
 		Bucket string
 	}
+
+	StatsEvents struct {
+		// Kind PATH parameter
+		//
+		// Event kind (activity, signins, workflows, taqs)
+		Kind string
+
+		// From GET parameter
+		//
+		// Start of the bucket (inclusive)
+		From *time.Time
+
+		// To GET parameter
+		//
+		// End of the bucket (exclusive)
+		To *time.Time
+	}
 )
 
 // NewStatsList request
@@ -201,6 +218,71 @@ func (r *StatsDetail) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "resource")
 		r.Resource, err = val, nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewStatsEvents request
+func NewStatsEvents() *StatsEvents {
+	return &StatsEvents{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r StatsEvents) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"kind": r.Kind,
+		"from": r.From,
+		"to":   r.To,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r StatsEvents) GetKind() string {
+	return r.Kind
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r StatsEvents) GetFrom() *time.Time {
+	return r.From
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r StatsEvents) GetTo() *time.Time {
+	return r.To
+}
+
+// Fill processes request and fills internal variables
+func (r *StatsEvents) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["from"]; ok && len(val) > 0 {
+			r.From, err = payload.ParseISODatePtrWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["to"]; ok && len(val) > 0 {
+			r.To, err = payload.ParseISODatePtrWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "kind")
+		r.Kind, err = val, nil
 		if err != nil {
 			return err
 		}

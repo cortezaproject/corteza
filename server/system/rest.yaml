@@ -2677,6 +2677,25 @@ endpoints:
               type: string
               required: false
               title: Series granularity (day, week, month); defaults by range length
+      - name: events
+        method: GET
+        title: The events behind one chart bucket, for the dashboard's drill-down
+        path: '/events/{kind}'
+        parameters:
+          path:
+            - name: kind
+              type: string
+              required: true
+              title: Event kind (activity, signins, workflows, taqs)
+          get:
+            - name: from
+              type: '*time.Time'
+              required: false
+              title: Start of the bucket (inclusive)
+            - name: to
+              type: '*time.Time'
+              required: false
+              title: End of the bucket (exclusive)
   - title: System automation scripts
     path: '/automation'
     entrypoint: automation

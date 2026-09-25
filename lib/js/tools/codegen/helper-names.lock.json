@@ -341,7 +341,8 @@
       "dml mappingDelete": "dmlMappingDelete",
       "dml importRun": "dmlImportRun",
       "dml importRunRead": "dmlImportRunRead",
-      "stats detail": "statsDetail"
+      "stats detail": "statsDetail",
+      "stats events": "statsEvents"
     },
     "compose": {
       "namespace list": "findNamespaces",

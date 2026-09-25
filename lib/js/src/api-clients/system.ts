@@ -6030,6 +6030,49 @@ export default class System {
     return `/stats/${resource}`
   }
 
+  // The events behind one chart bucket, for the dashboard&#x27;s drill-down
+  async statsEvents(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { kind, from, to } = (a as KV) || {}
+    if (!kind) {
+      throw Error('field kind is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.statsEventsEndpoint({
+        kind,
+      }),
+    }
+    cfg.params = {
+      from,
+      to,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  statsEventsCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.statsEvents(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  statsEventsEndpoint(a: KV): string {
+    const { kind } = a || {}
+    return `/stats/events/${kind}`
+  }
+
   // List all available automation scripts for system resources
   async automationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {

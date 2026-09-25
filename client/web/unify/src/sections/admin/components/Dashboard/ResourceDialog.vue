@@ -207,6 +207,9 @@ const EDIT_ROUTES = {
   projects: id => ({ name: 'project.overview', params: { projectId: id } }),
   connections: id => ({ name: 'system.connections.edit', params: { connectionID: id } }),
   dataSources: id => ({ name: 'system.dataSources.edit', params: { connectionID: id } }),
+  userGroups: id => ({ name: 'system.userGroups.edit', params: { userGroupID: id } }),
+  templates: id => ({ name: 'system.templates.edit', params: { templateID: id } }),
+  llmProviders: id => ({ name: 'system.llmProviders.edit', params: { llmProviderID: id } }),
 }
 
 function linkTo(it) {

@@ -1049,6 +1049,12 @@ export default class GeneratedSystemHelper {
     return this.SystemAPI.statsDetail(args, extra)
   }
 
+  // The events behind one chart bucket, for the dashboard's drill-down
+  statsEvents(a: Args = {}, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const args = argsOf(a)
+    return this.SystemAPI.statsEvents(args, extra)
+  }
+
   // List all available automation scripts for system resources
   automationList(a: Args = {}, extra: AxiosRequestConfig = {}): Promise<KV> {
     const args = argsOf(a)

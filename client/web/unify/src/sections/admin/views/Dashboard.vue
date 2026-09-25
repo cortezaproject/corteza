@@ -39,7 +39,7 @@
       class="flex flex-col gap-4 min-w-0"
       :class="{ 'opacity-60 transition-opacity': loading }"
     >
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         <button
           v-for="tile in d.tiles.value"
           :key="tile.key"
@@ -88,6 +88,7 @@
             :range-labels="rangeLabels"
             :series="d.activity.value.series"
             :height="180"
+            @select="openBucket('activity', $event)"
           />
         </Card>
         <Card
@@ -105,6 +106,7 @@
             :range-labels="rangeLabels"
             :series="d.signins.value.series"
             :height="180"
+            @select="openBucket('signins', $event)"
           />
         </Card>
       </div>
@@ -132,6 +134,7 @@
                 :series="d.workflows.value.series"
                 stacked
                 :height="180"
+                @select="openBucket('workflows', $event)"
               />
             </div>
             <div v-if="d.taqs.value" class="min-w-0">
@@ -150,6 +153,7 @@
                 :series="d.taqs.value.series"
                 stacked
                 :height="180"
+                @select="openBucket('taqs', $event)"
               />
             </div>
           </div>
@@ -159,12 +163,25 @@
           :title="$t('dashboard.attention.title')"
           :subtitle="$t('dashboard.attention.subtitle')"
         >
-          <AttentionList :items="d.attention.value" :empty-text="$t('dashboard.attention.empty')" />
+          <AttentionList
+            :items="d.attention.value"
+            :empty-text="$t('dashboard.attention.empty')"
+            @select="openEvent"
+          />
         </Card>
       </div>
     </div>
 
     <ResourceDialog v-model:visible="dialogOpen" :resource="dialogResource" :range="range" />
+    <BucketDialog
+      v-model:visible="bucketOpen"
+      :kind="bucket.kind"
+      :from="bucket.from"
+      :to="bucket.to"
+      :label="bucket.label"
+      @select="openEvent"
+    />
+    <EventDialog v-model:visible="eventOpen" :item="event" />
   </div>
 </template>
 
@@ -174,6 +191,8 @@ import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
 import { components } from '@planetcrust/human-vue'
 import AttentionList from '../components/Dashboard/AttentionList.vue'
+import BucketDialog from '../components/Dashboard/BucketDialog.vue'
+import EventDialog from '../components/Dashboard/EventDialog.vue'
 import Card from '../components/Dashboard/Card.vue'
 import RangeSelect from '../components/Dashboard/RangeSelect.vue'
 import ResourceDialog from '../components/Dashboard/ResourceDialog.vue'
@@ -208,6 +227,41 @@ const dialogResource = ref('')
 function inspect(key) {
   dialogResource.value = key
   dialogOpen.value = true
+}
+
+// A clicked bar opens the events behind that bucket: from its start to the
+// next bucket's start, or the range end for the last one.
+const bucketOpen = ref(false)
+const bucket = ref({ kind: '', from: '', to: '', label: '' })
+
+function openBucket(kind, index) {
+  const buckets = stats.value?.range?.buckets || []
+  const day = buckets[index]
+  if (!day) return
+
+  const from = localDay(day)
+  const to = buckets[index + 1] ? localDay(buckets[index + 1]) : new Date(stats.value.range.to)
+  bucket.value = {
+    kind,
+    from: from.toISOString(),
+    to: to.toISOString(),
+    label: rangeLabels.value[index] || day,
+  }
+  bucketOpen.value = true
+}
+
+function localDay(s) {
+  const [y, m, d] = s.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+// Any listed event opens in depth
+const eventOpen = ref(false)
+const event = ref(null)
+
+function openEvent(item) {
+  event.value = item
+  eventOpen.value = true
 }
 
 async function handleScriptButton(button) {

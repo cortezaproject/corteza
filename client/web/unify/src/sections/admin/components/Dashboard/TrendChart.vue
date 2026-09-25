@@ -4,8 +4,15 @@
     <div v-if="empty" class="flex items-center text-base text-muted-color py-2">
       {{ $t('dashboard.empty') }}
     </div>
-    <div v-else :style="{ height: height + 'px' }" class="min-w-0">
-      <CChart :chart="option" />
+    <div v-else :style="{ height: height + 'px' }" class="min-w-0 cursor-pointer" @click="onClick">
+      <v-chart
+        ref="chartRef"
+        :option="option"
+        :update-options="updateOptions"
+        :theme="isDark ? 'dark' : 'light'"
+        autoresize
+        class="w-full h-full overflow-hidden"
+      />
     </div>
 
     <!-- Identity never rides on colour alone: two or more series get a legend -->
@@ -22,11 +29,18 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { components } from '@planetcrust/human-vue'
+import { computed, ref } from 'vue'
+import { BarChart, LineChart } from 'echarts/charts'
+import { GridComponent, TooltipComponent } from 'echarts/components'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import VChart from 'vue-echarts'
 import { chromeColors, useIsDark } from './chartTheme'
 
-const { CChart } = components
+use([CanvasRenderer, BarChart, LineChart, GridComponent, TooltipComponent])
+
+const chartRef = ref(null)
+const updateOptions = { replaceMerge: ['series', 'xAxis', 'yAxis'] }
 
 const props = defineProps({
   labels: { type: Array, default: () => [] },
@@ -37,7 +51,25 @@ const props = defineProps({
   height: { type: Number, default: 220 },
 })
 
+const emit = defineEmits(['select'])
+
 const isDark = useIsDark()
+
+// A click anywhere in a bucket's column opens that bucket, bar or no bar.
+// Bound on the wrapper rather than through the chart's own event path, and
+// resolved against the chart's pixel space.
+function onClick(e) {
+  const chart = chartRef.value
+  if (!chart || !e) return
+  const rect = chart.getDom().getBoundingClientRect()
+  // the grid finder answers in data space: [category index, value]
+  const found = chart.convertFromPixel({ gridIndex: 0 }, [
+    e.clientX - rect.left,
+    e.clientY - rect.top,
+  ])
+  const index = Array.isArray(found) ? Math.round(found[0]) : NaN
+  if (Number.isInteger(index) && index >= 0 && index < props.labels.length) emit('select', index)
+}
 
 const empty = computed(() => !props.series.some(s => (s.data || []).some(v => v > 0)))
 

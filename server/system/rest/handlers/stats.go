@@ -21,12 +21,14 @@ type (
 	StatsAPI interface {
 		List(context.Context, *request.StatsList) (interface{}, error)
 		Detail(context.Context, *request.StatsDetail) (interface{}, error)
+		Events(context.Context, *request.StatsEvents) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Stats struct {
 		List   func(http.ResponseWriter, *http.Request)
 		Detail func(http.ResponseWriter, *http.Request)
+		Events func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -64,6 +66,22 @@ func NewStats(h StatsAPI) *Stats {
 
 			api.Send(w, r, value)
 		},
+		Events: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewStatsEvents()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Events(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -72,5 +90,6 @@ func (h Stats) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.
 		r.Use(middlewares...)
 		r.Get("/stats/", h.List)
 		r.Get("/stats/{resource}", h.Detail)
+		r.Get("/stats/events/{kind}", h.Events)
 	})
 }

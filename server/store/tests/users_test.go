@@ -490,6 +490,26 @@ func testUsers(t *testing.T, s store.Users) {
 		req.Error(err)
 	})
 
+	t.Run("system stats events", func(t *testing.T) {
+		var (
+			req = require.New(t)
+			now = time.Now()
+			r   = types.SystemStatsRange{From: now.AddDate(0, 0, -7), To: now.AddDate(0, 0, 1)}
+		)
+
+		// every kind answers with empty, non-nil lists on this dialect
+		for _, kind := range []string{types.SystemStatsEventsActivity, types.SystemStatsEventsSignins, types.SystemStatsEventsWorkflows, types.SystemStatsEventsTaqs} {
+			raw, err := store.SystemStatsEvents(ctx, s, kind, r)
+			req.NoError(err, kind)
+			req.NotNil(raw.Entries, kind)
+			req.NotNil(raw.Sessions, kind)
+			req.NotNil(raw.Ranking, kind)
+		}
+
+		_, err := store.SystemStatsEvents(ctx, s, "nope", r)
+		req.Error(err)
+	})
+
 	t.Run("count", func(t *testing.T) {
 		var (
 			req = require.New(t)
