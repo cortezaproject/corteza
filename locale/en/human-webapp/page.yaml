@@ -42,6 +42,7 @@ delete:
   rebase: Update parent of sub-pages
 edit:
   create: Create page
+  createUnder: Create sub-page of {parent}
   deleteConfirm: Are you sure you want to delete this page?
   edit: Edit page
   noParent: No parent (top-level)
@@ -79,6 +80,17 @@ label:
   permissions: Permissions
   saveAndClose: Save and close
   title: Title
+list:
+  addSubPage: Add sub-page
+  deleteKeepSubPages: Delete, and move its sub-pages up a level
+  deleteWithSubPages: Delete, together with all of its sub-pages
+  deleteWithSubPagesConfirm: Are you sure you want to delete this page and every page nested beneath it?
+  hiddenTooltip: This page is not shown in the namespace navigation
+  layoutPermissions: Page layout permissions
+  pagePermissions: Page permissions
+  recordPage: Record page
+  recordPageOf: 'Record page · {module}'
+  settings: Page settings
 loading: Loading
 moduleEdit: Edit module
 navigation:

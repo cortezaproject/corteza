@@ -901,8 +901,16 @@ const { scope, exprScope } = useExpressionScope({
   hasRecord: isRecordPage,
 })
 
+const parentPage = computed(() => {
+  const parentID = route.query.parent
+  return parentID ? pageStore.set.find(p => p.pageID === parentID) : undefined
+})
+
 const pageTitle = computed(() => {
-  return isEdit.value ? t('page.edit.edit') : t('page.edit.create')
+  if (isEdit.value) return t('page.edit.edit')
+  return parentPage.value
+    ? t('page.edit.createUnder', { parent: parentPage.value.title || parentPage.value.handle })
+    : t('page.edit.create')
 })
 
 const initialValues = computed(() => {
@@ -1094,6 +1102,7 @@ async function loadPage() {
     // Create new
     page.value = new compose.Page({
       namespaceID: props.namespace?.namespaceID,
+      selfID: route.query.parent || '0',
       visible: true,
     })
     initialPage.value = cloneDeep(page.value)
