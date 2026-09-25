@@ -66,12 +66,7 @@
           >
             <template #default="{ node }">
               <div class="flex items-center gap-2 min-w-0" data-test-id="page-tree-node">
-                <span
-                  class="whitespace-normal break-words"
-                  :class="{ 'font-semibold': node.data.selfID === '0' }"
-                >
-                  {{ node.label }}
-                </span>
+                <span class="whitespace-normal break-words">{{ node.label }}</span>
                 <span
                   v-if="node.data.description"
                   class="text-xs text-muted-color truncate min-w-0"
@@ -175,7 +170,7 @@ const loading = ref(false)
 const canReorder = computed(() => !!props.namespace?.canCreatePage)
 
 const treePT = {
-  rootChildren: { class: 'flex flex-col items-start gap-1.5' },
+  rootChildren: { class: 'tree-branch flex flex-col items-start gap-1.5 ml-1 pl-4' },
   nodeChildren: { class: 'tree-branch flex flex-col items-start gap-1.5 pt-1.5 ml-3 pl-4' },
   // A row is as wide as its own content, so the hierarchy reads by shape and
   // not only by indent.
@@ -457,9 +452,10 @@ async function reorderTree(nodes, parentID) {
 </script>
 
 <style scoped>
-/* Tree guides. The trunk is drawn per node so a branch ends at its last child
- * instead of running past it, and the elbow
- * hangs off the row itself so it meets the row's middle whatever the row holds.
+/* Tree guides, the root rail included. The trunk is drawn per node so a branch
+ * ends at its last child instead of running past it, and the elbow hangs off
+ * the row itself so it meets the row's middle whatever the row holds. The root
+ * rail has nothing above it, so it starts at the first page's elbow.
  * Keep each selector on one line: a wrapped :deep() compiles `X ::before`,
  * which blanks every icon glyph inside the row. */
 .page-tree :deep(.tree-branch > .p-tree-node) {
@@ -478,6 +474,14 @@ async function reorderTree(nodes, parentID) {
 .page-tree :deep(.tree-branch > .p-tree-node:last-child)::before {
   bottom: auto;
   height: 27px;
+}
+
+.page-tree :deep(.p-tree-root-children > .p-tree-node:first-child)::before {
+  top: 20px;
+}
+
+.page-tree :deep(.p-tree-root-children > .p-tree-node:only-child)::before {
+  display: none;
 }
 
 .page-tree :deep(.tree-branch > .p-tree-node > .p-tree-node-content) {
