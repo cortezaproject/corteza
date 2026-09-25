@@ -55,9 +55,11 @@ composing a DataTable by hand.
   `handleSort`, `handlePageChange`, `abortRequests`) that map 1:1 onto
   CResourceList's props/events. State round-trips through the route query so
   lists are deep-linkable; in-flight requests are cancelled on refetch.
-- A filter whose default is '0'/'1'/'2' is a state filter. Choosing Only for
-  one puts every other state filter back to its default, so "only deleted"
-  never silently intersects with another narrowing. Screens must not call
+- A filter whose default is '0'/'1'/'2' is a state filter, and Only excludes
+  every other one. Choosing Only puts the other state filters back to their
+  defaults, so "only deleted" never silently intersects with another
+  narrowing; changing another state filter while one holds Only turns that
+  one into Including. Screens must not call
   `filterList` from a radio's `@change`: the route write it makes lands after
   the reset and restores the old values; the filter watcher already refetches.
 - Row navigation is NOT part of the pairing: every list screen binds its own

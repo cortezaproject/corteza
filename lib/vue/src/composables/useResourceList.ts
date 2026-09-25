@@ -298,17 +298,32 @@ export function useResourceList<T = any>(
     router.push({ name: 'namespace.edit', params: { slug: slug || namespaceID } })
   }
 
-  // Without/including/only state filters ('0'/'1'/'2'). Choosing "only" for
-  // one puts the others back to their defaults.
+  // Without/including/only state filters ('0'/'1'/'2'). "Only" excludes every
+  // other state filter: choosing it puts the others back to their defaults,
+  // and touching another one while it holds turns it into "including".
   const stateKeys = Object.keys(filterDefaults).filter(k =>
     ['0', '1', '2'].includes(String(filterDefaults[k])),
   )
-  function narrowToOnly(now: FilterState, before: FilterState) {
-    const only = stateKeys.find(k => String(now[k]) === '2' && String(before[k]) !== '2')
-    if (!only) return
-    for (const k of stateKeys) {
-      if (k !== only) filter[k] = filterDefaults[k]
+  // Set while the watcher run our own writes trigger is still to come.
+  let settling = false
+  function reconcileStates(now: FilterState, before: FilterState) {
+    if (settling) {
+      settling = false
+      return
     }
+    const changed = stateKeys.filter(k => String(now[k]) !== String(before[k]))
+    if (!changed.length) return
+
+    const only = changed.find(k => String(now[k]) === '2')
+    const writes: [string, unknown][] = only
+      ? stateKeys
+          .filter(k => k !== only && String(filter[k]) !== String(filterDefaults[k]))
+          .map(k => [k, filterDefaults[k]])
+      : stateKeys.filter(k => !changed.includes(k) && String(filter[k]) === '2').map(k => [k, '1'])
+    if (!writes.length) return
+
+    settling = true
+    for (const [k, v] of writes) filter[k] = v
   }
 
   // Debounced watcher on filter changes — auto-search as user types
@@ -316,7 +331,7 @@ export function useResourceList<T = any>(
   watch(
     () => ({ ...filter }),
     (now, before) => {
-      narrowToOnly(now, before)
+      reconcileStates(now, before)
       if (filterDebounceTimer) clearTimeout(filterDebounceTimer)
       filterDebounceTimer = setTimeout(() => {
         filterList()

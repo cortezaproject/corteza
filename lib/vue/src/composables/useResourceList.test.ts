@@ -360,14 +360,39 @@ describe('useResourceList', () => {
       expect({ ...list.filter }).toEqual({ query: '', deleted: '2', archived: '0', disabled: '1' })
     })
 
-    it('leaves the others alone for without and including', async () => {
+    it('turns an only into including when another state filter is touched', async () => {
       const { list } = mountList(makeAPI(), { filter: { deleted: '0', archived: '0' } })
       await flushPromises()
       list.filter.archived = '2'
       await nextTick()
       list.filter.deleted = '1'
       await nextTick()
-      expect({ ...list.filter }).toEqual({ deleted: '1', archived: '2' })
+      await nextTick()
+      expect({ ...list.filter }).toEqual({ deleted: '1', archived: '1' })
+    })
+
+    it('keeps the only it just set when the reset settles', async () => {
+      const { list } = mountList(makeAPI(), { filter: { deleted: '0', archived: '0' } })
+      await flushPromises()
+      list.filter.archived = '1'
+      await nextTick()
+      list.filter.deleted = '2'
+      await nextTick()
+      await nextTick()
+      expect({ ...list.filter }).toEqual({ deleted: '2', archived: '0' })
+      list.filter.archived = '1'
+      await nextTick()
+      await nextTick()
+      expect({ ...list.filter }).toEqual({ deleted: '1', archived: '1' })
+    })
+
+    it('leaves a non-state filter change alone', async () => {
+      const { list } = mountList(makeAPI(), { filter: { query: '', deleted: '2', archived: '0' } })
+      await flushPromises()
+      list.filter.query = 'x'
+      await nextTick()
+      await nextTick()
+      expect(list.filter.deleted).toBe('2')
     })
   })
 })
