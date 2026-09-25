@@ -510,4 +510,46 @@ async function reorderTree(nodes, parentID) {
   width: 11px;
   border-top: 1px solid var(--page-tree-guide);
 }
+
+/* Drop feedback. PrimeVue's before/after markers sit in the flow as 1px
+ * outlines; here they are 2px bars in the gap at the node's own level, and the
+ * after bar sits below the node's whole subtree, which is where the page lands.
+ * A drop onto a row, which makes a sub-page, outlines that row. */
+.page-tree :deep(.p-tree-node > .p-tree-node-drop-point) {
+  position: absolute;
+  left: 0;
+  width: max(100%, 12rem);
+  height: 2px;
+  outline: none;
+  border-radius: 1px;
+  background: var(--p-primary-color);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.page-tree :deep(.p-tree-node > .p-tree-node-drop-point:first-child) {
+  top: calc(-0.375rem - 1px);
+}
+
+.page-tree :deep(.p-tree-node-content + .p-tree-node-drop-point) {
+  bottom: calc(-0.375rem - 1px);
+}
+
+.page-tree :deep(.p-tree-node > .p-tree-node-drop-point)::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid var(--p-primary-color);
+  background: var(--p-content-background);
+}
+
+.page-tree :deep(.p-tree-node-content.p-tree-node-dragover) {
+  border-color: var(--p-primary-color);
+  box-shadow: inset 0 0 0 1px var(--p-primary-color);
+  background: color-mix(in srgb, var(--p-primary-color) 8%, var(--p-content-background));
+}
 </style>
