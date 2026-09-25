@@ -82,15 +82,23 @@ label:
   title: Title
 list:
   addSubPage: Add sub-page
+  andMore: and {n} more
   deleteKeepSubPages: Delete, and move its sub-pages up a level
   deleteWithSubPages: Delete, together with all of its sub-pages
   deleteWithSubPagesConfirm: Are you sure you want to delete this page and every page nested beneath it?
+  dragToMove: Drag to move this page
   hiddenTooltip: This page is not shown in the namespace navigation
   layoutPermissions: Page layout permissions
+  makeSubPageOf: Make sub-page of…
+  makeSubPageOfTitle: Make “{page}” a sub-page of…
+  move: Move page
+  moved: Page moved
   pagePermissions: Page permissions
+  parentPage: Parent page
   recordPage: Record page
   recordPageOf: 'Record page · {module}'
   settings: Page settings
+  subPages: '{n} sub-page | {n} sub-pages'
 loading: Loading
 moduleEdit: Edit module
 navigation:

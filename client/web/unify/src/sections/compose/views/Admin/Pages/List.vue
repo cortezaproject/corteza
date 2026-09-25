@@ -5,7 +5,7 @@
 
   <div class="container mx-auto p-4 h-full flex flex-col overflow-hidden min-w-0">
     <Card
-      class="flex-1 overflow-auto min-w-0 w-full max-w-3xl mx-auto"
+      class="flex-1 overflow-auto min-w-0 w-full max-w-4xl mx-auto"
       :pt="{ body: { class: 'p-0' } }"
     >
       <template #header>
@@ -43,59 +43,16 @@
             {{ $t('page.instructions') }}
           </p>
 
-          <Tree
-            v-if="shownNodes.length"
-            :value="shownNodes"
-            v-model:expanded-keys="expandedKeys"
-            @node-collapse="expandAll"
-            :draggable-nodes="canDrag"
-            :droppable-nodes="canDrag"
-            :pt="treePT"
-            selection-mode="single"
-            class="page-tree p-0"
-            @node-select="onNodeSelect"
-            @node-drop="onNodeDrop"
-          >
-            <template #default="{ node }">
-              <div class="flex items-center gap-2 min-w-0" data-test-id="page-tree-node">
-                <span class="whitespace-normal break-words">{{ node.label }}</span>
-                <span
-                  v-if="node.data.description"
-                  class="text-xs text-muted-color truncate min-w-0"
-                  :title="node.data.description"
-                >
-                  {{ node.data.description }}
-                </span>
-
-                <Tag
-                  v-if="node.data.isRecordPage"
-                  :value="recordPageLabel(node.data)"
-                  severity="secondary"
-                  class="text-xs leading-none py-0.5 shrink-0"
-                />
-                <Tag
-                  v-else-if="!node.data.visible"
-                  v-tooltip.bottom="$t('page.list.hiddenTooltip')"
-                  :value="$t('page.notVisible')"
-                  icon="pi pi-eye-slash"
-                  severity="warn"
-                  class="text-xs leading-none py-0.5 shrink-0"
-                />
-                <Button
-                  v-if="actionItems(node.data).length"
-                  v-tooltip.bottom="$t('general.label.actions')"
-                  icon="pi pi-ellipsis-v"
-                  text
-                  severity="secondary"
-                  size="small"
-                  class="shrink-0 opacity-40 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
-                  :aria-label="$t('general.label.actions')"
-                  data-test-id="page-tree-actions"
-                  @click.stop="showActionsMenu($event, node.data)"
-                />
-              </div>
-            </template>
-          </Tree>
+          <div v-if="shownNodes.length" ref="treeEl" class="relative">
+            <PageTreeBranch :nodes="shownNodes" parent-id="0" :depth="0" root class="page-tree" />
+            <!-- Where the carried page will land -->
+            <div
+              v-if="drag?.lineStyle"
+              class="page-drop-line"
+              :style="drag.lineStyle"
+              data-test-id="page-drop-line"
+            />
+          </div>
 
           <div v-else-if="!loading" class="flex items-center justify-center h-32 text-muted-color">
             {{ treeNodes.length ? $t('general.label.noResults') : $t('page.noPages') }}
@@ -120,6 +77,83 @@
       </a>
     </template>
   </Menu>
+
+  <!-- Make sub-page of… -->
+  <Dialog
+    :visible="!!moveUnder"
+    :header="moveUnder ? $t('page.list.makeSubPageOfTitle', { page: moveUnder.page.title }) : ''"
+    modal
+    :style="{ width: '28rem' }"
+    @update:visible="v => !v && (moveUnder = null)"
+  >
+    <CFormGroup v-if="moveUnder" :label="$t('page.list.parentPage')">
+      <Select
+        v-model="moveUnder.targetID"
+        :options="moveUnder.targets"
+        option-label="label"
+        option-value="value"
+        class="w-full"
+        data-test-id="page-move-target"
+      />
+    </CFormGroup>
+    <template #footer>
+      <Button
+        :label="$t('general.label.cancel')"
+        severity="secondary"
+        text
+        size="small"
+        @click="moveUnder = null"
+      />
+      <Button
+        :label="$t('page.list.move')"
+        icon="pi pi-check"
+        size="small"
+        data-test-id="page-move-confirm"
+        @click="confirmMoveUnder"
+      />
+    </template>
+  </Dialog>
+
+  <!-- The carried page, at the pointer -->
+  <Teleport to="body">
+    <Transition name="page-carry">
+      <div
+        v-if="drag"
+        class="page-carry fixed flex flex-col gap-1 border rounded-md bg-[var(--p-content-background)] pl-3 pr-3 py-2"
+        :class="{ 'page-carry-landing': drag.landing }"
+        :style="{
+          left: `${drag.x - drag.offsetX}px`,
+          top: `${drag.y - drag.offsetY}px`,
+          width: `${drag.width}px`,
+        }"
+        data-test-id="page-carry"
+      >
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="truncate">{{ drag.node.label }}</span>
+          <Tag
+            v-if="drag.node.children.length"
+            :value="$t('page.list.subPages', drag.node.children.length)"
+            severity="secondary"
+            class="text-xs leading-none py-0.5 shrink-0"
+          />
+        </div>
+        <!-- What travels with it: the subtree, in brief -->
+        <ul v-if="carriedRows.length" class="page-carry-kids">
+          <li
+            v-for="kid in carriedRows"
+            :key="kid.key"
+            class="truncate text-xs text-muted-color"
+            :style="{ paddingLeft: `${kid.depth * 12}px` }"
+          >
+            {{ kid.label }}
+          </li>
+          <li v-if="carriedMore" class="text-xs text-muted-color">
+            {{ $t('page.list.andMore', carriedMore) }}
+          </li>
+        </ul>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
@@ -131,9 +165,11 @@ import {
   usePageStore,
   usePermissions,
 } from '@planetcrust/human-vue'
-import { computed, inject, onMounted, ref } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import PageTreeBranch from './PageTreeBranch.vue'
+import { dropPlan, projectDrop } from './pageTreeDrop'
 
 const { CInputSearch, CPermissionsButton, CRouterLinkButton } = components
 const { t } = useI18n()
@@ -152,7 +188,6 @@ const props = defineProps({
 })
 
 const treeNodes = ref([])
-const expandedKeys = ref({})
 const filterValue = ref('')
 const loading = ref(false)
 
@@ -161,7 +196,7 @@ const loading = ref(false)
 // no drop can land, so the tree is not draggable at all.
 const canReorder = computed(() => !!props.namespace?.canCreatePage)
 
-// A drop persists the whole tree it is given, so a filtered tree is never
+// A drop reorders the siblings it lands among, so a filtered tree is never
 // draggable: it would reorder the pages the search hides.
 const canDrag = computed(() => canReorder.value && !filterValue.value.trim())
 
@@ -180,20 +215,6 @@ const shownNodes = computed(() => {
   return query ? filterNodes(treeNodes.value, query) : treeNodes.value
 })
 
-const treePT = {
-  rootChildren: { class: 'flex flex-col items-start gap-3' },
-  nodeChildren: { class: 'tree-branch flex flex-col items-start gap-3 pt-3 ml-3 pl-4' },
-  // A row is as wide as its own content, so the hierarchy reads by shape and
-  // not only by indent.
-  nodeContent: {
-    class:
-      'group relative inline-flex flex-row items-center gap-1 w-fit max-w-full border rounded-md bg-[var(--p-content-background)] transition-colors hover:bg-emphasis cursor-pointer pl-3 pr-1 py-2',
-  },
-  // Every branch stays open, so there is nothing to toggle
-  nodeToggleButton: { class: 'hidden' },
-  nodeLabel: { class: 'min-w-0' },
-}
-
 const actionsMenuRef = ref()
 const currentMenuItems = ref([])
 
@@ -202,6 +223,10 @@ function recordPageLabel(page) {
   return module?.name
     ? t('page.list.recordPageOf', { module: module.name })
     : t('page.list.recordPage')
+}
+
+function recordModuleName(page) {
+  return moduleStore.getByID(page.moduleID)?.name ?? t('page.list.recordPage')
 }
 
 function hasChildren(page) {
@@ -244,11 +269,19 @@ function actionItems(page) {
 
   items.push({ label: t('page.view'), icon: 'pi pi-eye', route: viewRoute(page) })
 
-  if (props.namespace?.canCreatePage && !page.isRecordPage) {
+  if (props.namespace?.canCreatePage) {
     items.push({
       label: t('page.list.addSubPage'),
       icon: 'pi pi-plus',
       route: { name: 'admin.pages.create', query: { parent: page.pageID } },
+    })
+  }
+
+  if (canReorder.value && moveTargets(page).length) {
+    items.push({
+      label: t('page.list.makeSubPageOf'),
+      icon: 'pi pi-sitemap',
+      command: () => openMoveUnder(page),
     })
   }
 
@@ -346,7 +379,58 @@ async function handleDelete(page, strategy) {
   await reloadTree()
 }
 
-// Convert API page tree (recursive children) to PrimeVue TreeNode format
+// "Make sub-page of…": the pages this one may go under — not itself, nothing
+// beneath it, and not the parent it already has. Top level counts as a
+// parent.
+const moveUnder = ref(null)
+
+function moveTargets(page) {
+  const out = []
+  if (page.selfID !== NoID) out.push({ value: NoID, label: t('page.edit.noParent') })
+  const walk = (nodes, depth) => {
+    for (const node of nodes) {
+      if (node.key === page.pageID) continue
+      if (node.key !== page.selfID) {
+        out.push({ value: node.key, label: `${'\u2003'.repeat(depth)}${node.label}` })
+      }
+      walk(node.children, depth + 1)
+    }
+  }
+  walk(treeNodes.value, 0)
+  return out
+}
+
+function openMoveUnder(page) {
+  const targets = moveTargets(page)
+  moveUnder.value = { page, targets, targetID: targets[0]?.value ?? NoID }
+}
+
+// The page goes last among its new siblings
+async function confirmMoveUnder() {
+  const { page, targetID } = moveUnder.value
+  moveUnder.value = null
+  const namespaceID = props.namespace.namespaceID
+  const siblings =
+    targetID === NoID ? treeNodes.value : findNode(treeNodes.value, targetID)?.children
+
+  try {
+    page.selfID = targetID
+    page.namespaceID = namespaceID
+    await pageStore.update(page)
+    await pageStore.reorder({
+      namespaceID,
+      selfID: targetID,
+      pageIDs: [...(siblings ?? []).map(n => n.key), page.pageID],
+    })
+    $toast.toastSuccess(t('page.list.moved'))
+  } catch (e) {
+    console.error('Failed to move page:', e)
+    $toast.toastErrorHandler(t('page.pageMoveFailed'))(e)
+  }
+  await reloadAll()
+}
+
+// Convert the API page tree (recursive children) to keyed nodes
 function toTreeNodes(pages) {
   if (!pages || !Array.isArray(pages)) return []
 
@@ -363,28 +447,11 @@ function toTreeNodes(pages) {
     })
 }
 
-// Collect keys of all parent nodes, which are always expanded
-function collectParentKeys(nodes, keys = {}) {
-  for (const node of nodes) {
-    if (node.children?.length) {
-      keys[node.key] = true
-      collectParentKeys(node.children, keys)
-    }
-  }
-  return keys
-}
-
-// Keyboard navigation can still collapse a node; open it again
-function expandAll() {
-  expandedKeys.value = collectParentKeys(treeNodes.value)
-}
-
 async function reloadTree() {
   const pages = await pageStore.loadTree({
     namespaceID: props.namespace.namespaceID,
   })
   treeNodes.value = toTreeNodes(pages)
-  expandedKeys.value = collectParentKeys(treeNodes.value)
 }
 
 onMounted(async () => {
@@ -400,7 +467,7 @@ onMounted(async () => {
 })
 
 // A click opens the builder, or the page itself for whoever may not change it
-function onNodeSelect(node) {
+function onSelect(node) {
   const page = node?.data
   if (!page) return
   router.push(
@@ -410,25 +477,41 @@ function onNodeSelect(node) {
   )
 }
 
-// Handle drag-and-drop
-async function onNodeDrop(event) {
-  // event.value contains the new tree state after the drop
-  const newTree = event.value
-  treeNodes.value = newTree
+// One save per drop: the new parent when it changed, then the order of the
+// level the page landed in. The level it left keeps its weights, in order
+// with one gap. A drop where the page already is saves nothing.
+async function applyDrop(node, spot) {
+  const namespaceID = props.namespace.namespaceID
+  const childrenOf = key =>
+    (key === NoID ? treeNodes.value : (findNode(treeNodes.value, key)?.children ?? [])).map(
+      n => n.key,
+    )
+  const plan = dropPlan(spot, node.key, childrenOf)
+  const unchanged =
+    node.data.selfID === plan.parentKey &&
+    JSON.stringify(childrenOf(plan.parentKey)) === JSON.stringify(plan.pageIDs)
+  if (unchanged) return
 
   try {
-    await reorderTree(newTree, '0')
+    if (node.data.selfID !== plan.parentKey) {
+      node.data.selfID = plan.parentKey
+      node.data.namespaceID = namespaceID
+      await pageStore.update(node.data)
+    }
+    await pageStore.reorder({ namespaceID, selfID: plan.parentKey, pageIDs: plan.pageIDs })
   } catch (e) {
-    console.error('Failed to reorder pages:', e)
+    console.error('Failed to move page:', e)
     $toast.toastErrorHandler(t('page.pageMoveFailed'))(e)
   }
+  await reloadAll()
+}
 
-  // The server's order either way: the new one after a save, and after a
-  // failure whatever it kept, rather than the drop it rejected
+// The server's order either way: the new one after a save, and after a
+// failure whatever it kept, rather than the drop it rejected. The flat list
+// too, so the sidebar follows.
+async function reloadAll() {
   try {
     await reloadTree()
-
-    // Reload the flat page list so the sidebar reflects the new order
     await pageStore.load({ namespaceID: props.namespace.namespaceID })
   } catch (e) {
     console.error('Failed to reload the page tree:', e)
@@ -436,106 +519,226 @@ async function onNodeDrop(event) {
   }
 }
 
-// Walk tree and persist order + reparenting for each level
-async function reorderTree(nodes, parentID) {
-  if (!nodes?.length) return
+// ─── Carrying a page ─────────────────────────────────────────────────────────
+// A page is carried by its grip. The rows stay where they are; a line shows
+// where the page will land, and the tree changes only on release. Pointer
+// events, so a finger works the same as a mouse.
+const DRAG_THRESHOLD = 5
+// The child indent: the branch's 0.75rem margin plus 15px padding; the gap
+// between rows
+const INDENT = 27
+const GAP = 12
+const AUTOSCROLL_EDGE = 48
 
-  const namespaceID = props.namespace.namespaceID
-  const pageIDs = nodes.map(n => n.key)
+const treeEl = ref()
+const drag = ref(null)
+const carriedKey = computed(() => drag.value?.node.key ?? null)
 
-  // First: update selfID on any reparented nodes (matching old Human approach)
-  for (const node of nodes) {
-    if (node.data?.selfID !== parentID) {
-      node.data.selfID = parentID
-      node.data.namespaceID = namespaceID
-      await pageStore.update(node.data)
+// The carried subtree, a few rows of it, in tree order
+const CARRIED_ROWS = 4
+const carriedAll = computed(() => {
+  const out = []
+  const walk = (nodes, depth) => {
+    for (const node of nodes) {
+      out.push({ key: node.key, label: node.label, depth })
+      walk(node.children, depth + 1)
     }
   }
+  if (drag.value) walk(drag.value.node.children, 1)
+  return out
+})
+const carriedRows = computed(() => carriedAll.value.slice(0, CARRIED_ROWS))
+const carriedMore = computed(() => Math.max(0, carriedAll.value.length - CARRIED_ROWS))
+const targetKey = computed(() => drag.value?.spot?.intoKey ?? null)
 
-  // Then: reorder children under this parent
-  await pageStore.reorder({
-    namespaceID,
-    selfID: parentID,
-    pageIDs,
-  })
+// A press on a grip, until the pointer has travelled far enough to be a drag
+let pending = null
+let scrollFrame = 0
 
-  // Recurse into children
-  for (const node of nodes) {
-    if (node.children?.length) {
-      await reorderTree(node.children, node.key)
-    }
+function onGripDown(event, node) {
+  if (event.pointerType === 'mouse' && event.button !== 0) return
+  pending = {
+    node,
+    x: event.clientX,
+    y: event.clientY,
+    pointerId: event.pointerId,
+    grip: event.currentTarget,
+  }
+  try {
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+  } catch {
+    // an already-released pointer; the drag still works without capture
+  }
+  document.addEventListener('pointermove', onPointerMove)
+  document.addEventListener('pointerup', onPointerUp)
+  document.addEventListener('pointercancel', stopDrag)
+  document.addEventListener('keydown', onDragKey)
+}
+
+function onPointerMove(event) {
+  if (pending && !drag.value) {
+    if (Math.hypot(event.clientX - pending.x, event.clientY - pending.y) < DRAG_THRESHOLD) return
+    startDrag(pending, event)
+  }
+  if (!drag.value) return
+  drag.value.x = event.clientX
+  drag.value.y = event.clientY
+  project()
+  autoscroll()
+}
+
+function startDrag(from, event) {
+  const rect = from.grip.closest('.page-row').getBoundingClientRect()
+  drag.value = {
+    node: from.node,
+    x: event.clientX,
+    y: event.clientY,
+    offsetX: from.x - rect.left,
+    offsetY: from.y - rect.top,
+    width: rect.width,
+    spot: null,
+    lineStyle: null,
+    landing: false,
+  }
+  // The lib's carry state: no text selection while a page is carried
+  document.body.classList.add('c-dragging')
+}
+
+// The rows on screen, top to bottom, without the carried page's own block
+function visibleRows() {
+  const carried = new Set()
+  const collect = node => {
+    carried.add(node.key)
+    node.children.forEach(collect)
+  }
+  collect(drag.value.node)
+
+  return [...treeEl.value.querySelectorAll('.page-row')]
+    .filter(el => !carried.has(el.dataset.key))
+    .map(el => {
+      const r = el.getBoundingClientRect()
+      return {
+        key: el.dataset.key,
+        parentKey: el.dataset.parent,
+        depth: Number(el.dataset.depth),
+        top: r.top,
+        bottom: r.bottom,
+      }
+    })
+}
+
+// The carried card's left edge says how deep the page goes
+function project() {
+  const d = drag.value
+  const base = treeEl.value.querySelector('.tree-root > .page-node > .page-row')
+  const host = treeEl.value.getBoundingClientRect()
+  const baseX = base ? base.getBoundingClientRect().left : host.left
+  const spot = projectDrop(visibleRows(), d.x - d.offsetX, d.y, { indent: INDENT, baseX, gap: GAP })
+  d.spot = spot
+  d.lineStyle = {
+    top: `${spot.lineY - host.top}px`,
+    left: `${baseX + spot.depth * INDENT - host.left}px`,
+    width: `${d.width}px`,
   }
 }
+
+// Near the top or bottom of the scrolling card, the tree scrolls on its own
+function autoscroll() {
+  const host = treeEl.value.closest('.overflow-auto')
+  globalThis.cancelAnimationFrame?.(scrollFrame)
+  if (!host) return
+  const r = host.getBoundingClientRect()
+  const y = drag.value.y
+  const pull =
+    y < r.top + AUTOSCROLL_EDGE
+      ? y - (r.top + AUTOSCROLL_EDGE)
+      : y > r.bottom - AUTOSCROLL_EDGE
+        ? y - (r.bottom - AUTOSCROLL_EDGE)
+        : 0
+  if (!pull) return
+  const step = () => {
+    if (!drag.value) return
+    host.scrollTop += Math.sign(pull) * Math.min(24, Math.abs(pull) / 2)
+    project()
+    scrollFrame = requestAnimationFrame(step)
+  }
+  scrollFrame = requestAnimationFrame(step)
+}
+
+// On release the card flies to where the line was and stays there while the
+// page is saved and the tree reloaded with it in that place; then it fades
+// under the real row
+async function onPointerUp() {
+  const d = drag.value
+  if (!d?.spot || !d.lineStyle) return stopDrag()
+  unlisten()
+  const host = treeEl.value.getBoundingClientRect()
+  d.landing = true
+  d.x = host.left + parseFloat(d.lineStyle.left) + d.offsetX
+  d.y = host.top + parseFloat(d.lineStyle.top) + GAP / 2 + d.offsetY
+  d.lineStyle = null
+  await applyDrop(d.node, d.spot)
+  if (drag.value === d) drag.value = null
+}
+
+function onDragKey(event) {
+  if (event.key === 'Escape') stopDrag()
+}
+
+function unlisten() {
+  try {
+    pending?.grip.releasePointerCapture?.(pending.pointerId)
+  } catch {
+    // never captured
+  }
+  pending = null
+  globalThis.cancelAnimationFrame?.(scrollFrame)
+  document.body.classList.remove('c-dragging')
+  document.removeEventListener('pointermove', onPointerMove)
+  document.removeEventListener('pointerup', onPointerUp)
+  document.removeEventListener('pointercancel', stopDrag)
+  document.removeEventListener('keydown', onDragKey)
+}
+
+function stopDrag() {
+  unlisten()
+  drag.value = null
+}
+
+onBeforeUnmount(stopDrag)
+
+// What every level of the tree shares; the branch component reads it
+provide('pageTree', {
+  canDrag,
+  carriedKey,
+  targetKey,
+  onGripDown,
+  onSelect,
+  actionItems,
+  showActionsMenu,
+  recordPageLabel,
+  recordModuleName,
+})
 </script>
 
 <style scoped>
-/* Tree guides. A parent's trunk drops from under its title to its children,
- * and the elbow hangs off each child row so it meets the row's middle whatever
- * the row holds. Below a top-level page the trunk runs on to the next one, so
- * the top-level pages hang off one spine; it passes behind the opaque rows.
- * Keep each selector on one line: a wrapped :deep() compiles `X ::before`,
- * which blanks every icon glyph inside the row. */
-.page-tree :deep(.p-tree-node) {
-  position: relative;
-}
-
-.page-tree :deep(.tree-branch > .p-tree-node)::before {
-  content: '';
+/* The line where the carried page will land: at the depth the card's left
+ * edge asks for, with a ring at its start */
+.page-drop-line {
   position: absolute;
-  left: -15px;
-  top: -0.75rem;
-  bottom: 0;
-  border-left: 1px solid var(--page-tree-guide);
-}
-
-.page-tree :deep(.tree-branch > .p-tree-node:last-child)::before {
-  bottom: auto;
-  height: calc(0.75rem + 24px);
-}
-
-.page-tree :deep(.p-tree-root-children > .p-tree-node:not(:last-child))::before {
-  content: '';
-  position: absolute;
-  left: 0.75rem;
-  top: 24px;
-  bottom: -0.75rem;
-  border-left: 1px solid var(--page-tree-guide);
-}
-
-.page-tree :deep(.tree-branch > .p-tree-node > .p-tree-node-content)::before {
-  content: '';
-  position: absolute;
-  left: -15px;
-  top: 50%;
-  width: 11px;
-  border-top: 1px solid var(--page-tree-guide);
-}
-
-/* Drop feedback. PrimeVue's before/after markers sit in the flow as 1px
- * outlines; here they are 2px bars in the gap at the node's own level, and the
- * after bar sits below the node's whole subtree, which is where the page lands.
- * A drop onto a row, which makes a sub-page, outlines that row. */
-.page-tree :deep(.p-tree-node > .p-tree-node-drop-point) {
-  position: absolute;
-  left: 0;
-  width: max(100%, 12rem);
   height: 2px;
-  outline: none;
+  transition:
+    top 120ms ease,
+    left 120ms ease,
+    width 120ms ease;
+  margin-top: -1px;
   border-radius: 1px;
   background: var(--p-primary-color);
   pointer-events: none;
   z-index: 1;
 }
 
-.page-tree :deep(.p-tree-node > .p-tree-node-drop-point:first-child) {
-  top: calc(-0.375rem - 1px);
-}
-
-.page-tree :deep(.p-tree-node-content + .p-tree-node-drop-point) {
-  bottom: calc(-0.375rem - 1px);
-}
-
-.page-tree :deep(.p-tree-node > .p-tree-node-drop-point)::before {
+.page-drop-line::before {
   content: '';
   position: absolute;
   left: -4px;
@@ -547,9 +750,43 @@ async function reorderTree(nodes, parentID) {
   background: var(--p-content-background);
 }
 
-.page-tree :deep(.p-tree-node-content.p-tree-node-dragover) {
-  border-color: var(--p-primary-color);
-  box-shadow: inset 0 0 0 1px var(--p-primary-color);
-  background: color-mix(in srgb, var(--p-primary-color) 8%, var(--p-content-background));
+.page-carry {
+  z-index: 1100;
+  pointer-events: none;
+  cursor: grabbing;
+  opacity: 0.95;
+  box-shadow: var(--p-overlay-popover-shadow, 0 8px 24px rgb(0 0 0 / 25%));
+}
+
+.page-carry-kids {
+  margin: 0;
+  padding: 0.125rem 0 0 0.25rem;
+  list-style: none;
+  border-left: 1px solid var(--page-tree-guide, var(--p-surface-300));
+}
+
+.page-carry-enter-active {
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+.page-carry-enter-from {
+  opacity: 0;
+  transform: scale(0.97);
+}
+
+.page-carry-landing {
+  transition:
+    left 180ms ease,
+    top 180ms ease;
+}
+
+.page-carry-leave-active {
+  transition: opacity 120ms ease;
+}
+
+.page-carry-leave-to {
+  opacity: 0;
 }
 </style>
