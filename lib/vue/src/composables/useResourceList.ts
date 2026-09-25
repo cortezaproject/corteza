@@ -298,11 +298,25 @@ export function useResourceList<T = any>(
     router.push({ name: 'namespace.edit', params: { slug: slug || namespaceID } })
   }
 
+  // Without/including/only state filters ('0'/'1'/'2'). Choosing "only" for
+  // one puts the others back to their defaults.
+  const stateKeys = Object.keys(filterDefaults).filter(k =>
+    ['0', '1', '2'].includes(String(filterDefaults[k])),
+  )
+  function narrowToOnly(now: FilterState, before: FilterState) {
+    const only = stateKeys.find(k => String(now[k]) === '2' && String(before[k]) !== '2')
+    if (!only) return
+    for (const k of stateKeys) {
+      if (k !== only) filter[k] = filterDefaults[k]
+    }
+  }
+
   // Debounced watcher on filter changes — auto-search as user types
   let filterDebounceTimer: ReturnType<typeof setTimeout> | null = null
   watch(
     () => ({ ...filter }),
-    () => {
+    (now, before) => {
+      narrowToOnly(now, before)
       if (filterDebounceTimer) clearTimeout(filterDebounceTimer)
       filterDebounceTimer = setTimeout(() => {
         filterList()

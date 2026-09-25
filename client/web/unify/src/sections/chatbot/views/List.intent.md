@@ -20,6 +20,7 @@ chatbot editor.
 ## UX capabilities
 
 - Server-driven list (`useResourceList` over `$SystemAPI.chatbotListCancellable`): search, sort, paginate; columns name (with handle subtitle), handle, enabled tag, last-change date. It sorts by that same COALESCE expression (`changedAtField`), so the order matches the value shown.
+- Tri-state deleted filter (Without / Including / Only) in a popover; it defaults to Without, and it is the only way a deleted row, and so its Restore action, reaches the list.
 - Row click opens the editor only when the row grants update or delete.
 - Create button gated by RBAC `chatbot.create`; wildcard permissions button (`corteza::system:chatbot/*`) gated by `grant`.
 - Per-row actions: permissions (per-chatbot resource), edit, duplicate (copies full config as a disabled chatbot with `_copy` handle, then navigates to it), delete with confirm, or undelete for soft-deleted rows.

@@ -35,15 +35,31 @@ composing a DataTable by hand.
   column with one centralized TieredMenu (recreated per open so anchoring never
   goes stale); a `fields` entry keyed `actions` is then dropped. Items support
   `route` for router-links. `hideActionsMenu()` is exposed.
+- Row state belongs to the shell, not the screen: the `changedAt` cell leads
+  with a Deleted / Suspended / Archived tag (`resourceState`, the most final
+  one wins), and a deleted row's text is muted. A list does not render state
+  itself.
+- Active filters show as a bar of removable chips above the table. A screen
+  passes `filterDefaults` (from `useResourceList`) and `filterLabels`; a
+  labelled key whose value differs from its default is a chip. A plain label
+  marks a Without / Including / Only filter ('0'/'1'/'2') and reads as the
+  option plus the row-state tag ("Including [Suspended]"); `{ label, value }`
+  labels anything else. Removing a chip, or Reset filter, emits `update:filter`
+  with the defaults. The search box is never a chip.
 - Cell content via `body-<field.key>` slots; also `header`, `filter`, `footer`,
   `expansion` slots. `translations` prop carries all user-facing strings.
 - useResourceList(apiFn, options): `apiFn` gets encoded params ({ limit, sort,
   pageCursor, incTotal, ...filter }) and must return { response, cancel }
   (abortable). Returns readonly `items`/`loading`/`error`, reactive
-  `filter`/`sorting`/`pagination`, and handlers (`fetchItems`, `filterList`,
+  `filter`/`sorting`/`pagination`, the frozen `filterDefaults`, and handlers (`fetchItems`, `filterList`,
   `handleSort`, `handlePageChange`, `abortRequests`) that map 1:1 onto
   CResourceList's props/events. State round-trips through the route query so
   lists are deep-linkable; in-flight requests are cancelled on refetch.
+- A filter whose default is '0'/'1'/'2' is a state filter. Choosing Only for
+  one puts every other state filter back to its default, so "only deleted"
+  never silently intersects with another narrowing. Screens must not call
+  `filterList` from a radio's `@change`: the route write it makes lands after
+  the reset and restores the old values; the filter watcher already refetches.
 - Row navigation is NOT part of the pairing: every list screen binds its own
   `@row-click`, because the target route is per-resource. (The composable also
   returns a `handleRowClick`, but it is hardcoded to `namespace.edit` and no

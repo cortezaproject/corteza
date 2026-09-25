@@ -138,7 +138,6 @@
               v-model="filter.subWorkflow"
               :inputId="'sw' + opt.value"
               :value="opt.value"
-              @change="filterList"
             />
             <label :for="'sw' + opt.value" class="text-sm cursor-pointer">{{ opt.label }}</label>
           </div>
@@ -156,7 +155,6 @@
               v-model="filter.disabled"
               :inputId="'dis' + opt.value"
               :value="opt.value"
-              @change="filterList"
             />
             <label :for="'dis' + opt.value" class="text-sm cursor-pointer">{{ opt.label }}</label>
           </div>
@@ -170,12 +168,7 @@
             :key="'del-' + opt.value"
             class="flex items-center gap-2"
           >
-            <RadioButton
-              v-model="filter.deleted"
-              :inputId="'del' + opt.value"
-              :value="opt.value"
-              @change="filterList"
-            />
+            <RadioButton v-model="filter.deleted" :inputId="'del' + opt.value" :value="opt.value" />
             <label :for="'del' + opt.value" class="text-sm cursor-pointer">{{ opt.label }}</label>
           </div>
         </div>

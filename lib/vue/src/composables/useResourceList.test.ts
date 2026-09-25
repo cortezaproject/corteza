@@ -345,4 +345,29 @@ describe('useResourceList', () => {
       expect(list.loading.value).toBe(false)
     })
   })
+
+  describe('state filters', () => {
+    it('puts the other state filters back to default when one is set to only', async () => {
+      const { list } = mountList(makeAPI(), {
+        filter: { query: '', deleted: '0', archived: '0', disabled: '1' },
+      })
+      await flushPromises()
+      list.filter.archived = '1'
+      list.filter.disabled = '0'
+      await nextTick()
+      list.filter.deleted = '2'
+      await nextTick()
+      expect({ ...list.filter }).toEqual({ query: '', deleted: '2', archived: '0', disabled: '1' })
+    })
+
+    it('leaves the others alone for without and including', async () => {
+      const { list } = mountList(makeAPI(), { filter: { deleted: '0', archived: '0' } })
+      await flushPromises()
+      list.filter.archived = '2'
+      await nextTick()
+      list.filter.deleted = '1'
+      await nextTick()
+      expect({ ...list.filter }).toEqual({ deleted: '1', archived: '2' })
+    })
+  })
 })
