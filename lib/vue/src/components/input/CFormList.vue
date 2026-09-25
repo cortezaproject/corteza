@@ -23,7 +23,7 @@
       <div
         v-if="hasHeaders && (items.length || $slots.footer)"
         :style="gridStyle"
-        class="cform-list-header grid gap-2 py-2 px-3 bg-emphasis border-b border-surface"
+        class="cform-list-header grid gap-3 py-2 px-3 bg-emphasis border-b border-surface"
         :class="{ 'sticky top-0 z-10': stickyHeader }"
       >
         <span v-if="draggable" class="w-10" />
@@ -54,7 +54,7 @@
         data-drag-item
         class="border-t border-surface first:border-t-0 p-3 flex flex-col gap-2 hover:bg-emphasis transition-colors"
       >
-        <div :style="gridStyle" class="grid gap-2 items-center">
+        <div :style="gridStyle" class="grid gap-3 items-center">
           <span v-if="draggable && !disabled" class="c-drag-handle c-grip justify-self-center" />
           <slot name="row" :item="item" :index="index" />
           <div v-if="!hideRemove && !disabled" class="w-10 flex justify-end">

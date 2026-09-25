@@ -326,7 +326,7 @@
                         class="system-field-row border-t border-surface p-3"
                         v-tooltip.left="$t('module.edit.systemField')"
                       >
-                        <div :style="gridStyle" class="grid gap-2 items-center">
+                        <div :style="gridStyle" class="grid gap-3 items-center">
                           <i class="pi pi-lock text-muted-color text-center" />
                           <InputText :model-value="f.name" class="w-full" size="small" disabled />
                           <InputText :model-value="f.label" class="w-full" size="small" disabled />
