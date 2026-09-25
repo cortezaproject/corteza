@@ -1,19 +1,131 @@
-charts:
-  monthly:
-    cumulative: Cumulative Total
-    title: Monthly Overview
-stats:
-  applications: Applications
-  namespaces: Namespaces
-  roles: Roles
-  users: Users
-  workflows: Workflows
-status:
-  active: Active
-  archived: Archived
-  deleted: Deleted
-  disabled: Disabled
-  enabled: Enabled
-  suspended: Suspended
-  total: Total
 title: Dashboard
+reload: Reload
+loadFailed: The dashboard could not be loaded.
+empty: Nothing in this range
+range:
+  7d: 7 days
+  30d: 30 days
+  90d: 90 days
+  1y: 1 year
+resources:
+  users: Users
+  roles: Roles
+  projects: Projects
+  namespaces: Namespaces
+  modules: Modules
+  workflows: Workflows
+  taqs: TAQs
+  agents: Agents
+  chatbots: Chatbots
+  applications: Applications
+  authClients: Auth clients
+status:
+  active: active
+  enabled: enabled
+  published: published
+  draft: draft
+  suspended: suspended
+  disabled: disabled
+  archived: archived
+  deprecated: deprecated
+  deleted: deleted
+tile:
+  newInRange: '+{n} new'
+inventory:
+  total: Total
+dialog:
+  movement: Created, updated and deleted in range
+  recent: Newest
+  created: Created
+  updated: Updated
+  deleted: Deleted
+  openList: Open list
+events:
+  resources:
+    system_user: User
+    system_user_group: User group
+    system_role: Role
+    system_application: Application
+    system_auth_client: Auth client
+    system_auth: Sign-in
+    system_attachment: Attachment
+    system_agent: Agent
+    system_ai_conversation: Agent conversation
+    system_chatbot: Chatbot
+    system_project: Project
+    system_project_task: Project task
+    system_project_incident: Project incident
+    system_project_review: Project review
+    system_notification: Notification
+    system_reminder: Reminder
+    system_template: Template
+    system_queue: Queue
+    system_connection: Connection
+    system_configured_connection: Configured connection
+    system_dal_connection: Data source
+    system_dal_sensitivity_level: Sensitivity level
+    system_apigw_route: API gateway route
+    system_credentials: Credentials
+    system_statistics: Dashboard statistics
+    compose_namespace: Namespace
+    compose_module: Module
+    compose_module_field: Module field
+    compose_record: Record
+    compose_page: Page
+    compose_page_layout: Page layout
+    compose_chart: Chart
+    automation_workflow: Workflow
+    automation_trigger: Trigger
+    automation_ng_automation: TAQ
+    automation_session: Workflow session
+  actions:
+    lookup: lookup
+    search: search
+    create: created
+    update: updated
+    delete: deleted
+    undelete: restored
+    archive: archived
+    members: membership check
+    memberAdd: member added
+    memberRemove: member removed
+    updateMember: member updated
+    execute: executed
+    exec: run started
+    execAndWait: run
+    run: run
+    authenticate: sign-in
+    grant: permissions granted
+    reloadSensitivityLevels: sensitivity levels reloaded
+    reloadConnections: connections reloaded
+    reloadDALModels: models reloaded
+    activate: activated
+    setPassword: password set
+    accessTokensRemoved: access tokens removed
+    serve: served
+activity:
+  title: Activity
+  subtitle: '{entries} action log entries, {errors} of them errors'
+  entries: Entries
+  errors: Errors
+  ofEntries: of {n}
+signins:
+  title: Sign-ins
+  users: '{n} users'
+  subtitle: '{n} distinct users signed in, {live} sessions live now'
+  live: Live sessions
+runs:
+  title: Automation runs
+  workflowRuns: Workflow runs
+  taqRuns: TAQ runs
+  subtitle: '{n} runs, {failed} failed'
+  workflow: Workflow {id}
+  taq: TAQ {id}
+  completed: Completed
+  failed: Failed
+  running: Running
+  canceled: Canceled
+attention:
+  title: Needs attention
+  subtitle: Failed runs and action log errors, newest first
+  empty: Nothing needs attention in this range
