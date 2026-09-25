@@ -255,9 +255,6 @@ application: {
 
 			functions: [
 				{
-					expIdent: "ApplicationMetrics"
-					return: [ "*types.ApplicationMetrics"]
-				}, {
 					expIdent: "ReorderApplications"
 					// not sure about the ident
 					args: [ {ident: "order", goType: "[]uint64"}]

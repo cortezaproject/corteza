@@ -17,6 +17,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -34,6 +35,20 @@ var (
 type (
 	// Internal API interface
 	StatsList struct {
+		// From GET parameter
+		//
+		// Start of the reporting range (inclusive); defaults to 30 days before `to`
+		From *time.Time
+
+		// To GET parameter
+		//
+		// End of the reporting range (exclusive); defaults to now
+		To *time.Time
+
+		// Bucket GET parameter
+		//
+		// Series granularity (day, week, month); defaults by range length
+		Bucket string
 	}
 )
 
@@ -44,11 +59,54 @@ func NewStatsList() *StatsList {
 
 // Auditable returns all auditable/loggable parameters
 func (r StatsList) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
+	return map[string]interface{}{
+		"from":   r.From,
+		"to":     r.To,
+		"bucket": r.Bucket,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r StatsList) GetFrom() *time.Time {
+	return r.From
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r StatsList) GetTo() *time.Time {
+	return r.To
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r StatsList) GetBucket() string {
+	return r.Bucket
 }
 
 // Fill processes request and fills internal variables
 func (r *StatsList) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["from"]; ok && len(val) > 0 {
+			r.From, err = payload.ParseISODatePtrWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["to"]; ok && len(val) > 0 {
+			r.To, err = payload.ParseISODatePtrWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["bucket"]; ok && len(val) > 0 {
+			r.Bucket, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	return err
 }

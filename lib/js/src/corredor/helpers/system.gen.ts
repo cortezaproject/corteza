@@ -1037,9 +1037,10 @@ export default class GeneratedSystemHelper {
     return this.SystemAPI.reportRun(args, extra)
   }
 
-  // List system statistics
-  statsList(extra: AxiosRequestConfig = {}): Promise<KV> {
-    return this.SystemAPI.statsList(extra)
+  // System statistics for the admin dashboard
+  statsList(a: Args = {}, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const args = argsOf(a)
+    return this.SystemAPI.statsList(args, extra)
   }
 
   // List all available automation scripts for system resources

@@ -193,7 +193,6 @@ type (
 		DeleteApplicationByID(ctx context.Context, id uint64) error
 		TruncateApplications(ctx context.Context) error
 		LookupApplicationByID(ctx context.Context, id uint64) (*systemType.Application, error)
-		ApplicationMetrics(ctx context.Context) (*systemType.ApplicationMetrics, error)
 		ReorderApplications(ctx context.Context, order []uint64) error
 	}
 
@@ -963,7 +962,6 @@ type (
 		LookupRoleByName(ctx context.Context, name string) (*systemType.Role, error)
 		LookupRoleByProjectIDHandle(ctx context.Context, projectID uint64, handle string) (*systemType.Role, error)
 		LookupRoleByProjectIDName(ctx context.Context, projectID uint64, name string) (*systemType.Role, error)
-		RoleMetrics(ctx context.Context) (*systemType.RoleMetrics, error)
 	}
 
 	RoleMembers interface {
@@ -1044,7 +1042,7 @@ type (
 		LookupUserByHandle(ctx context.Context, handle string) (*systemType.User, error)
 		LookupUserByUsername(ctx context.Context, username string) (*systemType.User, error)
 		CountUsers(ctx context.Context, u systemType.UserFilter) (uint, error)
-		UserMetrics(ctx context.Context) (*systemType.UserMetrics, error)
+		SystemStats(ctx context.Context, r systemType.SystemStatsRange) (*systemType.SystemStatsRaw, error)
 	}
 
 	UserGroups interface {
@@ -1435,13 +1433,6 @@ func TruncateApplications(ctx context.Context, s Applications) error {
 // This function is auto-generated
 func LookupApplicationByID(ctx context.Context, s Applications, id uint64) (*systemType.Application, error) {
 	return s.LookupApplicationByID(ctx, id)
-}
-
-// ApplicationMetrics
-//
-// This function is auto-generated
-func ApplicationMetrics(ctx context.Context, s Applications) (*systemType.ApplicationMetrics, error) {
-	return s.ApplicationMetrics(ctx)
 }
 
 // ReorderApplications
@@ -5259,13 +5250,6 @@ func LookupRoleByProjectIDName(ctx context.Context, s Roles, projectID uint64, n
 	return s.LookupRoleByProjectIDName(ctx, projectID, name)
 }
 
-// RoleMetrics
-//
-// This function is auto-generated
-func RoleMetrics(ctx context.Context, s Roles) (*systemType.RoleMetrics, error) {
-	return s.RoleMetrics(ctx)
-}
-
 // SearchRoleMembers returns all matching RoleMembers from store
 //
 // This function is auto-generated
@@ -5676,11 +5660,11 @@ func CountUsers(ctx context.Context, s Users, u systemType.UserFilter) (uint, er
 	return s.CountUsers(ctx, u)
 }
 
-// UserMetrics
+// SystemStats
 //
 // This function is auto-generated
-func UserMetrics(ctx context.Context, s Users) (*systemType.UserMetrics, error) {
-	return s.UserMetrics(ctx)
+func SystemStats(ctx context.Context, s Users, r systemType.SystemStatsRange) (*systemType.SystemStatsRaw, error) {
+	return s.SystemStats(ctx, r)
 }
 
 // SearchUserGroups returns all matching UserGroups from store

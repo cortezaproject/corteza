@@ -13,16 +13,6 @@ _roleDefs: {
 				{name: "Resource", type: "string", slice: true, json: "resourceTypes,omitempty", yaml: "resourceType"},
 				{name: "Expr", type:     "string", json:  "expr,omitempty"},
 	]}
-	RoleMetrics: {name: "RoleMetrics", fields: [
-				{name: "Total", type:         "uint", json:  "total"},
-				{name: "Valid", type:         "uint", json:  "valid"},
-				{name: "Deleted", type:       "uint", json:  "deleted"},
-				{name: "Archived", type:      "uint", json:  "archived"},
-				{name: "DailyCreated", type:  "uint", slice: true, json: "dailyCreated"},
-				{name: "DailyDeleted", type:  "uint", slice: true, json: "dailyDeleted"},
-				{name: "DailyUpdated", type:  "uint", slice: true, json: "dailyUpdated"},
-				{name: "DailyArchived", type: "uint", slice: true, json: "dailyArchived"},
-	]}
 }
 
 role: {
@@ -260,12 +250,6 @@ role: {
 
 						It returns only valid role (not deleted, not suspended)
 						"""
-				},
-			]
-			functions: [
-				{
-					expIdent: "RoleMetrics"
-					return: [ "*types.RoleMetrics"]
 				},
 			]
 		}

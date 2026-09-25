@@ -412,6 +412,48 @@ func testUsers(t *testing.T, s store.Users) {
 		})
 	})
 
+	t.Run("system stats", func(t *testing.T) {
+		var (
+			req = require.New(t)
+
+			day  = time.Date(2026, 9, 20, 10, 0, 0, 0, time.UTC)
+			next = day.AddDate(0, 0, 1)
+			old  = day.AddDate(0, -2, 0)
+
+			r = types.SystemStatsRange{From: day.AddDate(0, 0, -7), To: next.AddDate(0, 0, 1)}
+		)
+
+		req.NoError(s.TruncateUsers(ctx))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: day, Email: "stats-1@crust.test"}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: day, Email: "stats-2@crust.test", SuspendedAt: &next}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: next, Email: "stats-3@crust.test", DeletedAt: &next}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: old, Email: "stats-4@crust.test"}))
+		// system users never count
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: day, Email: "stats-sys@crust.test", Kind: types.SystemUser}))
+
+		raw, err := store.SystemStats(ctx, s, r)
+		req.NoError(err)
+
+		users := raw.Resources[types.SystemStatsUsers]
+		req.NotNil(users)
+		req.Equal(map[string]uint{"active": 2, "suspended": 1, "deleted": 1}, users.Status)
+		req.Equal([]types.SystemStatsDaily{
+			{Day: "2026-09-20", Count: 2},
+			{Day: "2026-09-21", Count: 1},
+		}, users.Created)
+
+		// every other section answers, empty or not, on this dialect
+		for _, name := range []string{types.SystemStatsRoles, types.SystemStatsWorkflows, types.SystemStatsTaqs, types.SystemStatsNamespaces, types.SystemStatsProjects} {
+			req.NotNil(raw.Resources[name], name)
+		}
+		req.NotNil(raw.WorkflowRuns)
+		req.NotNil(raw.WorkflowFailures)
+		req.NotNil(raw.TaqRuns)
+		req.NotNil(raw.Activity)
+		req.NotNil(raw.RecentErrors)
+		req.NotNil(raw.Signins)
+	})
+
 	t.Run("count", func(t *testing.T) {
 		var (
 			req = require.New(t)
@@ -438,40 +480,4 @@ func testUsers(t *testing.T, s store.Users) {
 		req.Equal(c1, c2)
 	})
 
-	t.Run("metrics", func(t *testing.T) {
-		var (
-			req = require.New(t)
-
-			oct, _ = time.Parse(time.RFC3339, "2020-10-02T10:01:10Z")
-			nov, _ = time.Parse(time.RFC3339, "2020-11-02T20:02:10Z")
-
-			octu = uint(oct.Truncate(time.Hour * 24).Unix())
-			novu = uint(nov.Truncate(time.Hour * 24).Unix())
-
-			e = &types.UserMetrics{
-				Total:          8,
-				Valid:          2,
-				Deleted:        3,
-				Suspended:      3,
-				DailyCreated:   []uint{octu, 7, novu, 1},
-				DailyUpdated:   []uint{octu, 2},
-				DailySuspended: []uint{octu, 2, novu, 1},
-				DailyDeleted:   []uint{novu, 3},
-			}
-		)
-
-		req.NoError(s.TruncateUsers(ctx))
-		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: "user-metrics-1@crust.test", UpdatedAt: &oct}))
-		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: "user-metrics-2@crust.test", UpdatedAt: &oct}))
-		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: "user-metrics-3@crust.test", SuspendedAt: &oct}))
-		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: "user-metrics-4@crust.test", SuspendedAt: &oct}))
-		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: "user-metrics-5@crust.test", SuspendedAt: &nov}))
-		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: "user-metrics-6@crust.test", DeletedAt: &nov}))
-		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: "user-metrics-7@crust.test", DeletedAt: &nov}))
-		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: nov, Email: "user-metrics-8@crust.test", DeletedAt: &nov}))
-
-		m, err := store.UserMetrics(ctx, s)
-		req.NoError(err)
-		req.Equal(e, m)
-	})
 }

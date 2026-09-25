@@ -37,16 +37,6 @@ _userDefs: {
 			{name: "EnforcedTOTP", type:     "bool", json: "enforcedTOTP"},
 		]
 	}
-	UserMetrics: {name: "UserMetrics", fields: [
-				{name: "Total", type:          "uint", json:  "total"},
-				{name: "Valid", type:          "uint", json:  "valid"},
-				{name: "Deleted", type:        "uint", json:  "deleted"},
-				{name: "Suspended", type:      "uint", json:  "suspended"},
-				{name: "DailyCreated", type:   "uint", slice: true, json: "dailyCreated"},
-				{name: "DailyDeleted", type:   "uint", slice: true, json: "dailyDeleted"},
-				{name: "DailyUpdated", type:   "uint", slice: true, json: "dailyUpdated"},
-				{name: "DailySuspended", type: "uint", slice: true, json: "dailySuspended"},
-	]}
 }
 
 user: {
@@ -352,8 +342,10 @@ user: {
 					args: [ {ident: "u", goType: "types.UserFilter"}]
 					return: [ "uint"]
 				}, {
-					expIdent: "UserMetrics"
-					return: [ "*types.UserMetrics"]
+					// instance-wide counts and daily series for the admin dashboard
+					expIdent: "SystemStats"
+					args: [ {ident: "r", goType: "types.SystemStatsRange"}]
+					return: [ "*types.SystemStatsRaw"]
 				},
 			]
 		}

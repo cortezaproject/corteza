@@ -8,29 +8,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 )
 
-func (s Store) ApplicationMetrics(ctx context.Context) (_ *systemType.ApplicationMetrics, err error) {
-	var (
-		aux = struct {
-			Total   uint `db:"total"`
-			Deleted uint `db:"deleted"`
-			Valid   uint `db:"valid"`
-		}{}
-
-		query = applicationSelectQuery(s.Dialect.GOQU()).
-			Select(timestampStatExpr("deleted")...)
-	)
-
-	if err = s.QueryOne(ctx, query, &aux); err != nil {
-		return nil, err
-	}
-
-	return &systemType.ApplicationMetrics{
-		Total:   aux.Total,
-		Deleted: aux.Deleted,
-		Valid:   aux.Valid,
-	}, nil
-}
-
 func (s Store) ReorderApplications(ctx context.Context, order []uint64) (err error) {
 	var (
 		apps   systemType.ApplicationSet

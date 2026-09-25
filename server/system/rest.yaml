@@ -2630,15 +2630,30 @@ endpoints:
   - title: Statistics
     entrypoint: stats
     path: '/stats'
+    imports:
+      - time
     authentication:
       - Client ID
       - Session ID
     apis:
       - name: list
         method: GET
-        title: List system statistics
+        title: System statistics for the admin dashboard
         path: '/'
-        parameters: {}
+        parameters:
+          get:
+            - name: from
+              type: '*time.Time'
+              required: false
+              title: Start of the reporting range (inclusive); defaults to 30 days before `to`
+            - name: to
+              type: '*time.Time'
+              required: false
+              title: End of the reporting range (exclusive); defaults to now
+            - name: bucket
+              type: string
+              required: false
+              title: Series granularity (day, week, month); defaults by range length
   - title: System automation scripts
     path: '/automation'
     entrypoint: automation

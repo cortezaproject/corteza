@@ -5948,12 +5948,18 @@ export default class System {
     return `/reports/${reportID}/run`
   }
 
-  // List system statistics
-  async statsList(extra: AxiosRequestConfig = {}): Promise<KV> {
+  // System statistics for the admin dashboard
+  async statsList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { from, to, bucket } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
       url: this.statsListEndpoint(),
+    }
+    cfg.params = {
+      from,
+      to,
+      bucket,
     }
 
     return this.api()
@@ -5961,15 +5967,15 @@ export default class System {
       .then(result => stdResolve(result))
   }
 
-  statsListCancellable(extra: AxiosRequestConfig = {}): {
-    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
-    cancel: () => void
-  } {
+  statsListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
     return {
-      response: () => this.statsList(options),
+      response: () => this.statsList(a, options),
       cancel: () => {
         cancelTokenSource.cancel()
       },
