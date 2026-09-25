@@ -25,7 +25,7 @@ compose:
     settings: Settings
 configuration: Configuration
 dashboard: Dashboard
-editPage: Edit Page
+editPage: Page settings
 extendSession:
   labels:
     extend: Extend Session

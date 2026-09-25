@@ -32,7 +32,7 @@
         />
         <Button
           v-tooltip.bottom="$t('navigation.editPage')"
-          icon="pi pi-pencil"
+          icon="pi pi-cog"
           size="small"
           @click="goToEditPage"
         />
