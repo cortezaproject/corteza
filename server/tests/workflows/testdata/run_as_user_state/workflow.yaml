@@ -1,0 +1,12 @@
+workflows:
+  runner:
+    enabled: true
+    trace: true
+    runAs: wf-runner
+    triggers:
+      - enabled: true
+        stepID: 1
+    steps:
+      - stepID: 1
+        kind: termination
+    paths: []

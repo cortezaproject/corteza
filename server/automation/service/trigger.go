@@ -422,18 +422,6 @@ func (svc *trigger) updateTriggerRegistration(ctx context.Context, t *types.Trig
 
 // registers one workflow and a set of triggers
 func (svc *trigger) registerWorkflow(ctx context.Context, wf *types.Workflow, tt ...*types.Trigger) (err error) {
-	var (
-		runAs auth.Identifiable
-	)
-
-	// Returns context with identity set to service user
-	//
-	// Current user (identity in the context) might not have
-	// sufficient privileges to load info about invoker and runner
-	sysUserCtx := func() context.Context {
-		return auth.SetIdentityToContext(ctx, auth.ServiceUser())
-	}
-
 	if !svc.services.opt.Register {
 		return nil
 	}
@@ -458,22 +446,14 @@ func (svc *trigger) registerWorkflow(ctx context.Context, wf *types.Workflow, tt
 		return nil
 	}
 
-	if wf.RunAs > 0 {
-		if runAs, err = DefaultUser.FindByAny(sysUserCtx(), wf.RunAs); err != nil {
-			return fmt.Errorf("failed to load run-as user %d: %w", wf.RunAs, err)
-		} else if !runAs.Valid() {
-			return fmt.Errorf("invalid user %d used for workflow run-as", wf.RunAs)
-		}
-	}
-
-	svc.registerTriggers(wf, runAs, tt...)
+	svc.registerTriggers(wf, tt...)
 	return nil
 }
 
 // registerTriggers registers workflows triggers to eventbus
 //
-// It preloads run-as identity and finds a starting step for each trigger
-func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable, tt ...*types.Trigger) {
+// It finds a starting step for each trigger
+func (svc *trigger) registerTriggers(wf *types.Workflow, tt ...*types.Trigger) {
 	var (
 		handlerFn eventbus.HandlerFn
 		err       error
