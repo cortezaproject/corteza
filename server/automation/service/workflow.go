@@ -56,9 +56,6 @@ type (
 
 		// caching exec graph
 		g *wfexec.Graph
-
-		// caching user we'll executing workflow with
-		runAs intAuth.Identifiable
 	}
 
 	workflowAccessController interface {
@@ -199,7 +196,6 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 		wap   = &workflowActionProps{workflow: new}
 		cUser = intAuth.GetIdentityFromContext(ctx).Identity()
 		g     *wfexec.Graph
-		runAs intAuth.Identifiable
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -241,11 +237,11 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 
 		wap.workflow = wf
 
-		if g, runAs, err = svc.validateWorkflow(ctx, wf); err != nil {
+		if g, err = svc.validateWorkflow(ctx, wf); err != nil {
 			return
 		}
 
-		svc.updateCache(wf, runAs, g)
+		svc.updateCache(wf, g)
 
 		if len(wf.Issues) == 0 {
 			if err = svc.triggers.registerWorkflows(ctx, wf); err != nil {
@@ -328,7 +324,6 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 		aProps  = &workflowActionProps{workflow: &types.Workflow{ID: workflowID}}
 		err     error
 		g       *wfexec.Graph
-		runAs   intAuth.Identifiable
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -349,11 +344,11 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 			return err
 		}
 
-		if g, runAs, err = svc.validateWorkflow(ctx, res); err != nil {
+		if g, err = svc.validateWorkflow(ctx, res); err != nil {
 			return
 		}
 
-		svc.updateCache(res, runAs, g)
+		svc.updateCache(res, g)
 
 		if len(res.Issues) == 0 {
 			if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
@@ -514,8 +509,7 @@ func (svc *workflow) Load(ctx context.Context) error {
 			Disabled:    filter.StateExcluded,
 			SubWorkflow: filter.StateInclusive,
 		})
-		g     *wfexec.Graph
-		runAs intAuth.Identifiable
+		g *wfexec.Graph
 	)
 	if err != nil {
 		return err
@@ -527,24 +521,24 @@ func (svc *workflow) Load(ctx context.Context) error {
 	for _, wf := range set {
 		svc.wIndex[wf.Handle] = wf.ID
 
-		if g, runAs, err = svc.validateWorkflow(ctx, wf); err != nil {
+		if g, err = svc.validateWorkflow(ctx, wf); err != nil {
 			continue
 		}
 
-		svc.updateCache(wf, runAs, g)
+		svc.updateCache(wf, g)
 	}
 
 	return svc.triggers.registerWorkflows(ctx, set...)
 }
 
 // updateCache
-func (svc *workflow) updateCache(wf *types.Workflow, runAs intAuth.Identifiable, g *wfexec.Graph) {
+func (svc *workflow) updateCache(wf *types.Workflow, g *wfexec.Graph) {
 	defer svc.muxCache.Unlock()
 	svc.muxCache.Lock()
 
 	if wf.Executable() {
 		svc.wIndex[wf.Handle] = wf.ID
-		svc.cache[wf.ID] = &wfCacheItem{g: g, wf: wf, runAs: runAs}
+		svc.cache[wf.ID] = &wfCacheItem{g: g, wf: wf}
 	} else {
 		// remove deleted
 		delete(svc.cache, wf.ID)
@@ -669,7 +663,7 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 }
 
 // validates workflow by trying to convert it to graph and checking assigned triggers
-func (svc *workflow) validateWorkflow(ctx context.Context, wf *types.Workflow) (g *wfexec.Graph, runAs intAuth.Identifiable, err error) {
+func (svc *workflow) validateWorkflow(ctx context.Context, wf *types.Workflow) (g *wfexec.Graph, err error) {
 	var (
 		tt []*types.Trigger
 	)
@@ -696,22 +690,43 @@ func (svc *workflow) validateWorkflow(ctx context.Context, wf *types.Workflow) (
 		return intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
 	}
 
-	// @todo this might not be the smartest thing, users might get invalidated after
-	//       we add cache them as workflow runners
+	// suspended or deleted run-as users are checked on each execution
 	if wf.RunAs > 0 {
-		if runAs, err = DefaultUser.FindByAny(sysUserCtx(), wf.RunAs); err != nil {
+		if _, err = DefaultUser.FindByAny(sysUserCtx(), wf.RunAs); err != nil {
 			wf.Issues = wf.Issues.Append(fmt.Errorf("failed to load run-as user %d: %w", wf.RunAs, err), nil)
-		} else if !runAs.Valid() {
-			wf.Issues = wf.Issues.Append(fmt.Errorf("invalid user %d used for workflow run-as", wf.RunAs), nil)
 		}
 	}
 
 	return
 }
 
+// Loads the run-as user with the roles and state it has now; nil when the
+// workflow runs as its invoker
+func loadRunAs(ctx context.Context, wf *types.Workflow) (intAuth.Identifiable, error) {
+	if wf.RunAs == 0 {
+		return nil, nil
+	}
+
+	u, err := DefaultUser.FindByAny(intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser()), wf.RunAs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load run-as user %d: %w", wf.RunAs, err)
+	}
+
+	if !u.Valid() {
+		return nil, fmt.Errorf("run-as user %d is suspended or deleted", wf.RunAs)
+	}
+
+	return u, nil
+}
+
 func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.WorkflowExecParams) (WaitFn, uint64, error) {
 	if wf.Issues != nil {
 		return nil, 0, wf.Issues
+	}
+
+	runAs, err := loadRunAs(ctx, wf)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	defer svc.muxCache.Unlock()
@@ -722,8 +737,7 @@ func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.Workf
 	}
 
 	var (
-		g     = svc.cache[wf.ID].g
-		runAs = svc.cache[wf.ID].runAs
+		g = svc.cache[wf.ID].g
 
 		scope *expr.Vars
 	)
