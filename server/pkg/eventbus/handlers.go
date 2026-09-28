@@ -2,9 +2,12 @@ package eventbus
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/sentry"
+	"go.uber.org/zap"
 )
 
 type (
@@ -56,8 +59,24 @@ func (t handler) Match(re Event) bool {
 	return true
 }
 
-func (t handler) Handle(ctx context.Context, ev Event) error {
-	defer sentry.Recover()
+// Handle runs the handler; a panic is returned as the handler's error
+func (t handler) Handle(ctx context.Context, ev Event) (err error) {
+	defer func() {
+		reason := recover()
+		if reason == nil {
+			return
+		}
+
+		sentry.Report(reason)
+		logger.Default().Error("event handler panicked",
+			zap.String("resourceType", ev.ResourceType()),
+			zap.String("eventType", ev.EventType()),
+			zap.Any("panic", reason),
+			zap.Stack("stack"),
+		)
+
+		err = fmt.Errorf("%s handler on %s panicked: %v", ev.EventType(), ev.ResourceType(), reason)
+	}()
 
 	if eis, ok := ev.(eventInvokerSettable); ok {
 		eis.SetInvoker(auth.GetIdentityFromContext(ctx))

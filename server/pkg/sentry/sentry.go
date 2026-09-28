@@ -44,3 +44,12 @@ func Recover() {
 		hub.Recover(err)
 	}
 }
+
+// Report sends an already recovered panic to Sentry when a client is configured
+func Report(reason any) {
+	if sentry.CurrentHub().Client() == nil {
+		return
+	}
+
+	sentry.CurrentHub().Recover(reason)
+}

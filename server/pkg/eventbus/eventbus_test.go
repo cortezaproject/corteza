@@ -151,3 +151,18 @@ func TestWaitForAllowsNestedEventsWhileRegistering(t *testing.T) {
 		t.Fatal("nested event dispatch deadlocked with a concurrent registration")
 	}
 }
+
+func TestHandlerPanicBecomesError(t *testing.T) {
+	var (
+		a   = assert.New(t)
+		ctx = context.Background()
+		bus = New()
+		ev  = &mockEvent{rType: "resource", eType: "panic"}
+	)
+
+	bus.Register(func(context.Context, Event) error { panic("boom") }, On("panic"), For("resource"))
+
+	a.ErrorContains(bus.WaitFor(ctx, ev), "boom")
+	a.ErrorContains(bus.WaitForEach(ctx, ev), "boom")
+	a.Len(bus.WaitForAll(ctx, ev), 1)
+}
