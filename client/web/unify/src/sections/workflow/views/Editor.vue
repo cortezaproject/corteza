@@ -168,8 +168,8 @@ const saveWorkflow = throttle(
               })
             }
           }),
-        ).catch(() => {
-          throw new Error(t('notification.configure-triggers'))
+        ).catch(({ message }) => {
+          throw new Error(`${t('notification.configure-triggers')}: ${message}`)
         })
       })
 
