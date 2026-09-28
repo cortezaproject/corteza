@@ -152,6 +152,11 @@
       <CFormGroup
         v-else-if="item.triggers.constraints[0]"
         :label="item.triggers.eventType.replace('on', '')"
+        :description="
+          item.triggers.eventType === 'onInterval'
+            ? $t('steps.trigger.configurator.interval-description')
+            : ''
+        "
       >
         <CInputDateTime
           v-if="item.triggers.eventType === 'onTimestamp'"
@@ -165,7 +170,12 @@
           @update:modelValue="emitChange"
         />
 
-        <InputText v-else v-model="item.triggers.constraints[0].values[0]" @input="emitChange" />
+        <InputText
+          v-else
+          v-model="item.triggers.constraints[0].values[0]"
+          placeholder="0 6 * * *"
+          @input="emitChange"
+        />
       </CFormGroup>
     </div>
 
