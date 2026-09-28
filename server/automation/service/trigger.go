@@ -17,6 +17,7 @@ import (
 	"github.com/crusttech/human/server/pkg/label"
 	"github.com/crusttech/human/server/pkg/logger"
 	"github.com/crusttech/human/server/pkg/options"
+	"github.com/crusttech/human/server/pkg/scheduler"
 	"github.com/crusttech/human/server/pkg/wfexec"
 	"github.com/crusttech/human/server/store"
 	sysEvent "github.com/crusttech/human/server/system/service/event"
@@ -211,6 +212,10 @@ func (svc *trigger) onCreate(ctx context.Context, new *types.Trigger) (err error
 		new.DeletedAt = nil
 		new.DeletedBy = 0
 
+		if err = validateTriggerInterval(new); err != nil {
+			return
+		}
+
 		if err = store.CreateAutomationTrigger(ctx, s, new); err != nil {
 			return
 		}
@@ -271,6 +276,10 @@ func (svc *trigger) onUpdate(ctx context.Context, s store.Storer, upd, res *type
 	if res.OwnedBy != upd.OwnedBy {
 		changed = true
 		res.OwnedBy = upd.OwnedBy
+	}
+
+	if err := validateTriggerInterval(res); err != nil {
+		return err
 	}
 
 	if changed {
@@ -605,6 +614,27 @@ func loadWorkflowTriggers(ctx context.Context, s store.Storer, workflowID uint64
 	}
 
 	return
+}
+
+// Checks interval triggers carry valid crontab expressions
+func validateTriggerInterval(t *types.Trigger) error {
+	if t.EventType != "onInterval" {
+		return nil
+	}
+
+	for _, c := range t.Constraints {
+		for _, v := range c.Values {
+			if len(v) == 0 {
+				continue
+			}
+
+			if err := scheduler.ValidateInterval(v); err != nil {
+				return TriggerErrInvalidInterval().Wrap(err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // Checks if triggers are compatible with the workflow

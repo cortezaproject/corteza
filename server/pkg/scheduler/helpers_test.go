@@ -57,6 +57,20 @@ func TestOnInterval(t *testing.T) {
 			false,
 			true,
 		},
+		{
+			"second of two matches",
+			"2019-10-10T07:00:00Z",
+			[]string{"0 6 * * *", "0 7 * * *"},
+			true,
+			false,
+		},
+		{
+			"valid after invalid matches",
+			"2019-10-10T07:00:00Z",
+			[]string{":P", "0 7 * * *"},
+			true,
+			true,
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -138,4 +152,14 @@ func TestOnTimestamp(t *testing.T) {
 	// touch exported func
 	OnTimestamp("2019-10-10T10:15:00Z")
 	OnTimestamp(":P")
+}
+
+func TestValidateInterval(t *testing.T) {
+	for _, i := range []string{"* * * * *", "0 6 * * 1-5", "*/15 8-17 * * *", "@daily", "@hourly"} {
+		assert.NoError(t, ValidateInterval(i), i)
+	}
+
+	for _, i := range []string{"", ":P", "0 0 6 * * *", "0 0 6 * * * *", "* * * *", "61 * * * *", "@reboot"} {
+		assert.Error(t, ValidateInterval(i), i)
+	}
 }

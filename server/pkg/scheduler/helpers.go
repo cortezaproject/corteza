@@ -1,6 +1,9 @@
 package scheduler
 
 import (
+	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/crusttech/human/server/pkg/logger"
@@ -30,6 +33,8 @@ func onInterval(now time.Time, ii ...string) (bool, error) {
 		cronRef = currTime.Add(-time.Nanosecond)
 	)
 
+	var errs []error
+
 	// At least one of the given expressions should match
 	for _, i := range ii {
 		if len(i) == 0 {
@@ -39,13 +44,31 @@ func onInterval(now time.Time, ii ...string) (bool, error) {
 
 		exp, err := cronexpr.Parse(i)
 		if err != nil {
-			return false, err
+			errs = append(errs, err)
+			continue
 		}
 
-		return currTime.Equal(exp.Next(cronRef)), nil
+		if currTime.Equal(exp.Next(cronRef)) {
+			return true, errors.Join(errs...)
+		}
 	}
 
-	return false, nil
+	return false, errors.Join(errs...)
+}
+
+// ValidateInterval checks the value is a five-field crontab expression
+// (minute, hour, day of month, month, day of week) or a predefined one (@daily)
+func ValidateInterval(i string) error {
+	ff := strings.Fields(i)
+
+	switch {
+	case len(ff) == 1 && strings.HasPrefix(ff[0], "@"):
+	case len(ff) != 5:
+		return fmt.Errorf("expecting 5 fields, got %d", len(ff))
+	}
+
+	_, err := cronexpr.Parse(i)
+	return err
 }
 
 // OnTimestamp parses all given strings as RFC3339 timestamps and returns true if any of them matches current time
