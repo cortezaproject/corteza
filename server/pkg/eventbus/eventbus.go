@@ -82,6 +82,39 @@ func (b *eventbus) WaitFor(ctx context.Context, ev Event) (err error) {
 	return
 }
 
+// WaitForAll runs each handler concurrently and waits for all of them
+//
+// A failing handler does not affect the others; errors of all failed
+// handlers are returned
+func (b *eventbus) WaitForAll(ctx context.Context, ev Event) (errs []error) {
+	b.l.RLock()
+	hh := b.find(ev)
+	b.l.RUnlock()
+
+	var (
+		mux sync.Mutex
+		wg  sync.WaitGroup
+	)
+
+	for _, t := range hh {
+		b.wg.Add(1)
+		wg.Add(1)
+		go func(t *handler) {
+			defer b.wg.Done()
+			defer wg.Done()
+
+			if err := t.Handle(ctx, ev); err != nil {
+				mux.Lock()
+				errs = append(errs, err)
+				mux.Unlock()
+			}
+		}(t)
+	}
+
+	wg.Wait()
+	return
+}
+
 // Dispatch runs events asynchronously
 func (b *eventbus) Dispatch(ctx context.Context, ev Event) {
 	b.l.RLock()

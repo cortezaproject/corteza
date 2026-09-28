@@ -26,7 +26,7 @@ type (
 	}
 
 	dispatcher interface {
-		WaitFor(ctx context.Context, ev eventbus.Event) error
+		WaitForAll(ctx context.Context, ev eventbus.Event) []error
 	}
 )
 
@@ -172,8 +172,7 @@ func (svc *service) dispatch(ctx context.Context) {
 
 	for _, ev := range ee {
 		go func(ev eventbus.Event) {
-			err := svc.dispatcher.WaitFor(ctx, ev)
-			if err != nil {
+			for _, err := range svc.dispatcher.WaitForAll(ctx, ev) {
 				svc.log.Warn("failed to execute scheduled trigger", zap.Error(err))
 			}
 		}(ev)
