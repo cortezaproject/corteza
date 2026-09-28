@@ -216,6 +216,7 @@
 
         <b-form-group
           v-else-if="item.triggers.constraints[0]"
+          :description="item.triggers.eventType === 'onInterval' ? $t('steps:trigger.configurator.interval-description') : undefined"
           label-class="d-flex align-items-center text-primary"
           class="mt-0 mb-4 mx-4"
         >
@@ -247,6 +248,7 @@
           <b-form-input
             v-else
             v-model="item.triggers.constraints[0].values[0]"
+            placeholder="0 6 * * *"
             @input="$root.$emit('change-detected')"
           />
         </b-form-group>

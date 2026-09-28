@@ -103,6 +103,7 @@ trigger:
     event*: Event*
     failed-fetch-event-types: Failed to fetch event types
     initial-scope: Initial Scope
+    interval-description: "Five cron fields: minute, hour, day of month, month and day of week, in the server's time zone. For example, 0 6 * * * runs every day at 06:00."
     equal: Equal
     not-equal: Not equal
     like: Like
