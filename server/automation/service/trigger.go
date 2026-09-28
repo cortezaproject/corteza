@@ -18,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/scheduler"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/store"
 	sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
@@ -223,6 +224,10 @@ func (svc *trigger) Create(ctx context.Context, new *types.Trigger) (res *types.
 		}
 		wap.new = res
 
+		if err = validateTriggerInterval(res); err != nil {
+			return
+		}
+
 		if err = store.CreateAutomationTrigger(ctx, s, res); err != nil {
 			return
 		}
@@ -366,6 +371,10 @@ func (svc trigger) handleUpdate(upd *types.Trigger) triggerUpdateHandler {
 			// @todo need to check against access control if current user can modify owner
 			changes |= triggerChanged
 			res.OwnedBy = upd.OwnedBy
+		}
+
+		if err = validateTriggerInterval(res); err != nil {
+			return triggerUnchanged, err
 		}
 
 		if changes&triggerChanged > 0 {
@@ -678,6 +687,27 @@ func toLabeledTriggers(set []*types.Trigger) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+// Checks interval triggers carry valid crontab expressions
+func validateTriggerInterval(t *types.Trigger) error {
+	if t.EventType != "onInterval" {
+		return nil
+	}
+
+	for _, c := range t.Constraints {
+		for _, v := range c.Values {
+			if len(v) == 0 {
+				continue
+			}
+
+			if err := scheduler.ValidateInterval(v); err != nil {
+				return TriggerErrInvalidInterval().Wrap(err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // Checks if triggers are compatible with the workflow

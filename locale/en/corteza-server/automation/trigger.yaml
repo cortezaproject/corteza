@@ -1,5 +1,6 @@
 errors:
   invalidID: invalid ID
+  invalidInterval: "invalid interval; use five cron fields: minute, hour, day of month, month and day of week (e.g. 0 6 * * *)"
   notAllowedToCreate: not allowed to create triggers
   notAllowedToDelete: not allowed to delete this trigger
   notAllowedToRead: not allowed to read this trigger

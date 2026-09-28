@@ -457,6 +457,38 @@ func TriggerErrStaleData(mm ...*triggerActionProps) *errors.Error {
 	return e
 }
 
+// TriggerErrInvalidInterval returns "automation:trigger.invalidInterval" as *errors.Error
+//
+// This function is auto-generated.
+func TriggerErrInvalidInterval(mm ...*triggerActionProps) *errors.Error {
+	var p = &triggerActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid interval; use five cron fields: minute, hour, day of month, month and day of week (e.g. 0 6 * * *)", nil),
+
+		errors.Meta("type", "invalidInterval"),
+		errors.Meta("resource", "automation:trigger"),
+
+		errors.Meta(triggerPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.invalidInterval"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // TriggerErrNotAllowedToRead returns "automation:trigger.notAllowedToRead" as *errors.Error
 //
 // This function is auto-generated.

@@ -50,3 +50,22 @@ func TestValidateWorkflowTriggersSubWorkflow(t *testing.T) {
 	req.Len(issues, 1)
 	req.Contains(issues[0].String(), "marked as sub-workflow")
 }
+
+func TestValidateTriggerInterval(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		trigger = func(event string, vv ...string) *types.Trigger {
+			return &types.Trigger{
+				EventType:   event,
+				Constraints: types.TriggerConstraintSet{{Values: vv}},
+			}
+		}
+	)
+
+	req.NoError(validateTriggerInterval(trigger("onInterval", "0 6 * * *")))
+	req.NoError(validateTriggerInterval(trigger("onInterval", "")))
+	req.NoError(validateTriggerInterval(trigger("onTimestamp", "0 0 6 * * *")))
+	req.Error(validateTriggerInterval(trigger("onInterval", "0 0 6 * * *")))
+	req.Error(validateTriggerInterval(trigger("onInterval", "0 6 * * *", "every day")))
+}
