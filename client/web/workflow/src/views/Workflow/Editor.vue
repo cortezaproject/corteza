@@ -152,8 +152,8 @@ export default {
                 ownedBy: this.userID,
               })
             }
-          })).catch(() => {
-            throw new Error(this.$t('notification:configure-triggers'))
+          })).catch(({ message }) => {
+            throw new Error(`${this.$t('notification:configure-triggers')}: ${message}`)
           })
         })
 
