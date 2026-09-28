@@ -178,6 +178,9 @@ DOM as it is; use a visibility assertion when visibility is the question.
   `json: cannot unmarshal … into expr.typedValueWrap`. A list goes as
   `{"@type":"Array","@value":[…]}` with its items raw; wrapping an item in its
   own envelope turns it into a `Vars` with the keys `@type` and `@value`.
+- **`/automation/sessions/` lists only unfinished sessions by default.** A
+  workflow that ran and finished looks like it never started; `completed=1`
+  includes finished (completed or failed) sessions, `completed=2` lists only them.
 - **A workflow trigger is its own resource, and its step field is
   `workflowStepID`.** `workflowCreate`/`workflowUpdate` ignore a nested
   `triggers` array, so POST `/automation/triggers/` separately — and `stepID`
