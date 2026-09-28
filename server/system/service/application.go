@@ -181,7 +181,7 @@ func (svc *application) Create(ctx context.Context, new *types.Application) (app
 
 		app = new
 
-		_ = svc.eventbus.WaitFor(ctx, event.ApplicationAfterCreate(new, nil))
+		_ = svc.eventbus.WaitForEach(ctx, event.ApplicationAfterCreate(new, nil))
 		return nil
 	}()
 
@@ -234,7 +234,7 @@ func (svc *application) Update(ctx context.Context, upd *types.Application) (app
 			app.Labels = upd.Labels
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.ApplicationAfterUpdate(upd, app))
+		_ = svc.eventbus.WaitForEach(ctx, event.ApplicationAfterUpdate(upd, app))
 		return nil
 	}()
 
@@ -267,7 +267,7 @@ func (svc *application) Delete(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.ApplicationAfterDelete(nil, app))
+		_ = svc.eventbus.WaitForEach(ctx, event.ApplicationAfterDelete(nil, app))
 		return nil
 	}()
 
@@ -302,7 +302,7 @@ func (svc *application) Undelete(ctx context.Context, ID uint64) (err error) {
 		}
 
 		// @todo add event
-		//       _ = svc.eventbus.WaitFor(ctx, event.ApplicationAfterUndelete(nil, app))
+		//       _ = svc.eventbus.WaitForEach(ctx, event.ApplicationAfterUndelete(nil, app))
 		return nil
 	}()
 

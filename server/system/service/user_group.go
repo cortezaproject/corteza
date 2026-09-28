@@ -644,7 +644,7 @@ func (svc *userGroup) MemberAdd(ctx context.Context, userGroupID, memberID uint6
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.UserGroupAfterMemberAdd(g, g))
+		_ = svc.eventbus.WaitForEach(ctx, event.UserGroupAfterMemberAdd(g, g))
 		return nil
 	}()
 

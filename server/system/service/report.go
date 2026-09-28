@@ -172,7 +172,7 @@ func (svc *report) Create(ctx context.Context, new *types.Report) (report *types
 
 		report = new
 
-		// _ = svc.eventbus.WaitFor(ctx, event.ReportAfterCreate(new, nil))
+		// _ = svc.eventbus.WaitForEach(ctx, event.ReportAfterCreate(new, nil))
 		return nil
 	}()
 
@@ -229,7 +229,7 @@ func (svc *report) Update(ctx context.Context, upd *types.Report) (report *types
 			report.Labels = upd.Labels
 		}
 
-		// _ = svc.eventbus.WaitFor(ctx, event.ReportAfterUpdate(upd, report))
+		// _ = svc.eventbus.WaitForEach(ctx, event.ReportAfterUpdate(upd, report))
 		return nil
 	}()
 
@@ -262,7 +262,7 @@ func (svc *report) Delete(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		// _ = svc.eventbus.WaitFor(ctx, event.ReportAfterDelete(nil, report))
+		// _ = svc.eventbus.WaitForEach(ctx, event.ReportAfterDelete(nil, report))
 		return nil
 	}()
 
@@ -295,7 +295,7 @@ func (svc *report) Undelete(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		// _ = svc.eventbus.WaitFor(ctx, event.ReportAfterUndelete(nil, app))
+		// _ = svc.eventbus.WaitForEach(ctx, event.ReportAfterUndelete(nil, app))
 		return nil
 	}()
 

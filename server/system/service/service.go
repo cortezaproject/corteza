@@ -48,6 +48,7 @@ type (
 
 	eventDispatcher interface {
 		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
+		WaitForEach(ctx context.Context, ev eventbus.Event) error
 		Dispatch(ctx context.Context, ev eventbus.Event)
 	}
 )

@@ -231,7 +231,7 @@ func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (res *
 
 		res = new
 
-		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterCreate(new, nil))
+		_ = svc.eventbus.WaitForEach(ctx, event.AuthClientAfterCreate(new, nil))
 		return nil
 	}()
 
@@ -334,7 +334,7 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 			res.Labels = upd.Labels
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterUpdate(upd, res))
+		_ = svc.eventbus.WaitForEach(ctx, event.AuthClientAfterUpdate(upd, res))
 		return nil
 	}()
 
@@ -371,7 +371,7 @@ func (svc *authClient) Delete(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterDelete(nil, res))
+		_ = svc.eventbus.WaitForEach(ctx, event.AuthClientAfterDelete(nil, res))
 		return nil
 	}()
 
@@ -406,7 +406,7 @@ func (svc *authClient) Undelete(ctx context.Context, ID uint64) (err error) {
 		}
 
 		// @todo add event
-		//       _ = svc.eventbus.WaitFor(ctx, event.AuthClientAfterUndelete(nil, res))
+		//       _ = svc.eventbus.WaitForEach(ctx, event.AuthClientAfterUndelete(nil, res))
 		return nil
 	}()
 

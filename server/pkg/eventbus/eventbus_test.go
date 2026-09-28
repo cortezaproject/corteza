@@ -107,3 +107,47 @@ func TestEventFiring(t *testing.T) {
 	bus.wait()
 	a.Equal(int32(2), i.Load())
 }
+
+func TestWaitForEachRunsEveryHandler(t *testing.T) {
+	var (
+		a   = assert.New(t)
+		ctx = context.Background()
+		bus = New()
+		ran []int
+	)
+
+	bus.Register(func(context.Context, Event) error { ran = append(ran, 0); return fmt.Errorf("first") }, On("after"), For("resource"), Weight(0))
+	bus.Register(func(context.Context, Event) error { ran = append(ran, 1); return nil }, On("after"), For("resource"), Weight(1))
+	bus.Register(func(context.Context, Event) error { ran = append(ran, 2); return fmt.Errorf("last") }, On("after"), For("resource"), Weight(2))
+
+	err := bus.WaitForEach(ctx, &mockEvent{rType: "resource", eType: "after"})
+	a.Equal([]int{0, 1, 2}, ran)
+	a.ErrorContains(err, "first")
+	a.ErrorContains(err, "last")
+}
+
+func TestWaitForAllowsNestedEventsWhileRegistering(t *testing.T) {
+	var (
+		bus  = New()
+		ev   = func(r string) Event { return &mockEvent{rType: r, eType: "after"} }
+		done = make(chan error)
+	)
+
+	bus.Register(func(ctx context.Context, _ Event) error {
+		go bus.Register(nil)
+		time.Sleep(50 * time.Millisecond)
+
+		nested := make(chan error)
+		go func() { nested <- bus.WaitFor(ctx, ev("other")) }()
+		return <-nested
+	}, On("after"), For("resource"))
+
+	go func() { done <- bus.WaitFor(context.Background(), ev("resource")) }()
+
+	select {
+	case err := <-done:
+		assert.NoError(t, err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("nested event dispatch deadlocked with a concurrent registration")
+	}
+}

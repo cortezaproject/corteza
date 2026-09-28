@@ -731,7 +731,7 @@ func (svc role) MemberAdd(ctx context.Context, roleID, memberID uint64) (err err
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(m, r))
+		_ = svc.eventbus.WaitForEach(ctx, event.RoleMemberAfterAdd(m, r))
 		return nil
 	}()
 
@@ -787,7 +787,7 @@ func (svc role) MemberAddGroup(ctx context.Context, roleID, userGroupID uint64) 
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(nil, r))
+		_ = svc.eventbus.WaitForEach(ctx, event.RoleMemberAfterAdd(nil, r))
 		return nil
 	}()
 
@@ -848,7 +848,7 @@ func (svc role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err 
 		//	 return
 		// }
 
-		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(m, r))
+		_ = svc.eventbus.WaitForEach(ctx, event.RoleMemberAfterRemove(m, r))
 		return nil
 	}()
 
@@ -913,7 +913,7 @@ func (svc role) MemberRemoveGroup(ctx context.Context, roleID, userGroupID uint6
 		//	 return
 		// }
 
-		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(nil, r))
+		_ = svc.eventbus.WaitForEach(ctx, event.RoleMemberAfterRemove(nil, r))
 		return nil
 	}()
 

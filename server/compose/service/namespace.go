@@ -261,7 +261,7 @@ func (svc namespace) Create(ctx context.Context, new *types.Namespace) (*types.N
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.NamespaceAfterCreate(new, nil))
+		_ = svc.eventbus.WaitForEach(ctx, event.NamespaceAfterCreate(new, nil))
 		return nil
 	})
 
@@ -567,9 +567,9 @@ func (svc namespace) updater(ctx context.Context, namespaceID uint64, action fun
 		}
 
 		if ns.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.NamespaceAfterUpdate(ns, old))
+			err = svc.eventbus.WaitForEach(ctx, event.NamespaceAfterUpdate(ns, old))
 		} else {
-			err = svc.eventbus.WaitFor(ctx, event.NamespaceAfterDelete(nil, old))
+			err = svc.eventbus.WaitForEach(ctx, event.NamespaceAfterDelete(nil, old))
 		}
 
 		return err

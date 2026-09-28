@@ -429,7 +429,7 @@ func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.UserAfterCreate(new, u))
+		_ = svc.eventbus.WaitForEach(ctx, event.UserAfterCreate(new, u))
 		rbac.Global().InvalidateUser(new.ID)
 		return
 	}()
@@ -520,7 +520,7 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.UserAfterUpdate(upd, u))
+		_ = svc.eventbus.WaitForEach(ctx, event.UserAfterUpdate(upd, u))
 		rbac.Global().InvalidateUser(u.ID)
 		return
 	}()
@@ -600,7 +600,7 @@ func (svc user) Delete(ctx context.Context, userID uint64) (err error) {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.UserAfterDelete(nil, u))
+		_ = svc.eventbus.WaitForEach(ctx, event.UserAfterDelete(nil, u))
 		rbac.Global().InvalidateUser(u.ID)
 		return nil
 	}()
@@ -692,7 +692,7 @@ func (svc user) Suspend(ctx context.Context, userID uint64) (err error) {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.UserAfterSuspend(u, &oldUser))
+		_ = svc.eventbus.WaitForEach(ctx, event.UserAfterSuspend(u, &oldUser))
 		rbac.Global().InvalidateUser(u.ID)
 		return nil
 	}()

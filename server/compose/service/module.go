@@ -415,7 +415,7 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			return err
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.ModuleAfterCreate(new, nil, ns))
+		_ = svc.eventbus.WaitForEach(ctx, event.ModuleAfterCreate(new, nil, ns))
 
 		svc.procDal(new)
 		return nil
@@ -622,14 +622,14 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		}
 
 		if m.DeletedAt == nil {
-			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(m, old, ns)); err != nil {
+			if err = svc.eventbus.WaitForEach(ctx, event.ModuleAfterUpdate(m, old, ns)); err != nil {
 				return err
 			}
 			if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, m); err != nil {
 				return err
 			}
 		} else {
-			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns)); err != nil {
+			if err = svc.eventbus.WaitForEach(ctx, event.ModuleAfterDelete(nil, old, ns)); err != nil {
 				return
 			}
 			if err = DalModelRemove(ctx, svc.dal, m); err != nil {

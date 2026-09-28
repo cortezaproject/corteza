@@ -320,7 +320,7 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.PageAfterCreate(new, nil, ns, nil))
+		_ = svc.eventbus.WaitForEach(ctx, event.PageAfterCreate(new, nil, ns, nil))
 		return err
 	})
 
@@ -500,9 +500,9 @@ func (svc page) updater(ctx context.Context, s store.Storer, ns *types.Namespace
 		}
 
 		if res.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(ctx, event.PageAfterUpdate(res, res, ns, nil))
+			err = svc.eventbus.WaitForEach(ctx, event.PageAfterUpdate(res, res, ns, nil))
 		} else {
-			err = svc.eventbus.WaitFor(ctx, event.PageAfterDelete(nil, res, ns, nil))
+			err = svc.eventbus.WaitForEach(ctx, event.PageAfterDelete(nil, res, ns, nil))
 		}
 
 		return err
