@@ -3,8 +3,6 @@ package rest
 import (
 	"context"
 
-	"github.com/crusttech/human/server/pkg/api"
-
 	"github.com/crusttech/human/server/compose/rest/request"
 	"github.com/crusttech/human/server/compose/service/event"
 	"github.com/crusttech/human/server/pkg/auth"
@@ -62,5 +60,9 @@ func (ctrl *Automation) TriggerScript(ctx context.Context, r *request.Automation
 		return nil, errors.Unauthorized("cannot run a Corredor script")
 	}
 
-	return api.OK(), corredor.Service().Exec(ctx, r.Script, corredor.ExtendScriptArgs(event.ComposeOnManual(), r.Args))
+	sArgs := corredor.ExtendScriptArgs(event.ComposeOnManual(), r.Args)
+	if err := corredor.Service().Exec(ctx, r.Script, sArgs); err != nil {
+		return nil, err
+	}
+	return r.Args, nil
 }
