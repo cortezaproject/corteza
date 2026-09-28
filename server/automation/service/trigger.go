@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/crusttech/human/server/automation/types"
 	cmpEvent "github.com/crusttech/human/server/compose/service/event"
@@ -212,7 +213,7 @@ func (svc *trigger) onCreate(ctx context.Context, new *types.Trigger) (err error
 		new.DeletedAt = nil
 		new.DeletedBy = 0
 
-		if err = validateTriggerInterval(new); err != nil {
+		if err = validateTrigger(new); err != nil {
 			return
 		}
 
@@ -278,7 +279,7 @@ func (svc *trigger) onUpdate(ctx context.Context, s store.Storer, upd, res *type
 		res.OwnedBy = upd.OwnedBy
 	}
 
-	if err := validateTriggerInterval(res); err != nil {
+	if err := validateTrigger(res); err != nil {
 		return err
 	}
 
@@ -616,22 +617,41 @@ func loadWorkflowTriggers(ctx context.Context, s store.Storer, workflowID uint64
 	return
 }
 
-// Checks interval triggers carry valid crontab expressions
-func validateTriggerInterval(t *types.Trigger) error {
-	if t.EventType != "onInterval" {
-		return nil
-	}
+// Checks trigger constraints can be registered and scheduled triggers
+// carry a valid interval or timestamp
+func validateTrigger(t *types.Trigger) error {
+	var (
+		hasValue bool
+	)
 
 	for _, c := range t.Constraints {
+		if _, err := eventbus.ConstraintMaker(c.Name, c.Op, c.Values...); err != nil {
+			return TriggerErrInvalidConstraint().Wrap(err)
+		}
+
 		for _, v := range c.Values {
 			if len(v) == 0 {
 				continue
 			}
 
-			if err := scheduler.ValidateInterval(v); err != nil {
-				return TriggerErrInvalidInterval().Wrap(err)
+			hasValue = true
+
+			switch t.EventType {
+			case "onInterval":
+				if err := scheduler.ValidateInterval(v); err != nil {
+					return TriggerErrInvalidInterval().Wrap(err)
+				}
+
+			case "onTimestamp":
+				if _, err := time.Parse(time.RFC3339, v); err != nil {
+					return TriggerErrInvalidTimestamp().Wrap(err)
+				}
 			}
 		}
+	}
+
+	if t.Enabled && !hasValue && (t.EventType == "onInterval" || t.EventType == "onTimestamp") {
+		return TriggerErrValueRequired()
 	}
 
 	return nil

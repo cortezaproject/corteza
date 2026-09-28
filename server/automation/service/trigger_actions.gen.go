@@ -559,6 +559,102 @@ func TriggerErrInvalidInterval(mm ...*triggerActionProps) *errors.Error {
 	return e
 }
 
+// TriggerErrValueRequired returns "automation:trigger.valueRequired" as *errors.Error
+//
+// This function is auto-generated.
+func TriggerErrValueRequired(mm ...*triggerActionProps) *errors.Error {
+	var p = &triggerActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("an enabled interval or timestamp trigger needs a value", nil),
+
+		errors.Meta("type", "valueRequired"),
+		errors.Meta("resource", "automation:trigger"),
+
+		errors.Meta(triggerPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.valueRequired"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// TriggerErrInvalidTimestamp returns "automation:trigger.invalidTimestamp" as *errors.Error
+//
+// This function is auto-generated.
+func TriggerErrInvalidTimestamp(mm ...*triggerActionProps) *errors.Error {
+	var p = &triggerActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid timestamp; use an RFC 3339 date and time (e.g. 2026-10-01T06:00:00Z)", nil),
+
+		errors.Meta("type", "invalidTimestamp"),
+		errors.Meta("resource", "automation:trigger"),
+
+		errors.Meta(triggerPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.invalidTimestamp"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// TriggerErrInvalidConstraint returns "automation:trigger.invalidConstraint" as *errors.Error
+//
+// This function is auto-generated.
+func TriggerErrInvalidConstraint(mm ...*triggerActionProps) *errors.Error {
+	var p = &triggerActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid trigger constraint; the operator is not supported or its pattern does not compile", nil),
+
+		errors.Meta("type", "invalidConstraint"),
+		errors.Meta("resource", "automation:trigger"),
+
+		errors.Meta(triggerPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.invalidConstraint"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // TriggerErrNotAllowedToRead returns "automation:trigger.notAllowedToRead" as *errors.Error
 //
 // This function is auto-generated.
