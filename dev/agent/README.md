@@ -441,6 +441,26 @@ Run it after any change to a skill, to the MCP instructions, or to a tool a
 skill names. The server embeds skills at build time and the watcher rebuilds on
 `.go` writes only, so rebuild before an eval that follows a skill edit.
 
+What the custom app rounds taught, worth keeping when the probe changes:
+
+- **A check must be able to fail.** Write briefs once passed without writing
+  anything, because the probe only pressed buttons. The `saves` check now asks
+  the store whether anything changed, and a brief the probe cannot drive fails
+  as unproven rather than passing quietly.
+- **Drive a page the way a person does**: press what opens something, fill
+  what is now on screen, then press what commits. Never press `close`,
+  `cancel`, `dismiss` or `×`, and click a switch's label, not its hidden input.
+- **Where the bridge names something, the name is the API's, or it takes
+  both.** Every product bug the rounds found was a bridge name differing from
+  the tool the skill sends authors to (`label`/`text`, `dimensions`/`dimension`,
+  a six-key theme against the tool's twelve). Check a new operation against its
+  tool's parameters before it ships.
+- **The score is what must be true, not craft.** Two models scoring the same
+  can still differ in quality, so judging a page still means opening its
+  screenshot.
+- **Reseed between models.** They share a database, and a second session that
+  finds the first one's module is right to refuse to duplicate it.
+
 ## Deferred work: `backlog.sh`
 
 The queue of things a task decided not to do, so they survive the turn that
