@@ -181,6 +181,12 @@ DOM as it is; use a visibility assertion when visibility is the question.
 - **`/automation/sessions/` lists only unfinished sessions by default.** A
   workflow that ran and finished looks like it never started; `completed=1`
   includes finished (completed or failed) sessions, `completed=2` lists only them.
+- **A step or trigger created without `meta.visual` does not render in the
+  editor.** The codec keys nodes by `meta.visual.id` and places them by
+  `meta.visual.xywh`; give both when a browser check needs to click the node.
+- **`make -C server codegen-legacy` writes `*_actions.gen.go` and then panics**
+  on the docs output (`../docs/src/modules` missing). The actions it wrote are
+  complete; diff them and discard anything else it touched.
 - **A workflow trigger is its own resource, and its step field is
   `workflowStepID`.** `workflowCreate`/`workflowUpdate` ignore a nested
   `triggers` array, so POST `/automation/triggers/` separately — and `stepID`
