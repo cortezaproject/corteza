@@ -7,6 +7,8 @@ import (
 
 	"github.com/crusttech/human/server/automation/types"
 	"github.com/crusttech/human/server/pkg/auth"
+	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/pkg/options"
 	"github.com/crusttech/human/server/pkg/wfexec"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -231,4 +233,37 @@ func TestSession_logPending(t *testing.T) {
 	req.EqualValues(1, fields["pending1m"])
 	req.EqualValues(1, fields["pending1h"])
 	req.EqualValues(2, fields["pending1d"])
+}
+
+func TestSessionWatchSurvivesPanic(t *testing.T) {
+	var (
+		req         = require.New(t)
+		ctx, cancel = context.WithCancel(context.Background())
+		svc         = Session(zap.NewNop(), options.WorkflowOpt{}, nil)
+		done        = make(chan *types.Session)
+	)
+
+	defer cancel()
+	id.Init(ctx)
+
+	// a pooled session without an execution panics when collected
+	svc.pool[1] = &types.Session{ID: 1}
+	svc.Watch(ctx)
+	time.Sleep(1500 * time.Millisecond)
+
+	svc.mux.Lock()
+	delete(svc.pool, 1)
+	svc.mux.Unlock()
+
+	go func() {
+		ses, _ := svc.spawn(wfexec.NewGraph(), 1, false, nil, auth.Anonymous(), auth.Anonymous())
+		done <- ses
+	}()
+
+	select {
+	case ses := <-done:
+		req.NotNil(ses)
+	case <-time.After(2 * time.Second):
+		req.FailNow("session watcher stopped after a panic")
+	}
 }
