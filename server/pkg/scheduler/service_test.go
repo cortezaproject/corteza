@@ -2,6 +2,8 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -59,4 +61,51 @@ func TestMainServiceFunctions(t *testing.T) {
 	gScheduler.Stop()
 	time.Sleep(actionWait)
 	r.False(gScheduler.Started())
+}
+
+func TestDispatchRunsHandlersIndependently(t *testing.T) {
+	var (
+		r   = require.New(t)
+		bus = eventbus.New()
+		svc = NewService(zap.NewNop(), bus, time.Minute)
+		ev  = &mockEvent{rType: "system", eType: "onInterval"}
+
+		wg      sync.WaitGroup
+		started = make(chan int, 3)
+		release = make(chan struct{})
+	)
+
+	wg.Add(3)
+
+	bus.Register(func(context.Context, eventbus.Event) error {
+		defer wg.Done()
+		started <- 0
+		return fmt.Errorf("failed")
+	}, eventbus.For("system"), eventbus.On("onInterval"), eventbus.Weight(0))
+
+	for w := 1; w <= 2; w++ {
+		w := w
+		bus.Register(func(context.Context, eventbus.Event) error {
+			defer wg.Done()
+			started <- w
+			<-release
+			return nil
+		}, eventbus.For("system"), eventbus.On("onInterval"), eventbus.Weight(w))
+	}
+
+	svc.OnTick(ev)
+	svc.dispatch(context.Background())
+
+	seen := map[int]bool{}
+	for len(seen) < 3 {
+		select {
+		case w := <-started:
+			seen[w] = true
+		case <-time.After(time.Second):
+			r.FailNow("handlers did not all start", "started: %v", seen)
+		}
+	}
+
+	close(release)
+	wg.Wait()
 }
