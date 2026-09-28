@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/automation/types"
 	cmpEvent "github.com/cortezaproject/corteza/server/compose/service/event"
@@ -224,7 +225,7 @@ func (svc *trigger) Create(ctx context.Context, new *types.Trigger) (res *types.
 		}
 		wap.new = res
 
-		if err = validateTriggerInterval(res); err != nil {
+		if err = validateTrigger(res); err != nil {
 			return
 		}
 
@@ -373,7 +374,7 @@ func (svc trigger) handleUpdate(upd *types.Trigger) triggerUpdateHandler {
 			res.OwnedBy = upd.OwnedBy
 		}
 
-		if err = validateTriggerInterval(res); err != nil {
+		if err = validateTrigger(res); err != nil {
 			return triggerUnchanged, err
 		}
 
@@ -597,16 +598,24 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 			eventbus.For(t.ResourceType),
 		)
 
+		unusable := false
 		for _, c := range t.Constraints {
 			if cnstr, err = eventbus.ConstraintMaker(c.Name, c.Op, c.Values...); err != nil {
-				log.Debug(
-					"failed to make constraint for workflow trigger",
+				// registering without the constraint would fire the trigger more
+				// broadly than it was authored
+				log.Error(
+					"refusing to register workflow trigger with an unusable constraint",
 					zap.Any("constraint", c),
 					zap.Error(err),
 				)
-			} else {
-				ops = append(ops, eventbus.Constraint(cnstr))
+				unusable = true
+				break
 			}
+			ops = append(ops, eventbus.Constraint(cnstr))
+		}
+
+		if unusable {
+			continue
 		}
 
 		svc.reg[wf.ID][t.ID] = svc.eventbus.Register(handlerFn, ops...)
@@ -689,22 +698,41 @@ func toLabeledTriggers(set []*types.Trigger) []label.LabeledResource {
 	return ll
 }
 
-// Checks interval triggers carry valid crontab expressions
-func validateTriggerInterval(t *types.Trigger) error {
-	if t.EventType != "onInterval" {
-		return nil
-	}
+// Checks trigger constraints can be registered and scheduled triggers
+// carry a valid interval or timestamp
+func validateTrigger(t *types.Trigger) error {
+	var (
+		hasValue bool
+	)
 
 	for _, c := range t.Constraints {
+		if _, err := eventbus.ConstraintMaker(c.Name, c.Op, c.Values...); err != nil {
+			return TriggerErrInvalidConstraint().Wrap(err)
+		}
+
 		for _, v := range c.Values {
 			if len(v) == 0 {
 				continue
 			}
 
-			if err := scheduler.ValidateInterval(v); err != nil {
-				return TriggerErrInvalidInterval().Wrap(err)
+			hasValue = true
+
+			switch t.EventType {
+			case "onInterval":
+				if err := scheduler.ValidateInterval(v); err != nil {
+					return TriggerErrInvalidInterval().Wrap(err)
+				}
+
+			case "onTimestamp":
+				if _, err := time.Parse(time.RFC3339, v); err != nil {
+					return TriggerErrInvalidTimestamp().Wrap(err)
+				}
 			}
 		}
+	}
+
+	if t.Enabled && !hasValue && (t.EventType == "onInterval" || t.EventType == "onTimestamp") {
+		return TriggerErrValueRequired()
 	}
 
 	return nil

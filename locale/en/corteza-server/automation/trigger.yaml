@@ -1,5 +1,7 @@
 errors:
+  invalidConstraint: "invalid trigger constraint; the operator is not supported or its pattern does not compile"
   invalidID: invalid ID
+  invalidTimestamp: "invalid timestamp; use an RFC 3339 date and time (e.g. 2026-10-01T06:00:00Z)"
   invalidInterval: "invalid interval; use five cron fields: minute, hour, day of month, month and day of week (e.g. 0 6 * * *)"
   notAllowedToCreate: not allowed to create triggers
   notAllowedToDelete: not allowed to delete this trigger
@@ -8,4 +10,5 @@ errors:
   notAllowedToUndelete: not allowed to undelete this trigger
   notAllowedToUpdate: not allowed to update this trigger
   notFound: trigger not found
+  valueRequired: "an enabled interval or timestamp trigger needs a value"
   staleData: trigger was modified by someone else or by a workflow after you've opened it. Please refresh to see the latest updated version
