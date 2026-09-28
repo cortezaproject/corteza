@@ -140,8 +140,20 @@ func (svc *service) watch(ctx context.Context) {
 	svc.dispatch(ctx)
 
 	for {
+		// Re-align to the wall clock every cycle rather than reading a ticker.
+		//
+		// time.Ticker measures its period from the previous DELIVERY, so
+		// scheduling latency accumulates and the tick creeps away from the
+		// interval boundary — on a VM with a skewing clock it moved more than a
+		// second per minute. OnInterval only recognises a tick that lands in the
+		// boundary's own second, so once the creep passed a second every later
+		// tick missed and scheduled automations stopped firing for good, with
+		// nothing logged. Recomputing the delay each cycle keeps every dispatch
+		// on the boundary no matter how late any single one was.
+		delay := now().Truncate(svc.interval).Add(svc.interval).Sub(now())
+
 		select {
-		case <-svc.ticker().C:
+		case <-time.After(delay):
 			svc.dispatch(ctx)
 
 		case <-ctx.Done():
