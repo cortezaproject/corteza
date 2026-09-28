@@ -672,7 +672,7 @@ func (svc *userGroup) onMemberAdd(ctx context.Context, aProps *userGroupActionPr
 		return
 	}
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.UserGroupAfterMemberAdd(g, g))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.UserGroupAfterMemberAdd(g, g))
 	return nil
 }
 

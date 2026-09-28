@@ -29,8 +29,9 @@ type (
 	}
 )
 
-func (quietBus) WaitFor(context.Context, eventbus.Event) error { return nil }
-func (quietBus) Dispatch(context.Context, eventbus.Event)      {}
+func (quietBus) WaitFor(context.Context, eventbus.Event) error     { return nil }
+func (quietBus) WaitForEach(context.Context, eventbus.Event) error { return nil }
+func (quietBus) Dispatch(context.Context, eventbus.Event)          {}
 
 func (spy *groupTreeSpy) UpdateUserGroups(...rbac.GroupMembers) error { return nil }
 func (spy *groupTreeSpy) AssignGroupMembers(g id.ID, mm ...id.ID) error {

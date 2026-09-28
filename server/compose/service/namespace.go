@@ -164,7 +164,7 @@ func (svc *namespace) onCreate(ctx context.Context, new *types.Namespace) error 
 			return err
 		}
 
-		_ = svc.services.eventbus.WaitFor(ctx, event.NamespaceAfterCreate(new, nil))
+		_ = svc.services.eventbus.WaitForEach(ctx, event.NamespaceAfterCreate(new, nil))
 		return nil
 	})
 }
@@ -193,7 +193,7 @@ func (svc *namespace) onUpdate(ctx context.Context, s store.Storer, upd, res *ty
 		return err
 	}
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.NamespaceAfterUpdate(res, old))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.NamespaceAfterUpdate(res, old))
 	return nil
 }
 
@@ -213,7 +213,7 @@ func (svc *namespace) onDelete(ctx context.Context, s store.Storer, res *types.N
 		return err
 	}
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.NamespaceAfterDelete(nil, old))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.NamespaceAfterDelete(nil, old))
 	return nil
 }
 

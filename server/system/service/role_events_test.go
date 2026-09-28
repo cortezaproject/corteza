@@ -34,7 +34,8 @@ type (
 	}
 )
 
-func (*roleEventSpy) WaitFor(context.Context, eventbus.Event) error { return nil }
+func (*roleEventSpy) WaitFor(context.Context, eventbus.Event) error     { return nil }
+func (*roleEventSpy) WaitForEach(context.Context, eventbus.Event) error { return nil }
 
 func (spy *roleEventSpy) Dispatch(ctx context.Context, ev eventbus.Event) {
 	r, err := store.LookupRoleByID(ctx, spy.store, spy.roleID)

@@ -221,9 +221,9 @@ func (svc page) updater(ctx context.Context, s store.Storer, ns *types.Namespace
 		}
 
 		if res.DeletedAt == nil {
-			err = svc.services.eventbus.WaitFor(ctx, event.PageAfterUpdate(res, res, ns, nil))
+			err = svc.services.eventbus.WaitForEach(ctx, event.PageAfterUpdate(res, res, ns, nil))
 		} else {
-			err = svc.services.eventbus.WaitFor(ctx, event.PageAfterDelete(nil, res, ns, nil))
+			err = svc.services.eventbus.WaitForEach(ctx, event.PageAfterDelete(nil, res, ns, nil))
 		}
 
 		return err
@@ -522,7 +522,7 @@ func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 			return
 		}
 
-		_ = svc.services.eventbus.WaitFor(ctx, event.PageAfterCreate(new, nil, ns, nil))
+		_ = svc.services.eventbus.WaitForEach(ctx, event.PageAfterCreate(new, nil, ns, nil))
 		return err
 	})
 }

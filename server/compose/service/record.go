@@ -1003,7 +1003,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 
 	{
 		new.Values = svc.formatter.Run(m, new.Values)
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil, nil, nil, ""))
+		_ = svc.eventbus.WaitForEach(ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil, nil, nil, ""))
 	}
 
 	return
@@ -1357,7 +1357,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	{
 		// Before we pass values to automation scripts, they should be formatted
 		upd.Values = svc.formatter.Run(m, upd.Values)
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil, nil, nil, ""))
+		_ = svc.eventbus.WaitForEach(ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil, nil, nil, ""))
 	}
 	return
 }
@@ -1630,7 +1630,7 @@ func (svc record) processDelete(ctx context.Context, del *types.Record, namespac
 	del.SetModule(module)
 
 	{
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterDeleteImmutable(nil, del, module, namespace, nil, nil, nil, ""))
+		_ = svc.eventbus.WaitForEach(ctx, event.RecordAfterDeleteImmutable(nil, del, module, namespace, nil, nil, nil, ""))
 	}
 
 	return del, nil
@@ -1691,7 +1691,7 @@ func (svc record) processUndelete(ctx context.Context, undel *types.Record, name
 	undel.SetModule(module)
 
 	{
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUndeleteImmutable(nil, undel, module, namespace, nil, nil, nil, ""))
+		_ = svc.eventbus.WaitForEach(ctx, event.RecordAfterUndeleteImmutable(nil, undel, module, namespace, nil, nil, nil, ""))
 	}
 
 	return undel, nil
@@ -2012,10 +2012,10 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 
 			// The record is written; an update handler is told, and cannot
 			// refuse what already happened.
-			_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(r, old, m, ns, nil, nil, nil, ""))
+			_ = svc.eventbus.WaitForEach(ctx, event.RecordAfterUpdateImmutable(r, old, m, ns, nil, nil, nil, ""))
 
 			// Dispatch afterOrganize event
-			if err = svc.eventbus.WaitFor(ctx, event.RecordAfterOrganize(r, old, m, ns, nil, nil, nil, "")); err != nil {
+			if err = svc.eventbus.WaitForEach(ctx, event.RecordAfterOrganize(r, old, m, ns, nil, nil, nil, "")); err != nil {
 				return err
 			}
 

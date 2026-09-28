@@ -196,9 +196,9 @@ func (svc pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Nam
 		}
 
 		if res.DeletedAt == nil {
-			err = svc.services.eventbus.WaitFor(ctx, event.PageLayoutAfterUpdate(res, res, ns, nil))
+			err = svc.services.eventbus.WaitForEach(ctx, event.PageLayoutAfterUpdate(res, res, ns, nil))
 		} else {
-			err = svc.services.eventbus.WaitFor(ctx, event.PageLayoutAfterDelete(nil, res, ns, nil))
+			err = svc.services.eventbus.WaitForEach(ctx, event.PageLayoutAfterDelete(nil, res, ns, nil))
 		}
 
 		return err
@@ -492,7 +492,7 @@ func (svc *pageLayout) onCreate(ctx context.Context, new *types.PageLayout) erro
 			return
 		}
 
-		_ = svc.services.eventbus.WaitFor(ctx, event.PageLayoutAfterCreate(new, nil, ns, nil))
+		_ = svc.services.eventbus.WaitForEach(ctx, event.PageLayoutAfterCreate(new, nil, ns, nil))
 		return err
 	})
 }

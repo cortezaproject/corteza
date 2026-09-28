@@ -578,7 +578,7 @@ func (svc *role) onMemberAdd(ctx context.Context, _ *roleActionProps, roleID, me
 		return err
 	}
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(m, r))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.RoleMemberAfterAdd(m, r))
 	return nil
 }
 
@@ -653,7 +653,7 @@ func (svc *role) onMemberRemove(ctx context.Context, _ *roleActionProps, roleID,
 		return err
 	}
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(m, r))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.RoleMemberAfterRemove(m, r))
 	return nil
 }
 

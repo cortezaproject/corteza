@@ -281,7 +281,7 @@ func (svc *application) Delete(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		_ = svc.services.eventbus.WaitFor(ctx, event.ApplicationAfterDelete(nil, app))
+		_ = svc.services.eventbus.WaitForEach(ctx, event.ApplicationAfterDelete(nil, app))
 		return nil
 	}()
 

@@ -2,6 +2,7 @@ package eventbus
 
 import (
 	"context"
+	"errors"
 	"sort"
 	"sync"
 	"unsafe"
@@ -63,18 +64,8 @@ func New() *eventbus {
 //
 // It waits for each handler and fails on first error
 func (b *eventbus) WaitFor(ctx context.Context, ev Event) (err error) {
-	b.l.RLock()
-	defer b.l.RUnlock()
-
-	for _, t := range b.find(ev) {
-		err = func(ctx context.Context, t *handler) error {
-			b.wg.Add(1)
-			defer b.wg.Done()
-			return t.Handle(ctx, ev)
-
-		}(ctx, t)
-
-		if err != nil {
+	for _, t := range b.matching(ev) {
+		if err = b.handle(ctx, t, ev); err != nil {
 			return
 		}
 	}
@@ -82,14 +73,28 @@ func (b *eventbus) WaitFor(ctx context.Context, ev Event) (err error) {
 	return
 }
 
+// WaitForEach is synchronous event dispatcher
+//
+// It waits for each handler in turn; a failing handler does not stop
+// the rest. Errors of all failed handlers are joined
+func (b *eventbus) WaitForEach(ctx context.Context, ev Event) error {
+	var errs []error
+
+	for _, t := range b.matching(ev) {
+		if err := b.handle(ctx, t, ev); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
+}
+
 // WaitForAll runs each handler concurrently and waits for all of them
 //
 // A failing handler does not affect the others; errors of all failed
 // handlers are returned
 func (b *eventbus) WaitForAll(ctx context.Context, ev Event) (errs []error) {
-	b.l.RLock()
-	hh := b.find(ev)
-	b.l.RUnlock()
+	hh := b.matching(ev)
 
 	var (
 		mux sync.Mutex
@@ -113,6 +118,22 @@ func (b *eventbus) WaitForAll(ctx context.Context, ev Event) (errs []error) {
 
 	wg.Wait()
 	return
+}
+
+// Returns handlers compatible with given event
+//
+// Handlers run after the lock is released so they can
+// dispatch events of their own
+func (b *eventbus) matching(ev Event) HandlerSet {
+	b.l.RLock()
+	defer b.l.RUnlock()
+	return b.find(ev)
+}
+
+func (b *eventbus) handle(ctx context.Context, t *handler, ev Event) error {
+	b.wg.Add(1)
+	defer b.wg.Done()
+	return t.Handle(ctx, ev)
 }
 
 // Dispatch runs events asynchronously

@@ -624,7 +624,7 @@ func (svc *user) onCreate(ctx context.Context, new *types.User) error {
 
 	svc.placeInGroup(ctx, new.ID, 0, new.UserGroupID)
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.UserAfterCreate(new, nil))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.UserAfterCreate(new, nil))
 	return nil
 }
 
@@ -694,7 +694,7 @@ func (svc *user) onUpdate(ctx context.Context, s store.Storer, upd, res *types.U
 		return err
 	}
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.UserAfterUpdate(upd, res))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.UserAfterUpdate(upd, res))
 	return nil
 }
 
@@ -802,7 +802,7 @@ func (svc *user) onDelete(ctx context.Context, s store.Storer, res *types.User, 
 		return err
 	}
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.UserAfterDelete(nil, res))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.UserAfterDelete(nil, res))
 	return nil
 }
 
@@ -914,7 +914,7 @@ func (svc *user) onSuspend(ctx context.Context, aProps *userActionProps, userID 
 		return err
 	}
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.UserAfterSuspend(u, &oldUser))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.UserAfterSuspend(u, &oldUser))
 	return nil
 }
 

@@ -319,7 +319,7 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 			res.Labels = upd.Labels
 		}
 
-		_ = svc.services.eventbus.WaitFor(ctx, event.AuthClientAfterUpdate(upd, res))
+		_ = svc.services.eventbus.WaitForEach(ctx, event.AuthClientAfterUpdate(upd, res))
 		return nil
 	}()
 
@@ -356,7 +356,7 @@ func (svc *authClient) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		_ = svc.services.eventbus.WaitFor(ctx, event.AuthClientAfterDelete(nil, res))
+		_ = svc.services.eventbus.WaitForEach(ctx, event.AuthClientAfterDelete(nil, res))
 		return nil
 	}()
 

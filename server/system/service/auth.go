@@ -229,7 +229,7 @@ func (svc *auth) External(ctx context.Context, profile types.ExternalAuthUser) (
 			aam.setUser(u)
 			ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-			_ = svc.eventbus.WaitFor(ctx, event.AuthAfterSignup(u, authProvider))
+			_ = svc.eventbus.WaitForEach(ctx, event.AuthAfterSignup(u, authProvider))
 
 			if err = svc.recordAction(ctx, aam, AuthActionExternalSignup, nil); err != nil {
 				return err
@@ -408,7 +408,7 @@ func (svc *auth) InternalSignUp(ctx context.Context, input *types.User, password
 		}
 
 		aam.setUser(nUser)
-		_ = svc.eventbus.WaitFor(ctx, event.AuthAfterSignup(nUser, authProvider))
+		_ = svc.eventbus.WaitForEach(ctx, event.AuthAfterSignup(nUser, authProvider))
 
 		if err = svc.autoPromote(ctx, nUser); err != nil {
 			return err
@@ -592,7 +592,7 @@ func (svc *auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c
 		}
 	}
 
-	_ = svc.eventbus.WaitFor(ctx, event.AuthAfterLogin(u, p))
+	_ = svc.eventbus.WaitForEach(ctx, event.AuthAfterLogin(u, p))
 	return nil
 }
 

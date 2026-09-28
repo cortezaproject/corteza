@@ -271,7 +271,7 @@ func (svc *module) onUpdate(ctx context.Context, s store.Storer, upd *types.Modu
 		return err
 	}
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(res, old, ns))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.ModuleAfterUpdate(res, old, ns))
 
 	svc.procDal(res)
 	return nil
@@ -301,7 +301,7 @@ func (svc *module) onDelete(ctx context.Context, s store.Storer, namespaceID uin
 		return err
 	}
 
-	_ = svc.services.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns))
+	_ = svc.services.eventbus.WaitForEach(ctx, event.ModuleAfterDelete(nil, old, ns))
 	return nil
 }
 
@@ -641,7 +641,7 @@ func (svc *module) createModule(ctx context.Context, new *types.Module) (*types.
 			return err
 		}
 
-		_ = svc.services.eventbus.WaitFor(ctx, event.ModuleAfterCreate(new, nil, ns))
+		_ = svc.services.eventbus.WaitForEach(ctx, event.ModuleAfterCreate(new, nil, ns))
 
 		svc.procDal(new)
 		return nil
