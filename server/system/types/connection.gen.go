@@ -129,6 +129,25 @@ type (
 		Path    string                   `json:"path"`
 		Payload []ConnectionWebhookField `json:"payload,omitempty"`
 		Mapping map[string]string        `json:"mapping,omitempty"`
+		Poll    *ConnectionWebhookPoll   `json:"poll,omitempty"`
+	}
+
+	ConnectionWebhookPoll struct {
+		Seed       *ConnectionHTTPAction `json:"seed,omitempty"`
+		SeedCursor []string              `json:"seedCursor,omitempty"`
+		List       *ConnectionHTTPAction `json:"list"`
+		Cursor     []string              `json:"cursor,omitempty"`
+		Items      []string              `json:"items"`
+		Filter     *ConnectionPollFilter `json:"filter,omitempty"`
+		Enrich     *ConnectionHTTPAction `json:"enrich,omitempty"`
+		EnrichKey  string                `json:"enrichKey,omitempty"`
+		PageToken  []string              `json:"pageToken,omitempty"`
+		PageParam  string                `json:"pageParam,omitempty"`
+	}
+
+	ConnectionPollFilter struct {
+		Field    []string `json:"field,omitempty"`
+		Contains string   `json:"contains,omitempty"`
 	}
 
 	ConnectionWebhookField struct {
@@ -834,6 +853,10 @@ func (r ConnectionWebhook) Clone() *ConnectionWebhook {
 		}
 	}
 
+	if r.Poll != nil {
+		dup.Poll = r.Poll.Clone()
+	}
+
 	return &dup
 }
 
@@ -858,11 +881,161 @@ func (r ConnectionWebhook) Diff(cmp *ConnectionWebhook) []*revisions.Change {
 		out = append(out, &revisions.Change{Key: "mapping", Old: []any{cmp.Mapping}, New: []any{r.Mapping}})
 	}
 
+	if (r.Poll == nil) != (cmp.Poll == nil) {
+		out = append(out, &revisions.Change{Key: "poll", Old: []any{cmp.Poll}, New: []any{r.Poll}})
+	} else if r.Poll != nil {
+		for _, c := range r.Poll.Diff(cmp.Poll) {
+			c.Key = "poll." + c.Key
+			out = append(out, c)
+		}
+	}
+
 	return out
 }
 
 func (r *ConnectionWebhook) Scan(src any) error          { return sql.ParseJSON(src, r) }
 func (r ConnectionWebhook) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r ConnectionWebhookPoll) Clone() *ConnectionWebhookPoll {
+	dup := r
+	if r.Seed != nil {
+		dup.Seed = r.Seed.Clone()
+	}
+
+	if r.SeedCursor != nil {
+		dup.SeedCursor = make([]string, len(r.SeedCursor))
+		copy(dup.SeedCursor, r.SeedCursor)
+	}
+
+	if r.List != nil {
+		dup.List = r.List.Clone()
+	}
+
+	if r.Cursor != nil {
+		dup.Cursor = make([]string, len(r.Cursor))
+		copy(dup.Cursor, r.Cursor)
+	}
+
+	if r.Items != nil {
+		dup.Items = make([]string, len(r.Items))
+		copy(dup.Items, r.Items)
+	}
+
+	if r.Filter != nil {
+		dup.Filter = r.Filter.Clone()
+	}
+
+	if r.Enrich != nil {
+		dup.Enrich = r.Enrich.Clone()
+	}
+
+	if r.PageToken != nil {
+		dup.PageToken = make([]string, len(r.PageToken))
+		copy(dup.PageToken, r.PageToken)
+	}
+
+	return &dup
+}
+
+func (r ConnectionWebhookPoll) Diff(cmp *ConnectionWebhookPoll) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ConnectionWebhookPoll{}
+	}
+	if (r.Seed == nil) != (cmp.Seed == nil) {
+		out = append(out, &revisions.Change{Key: "seed", Old: []any{cmp.Seed}, New: []any{r.Seed}})
+	} else if r.Seed != nil {
+		for _, c := range r.Seed.Diff(cmp.Seed) {
+			c.Key = "seed." + c.Key
+			out = append(out, c)
+		}
+	}
+
+	if !reflect.DeepEqual(r.SeedCursor, cmp.SeedCursor) {
+		out = append(out, &revisions.Change{Key: "seedCursor", Old: []any{cmp.SeedCursor}, New: []any{r.SeedCursor}})
+	}
+
+	if (r.List == nil) != (cmp.List == nil) {
+		out = append(out, &revisions.Change{Key: "list", Old: []any{cmp.List}, New: []any{r.List}})
+	} else if r.List != nil {
+		for _, c := range r.List.Diff(cmp.List) {
+			c.Key = "list." + c.Key
+			out = append(out, c)
+		}
+	}
+
+	if !reflect.DeepEqual(r.Cursor, cmp.Cursor) {
+		out = append(out, &revisions.Change{Key: "cursor", Old: []any{cmp.Cursor}, New: []any{r.Cursor}})
+	}
+
+	if !reflect.DeepEqual(r.Items, cmp.Items) {
+		out = append(out, &revisions.Change{Key: "items", Old: []any{cmp.Items}, New: []any{r.Items}})
+	}
+
+	if (r.Filter == nil) != (cmp.Filter == nil) {
+		out = append(out, &revisions.Change{Key: "filter", Old: []any{cmp.Filter}, New: []any{r.Filter}})
+	} else if r.Filter != nil {
+		for _, c := range r.Filter.Diff(cmp.Filter) {
+			c.Key = "filter." + c.Key
+			out = append(out, c)
+		}
+	}
+
+	if (r.Enrich == nil) != (cmp.Enrich == nil) {
+		out = append(out, &revisions.Change{Key: "enrich", Old: []any{cmp.Enrich}, New: []any{r.Enrich}})
+	} else if r.Enrich != nil {
+		for _, c := range r.Enrich.Diff(cmp.Enrich) {
+			c.Key = "enrich." + c.Key
+			out = append(out, c)
+		}
+	}
+
+	if r.EnrichKey != cmp.EnrichKey {
+		out = append(out, &revisions.Change{Key: "enrichKey", Old: []any{cmp.EnrichKey}, New: []any{r.EnrichKey}})
+	}
+
+	if !reflect.DeepEqual(r.PageToken, cmp.PageToken) {
+		out = append(out, &revisions.Change{Key: "pageToken", Old: []any{cmp.PageToken}, New: []any{r.PageToken}})
+	}
+
+	if r.PageParam != cmp.PageParam {
+		out = append(out, &revisions.Change{Key: "pageParam", Old: []any{cmp.PageParam}, New: []any{r.PageParam}})
+	}
+
+	return out
+}
+
+func (r *ConnectionWebhookPoll) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ConnectionWebhookPoll) Value() (driver.Value, error) { return json.Marshal(r) }
+
+func (r ConnectionPollFilter) Clone() *ConnectionPollFilter {
+	dup := r
+	if r.Field != nil {
+		dup.Field = make([]string, len(r.Field))
+		copy(dup.Field, r.Field)
+	}
+
+	return &dup
+}
+
+func (r ConnectionPollFilter) Diff(cmp *ConnectionPollFilter) []*revisions.Change {
+	out := make([]*revisions.Change, 0)
+	if cmp == nil {
+		cmp = &ConnectionPollFilter{}
+	}
+	if !reflect.DeepEqual(r.Field, cmp.Field) {
+		out = append(out, &revisions.Change{Key: "field", Old: []any{cmp.Field}, New: []any{r.Field}})
+	}
+
+	if r.Contains != cmp.Contains {
+		out = append(out, &revisions.Change{Key: "contains", Old: []any{cmp.Contains}, New: []any{r.Contains}})
+	}
+
+	return out
+}
+
+func (r *ConnectionPollFilter) Scan(src any) error          { return sql.ParseJSON(src, r) }
+func (r ConnectionPollFilter) Value() (driver.Value, error) { return json.Marshal(r) }
 
 func (r ConnectionWebhookField) Clone() *ConnectionWebhookField {
 	dup := r

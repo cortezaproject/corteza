@@ -401,6 +401,10 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	// Start background Google resource discovery refresh (every 1 hour)
 	DefaultConfiguredConnection.StartDiscoveryRefreshLoop(ctx, time.Hour)
 
+	// Run the declarative connector poll engine so pull-only connectors (e.g.
+	// Gmail) deliver their trigger events
+	DefaultConfiguredConnection.StartConnectorPollLoop(ctx, time.Minute)
+
 	// Periodically re-flag connectors whose catalog definition has changed
 	DefaultConnection.StartCatalogCheckLoop(ctx, 15*time.Minute)
 

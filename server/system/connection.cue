@@ -89,6 +89,25 @@ _connectionDefs: {
 				{ name: "Path", type: "string", json: "path" },
 				{ name: "Payload", slice: true, type: _connectionDefs.ConnectionWebhookField, json: "payload,omitempty" },
 				{ name: "Mapping", goType: "map[string]string", json: "mapping,omitempty" },
+				{ name: "Poll", ptr: true, type: _connectionDefs.ConnectionWebhookPoll, json: "poll,omitempty" },
+			]}
+			// Declarative polling spec: lets the generic poll engine deliver an event
+			// for connectors that cannot push (e.g. Gmail). No per-connector Go.
+			ConnectionWebhookPoll: { name: "ConnectionWebhookPoll", fields: [
+				{ name: "Seed", ptr: true, type: _connectionDefs.ConnectionHTTPAction, json: "seed,omitempty" },
+				{ name: "SeedCursor", slice: true, type: "string", json: "seedCursor,omitempty" },
+				{ name: "List", ptr: true, type: _connectionDefs.ConnectionHTTPAction, json: "list" },
+				{ name: "Cursor", slice: true, type: "string", json: "cursor,omitempty" },
+				{ name: "Items", slice: true, type: "string", json: "items" },
+				{ name: "Filter", ptr: true, type: _connectionDefs.ConnectionPollFilter, json: "filter,omitempty" },
+				{ name: "Enrich", ptr: true, type: _connectionDefs.ConnectionHTTPAction, json: "enrich,omitempty" },
+				{ name: "EnrichKey", type: "string", json: "enrichKey,omitempty" },
+				{ name: "PageToken", slice: true, type: "string", json: "pageToken,omitempty" },
+				{ name: "PageParam", type: "string", json: "pageParam,omitempty" },
+			]}
+			ConnectionPollFilter: { name: "ConnectionPollFilter", fields: [
+				{ name: "Field", slice: true, type: "string", json: "field,omitempty" },
+				{ name: "Contains", type: "string", json: "contains,omitempty" },
 			]}
 			ConnectionWebhookField: { name: "ConnectionWebhookField", fields: [
 				{ name: "Name", type: "string", json: "name" },

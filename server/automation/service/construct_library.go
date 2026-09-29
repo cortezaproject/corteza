@@ -66,6 +66,22 @@ func (r *constructRegistry) RemoveFunctions(refPrefix string) {
 	r.functions = kept
 }
 
+// RemoveTriggers drops every trigger with the given resource type. Used to clear
+// a connection's stale triggers before re-registering, since AddTriggers only
+// replaces matching resource+event and never removes deleted ones.
+func (r *constructRegistry) RemoveTriggers(resourceType string) {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	kept := r.triggers[:0]
+	for _, t := range r.triggers {
+		if t.ResourceType != resourceType {
+			kept = append(kept, t)
+		}
+	}
+	r.triggers = kept
+}
+
 func (r *constructRegistry) AddTriggers(tt ...types.ConstructTrigger) {
 	r.mux.Lock()
 	defer r.mux.Unlock()

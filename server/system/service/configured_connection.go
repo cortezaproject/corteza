@@ -832,6 +832,7 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 // definition and its active configured connections.
 func (svc *configuredConnection) ReRegisterConnection(ctx context.Context, connID uint64) {
 	automationService.ConstructLibrary().RemoveFunctions(fmt.Sprintf("conn_%d_", connID))
+	automationService.ConstructLibrary().RemoveTriggers(connectionWebhookResourceType(connID))
 
 	conn, err := loadConnection(ctx, svc.store, connID)
 	if err != nil {
