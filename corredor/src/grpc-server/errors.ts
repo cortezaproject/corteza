@@ -52,7 +52,8 @@ export function HandleException(
     code,
     name,
     message,
-    details: '',
+    // the status text the client receives
+    details: message ?? String(err),
     metadata: new grpc.Metadata(),
   }
 
