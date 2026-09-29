@@ -1,11 +1,12 @@
 # Build context is the repository root:
 #   docker build -f corredor/Dockerfile -t human-corredor .
 #
-# The pnpm workspace root is the image root (/), so the package keeps its
-# /corredor path and the protobuf definitions sit at /def/protobuf.
+# The pnpm workspace is /app, with the package at /app/corredor and the
+# protobuf definitions at /app/def/protobuf. Scripts and certificates are
+# mounted under /corredor.
 FROM node:22-slim
 
-ENV PATH=/corredor/node_modules/.bin:$PATH
+ENV PATH=/app/corredor/node_modules/.bin:$PATH
 
 # GRPC's env-vars
 # https://github.com/grpc/grpc/blob/master/doc/environment_variables.md
@@ -17,6 +18,7 @@ ENV CORREDOR_LOG_PRETTY=false
 ENV CORREDOR_LOG_LEVEL=info
 ENV CORREDOR_LOG_ENABLED=true
 ENV CORREDOR_SERVER_CERTIFICATES_ENABLED=false
+ENV CORREDOR_SERVER_CERTIFICATES_PATH=/corredor/certs
 # Extension dependencies: installed with npm on start and on package.json change
 ENV CORREDOR_EXT_DEPENDENCIES_AUTO_UPDATE=true
 ENV CORREDOR_EXT_DEPENDENCIES_INSTALLER=npm
@@ -34,7 +36,7 @@ RUN apt-get update \
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable
 
-WORKDIR /
+WORKDIR /app
 
 # Workspace manifests, then the packages Corredor needs
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
@@ -44,7 +46,7 @@ COPY corredor corredor
 
 RUN pnpm install --frozen-lockfile --filter @planetcrust/human-corredor...
 
-WORKDIR /corredor
+WORKDIR /app/corredor
 
 # Client & server scripts location for user scripts & extensions
 VOLUME /corredor/usr

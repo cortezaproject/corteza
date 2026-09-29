@@ -129,6 +129,6 @@ workspace manifests, `lib/js` and `def/protobuf` alongside this package:
 docker build -f corredor/Dockerfile -t human-corredor .
 ```
 
-Inside the image the workspace root is `/`, so the package stays at `/corredor`
-and the protobuf definitions at `/def/protobuf`. `/corredor/usr` and
-`/corredor/certs` are volumes.
+Inside the image the workspace is `/app`, with the package at `/app/corredor`
+and the protobuf definitions at `/app/def/protobuf`. `/corredor/usr` (scripts)
+and `/corredor/certs` (TLS certificates) are volumes.
