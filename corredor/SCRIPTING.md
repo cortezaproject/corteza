@@ -199,7 +199,7 @@ It defaults from `$user`, `$role`, `$application` when the event carries them.
 
 It defaults from `$namespace`, `$module`, `$record` when the event carries them.
 
-Generated alongside them, one method per endpoint: `ctx.System` 325,
+Generated alongside them, one method per endpoint: `ctx.System` 327,
 `ctx.Compose` 78 and `ctx.Automation` 41 methods.
 A regular list, read, create, update, delete or undelete reads as
 `findUsers`, `findUserByID`, `createUser`, `updateUser`, `deleteUser`,
