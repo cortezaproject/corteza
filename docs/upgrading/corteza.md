@@ -49,6 +49,12 @@ You no longer need to list the extension in `CORREDOR_EXT_SEARCH_PATHS`, so
 you can remove that line from your `.env`. If you keep it, it still works: it
 replaces the default search path.
 
+When an extension has a `package.json`, Corredor installs its dependencies
+with npm as it starts, and again whenever the file changes. npm does not read
+`yarn.lock`, so versions resolve from the ranges in `package.json`. Pin exact
+versions there, or add a `package-lock.json`, if you need the ones your
+`yarn.lock` holds.
+
 ### 4. Move client scripts for other webapps
 
 Corteza had a separate webapp for each area. Human has one, and it loads

@@ -47,7 +47,8 @@ scripts/
 ```
 
 Copy the folder there with `git clone`, `rsync` or anything else, then run
-`docker compose restart corredor` to load the changes.
+`docker compose restart corredor` to load the changes. When an extension has a
+`package.json`, Corredor installs its dependencies with npm as it starts.
 :::
 
 ## 2. Create your account
