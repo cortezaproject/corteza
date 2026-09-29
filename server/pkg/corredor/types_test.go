@@ -22,6 +22,12 @@ func TestScriptArgs_Decode(t *testing.T) {
 			want:  map[string]interface{}{"validated": "true", "untouched": "keep"},
 		},
 		{
+			name:  "script returns a key it was not given",
+			extra: map[string]interface{}{"validated": "false"},
+			dec:   map[string][]byte{"pong": []byte(`"pong"`)},
+			want:  map[string]interface{}{"validated": "false", "pong": "pong"},
+		},
+		{
 			name:  "script returns nothing",
 			extra: map[string]interface{}{"validated": "false"},
 			dec:   map[string][]byte{},
@@ -68,4 +74,9 @@ func TestScriptArgs_DecodeMalformed(t *testing.T) {
 	)
 
 	req.Error(sa.Decode(map[string][]byte{"validated": []byte(`{oops`)}))
+}
+
+func TestScriptArgs_DecodeNoArgs(t *testing.T) {
+	sa := ExtendScriptArgs(mockEvent{}, nil)
+	require.NoError(t, sa.Decode(map[string][]byte{"pong": []byte(`"pong"`)}))
 }

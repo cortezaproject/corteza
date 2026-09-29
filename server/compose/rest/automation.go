@@ -43,6 +43,11 @@ func (ctrl *Automation) Bundle(ctx context.Context, r *request.AutomationBundle)
 }
 
 func (ctrl *Automation) TriggerScript(ctx context.Context, r *request.AutomationTriggerScript) (interface{}, error) {
+	if r.Args == nil {
+		// Script results are returned through args
+		r.Args = map[string]interface{}{}
+	}
+
 	sArgs := corredor.ExtendScriptArgs(event.ComposeOnManual(), r.Args)
 	if err := corredor.Service().Exec(ctx, r.Script, sArgs); err != nil {
 		return nil, err
