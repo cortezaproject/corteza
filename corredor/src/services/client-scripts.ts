@@ -127,7 +127,13 @@ export default class ClientScripts {
 
       this.log.debug({ bundle: bnd }, 'bundling client scripts')
 
-      clientScriptsBundler.Pack(bnd, bootloaderPerBundle[bnd], ctx, config.bundler.outputPath)
+      clientScriptsBundler.Pack(
+        bnd,
+        bootloaderPerBundle[bnd],
+        ctx,
+        config.bundler.outputPath,
+        this.log,
+      )
     }
 
     // Log errors on all invalid scripts

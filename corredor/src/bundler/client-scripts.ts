@@ -1,4 +1,6 @@
 import webpack from 'webpack'
+import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
+import { Logger } from 'pino'
 import fs from 'fs'
 import { Script } from '../types'
 
@@ -79,10 +81,17 @@ function mapToScript(name, exportedScript) {
  * @param {string} entry
  * @param {string} context
  * @param {string} outputPath
+ * @param {Logger} log
  *
  * @constructor
  */
-function Pack(name: string, entry: string, context: string, outputPath: string): void {
+function Pack(
+  name: string,
+  entry: string,
+  context: string,
+  outputPath: string,
+  log: Logger,
+): Promise<void> {
   const type = 'client-scripts'
   const cfg: webpack.Configuration = {
     // mode: 'production',
@@ -96,10 +105,25 @@ function Pack(name: string, entry: string, context: string, outputPath: string):
       libraryTarget: 'this',
       path: outputPath,
     },
+    // browser versions of the Node built-ins that webpack 4 bundled by itself
+    plugins: [new NodePolyfillPlugin()],
   }
 
-  webpack(cfg).run((err: Error | null) => {
-    if (err) return console.error(err)
+  return new Promise(resolve => {
+    const compiler = webpack(cfg)
+
+    compiler.run((err, stats) => {
+      if (err) {
+        log.error({ bundle: name, err }, 'could not bundle client scripts')
+      } else if (stats?.hasErrors()) {
+        // the bundle is still written, and throws when loaded
+        stats.toJson({ all: false, errors: true }).errors?.forEach(e => {
+          log.warn({ bundle: name, script: e.moduleName }, e.message)
+        })
+      }
+
+      compiler.close(() => resolve())
+    })
   })
 }
 
