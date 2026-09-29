@@ -66,6 +66,8 @@ if (config.extensions.dependencies.autoUpdate) {
     installer: config.extensions.dependencies.installer,
   })
 
+  dependenciesService.installOutdated()
+
   dependenciesService.watch(() => {
     // @todo can we be more selective about what should be reloaded
     try {

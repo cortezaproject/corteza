@@ -1,8 +1,9 @@
 import { Logger } from 'pino'
 import watch from 'node-watch'
 import { glob } from 'glob'
+import fs from 'fs'
 import path from 'path'
-import { spawnSync } from 'child_process'
+import { spawnSync, SpawnSyncReturns } from 'child_process'
 
 interface CtorArgs {
   logger: Logger
@@ -31,6 +32,11 @@ const installArgs: Record<Installer, string[]> = {
   npm: ['install', '--force', '--silent', '--no-audit', '--no-fund', '--no-progress'],
   pnpm: ['install', '--force', '--reporter', 'silent'],
 }
+
+/**
+ * Marker in an extension's node_modules, touched after each successful install
+ */
+const installedMarker = '.corredor-installed'
 
 /**
  * Utility function for flatting w/ Array.reduce
@@ -100,14 +106,54 @@ export default class Dependencies {
       nodir: true,
     }
 
-    return (
-      this.searchPaths
-        // run all paths through glob
-        .map(sp => glob.sync(path.join(sp, '**', 'package.json'), opt))
+    const files = this.searchPaths
+      // run all paths through glob
+      .map(sp => glob.sync(path.join(sp, '**', 'package.json'), opt))
 
-        // flatten glob results (expanding search paths) of each search path
-        .reduce(flatten, [])
-    )
+      // flatten glob results (expanding search paths) of each search path
+      .reduce(flatten, [])
+
+    // search paths overlap (usr and usr/*), so the same file can match twice
+    return [...new Set(files)]
+  }
+
+  /**
+   * Installs dependencies of every extension whose package.json declares any
+   * and changed after its last successful install
+   */
+  installOutdated(): void {
+    this.getPackageJsonFiles()
+      .filter(pkgJsonPath => this.isOutdated(pkgJsonPath))
+      .forEach(pkgJsonPath => this.install(pkgJsonPath))
+  }
+
+  protected isOutdated(pkgJsonPath: string): boolean {
+    let deps: Record<string, string> | undefined
+
+    try {
+      deps = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8')).dependencies
+    } catch (e) {
+      this.log.warn({ path: pkgJsonPath, err: e }, 'could not read package.json')
+      return false
+    }
+
+    if (!deps || Object.keys(deps).length === 0) {
+      return false
+    }
+
+    const marker = path.join(path.dirname(pkgJsonPath), 'node_modules', installedMarker)
+    if (!fs.existsSync(marker)) {
+      return true
+    }
+
+    return fs.statSync(pkgJsonPath).mtimeMs > fs.statSync(marker).mtimeMs
+  }
+
+  protected spawnInstaller(cwd: string): SpawnSyncReturns<Buffer> {
+    return spawnSync(this.installer, installArgs[this.installer], {
+      cwd,
+      shell: process.platform === 'win32',
+    })
   }
 
   /**
@@ -121,18 +167,23 @@ export default class Dependencies {
   install(pkgJsonPath: string): void {
     const installer = this.installer
 
-    const opts = {
-      cwd: path.dirname(pkgJsonPath),
-      shell: process.platform === 'win32',
-    }
-
     const log = this.log.child({ path: pkgJsonPath, installer })
     log.info('installing extension dependencies')
 
-    const proc = spawnSync(installer, installArgs[installer], opts)
+    const proc = this.spawnInstaller(path.dirname(pkgJsonPath))
     const stderr = proc.stderr?.toString() ?? ''
     const stdout = proc.stdout?.toString() ?? ''
     const nmdir = path.join(path.dirname(pkgJsonPath), 'node_modules')
+
+    if (!proc.error && proc.status === 0) {
+      fs.mkdirSync(nmdir, { recursive: true })
+      fs.writeFileSync(path.join(nmdir, installedMarker), '')
+    } else {
+      log.error(
+        { status: proc.status, err: proc.error },
+        'could not install extension dependencies',
+      )
+    }
 
     if (stderr.length > 0) {
       log.error('err' + stderr)
