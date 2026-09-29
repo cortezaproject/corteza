@@ -189,6 +189,25 @@ jobs:
           retention-days: 1
 
   ########################################################################################################################
+  # Corredor
+
+  corredor-test:
+    name: 'Corredor tests'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '${{ env.NODE_VERSION }}'
+          cache: 'pnpm'
+      - name: 'Install dependencies'
+        run: pnpm install --ignore-scripts && pnpm rebuild esbuild unrs-resolver vue-demi
+      - name: 'Test'
+        working-directory: corredor
+        run: pnpm test:unit
+
+  ########################################################################################################################
   # Docker images
 
   docker-images:
@@ -311,3 +330,59 @@ jobs:
             planetcrust/human-server-discovery:${{ env.DOCKER_IMAGE_TAG }} \
             planetcrust/human-server-discovery:${{ env.DOCKER_IMAGE_ALIAS }}
           docker push planetcrust/human-server-discovery:${{ env.DOCKER_IMAGE_ALIAS }}
+
+  docker-image-corredor:
+    name: 'Docker image planetcrust/human-corredor'
+    runs-on: ubuntu-22.04
+    needs: [corredor-test]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: 'Parse version tag'
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "DOCKER_IMAGE_TAG=${TAG}" >> $GITHUB_ENV
+          if [[ "$(echo ${TAG} | grep '-')" == "" ]]; then
+            echo "DOCKER_IMAGE_ALIAS=$(echo ${TAG} | cut -d '.' -f -2)" >> $GITHUB_ENV
+            # latest follows the highest stable tag, so a patch to an older line never moves it back
+            NEWEST=$(git tag --list '[0-9]*' | grep -v -- '-' | sort -V | tail -n 1)
+            if [[ "${TAG}" == "${NEWEST}" ]]; then
+              echo "DOCKER_IMAGE_LATEST=true" >> $GITHUB_ENV
+            fi
+          fi
+
+      - name: 'Login'
+        uses: docker/login-action@v4
+        if: ${{ !env.ACT && env.DOCKER_IMAGE_TAG }}
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 'Build'
+        run: |
+          docker build \
+            --file corredor/Dockerfile \
+            --tag planetcrust/human-corredor:${{ env.DOCKER_IMAGE_TAG }} \
+            .
+
+      - name: 'Push ${{ env.DOCKER_IMAGE_TAG }}'
+        if: ${{ !env.ACT }}
+        run: docker push planetcrust/human-corredor:${{ env.DOCKER_IMAGE_TAG }}
+
+      - name: 'Push ${{ env.DOCKER_IMAGE_ALIAS }}'
+        if: ${{ !env.ACT && env.DOCKER_IMAGE_ALIAS }}
+        run: |
+          docker tag \
+            planetcrust/human-corredor:${{ env.DOCKER_IMAGE_TAG }} \
+            planetcrust/human-corredor:${{ env.DOCKER_IMAGE_ALIAS }}
+          docker push planetcrust/human-corredor:${{ env.DOCKER_IMAGE_ALIAS }}
+
+      - name: 'Push latest'
+        if: ${{ !env.ACT && env.DOCKER_IMAGE_LATEST }}
+        run: |
+          docker tag \
+            planetcrust/human-corredor:${{ env.DOCKER_IMAGE_TAG }} \
+            planetcrust/human-corredor:latest
+          docker push planetcrust/human-corredor:latest
