@@ -250,13 +250,12 @@ function curatedNames() {
   return [...new Set(out)].sort()
 }
 
-function countGenerated(key) {
+function checkGenerated(key) {
   const src = read(key)
   // one promise-returning signature per endpoint, plus the shared resolver
   const signatures = [...src.matchAll(/\): Promise</g)].length - 1
 
   must(signatures > 20, `${SOURCES[key]}: found ${signatures} generated methods`)
-  return signatures
 }
 
 function clientMethods(key) {
@@ -624,11 +623,9 @@ function render() {
   const systemHelper = parseHelper('systemHelper')
   const composeHelper = parseHelper('composeHelper')
   const curated = curatedNames()
-  const generatedCounts = {
-    system: countGenerated('systemGenerated'),
-    compose: countGenerated('composeGenerated'),
-    automation: countGenerated('automationGenerated'),
-  }
+  checkGenerated('systemGenerated')
+  checkGenerated('composeGenerated')
+  checkGenerated('automationGenerated')
   const dsl = parseTriggerDSL()
   const iterator = parseIterator()
   const securityKeys = parseSecurityKeys()
@@ -743,8 +740,8 @@ function render() {
     '',
   )
   add(
-    `Generated alongside them, one method per endpoint: \`ctx.System\` ${generatedCounts.system},`,
-    `\`ctx.Compose\` ${generatedCounts.compose} and \`ctx.Automation\` ${generatedCounts.automation} methods.`,
+    'Generated alongside them, `ctx.System`, `ctx.Compose` and `ctx.Automation`',
+    'have one method per endpoint.',
     'A regular list, read, create, update, delete or undelete reads as',
     '`findUsers`, `findUserByID`, `createUser`, `updateUser`, `deleteUser`,',
     '`undeleteUser`; everything else keeps the client method name, so',
