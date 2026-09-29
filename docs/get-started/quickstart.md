@@ -28,9 +28,26 @@ The first start creates the database and takes a minute. Once
 [http://localhost:8080](http://localhost:8080).
 
 ::: tip What is in the file
-One container runs the Human server and serves the web app. The other runs
-PostgreSQL. Files people upload are kept in the `data` volume. Every setting is
-an [environment variable](/reference/environment).
+One container runs the Human server and serves the web app, another runs
+PostgreSQL, and a third, Corredor, runs automation scripts. Files people upload
+are kept in the `data` volume. Every setting is an
+[environment variable](/reference/environment).
+:::
+
+::: tip Automation scripts
+Corredor loads scripts from the `scripts` folder next to
+`docker-compose.yml`. Put each extension in its own folder, with its scripts
+under `server-scripts/` and `client-scripts/`:
+
+```txt
+scripts/
+  my-extension/
+    server-scripts/
+    client-scripts/
+```
+
+Copy the folder there with `git clone`, `rsync` or anything else, then run
+`docker compose restart corredor` to load the changes.
 :::
 
 ## 2. Create your account

@@ -21,9 +21,8 @@ ENV CORREDOR_SCRIPTS_AUTO_UPDATE_DEPENDENCIES=false
 ENV CORREDOR_EXT_SERVER_SCRIPTS_WATCH=false
 ENV CORREDOR_EXT_CLIENT_SCRIPTS_WATCH=false
 ENV CORREDOR_EXT_SEARCH_PATHS=/corredor/usr/*:/corredor/usr
-# This assumes that container will be part of the docker-compose setup were Human is
-# ran under "server" service and can be directly accessed via internal docker network
-ENV CORREDOR_EXEC_CSERVERS_API_BASEURL_TEMPLATE="http://server/api/{service}"
+# The Human server as the "human" service on the same Compose network
+ENV CORREDOR_EXEC_CSERVERS_API_BASEURL_TEMPLATE="http://human/api/{service}"
 
 # git for extensions with git dependencies, netcat for the healthcheck
 RUN apt-get update \

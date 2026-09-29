@@ -19,6 +19,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      corredor:
+        condition: service_started
     ports:
       - '8080:80'
     environment:
@@ -26,8 +28,18 @@ services:
       DOMAIN: localhost:8080
       # Any long random string. Keeps sessions valid when the container is recreated.
       AUTH_JWT_SECRET: replace-me-with-a-long-random-string
+      CORREDOR_ENABLED: 'true'
     volumes:
       - data:/data
+
+  corredor:
+    image: planetcrust/human-corredor:latest
+    restart: unless-stopped
+    environment:
+      CORREDOR_EXEC_CTX_FRONTEND_BASEURL: http://localhost:8080
+    volumes:
+      # Automation scripts: one folder per extension, each with server-scripts/ and client-scripts/
+      - ./scripts:/corredor/usr
 
 volumes:
   db:
