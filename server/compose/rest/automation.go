@@ -60,6 +60,11 @@ func (ctrl *Automation) TriggerScript(ctx context.Context, r *request.Automation
 		return nil, errors.Unauthorized("cannot run a Corredor script")
 	}
 
+	if r.Args == nil {
+		// Script results are returned through args
+		r.Args = map[string]interface{}{}
+	}
+
 	sArgs := corredor.ExtendScriptArgs(event.ComposeOnManual(), r.Args)
 	if err := corredor.Service().Exec(ctx, r.Script, sArgs); err != nil {
 		return nil, err

@@ -119,12 +119,14 @@ func (s *scriptArgs) Decode(dec map[string][]byte) (err error) {
 		return
 	}
 
-	for k := range s.extra {
+	if s.extra == nil {
+		return
+	}
+
+	// Keys the script did not return keep the value it was invoked with
+	for k, raw := range dec {
 		// @todo how do we omit one decoded by event?
-		raw, has := dec[k]
-		if !has || len(raw) == 0 {
-			// Script only returns the keys it wants to; anything it left
-			// out keeps the value it was invoked with
+		if len(raw) == 0 {
 			continue
 		}
 
