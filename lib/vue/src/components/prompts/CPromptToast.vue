@@ -1,5 +1,24 @@
 <template>
-  <div v-if="!hideToasts">
+  <div>
+    <b-modal
+      v-if="blocking"
+      :key="'wfPromptBlocking-'+blocking.prompt.stateID"
+      :title="pVal(blocking.prompt, 'title', 'Workflow prompt')"
+      visible
+      centered
+      hide-footer
+      hide-header-close
+      no-close-on-backdrop
+      no-close-on-esc
+    >
+      <component
+        :is="blocking.component"
+        :payload="blocking.prompt.payload"
+        :loading="isLoading"
+        @submit="resumeToast({ input: $event, prompt: blocking.prompt })"
+      />
+    </b-modal>
+
     <b-toast
       v-for="({ prompt, component, passive }) in toasts"
       :id="'wfPromptToast-'+prompt.stateID"
@@ -29,6 +48,11 @@
 import { mapGetters, mapActions } from 'vuex'
 import definitions from './kinds/index.ts'
 import { pVal } from './utils.ts'
+
+function isBlocking ({ payload }) {
+  const v = pVal(payload, 'blocking', false)
+  return v === true || v === 'true'
+}
 
 export default {
   name: 'CPromptToast',
@@ -86,7 +110,14 @@ export default {
      * All non-passive prompts with components
      */
     activePrompts () {
-      return this.withComponents.filter(({ passive }) => !passive)
+      return this.withComponents.filter(({ passive, prompt }) => !passive && !isBlocking(prompt))
+    },
+
+    /**
+     * Oldest blocking prompt; it is shown as a modal the user can only leave by answering
+     */
+    blocking () {
+      return this.withComponents.find(({ passive, prompt }) => !passive && isBlocking(prompt))
     },
 
     /**

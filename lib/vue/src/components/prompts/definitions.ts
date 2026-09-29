@@ -11,6 +11,8 @@ const variants = [
   { value: 'dark', text: 'Dark' },
 ]
 
+const blocking = { name: 'blocking', types: ['Boolean'], meta: { label: 'Blocking', description: 'Dim the rest of the screen and hide the close button until the user answers' } }
+
 const openModeVariants = [
   { value: 'sameTab', text: 'Open link in the same tab' },
   { value: 'newTab', text: 'Open link in a new tab' },
@@ -80,6 +82,7 @@ export const prompts = Object.freeze([
       { name: 'message', types: ['String'], required: true, meta: { label: 'Message' } },
       { name: 'buttonLabel', types: ['String'], meta: { label: 'Button label' } },
       { name: 'buttonVariant', types: ['String'], meta: { label: 'Button variant', visual: { input: { type: 'select', properties: { options: variants }, default: 'primary' } } } },
+      blocking,
     ],
   },
   {
@@ -95,6 +98,7 @@ export const prompts = Object.freeze([
       { name: 'rejectButtonLabel', types: ['String'], meta: { label: 'Reject button label' } },
       { name: 'rejectButtonVariant', types: ['String'], meta: { label: 'Reject button variant', visual: { input: { type: 'select', properties: { options: variants }, default: 'danger' } } } },
       { name: 'rejectButtonValue', types: ['Any'], meta: { label: 'Reject button value' } },
+      blocking,
     ],
     results: [
       { name: 'value', types: ['Any'] },
@@ -115,6 +119,7 @@ export const prompts = Object.freeze([
       { name: 'label', types: ['String'], meta: { label: 'Label' } },
       { name: 'placeholder', types: ['String'], meta: { label: 'Placeholder' } },
       { name: 'buttonLabel', types: ['String'], meta: { label: 'Button label' } },
+      blocking,
     ],
     results: [
       { name: 'value', types: ['ComposeRecord'] },
@@ -155,6 +160,7 @@ export const prompts = Object.freeze([
       },
       { name: 'inputValue', types: ['String'], meta: { label: 'Input value' } },
       { name: 'buttonLabel', types: ['String'], meta: { label: 'Button label' } },
+      blocking,
     ],
     results: [
       { name: 'value', types: ['Any'] },
@@ -192,6 +198,7 @@ export const prompts = Object.freeze([
       { name: 'options', types: ['KV'], meta: { label: 'Options' } },
       { name: 'multiselect', types: ['Boolean'], meta: { label: 'Multiselect' } },
       { name: 'buttonLabel', types: ['String'], meta: { label: 'Button label' } },
+      blocking,
     ],
     results: [
       { name: 'value', types: ['Any'] },
