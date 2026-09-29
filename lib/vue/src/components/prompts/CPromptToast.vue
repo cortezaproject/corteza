@@ -10,6 +10,7 @@
       hide-header-close
       no-close-on-backdrop
       no-close-on-esc
+      :no-enforce-focus="false"
     >
       <component
         :is="blocking.component"
