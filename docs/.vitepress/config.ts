@@ -91,6 +91,10 @@ export default defineConfig({
           },
         ],
       },
+      {
+        text: 'Upgrading',
+        items: [{ text: 'From Corteza', link: '/upgrading/corteza' }],
+      },
     ],
 
     search: { provider: 'local' },
