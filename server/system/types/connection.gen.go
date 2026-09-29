@@ -18,25 +18,26 @@ import (
 
 type (
 	Connection struct {
-		ID             uint64                           `json:"connectionID,string"`
-		Handle         string                           `json:"handle"`
-		Revision       int                              `json:"revision"`
-		Status         string                           `json:"status"`
-		Source         string                           `json:"source,omitempty"`
-		Meta           ConnectionMeta                   `json:"meta"`
-		Service        ConnectionService                `json:"service"`
-		Resources      ConnectionResources              `json:"resources"`
-		Operations     ConnectionOperations             `json:"operations"`
-		DerivedParams  []ConnectionDerivedParam         `json:"derivedParams,omitempty"`
-		CatalogID      string                           `json:"catalogID,omitempty"`
-		InstalledCount int                              `json:"installedCount,omitempty"`
-		CreatedAt      time.Time                        `json:"createdAt,omitempty"`
-		UpdatedAt      *time.Time                       `json:"updatedAt,omitempty"`
-		DeletedAt      *time.Time                       `json:"deletedAt,omitempty"`
-		CreatedBy      uint64                           `json:"createdBy,string"`
-		UpdatedBy      uint64                           `json:"updatedBy,string,omitempty"`
-		DeletedBy      uint64                           `json:"deletedBy,string,omitempty"`
-		Labels         map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+		ID              uint64                           `json:"connectionID,string"`
+		Handle          string                           `json:"handle"`
+		Revision        int                              `json:"revision"`
+		Status          string                           `json:"status"`
+		Source          string                           `json:"source,omitempty"`
+		Meta            ConnectionMeta                   `json:"meta"`
+		Service         ConnectionService                `json:"service"`
+		Resources       ConnectionResources              `json:"resources"`
+		Operations      ConnectionOperations             `json:"operations"`
+		DerivedParams   []ConnectionDerivedParam         `json:"derivedParams,omitempty"`
+		CatalogID       string                           `json:"catalogID,omitempty"`
+		InstalledCount  int                              `json:"installedCount,omitempty"`
+		UpdateAvailable bool                             `json:"updateAvailable,omitempty"`
+		CreatedAt       time.Time                        `json:"createdAt,omitempty"`
+		UpdatedAt       *time.Time                       `json:"updatedAt,omitempty"`
+		DeletedAt       *time.Time                       `json:"deletedAt,omitempty"`
+		CreatedBy       uint64                           `json:"createdBy,string"`
+		UpdatedBy       uint64                           `json:"updatedBy,string,omitempty"`
+		DeletedBy       uint64                           `json:"deletedBy,string,omitempty"`
+		Labels          map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 	}
 
 	ConnectionMeta struct {
@@ -285,6 +286,10 @@ func (r Connection) Diff(cmp *Connection) []*revisions.Change {
 
 	if r.InstalledCount != cmp.InstalledCount {
 		out = append(out, &revisions.Change{Key: "installedCount", Old: []any{cmp.InstalledCount}, New: []any{r.InstalledCount}})
+	}
+
+	if r.UpdateAvailable != cmp.UpdateAvailable {
+		out = append(out, &revisions.Change{Key: "updateAvailable", Old: []any{cmp.UpdateAvailable}, New: []any{r.UpdateAvailable}})
 	}
 
 	if !reflect.DeepEqual(r.CreatedAt, cmp.CreatedAt) {

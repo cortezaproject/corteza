@@ -1063,10 +1063,11 @@ function onKeyDown(event) {
 
 onMounted(() => {
   // The unified shell does global setup only — the builder loads its own
-  // functions/triggers catalog.
-  if (!store.catalogReady) {
-    store.loadCatalog()
-  }
+  // functions/triggers catalog. Always refresh: connector registrations change
+  // server-side (installs, catalog resync, re-imports), so a catalog cached from
+  // an earlier visit in this session goes stale and drops functions the graph
+  // still references.
+  store.loadCatalog()
   window.addEventListener('keydown', onKeyDown)
 })
 

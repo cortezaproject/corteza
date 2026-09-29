@@ -8,7 +8,9 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"go.uber.org/zap"
@@ -68,6 +70,12 @@ type (
 		configuredConnection *configuredConnection
 		catalog              appstore.Client
 		logger               *zap.Logger
+
+		// catalogUpdates flags catalog connections whose catalog definition
+		// differs from the stored one. Populated by the detection loop and
+		// surfaced as Connection.UpdateAvailable; derived state, not persisted.
+		catalogUpdates   map[uint64]bool
+		catalogUpdatesMu sync.RWMutex
 	}
 )
 
@@ -77,6 +85,50 @@ func catalogIDToSyntheticID(catalogID string) uint64 {
 	h := fnv.New64a()
 	h.Write([]byte(catalogID))
 	return h.Sum64() | (1 << 63)
+}
+
+// stringifySelectorIndices walks a decoded catalog structure and turns numeric
+// selector segments (e.g. messages.0.id, where 0 is a JSON number) into strings.
+// The typed selector is []string, so a bare number would otherwise land as ""
+// and break array indexing at extraction time.
+func stringifySelectorIndices(v any) {
+	switch t := v.(type) {
+	case map[string]any:
+		for k, val := range t {
+			if k == "selector" {
+				if arr, ok := val.([]any); ok {
+					for i, e := range arr {
+						if f, ok := e.(float64); ok {
+							arr[i] = strconv.FormatInt(int64(f), 10)
+						}
+					}
+				}
+				continue
+			}
+			stringifySelectorIndices(val)
+		}
+	case []any:
+		for _, e := range t {
+			stringifySelectorIndices(e)
+		}
+	}
+}
+
+// copyCatalogJSON copies a catalog sub-struct into a typed destination, healing
+// numeric selector indices on the way (see stringifySelectorIndices).
+func copyCatalogJSON(src, dst any) {
+	raw, err := json.Marshal(src)
+	if err != nil {
+		return
+	}
+	var generic any
+	if json.Unmarshal(raw, &generic) == nil {
+		stringifySelectorIndices(generic)
+		if fixed, err := json.Marshal(generic); err == nil {
+			raw = fixed
+		}
+	}
+	_ = json.Unmarshal(raw, dst)
 }
 
 // catalogConnectionToLocal converts a full appstore connection to a local Connection struct
@@ -100,12 +152,10 @@ func catalogConnectionToLocal(conn *appstore.Connection) *types.Connection {
 		_ = json.Unmarshal(raw, &c.Service)
 	}
 	if conn.Operations != nil {
-		raw, _ := json.Marshal(conn.Operations)
-		_ = json.Unmarshal(raw, &c.Operations)
+		copyCatalogJSON(conn.Operations, &c.Operations)
 	}
 	if conn.Resources != nil {
-		raw, _ := json.Marshal(conn.Resources)
-		_ = json.Unmarshal(raw, &c.Resources)
+		copyCatalogJSON(conn.Resources, &c.Resources)
 	}
 	return c
 }
@@ -116,7 +166,8 @@ func Connection() *connection {
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
 		services: &connectionServices{
-			logger: DefaultLogger.Named("connection"),
+			logger:         DefaultLogger.Named("connection"),
+			catalogUpdates: make(map[uint64]bool),
 		},
 	}
 }
@@ -164,6 +215,7 @@ func (svc *connection) FindByID(ctx context.Context, ID uint64) (res *types.Conn
 
 		if res.Source == "catalog" {
 			res.Status = "active"
+			res.UpdateAvailable = svc.catalogUpdate(res.ID)
 		}
 
 		svc.deriveParams(res)
@@ -548,6 +600,9 @@ func (svc *connection) Search(ctx context.Context, filter types.ConnectionFilter
 
 		for _, c := range set {
 			svc.deriveParams(c)
+			if c.Source == "catalog" {
+				c.UpdateAvailable = svc.catalogUpdate(c.ID)
+			}
 		}
 		return nil
 	}()
@@ -578,17 +633,53 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 		return nil, err
 	}
 
-	// Check for existing record with the same handle — idempotent.
-	existing, _, lookupErr := store.SearchConnections(ctx, svc.store, types.ConnectionFilter{Handle: catalogConn.Handle})
+	// Check for an existing record with the same handle — idempotent. Include
+	// soft-deleted records: automation steps call a connector's functions by
+	// connection id (conn_<id>_<op>), so re-importing a deleted connector must
+	// revive the original record rather than mint a new id and orphan every
+	// automation built against it.
+	existing, _, lookupErr := store.SearchConnections(ctx, svc.store, types.ConnectionFilter{
+		Handle:  catalogConn.Handle,
+		Deleted: filter.StateInclusive,
+	})
 	if lookupErr != nil {
 		return nil, lookupErr
 	}
 	if len(existing) > 0 {
+		// Prefer a live record; fall back to a soft-deleted one to revive it.
 		conn := existing[0]
+		for _, c := range existing {
+			if c.DeletedAt == nil {
+				conn = c
+				break
+			}
+		}
 
 		if conn.Source == "catalog" {
 			fresh := catalogConnectionToLocal(catalogConn)
-			if applyCatalogRefresh(conn, fresh) {
+			changed := applyCatalogRefresh(conn, fresh)
+
+			if conn.DeletedAt != nil {
+				if !svc.ac.CanCreateConnection(ctx) {
+					return nil, ConnectionErrNotAllowedToCreate()
+				}
+				// Update() does not clear deletion, so persist the revived
+				// record directly, then re-register its functions.
+				conn.DeletedAt = nil
+				conn.DeletedBy = 0
+				conn.UpdatedAt = now()
+				conn.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+				if err = store.UpdateConnection(ctx, svc.store, conn); err != nil {
+					return nil, err
+				}
+				svc.deriveParams(conn)
+				if svc.services.configuredConnection != nil {
+					svc.services.configuredConnection.ReRegisterConnection(ctx, conn.ID)
+				}
+				return conn, nil
+			}
+
+			if changed {
 				return svc.Update(ctx, conn)
 			}
 		}
@@ -623,41 +714,31 @@ func applyCatalogRefresh(conn, fresh *types.Connection) bool {
 
 // refreshCatalogConnection pulls the latest catalog definition for one catalog
 // connection and persists it directly (no RBAC), returning whether it changed.
-func (svc *connection) refreshCatalogConnection(ctx context.Context, conn *types.Connection) (bool, error) {
-	if svc.services.catalog == nil || conn.Source != "catalog" {
-		return false, nil
-	}
-	catalogID := conn.CatalogID
-	if catalogID == "" {
-		catalogID = svc.catalogIDForHandle(ctx, conn.Handle)
-	}
-	if catalogID == "" {
-		return false, nil
-	}
-	catalogConn, err := svc.services.catalog.GetConnection(ctx, catalogID)
-	if err != nil {
-		return false, err
-	}
-	changed := applyCatalogRefresh(conn, catalogConnectionToLocal(catalogConn))
-	if conn.CatalogID != catalogID {
-		conn.CatalogID = catalogID
-		changed = true
-	}
-	if !changed {
-		return false, nil
-	}
-	conn.UpdatedAt = now()
-	if err := store.UpdateConnection(ctx, svc.store, conn); err != nil {
-		return false, err
-	}
-	return true, nil
+// catalogDiffers reports whether the catalog definition differs from the stored
+// one, without mutating conn. applyCatalogRefresh runs the same comparison but
+// also writes; this is the read-only half used for update detection.
+func catalogDiffers(conn, fresh *types.Connection) bool {
+	return !reflect.DeepEqual(conn.Operations, fresh.Operations) ||
+		!reflect.DeepEqual(conn.Resources, fresh.Resources) ||
+		!reflect.DeepEqual(conn.Service.AuthOptions, fresh.Service.AuthOptions)
 }
 
-// ResyncAllCatalog refreshes every catalog connection's definition from the
-// catalog. Best-effort: a per-connector failure is logged and skipped. When
-// reRegister is set, connectors whose definition changed have their automation
-// functions refreshed live.
-func (svc *connection) ResyncAllCatalog(ctx context.Context, reRegister bool) {
+func (svc *connection) setCatalogUpdate(id uint64, avail bool) {
+	svc.services.catalogUpdatesMu.Lock()
+	svc.services.catalogUpdates[id] = avail
+	svc.services.catalogUpdatesMu.Unlock()
+}
+
+func (svc *connection) catalogUpdate(id uint64) bool {
+	svc.services.catalogUpdatesMu.RLock()
+	defer svc.services.catalogUpdatesMu.RUnlock()
+	return svc.services.catalogUpdates[id]
+}
+
+// checkCatalogUpdates flags catalog connections whose catalog definition has
+// drifted from the stored one, without applying anything. The user applies an
+// update explicitly via Resync. Results surface as Connection.UpdateAvailable.
+func (svc *connection) CheckCatalogUpdates(ctx context.Context) {
 	if svc.services.catalog == nil {
 		return
 	}
@@ -666,23 +747,28 @@ func (svc *connection) ResyncAllCatalog(ctx context.Context, reRegister bool) {
 		return
 	}
 	for _, conn := range set {
-		changed, err := svc.refreshCatalogConnection(ctx, conn)
-		if err != nil {
-			svc.services.logger.Warn("catalog resync failed",
-				zap.Uint64("connectionID", conn.ID),
-				zap.String("catalogID", conn.CatalogID),
-				zap.Error(err))
+		if conn.Source != "catalog" {
 			continue
 		}
-		if changed && reRegister && svc.services.configuredConnection != nil {
-			svc.services.configuredConnection.ReRegisterConnection(ctx, conn.ID)
+		catalogID := conn.CatalogID
+		if catalogID == "" {
+			catalogID = svc.catalogIDForHandle(ctx, conn.Handle)
 		}
+		if catalogID == "" {
+			continue
+		}
+		catalogConn, err := svc.services.catalog.GetConnection(ctx, catalogID)
+		if err != nil {
+			// appstore unavailable — leave the existing flag untouched
+			continue
+		}
+		svc.setCatalogUpdate(conn.ID, catalogDiffers(conn, catalogConnectionToLocal(catalogConn)))
 	}
 }
 
-// StartCatalogResyncLoop periodically re-syncs catalog connectors so blueprint
-// changes propagate without a restart or a manual sync.
-func (svc *connection) StartCatalogResyncLoop(ctx context.Context, interval time.Duration) {
+// StartCatalogCheckLoop periodically re-evaluates which catalog connectors have
+// a newer definition, flagging them for the user instead of auto-applying.
+func (svc *connection) StartCatalogCheckLoop(ctx context.Context, interval time.Duration) {
 	go func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
@@ -691,7 +777,7 @@ func (svc *connection) StartCatalogResyncLoop(ctx context.Context, interval time
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				svc.ResyncAllCatalog(ctx, true)
+				svc.CheckCatalogUpdates(ctx)
 			}
 		}
 	}()
@@ -728,6 +814,9 @@ func (svc *connection) Resync(ctx context.Context, connectionID uint64) (*types.
 	if svc.services.configuredConnection != nil {
 		svc.services.configuredConnection.ReRegisterConnection(ctx, updated.ID)
 	}
+
+	// The stored definition now matches the catalog — clear the update flag.
+	svc.setCatalogUpdate(updated.ID, false)
 
 	return updated, nil
 }
@@ -777,12 +866,10 @@ func (svc *connection) createImported(ctx context.Context, catalogConn *appstore
 		_ = json.Unmarshal(raw, &conn.Service)
 	}
 	if catalogConn.Operations != nil {
-		raw, _ := json.Marshal(catalogConn.Operations)
-		_ = json.Unmarshal(raw, &conn.Operations)
+		copyCatalogJSON(catalogConn.Operations, &conn.Operations)
 	}
 	if catalogConn.Resources != nil {
-		raw, _ := json.Marshal(catalogConn.Resources)
-		_ = json.Unmarshal(raw, &conn.Resources)
+		copyCatalogJSON(catalogConn.Resources, &conn.Resources)
 	}
 
 	return svc.Create(ctx, conn)

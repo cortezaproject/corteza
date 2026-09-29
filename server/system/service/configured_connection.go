@@ -1342,6 +1342,13 @@ func extractByPath(data any, path []string) any {
 		switch v := current.(type) {
 		case map[string]any:
 			current = v[p]
+		case []any:
+			// A numeric segment indexes into an array (e.g. messages.0.id).
+			idx, err := strconv.Atoi(p)
+			if err != nil || idx < 0 || idx >= len(v) {
+				return nil
+			}
+			current = v[idx]
 		default:
 			return nil // Cannot traverse further
 		}

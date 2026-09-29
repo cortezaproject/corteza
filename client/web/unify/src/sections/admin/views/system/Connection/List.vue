@@ -93,16 +93,32 @@
                 {{ c.meta?.description || '' }}
               </p>
 
-              <div class="flex items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center justify-between gap-2">
                 <span
-                  v-if="isInstalled(c)"
+                  v-if="isInstalled(c) && c.updateAvailable"
+                  class="inline-flex items-center gap-1 text-xs text-amber-600"
+                >
+                  <i class="pi pi-exclamation-circle" />
+                  {{ $t('system.connections.list.updateAvailable') }}
+                </span>
+                <span
+                  v-else-if="isInstalled(c)"
                   class="inline-flex items-center gap-1 text-xs text-green-600"
                 >
                   <i class="pi pi-check-circle" />
                   {{ $t('system.connections.list.installed') }}
                 </span>
                 <span v-else />
-                <div class="flex items-center gap-1">
+                <div class="flex flex-wrap items-center justify-end gap-1">
+                  <Button
+                    v-if="isInstalled(c) && c.updateAvailable"
+                    :label="$t('system.connections.list.update')"
+                    icon="pi pi-refresh"
+                    severity="warn"
+                    size="small"
+                    :loading="updating === c.connectionID"
+                    @click="handleUpdate(c)"
+                  />
                   <CInputDelete
                     v-if="isInstalled(c) && c.canDeleteConnection"
                     :label="$t('system.connections.list.uninstall')"
@@ -188,6 +204,7 @@ const canCreate = computed(() => rbac.can('system/', 'connection.create'))
 
 const search = ref('')
 const installing = ref(null)
+const updating = ref(null)
 
 const {
   items: connectionList,
@@ -242,6 +259,23 @@ async function handleInstall(c) {
     $toast.toastErrorHandler(t('notification.connection.fetch.error'))(e)
   } finally {
     installing.value = null
+  }
+}
+
+// Apply a catalog update the user was notified about (server flags it via
+// updateAvailable; nothing is applied until this runs).
+async function handleUpdate(c) {
+  updating.value = c.connectionID
+  try {
+    await $SystemAPI.api().post(`/connections/${c.connectionID}/resync`)
+    $toast.toastSuccess(t('notification.connection.update.success'))
+    filterList()
+  } catch (e) {
+    const detail = e?.response?.data?.error?.message || e?.message
+    const prefix = t('notification.connection.update.error')
+    $toast.toastDanger(detail ? `${prefix}: ${detail}` : prefix)
+  } finally {
+    updating.value = null
   }
 }
 

@@ -658,6 +658,7 @@
       },
       "catalogID": "string",
       "installedCount": "int",
+      "updateAvailable": "bool",
       "createdAt": "time.Time",
       "updatedAt": "time.Time",
       "deletedAt": "time.Time",

@@ -230,6 +230,14 @@ connection: {
 				omitSetter: true
 				json: { field: "installedCount", omitEmpty: true }
 			}
+			update_available: {
+				expIdent: "UpdateAvailable"
+				goType: "bool"
+				store: false
+				omitGetter: true
+				omitSetter: true
+				json: { field: "updateAvailable", omitEmpty: true }
+			}
 
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField

@@ -576,6 +576,8 @@ connections:
         label: Including
     install: Install
     installed: Installed
+    update: Update
+    updateAvailable: Update available
     uninstall: Uninstall
     uninstallConfirm: Remove this connection? Delete its configured connections first if any remain.
     noConnectors: No connectors match your search.
