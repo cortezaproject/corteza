@@ -1080,7 +1080,8 @@ export default {
     },
 
     async copyBlock (index) {
-      const block = JSON.stringify(this.blocks[index].clone())
+      // pageID tells paste whether tab blockIDs refer to blocks on the same page
+      const block = JSON.stringify({ ...this.blocks[index].clone(), pageID: this.page.pageID })
 
       navigator.clipboard.writeText(block).then(() => {
         this.toastSuccess(this.$t('notification:page.copySuccess'))
@@ -1098,13 +1099,16 @@ export default {
         const paste = (event.clipboardData || window.clipboardData).getData('text')
         // Doing this to handle JSON parse error
         try {
-          // Clone so each paste gets its own tempID
-          const block = compose.PageBlockMaker(JSON.parse(paste)).clone()
+          const { pageID, ...raw } = JSON.parse(paste)
 
-          // Drop tabs whose blocks are not on this page (pasted from another page)
+          // Clone so each paste gets its own tempID
+          const block = compose.PageBlockMaker(raw).clone()
+
+          // blockIDs are only unique per page, so tabs pasted from another page would grab unrelated blocks
           if (block.kind === 'Tabs') {
+            const samePage = pageID === this.page.pageID
             block.options.tabs = block.options.tabs.filter(({ blockID }) => {
-              return !blockID || [...this.blocks, ...this.page.blocks].some(b => fetchID(b) === blockID)
+              return !blockID || (samePage && [...this.blocks, ...this.page.blocks].some(b => fetchID(b) === blockID))
             })
           }
 
