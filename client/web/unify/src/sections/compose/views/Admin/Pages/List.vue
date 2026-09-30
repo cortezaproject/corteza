@@ -5,7 +5,7 @@
 
   <div class="container mx-auto p-4 h-full flex flex-col overflow-hidden min-w-0">
     <Card
-      class="flex-1 overflow-auto min-w-0 w-full max-w-4xl mx-auto"
+      class="flex-1 overflow-auto min-w-0 w-full max-w-6xl mx-auto"
       :pt="{ body: { class: 'p-0' } }"
     >
       <template #header>
