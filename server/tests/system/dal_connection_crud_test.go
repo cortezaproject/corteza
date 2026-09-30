@@ -131,6 +131,7 @@ func Test_dal_connection_create(t *testing.T) {
 	defer h.clearDalConnections()
 
 	helpers.AllowMe(h, types.ComponentRbacResource(), "dal-connection.create")
+	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "dal-config.manage")
 
 	h.apiInit().
 		Post("/dal/connections/").
@@ -195,6 +196,34 @@ func Test_dal_connection_update(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Equal("$.response.handle", "test_connection_edited")).
+		End()
+}
+
+func Test_dal_connection_create_dal_config_forbidden(t *testing.T) {
+	h := newHelper(t)
+	defer h.clearDalConnections()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "dal-connection.create")
+
+	h.apiInit().
+		Post("/dal/connections/").
+		Header("Accept", "application/json").
+		Header("Content-Type", "application/json").
+		Body(`{"handle":"with_dal","type":"corteza::system:dal-connection","meta":{"name":"With DAL"},"config":{"dal":{"type":"corteza::dal:connection:dsn","params":{"dsn":"sqlite3://file::memory:?cache=shared&mode=memory"}}}}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("dal-connection.errors.notAllowedToCreate")).
+		End()
+
+	h.apiInit().
+		Post("/dal/connections/").
+		Header("Accept", "application/json").
+		Header("Content-Type", "application/json").
+		Body(`{"handle":"without_dal","type":"corteza::system:dal-connection","meta":{"name":"Without DAL"},"config":{}}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present("$.response.connectionID")).
 		End()
 }
 

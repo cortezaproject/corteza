@@ -104,6 +104,10 @@ func (svc *dalConnection) onCreate(ctx context.Context, new *types.DalConnection
 		return fmt.Errorf("cannot create connection: unsupported connection type %s", new.Type)
 	}
 
+	if new.Config.DAL != nil && !svc.ac.CanManageDalConfigOnDalConnection(ctx, new) {
+		return DalConnectionErrNotAllowedToCreate()
+	}
+
 	if err := store.CreateDalConnection(ctx, svc.store, new); err != nil {
 		return err
 	}
