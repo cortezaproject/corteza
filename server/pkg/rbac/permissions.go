@@ -32,10 +32,11 @@ func (a Access) String() string {
 }
 
 func (a *Access) UnmarshalJSON(data []byte) error {
+	// data is raw JSON, so a string value arrives quoted
 	switch string(data) {
-	case "allow":
+	case `"allow"`:
 		*a = Allow
-	case "deny":
+	case `"deny"`:
 		*a = Deny
 	default:
 		*a = Inherit
