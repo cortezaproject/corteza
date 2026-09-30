@@ -196,8 +196,7 @@ describe('page tree actions', () => {
     expect(wrapper.vm.$.setupState.recordPageLabel(new compose.Page(tree[0]))).toBe(
       'page.list.recordPageOf:{"module":"Leads"}',
     )
-    // the tag wears the module's name alone
-    expect(wrapper.findComponent(Tag).text()).toBe('Leads')
+    expect(wrapper.findComponent(Tag).text()).toBe('page.list.recordPageOf:{"module":"Leads"}')
   })
 
   it('marks a page missing from navigation with an eye-slash tag', async () => {

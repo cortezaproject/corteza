@@ -96,7 +96,7 @@ list:
   pagePermissions: Page permissions
   parentPage: Parent page
   recordPage: Record page
-  recordPageOf: 'Record page · {module}'
+  recordPageOf: '{module} · Record page'
   settings: Page settings
   subPages: '{n} sub-page | {n} sub-pages'
 loading: Loading

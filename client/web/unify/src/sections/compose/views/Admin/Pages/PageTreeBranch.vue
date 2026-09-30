@@ -43,8 +43,7 @@
         <!-- A record page wears its module -->
         <Tag
           v-if="node.data.isRecordPage"
-          v-tooltip.bottom="tree.recordPageLabel(node.data)"
-          :value="tree.recordModuleName(node.data)"
+          :value="tree.recordPageLabel(node.data)"
           icon="pi pi-database"
           severity="secondary"
           rounded

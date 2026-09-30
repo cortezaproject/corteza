@@ -225,10 +225,6 @@ function recordPageLabel(page) {
     : t('page.list.recordPage')
 }
 
-function recordModuleName(page) {
-  return moduleStore.getByID(page.moduleID)?.name ?? t('page.list.recordPage')
-}
-
 function hasChildren(page) {
   return !!findNode(treeNodes.value, page.pageID)?.children?.length
 }
@@ -717,7 +713,6 @@ provide('pageTree', {
   actionItems,
   showActionsMenu,
   recordPageLabel,
-  recordModuleName,
 })
 </script>
 
