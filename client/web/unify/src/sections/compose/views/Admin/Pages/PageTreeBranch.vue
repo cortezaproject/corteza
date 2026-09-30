@@ -9,7 +9,7 @@
       :class="{ 'page-node-carried': tree.carriedKey.value === node.key }"
     >
       <div
-        class="page-row group relative inline-flex items-center gap-2 w-fit min-w-56 max-w-full border rounded-md bg-[var(--p-content-background)] transition-colors hover:bg-emphasis cursor-pointer pl-2 pr-1 py-2"
+        class="page-row group relative inline-flex items-center gap-3 w-fit min-w-56 max-w-full border rounded-md bg-[var(--p-content-background)] transition-colors hover:bg-emphasis cursor-pointer pl-3 pr-1 py-2"
         data-test-id="page-tree-node"
         :data-key="node.key"
         :data-parent="parentId"
@@ -116,7 +116,7 @@ const tree = inject('pageTree')
 }
 
 .tree-branch {
-  margin-left: 0.75rem;
+  margin-left: 1rem;
   padding-top: 0.75rem;
   padding-left: 15px;
 }
@@ -183,7 +183,7 @@ const tree = inject('pageTree')
 .tree-root > .page-node:not(:last-child)::before {
   content: '';
   position: absolute;
-  left: 0.75rem;
+  left: 1rem;
   top: 24px;
   bottom: -0.75rem;
   border-left: 1px solid var(--page-tree-guide);

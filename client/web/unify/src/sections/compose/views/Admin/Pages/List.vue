@@ -524,9 +524,9 @@ async function reloadAll() {
 // where the page will land, and the tree changes only on release. Pointer
 // events, so a finger works the same as a mouse.
 const DRAG_THRESHOLD = 5
-// The child indent: the branch's 0.75rem margin plus 15px padding; the gap
+// The child indent: the branch's 1rem margin plus 15px padding; the gap
 // between rows
-const INDENT = 27
+const INDENT = 30
 const GAP = 12
 const AUTOSCROLL_EDGE = 48
 
