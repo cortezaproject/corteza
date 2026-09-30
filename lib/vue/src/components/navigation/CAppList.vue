@@ -120,7 +120,7 @@
           severity="secondary"
           :aria-label="labels.tileMenu"
           data-test-id="app-tile-menu"
-          class="!absolute top-1 right-1 opacity-50 transition-opacity group-hover/tile:opacity-100 focus-visible:opacity-100"
+          class="!absolute top-1 right-1 opacity-0 transition-opacity group-hover/tile:opacity-100 focus-visible:opacity-100"
           @click="openTileMenu($event, app)"
         />
       </div>

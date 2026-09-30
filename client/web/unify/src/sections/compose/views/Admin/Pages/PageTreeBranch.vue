@@ -66,7 +66,7 @@
           text
           severity="secondary"
           size="small"
-          class="shrink-0 opacity-40 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+          class="shrink-0 ml-auto opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
           :aria-label="$t('general.label.actions')"
           data-test-id="page-tree-actions"
           @click.stop="tree.showActionsMenu($event, node.data)"
