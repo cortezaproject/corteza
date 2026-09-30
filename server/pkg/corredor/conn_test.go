@@ -58,9 +58,15 @@ func TestNewConnection(t *testing.T) {
 	grpcClientConn, err := NewConnection(ctx, opt, zap.NewNop())
 	a.NoError(err)
 
-	// NewService(dbgLog, opt)
+	// wait until connected, the dial may already be done
+	waitCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	for state := grpcClientConn.GetState(); state != connectivity.Ready; state = grpcClientConn.GetState() {
+		if !grpcClientConn.WaitForStateChange(waitCtx, state) {
+			a.FailNow("connection did not become ready")
+		}
+	}
 
-	grpcClientConn.WaitForStateChange(ctx, connectivity.Ready)
 	grpcServer.GracefulStop()
 	lstnr.Close()
 
