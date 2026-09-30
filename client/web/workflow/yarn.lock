@@ -1068,10 +1068,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cortezaproject/corteza-js@^2026.9.0-dev.1":
-  version "2026.9.0-dev.1"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2026.9.0-dev.1.tgz#3f6d170f19ba5d1de1e6ac8eb59bdd644e87925a"
-  integrity sha512-Ip8Xevfn9ekeN01Wluqt+mCocy4BtK2GnrweHqmIzUPdmXQDs4OhPjyQwDs4HYIf8pKAygY7dVlDvoISTAv7Ag==
+"@cortezaproject/corteza-js@^2026.9.0-dev.2":
+  version "2026.9.0-dev.2"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2026.9.0-dev.2.tgz#6952685f0c08b100645ba31e32cad2297441f565"
+  integrity sha512-5NdKXAFBJ+yDxx0FXtRQQuHGpHMpKl2guD6Hkl3laWsOc8i2QjgdliWTuE5VI7tUehxny4nBvxtnVlEBF68SPA==
   dependencies:
     axios "^1.8.3"
     hex-rgb "^5.0.0"
@@ -1082,12 +1082,12 @@
     numeral "^2.0.6"
     pino "^9.6.0"
 
-"@cortezaproject/corteza-vue@2026.9.0-dev.1":
-  version "2026.9.0-dev.1"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2026.9.0-dev.1.tgz#351c0bb71f2c5bfc2f48e6617f1217892789643c"
-  integrity sha512-7oLFd32ADWEgk1V21FPU/gZOPVW+1Jih1qcSUOLrubAyT0tX7z2Xp5nbtoJy+afjYilSB2i3nw2EjZ967nLeGg==
+"@cortezaproject/corteza-vue@2026.9.0-dev.2":
+  version "2026.9.0-dev.2"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2026.9.0-dev.2.tgz#abb0d9f8b8ed17f7c930c1c6811c28b2c9cb3322"
+  integrity sha512-m9wKnMz6XBUIgzpCvU8fhP9skI7n9QrqXnI1/C7/7nyIprF3CD+W+aOzz5IdvH/KskrU1a62MI/AQFLoZdrNCg==
   dependencies:
-    "@cortezaproject/corteza-js" "^2026.9.0-dev.1"
+    "@cortezaproject/corteza-js" "^2026.9.0-dev.2"
     "@floating-ui/dom" "^1.7.4"
     "@fortawesome/fontawesome-svg-core" "^6.7.2"
     "@fortawesome/free-regular-svg-icons" "^6.7.2"
@@ -1105,7 +1105,7 @@
     "@tiptap/suggestion" "^3.4.2"
     "@tiptap/vue-2" "^3.4.2"
     bootstrap-vue "2.23.1"
-    echarts "5.6.0"
+    echarts "6.1.0"
     fuzzysort "^3.1.0"
     html-parse-stringify "^3.0.1"
     i18next "^23.16.8"
@@ -4631,13 +4631,13 @@ easy-stack@1.0.1:
   resolved "https://registry.yarnpkg.com/easy-stack/-/easy-stack-1.0.1.tgz#8afe4264626988cabb11f3c704ccd0c835411066"
   integrity sha512-wK2sCs4feiiJeFXn3zvY0p41mdU5VUgbgs1rNsc/y5ngFUijdWd+iIN8eoyuZHKB8xN6BL4PdWmzqFmxNg6V2w==
 
-echarts@5.6.0:
-  version "5.6.0"
-  resolved "https://registry.yarnpkg.com/echarts/-/echarts-5.6.0.tgz#2377874dca9fb50f104051c3553544752da3c9d6"
-  integrity sha512-oTbVTsXfKuEhxftHqL5xprgLoc0k7uScAwtryCgWF6hPYFLRwOUHiFmHGCBKP5NPFNkDVopOieyUqYGH8Fa3kA==
+echarts@6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/echarts/-/echarts-6.1.0.tgz#ae0f68590f5ebbd728d900907c27acde7c5456d1"
+  integrity sha512-q0yaFPggC9FUdsWH4blavRWFmxdrIodbkoKNAjJudAI6CA9gNPxHtV2RcZNEepZVlk4yvBYkOkbk6HIVpIyHZA==
   dependencies:
     tslib "2.3.0"
-    zrender "5.6.1"
+    zrender "6.1.0"
 
 editorconfig@^1.0.4:
   version "1.0.4"
@@ -4890,7 +4890,7 @@ escodegen@^2.0.0:
     source-map "~0.6.1"
 
 "eslint-config-corteza-client@file:../../../lib/eslint-client":
-  version "2026.9.0-dev.1"
+  version "2026.9.0-dev.2"
 
 eslint-config-standard@^17.0.0:
   version "17.1.0"
@@ -11016,9 +11016,9 @@ yorkie@^2.0.0:
     normalize-path "^1.0.0"
     strip-indent "^2.0.0"
 
-zrender@5.6.1:
-  version "5.6.1"
-  resolved "https://registry.yarnpkg.com/zrender/-/zrender-5.6.1.tgz#e08d57ecf4acac708c4fcb7481eb201df7f10a6b"
-  integrity sha512-OFXkDJKcrlx5su2XbzJvj/34Q3m6PvyCZkVPHGYpcCJ52ek4U/ymZyfuV1nKE23AyBJ51E/6Yr0mhZ7xGTO4ag==
+zrender@6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/zrender/-/zrender-6.1.0.tgz#c3ef06e6426d5c28865b7183035680d685e00136"
+  integrity sha512-oEGMDB6pOP2S6OwRR4PdVv610zrjnA3Bh+JnSG12fYJlBKjtNAoEb5fSUoCOOINlH96I2fU38/A2UpRKs67xYQ==
   dependencies:
     tslib "2.3.0"
