@@ -408,7 +408,8 @@ What catches people out:
   pipe open, so the pipeline never ends and anything chained after it never
   runs. Redirect to a file instead.
 - **The server rebuilds and restarts itself**, here as on the primary. Judge by
-  the process start time, as on the primary.
+  the process start time, as on the primary. `touch` on a `.go` file does not
+  restart it; to check what survives a restart, `worktree.sh down` then `up`.
 - **The shared token works against every worktree** — same JWT secret, and the
   cloned DB has the same user IDs. No re-bootstrap for the API.
 - **A browser login to a fresh worktree can be refused** ("invalid username and
