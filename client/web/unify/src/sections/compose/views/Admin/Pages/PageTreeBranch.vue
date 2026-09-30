@@ -48,7 +48,7 @@
           icon="pi pi-database"
           severity="secondary"
           rounded
-          class="text-xs leading-none py-0.5 shrink-0"
+          class="text-xs leading-none py-1 shrink-0"
         />
         <Tag
           v-else-if="!node.data.visible"
@@ -57,7 +57,7 @@
           icon="pi pi-eye-slash"
           severity="secondary"
           rounded
-          class="text-xs leading-none py-0.5 shrink-0"
+          class="text-xs leading-none py-1 shrink-0"
         />
         <Button
           v-if="tree.actionItems(node.data).length"
