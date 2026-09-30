@@ -436,11 +436,13 @@ async function handleSubmit({ valid }) {
   try {
     parseDalParams()
 
+    // DAL wiring is set on the saved connection, never on create
+    const { dal: _dal, ...configWithoutDal } = dataSource.value.config
     const payload = {
       handle: dataSource.value.handle,
       type: dataSource.value.type,
       meta: dataSource.value.meta,
-      config: dataSource.value.config,
+      config: isEdit.value ? dataSource.value.config : configWithoutDal,
     }
 
     if (isEdit.value) {

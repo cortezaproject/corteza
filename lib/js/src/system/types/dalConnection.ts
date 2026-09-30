@@ -128,14 +128,18 @@ export class DalConnection {
       this.config = { ...dc.config }
 
       if (this.connectionID !== NoID && this.canManageDalConfig) {
+        const dal = dc.config?.dal || {}
+
         this.config = {
+          ...dc.config,
           dal: {
-            type: 'corteza::dal:connection:dsn',
-            params: { dsn: '' },
             modelIdent: '',
             modelIdentCheck: [],
+            ...dal,
+            // a connection saved without DAL wiring comes back with an empty type
+            type: dal.type || 'corteza::dal:connection:dsn',
+            params: dal.params || { dsn: '' },
           },
-          ...dc.config,
         }
 
         if (!this.config.privacy.sensitivityLevelID) {
