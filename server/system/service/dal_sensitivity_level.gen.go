@@ -118,12 +118,15 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 		return nil
 	})
 
-	// runs once the transaction has committed, so it reads what was saved
+	// runs once the transaction has committed, so it reads what was saved;
+	// the audit diff is against the saved record, not what afterUpdate returns
+	saved := res
 	if err == nil {
+		saved = res.Clone()
 		err = svc.afterUpdate(ctx, res)
 	}
 
-	return res, svc.recordAction(ctx, aProps, DalSensitivityLevelActionUpdate, err, old, res)
+	return res, svc.recordAction(ctx, aProps, DalSensitivityLevelActionUpdate, err, old, saved)
 }
 
 func (svc *dalSensitivityLevel) DeleteByID(ctx context.Context, ID uint64) (err error) {

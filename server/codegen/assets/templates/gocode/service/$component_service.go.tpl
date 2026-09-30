@@ -357,8 +357,11 @@ func (svc *{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }}) (res *{
 	})
 {{- if .hooks.afterUpdate }}
 
-	// runs once the transaction has committed, so it reads what was saved
+	// runs once the transaction has committed, so it reads what was saved;
+	// the audit diff is against the saved record, not what afterUpdate returns
+	saved := res
 	if err == nil {
+		saved = res.Clone()
 		err = svc.afterUpdate(ctx, res)
 	}
 {{- end }}
@@ -440,7 +443,7 @@ func (svc *{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }}) (res *{
 	}()
 {{- end }}
 
-	return res, svc.recordAction(ctx, aProps, {{ .expIdent }}ActionUpdate, err, old, res)
+	return res, svc.recordAction(ctx, aProps, {{ .expIdent }}ActionUpdate, err, old, {{ if and (has "update" .customBodyOps) .hasID .hooks.afterUpdate }}saved{{ else }}res{{ end }})
 }
 {{- end }}
 {{- if .delete }}

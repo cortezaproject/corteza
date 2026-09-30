@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/crusttech/human/server/pkg/actionlog"
 	"github.com/crusttech/human/server/pkg/id"
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/service"
@@ -268,6 +269,7 @@ func Test_dal_connection_update_keeps_meta_and_config(t *testing.T) {
 func Test_dal_connection_update_hides_dal_config(t *testing.T) {
 	h := newHelper(t)
 	defer h.clearDalConnections()
+	h.clearActionLog()
 
 	c := h.createDalConnection(&types.DalConnection{Handle: "test_connection"})
 
@@ -288,6 +290,23 @@ func Test_dal_connection_update_hides_dal_config(t *testing.T) {
 	stored, err := store.LookupDalConnectionByID(context.Background(), service.DefaultStore, c.ID)
 	h.noError(err)
 	h.a.Equal(c.Config.DAL.Params["dsn"], stored.Config.DAL.Params["dsn"])
+
+	// the audit diff is what was saved, not what the caller was shown
+	aa, _, err := store.SearchActionlogs(context.Background(), service.DefaultStore, actionlog.Filter{
+		Resource: "system:dal-connection",
+		Action:   "update",
+	})
+	h.noError(err)
+	h.a.NotEmpty(aa)
+
+	keys := []string{}
+	for _, ch := range aa[0].Delta {
+		keys = append(keys, ch.Key)
+	}
+	h.a.Contains(keys, "meta.name")
+	for _, k := range keys {
+		h.a.NotContains(k, "config.dal", "a rename must not log the DAL config as changed")
+	}
 }
 
 func Test_dal_connection_update_primary(t *testing.T) {

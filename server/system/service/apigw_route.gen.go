@@ -151,12 +151,15 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (res *
 		return nil
 	})
 
-	// runs once the transaction has committed, so it reads what was saved
+	// runs once the transaction has committed, so it reads what was saved;
+	// the audit diff is against the saved record, not what afterUpdate returns
+	saved := res
 	if err == nil {
+		saved = res.Clone()
 		err = svc.afterUpdate(ctx, res)
 	}
 
-	return res, svc.recordAction(ctx, aProps, ApigwRouteActionUpdate, err, old, res)
+	return res, svc.recordAction(ctx, aProps, ApigwRouteActionUpdate, err, old, saved)
 }
 
 func (svc *apigwRoute) DeleteByID(ctx context.Context, ID uint64) (err error) {
