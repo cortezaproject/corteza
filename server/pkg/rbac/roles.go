@@ -158,7 +158,7 @@ func getSessionRoles(s Session, res Resource, preloadedRoles []*Role, resolveUse
 
 	scope["userID"] = s.Identity()
 
-	// Resolve user properties (email, username, handle, name, labels)
+	// Resolve user properties
 	// and inject them into the expression scope as "user"
 	if resolveUser != nil {
 		if userData := resolveUser(s.Identity()); userData != nil {

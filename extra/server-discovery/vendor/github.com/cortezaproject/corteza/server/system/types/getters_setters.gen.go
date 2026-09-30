@@ -672,10 +672,10 @@ func (r *RoleMember) GetValue(name string, pos uint) (any, error) {
 	}
 
 	switch name {
+	case "resource", "Resource":
+		return r.Resource, nil
 	case "roleID", "RoleID":
 		return r.RoleID, nil
-	case "userID", "UserID":
-		return r.UserID, nil
 
 	}
 	return nil, nil
@@ -687,10 +687,58 @@ func (r *RoleMember) SetValue(name string, pos uint, value any) (err error) {
 	}
 
 	switch name {
+	case "resource", "Resource":
+		return cast2.String(value, &r.Resource)
 	case "roleID", "RoleID":
 		return cast2.Uint64(value, &r.RoleID)
-	case "userID", "UserID":
-		return cast2.Uint64(value, &r.UserID)
+
+	}
+	return nil
+}
+
+func (r UserGroup) GetID() uint64 { return r.ID }
+
+func (r *UserGroup) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "archivedAt", "ArchivedAt":
+		return r.ArchivedAt, nil
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "handle", "Handle":
+		return r.Handle, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+
+	}
+	return nil, nil
+}
+
+func (r *UserGroup) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &UserGroup{}
+	}
+
+	switch name {
+	case "archivedAt", "ArchivedAt":
+		return cast2.TimePtr(value, &r.ArchivedAt)
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "handle", "Handle":
+		return cast2.String(value, &r.Handle)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
 
 	}
 	return nil
@@ -786,6 +834,8 @@ func (r *User) GetValue(name string, pos uint) (any, error) {
 		return r.SuspendedAt, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
+	case "userGroupID", "UserGroupID":
+		return r.UserGroupID, nil
 	case "username", "Username":
 		return r.Username, nil
 
@@ -817,6 +867,8 @@ func (r *User) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.TimePtr(value, &r.SuspendedAt)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "userGroupID", "UserGroupID":
+		return cast2.Uint64(value, &r.UserGroupID)
 	case "username", "Username":
 		return cast2.String(value, &r.Username)
 

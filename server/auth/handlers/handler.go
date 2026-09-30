@@ -233,7 +233,7 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 					auth.Authenticated(req.AuthUser.User.ID, req.AuthUser.User.Roles()...),
 				))
 
-				userPreferredLanguage := language.Make(req.AuthUser.User.Meta.PreferredLanguage)
+				userPreferredLanguage := locale.MakeTag(req.AuthUser.User.Meta.PreferredLanguage)
 
 				// set user's preferred language
 				if h.Locale.HasLanguage(userPreferredLanguage) {

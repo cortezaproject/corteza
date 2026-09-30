@@ -47,6 +47,7 @@ type (
 
 	attachmentAccessController interface {
 		CanReadNamespace(context.Context, *types.Namespace) bool
+		CanUpdateNamespace(context.Context, *types.Namespace) bool
 		CanCreateNamespace(context.Context) bool
 		CanReadModule(context.Context, *types.Module) bool
 		CanReadPage(context.Context, *types.Page) bool
@@ -58,6 +59,7 @@ type (
 
 	AttachmentService interface {
 		FindByID(ctx context.Context, namespaceID, attachmentID uint64) (*types.Attachment, error)
+		FindForServing(ctx context.Context, namespaceID uint64, kind string, attachmentID uint64) (*types.Attachment, error)
 		Find(ctx context.Context, filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
 		CreatePageAttachment(ctx context.Context, namespaceID uint64, name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error)
 		CreateIconAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
@@ -92,7 +94,7 @@ func (svc attachment) Find(ctx context.Context, filter types.AttachmentFilter) (
 			aProps.namespace, aProps.page, err = loadPageCombo(ctx, svc.store, filter.NamespaceID, filter.PageID)
 			if err != nil {
 				return err
-			} else if svc.ac.CanReadPage(ctx, aProps.page) {
+			} else if !svc.ac.CanReadPage(ctx, aProps.page) {
 				return AttachmentErrNotAllowedToReadPage()
 			}
 		}
@@ -101,14 +103,14 @@ func (svc attachment) Find(ctx context.Context, filter types.AttachmentFilter) (
 			aProps.namespace, aProps.module, aProps.record, err = loadRecordCombo(ctx, svc.store, svc.dal, filter.NamespaceID, filter.ModuleID, filter.RecordID)
 			if err != nil {
 				return err
-			} else if svc.ac.CanReadRecord(ctx, aProps.record) {
+			} else if !svc.ac.CanReadRecord(ctx, aProps.record) {
 				return AttachmentErrNotAllowedToReadRecord()
 			}
 		} else if filter.ModuleID > 0 {
 			aProps.namespace, aProps.module, err = loadModuleCombo(ctx, svc.store, filter.NamespaceID, filter.ModuleID)
 			if err != nil {
 				return err
-			} else if svc.ac.CanReadRecord(ctx, aProps.record) {
+			} else if !svc.ac.CanReadModule(ctx, aProps.module) {
 				return AttachmentErrNotAllowedToReadRecord()
 			}
 		}
@@ -126,19 +128,44 @@ func (svc attachment) FindByID(ctx context.Context, namespaceID, attachmentID ui
 	)
 
 	err = func() error {
-		if attachmentID == 0 {
-			return AttachmentErrInvalidID()
-		}
-
-		if att, err = store.LookupComposeAttachmentByID(ctx, svc.store, attachmentID); err != nil {
+		if att, err = loadAttachment(ctx, svc.store, namespaceID, attachmentID); err != nil {
 			return err
 		}
 
 		aProps.setAttachment(att)
+
+		if att.NamespaceID > 0 {
+			if aProps.namespace, err = loadNamespace(ctx, svc.store, att.NamespaceID); err != nil {
+				return err
+			} else if !svc.ac.CanReadNamespace(ctx, aProps.namespace) {
+				return AttachmentErrNotAllowedToReadNamespace()
+			}
+		}
+
 		return nil
 	}()
 
+	if err != nil {
+		att = nil
+	}
+
 	return att, svc.recordAction(ctx, aProps, AttachmentActionLookup, err)
+}
+
+// FindForServing loads attachment without access control check
+//
+// Caller must verify the signature for non-public kinds
+func (svc attachment) FindForServing(ctx context.Context, namespaceID uint64, kind string, attachmentID uint64) (att *types.Attachment, err error) {
+	if att, err = loadAttachment(ctx, svc.store, namespaceID, attachmentID); err != nil {
+		return nil, err
+	}
+
+	if att.Kind != kind {
+		// Make sure attachment is of the requested kind
+		return nil, AttachmentErrNotFound()
+	}
+
+	return att, nil
 }
 
 func (svc attachment) DeleteByID(ctx context.Context, namespaceID, attachmentID uint64) (err error) {
@@ -148,21 +175,53 @@ func (svc attachment) DeleteByID(ctx context.Context, namespaceID, attachmentID 
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		if attachmentID == 0 {
-			return AttachmentErrInvalidID()
-		}
-
-		if att, err = store.LookupComposeAttachmentByID(ctx, s, attachmentID); err != nil {
+		if att, err = loadAttachment(ctx, s, namespaceID, attachmentID); err != nil {
 			return err
 		}
 
 		aProps.setAttachment(att)
+
+		if att.OwnerID != auth.GetIdentityFromContext(ctx).Identity() {
+			// Only owner and namespace managers can remove the attachment
+			if att.NamespaceID == 0 {
+				if !svc.ac.CanCreateNamespace(ctx) {
+					return AttachmentErrNotAllowedToUpdateNamespace()
+				}
+			} else if aProps.namespace, err = loadNamespace(ctx, s, att.NamespaceID); err != nil {
+				return err
+			} else if !svc.ac.CanUpdateNamespace(ctx, aProps.namespace) {
+				return AttachmentErrNotAllowedToUpdateNamespace()
+			}
+		}
 
 		att.DeletedAt = now()
 		return store.UpdateComposeAttachment(ctx, s, att)
 	})
 
 	return svc.recordAction(ctx, aProps, AttachmentActionDelete, err)
+}
+
+func loadAttachment(ctx context.Context, s store.ComposeAttachments, namespaceID, attachmentID uint64) (res *types.Attachment, err error) {
+	if attachmentID == 0 {
+		return nil, AttachmentErrInvalidID()
+	}
+
+	if res, err = store.LookupComposeAttachmentByID(ctx, s, attachmentID); errors.IsNotFound(err) {
+		return nil, AttachmentErrNotFound()
+	} else if err != nil {
+		return nil, err
+	}
+
+	if namespaceID != 0 && namespaceID != res.NamespaceID {
+		// Make sure attachment belongs to the right namespace (when one is given)
+		return nil, AttachmentErrNotFound()
+	}
+
+	if res.DeletedAt != nil {
+		return nil, AttachmentErrNotFound()
+	}
+
+	return
 }
 
 // func (svc attachment) findNamespaceByID(namespaceID uint64) (ns *types.Namespace, err error) {

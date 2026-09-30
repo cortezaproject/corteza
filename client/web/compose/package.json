@@ -31,7 +31,12 @@
   },
   "resolutions": {
     "cross-spawn": "^7.0.6",
-    "postcss": "^8.5.3"
+    "postcss": "^8.5.3",
+    "body-parser": "^1.20.6",
+    "on-headers": "^1.1.0",
+    "qs": "^6.16.0",
+    "**/express/path-to-regexp": "0.1.13",
+    "**/editorconfig/minimatch": "^9.0.9"
   },
   "dependencies": {
     "@cortezaproject/corteza-js": "^2026.9.0-dev.1",
@@ -51,7 +56,7 @@
     "axios": "^1.8.3",
     "bootstrap-vue": "2.23.1",
     "compact-timezone-list": "^1.0.6",
-    "echarts": "5.6.0",
+    "echarts": "6.1.0",
     "file-saver": "^2.0.2",
     "hex-rgb": "^4.1.0",
     "i18next": "^23.16.8",

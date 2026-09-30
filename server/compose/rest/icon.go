@@ -117,9 +117,11 @@ func (ctrl *Icon) Delete(ctx context.Context, r *request.IconDelete) (interface{
 		return nil, errors.Unauthorized("cannot delete icon")
 	}
 
-	_, err := ctrl.attachment.FindByID(ctx, 0, r.IconID)
+	a, err := ctrl.attachment.FindByID(ctx, 0, r.IconID)
 	if err != nil {
 		return nil, err
+	} else if a.Kind != types.IconAttachment {
+		return nil, service.AttachmentErrNotFound()
 	}
 
 	return api.OK(), ctrl.attachment.DeleteByID(ctx, 0, r.IconID)

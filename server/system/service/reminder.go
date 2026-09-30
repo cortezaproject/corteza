@@ -189,6 +189,11 @@ func (svc reminder) Update(ctx context.Context, upd *types.Reminder) (r *types.R
 			return
 		}
 
+		// reminder must be accessible before it can be changed or reassigned
+		if !svc.canAccess(ctx, r) {
+			return ReminderErrNotAllowedToRead()
+		}
+
 		if err := svc.checkAssignee(ctx, upd); err != nil {
 			return err
 		}

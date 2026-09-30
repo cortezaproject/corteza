@@ -474,6 +474,11 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 			if session, ok = namespaceSessionStore[sessionID]; !ok {
 				return NamespaceErrImportSessionNotFound()
 			}
+
+			if session.UserID != auth.GetIdentityFromContext(ctx).Identity() {
+				// sessions of other users are out of reach
+				return NamespaceErrImportSessionNotFound()
+			}
 			defer func() {
 				delete(namespaceSessionStore, sessionID)
 			}()

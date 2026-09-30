@@ -12,6 +12,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+
 )
 
 type (
@@ -30,7 +32,7 @@ type (
 		Config PageLayoutConfig `json:"config"`
 		Blocks PageLayoutBlocks `json:"blocks,omitempty"`
 
-		Labels map[string]string `json:"labels,omitempty"`
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		OwnedBy uint64 `json:"ownedBy,string"`
 
@@ -82,10 +84,20 @@ type (
 	PageLayoutConfig struct {
 		Visibility PageLayoutVisibility `json:"visibility"`
 
-		Buttons PageLayoutButtonConfig `json:"buttons"`
-		Actions []PageLayoutAction     `json:"actions,omitempty"`
+		Buttons    PageLayoutButtonConfig `json:"buttons"`
+		Actions    []PageLayoutAction     `json:"actions,omitempty"`
+		Validation PageLayoutValidation   `json:"validation"`
 
 		UseTitle bool `json:"useTitle"`
+	}
+
+	PageLayoutValidation struct {
+		RequiredFields []PageLayoutRequiredField `json:"requiredFields,omitempty"`
+	}
+
+	PageLayoutRequiredField struct {
+		Field     string `json:"field"`
+		Condition string `json:"condition"`
 	}
 
 	PageLayoutVisibility struct {
@@ -124,7 +136,7 @@ type (
 		Query        string   `json:"query"`
 
 		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 
@@ -175,7 +187,7 @@ func (p *PageLayout) decodeTranslations(tt locale.ResourceTranslationIndex) {
 			"{{actionID}}", strconv.FormatUint(actionID, 10),
 		)
 
-		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPageLayoutConfigActionsActionIDMetaLabel.Path)); aux != nil {
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDTitle.Path)); aux != nil {
 			p.Config.Actions[i].Meta.Label = aux.Msg
 		}
 	}

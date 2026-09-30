@@ -52,7 +52,7 @@ func resolveContentLanguageHeaders(h http.Header, ll *service) language.Tag {
 		return language.Und
 	}
 
-	if tag, err := language.Parse(cLang); err != nil {
+	if tag, err := ParseTag(cLang); err != nil {
 		return language.Und
 	} else {
 		return tag
@@ -97,7 +97,7 @@ func resolveAcceptLanguageHeaders(r *http.Request, ll *service) (tag language.Ta
 		preferred = ll.Default().Tag
 		supported = ll.Tags()
 
-		accepted, _, err = language.ParseAcceptLanguage(raw)
+		accepted, _, err = ParseAcceptLanguage(raw)
 	)
 
 	if err == nil {

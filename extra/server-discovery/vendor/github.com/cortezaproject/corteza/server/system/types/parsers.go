@@ -46,3 +46,13 @@ func ParseRoleMeta(ss []string) (p *RoleMeta, err error) {
 	p = &RoleMeta{}
 	return p, parseStringsInput(ss, &p)
 }
+
+func ParseUserGroupConfig(ss []string) (p *UserGroupConfig, err error) {
+	p = &UserGroupConfig{}
+	return p, parseStringsInput(ss, &p)
+}
+
+func ParseUserGroupMeta(ss []string) (p *UserGroupMeta, err error) {
+	p = &UserGroupMeta{}
+	return p, parseStringsInput(ss, &p)
+}

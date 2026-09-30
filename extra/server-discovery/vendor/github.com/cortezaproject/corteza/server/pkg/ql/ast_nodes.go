@@ -135,6 +135,22 @@ func (n *ASTNode) CollectSymbols() (out []string) {
 	return
 }
 
+func (n *ASTNode) CollectUniqueSymbols() []string {
+	seen := make(map[string]struct{}, 8)
+	n.Traverse(func(a *ASTNode) (bool, *ASTNode, error) {
+		if a.Symbol != "" {
+			seen[a.Symbol] = struct{}{}
+		}
+		return true, a, nil
+	})
+
+	out := make([]string, 0, len(seen))
+	for s := range seen {
+		out = append(out, s)
+	}
+	return out
+}
+
 // Traverse traverses the AST down to leaf nodes.
 //
 // If fnc. returns false, the traversal of the current branch ends.

@@ -113,6 +113,16 @@ auth: schema.#optionsGroup & {
 
 			defaultGoExpr: "FullURL(\"/auth\")"
 		}
+		default_redirect_URIs: {
+			description: """
+				Space separated list of redirect URIs allowed for auth clients that do not have their own redirect URIs set.
+				Origins of AUTH_BASE_URL and webapp domain (DOMAIN_WEBAPP) are always allowed and do not need to be listed.
+
+				Scheme, host and port must match exactly, path of the redirect URI must be under the listed path.
+				Use * to allow redirection to any URI (not recommended).
+				"""
+			env: "AUTH_DEFAULT_REDIRECT_URIS"
+		}
 		session_cookie_name: {
 			description:  "Session cookie name"
 			defaultValue: "session"

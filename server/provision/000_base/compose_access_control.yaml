@@ -41,6 +41,7 @@ allow:
       - settings.read
       - settings.manage
       - namespace.create
+      - email-notifications.send
       - namespaces.search
 
     corteza::compose:namespace/*:
@@ -100,6 +101,7 @@ allow:
       - settings.read
       - settings.manage
       - namespace.create
+      - email-notifications.send
       - namespaces.search
 
     corteza::compose:namespace/*:

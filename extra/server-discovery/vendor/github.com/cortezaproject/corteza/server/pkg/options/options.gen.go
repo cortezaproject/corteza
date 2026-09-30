@@ -18,8 +18,9 @@ type (
 	}
 
 	HTTPClientOpt struct {
-		TlsInsecure bool          `env:"HTTP_CLIENT_TLS_INSECURE"`
-		Timeout     time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
+		TlsInsecure        bool          `env:"HTTP_CLIENT_TLS_INSECURE"`
+		Timeout            time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
+		RestrictedNetworks string        `env:"HTTP_CLIENT_RESTRICTED_NETWORKS"`
 	}
 
 	HttpServerOpt struct {
@@ -45,6 +46,7 @@ type (
 		WebappBaseDir          string `env:"HTTP_WEBAPP_BASE_DIR"`
 		WebappList             string `env:"HTTP_WEBAPP_LIST"`
 		SslTerminated          bool   `env:"HTTP_SSL_TERMINATED"`
+		CorsAllowedOrigins     string `env:"HTTP_CORS_ALLOWED_ORIGINS"`
 		AssetsPath             string `env:"HTTP_SERVER_ASSETS_PATH"`
 		WebConsoleEnabled      bool   `env:"HTTP_SERVER_WEB_CONSOLE_ENABLED"`
 		WebConsoleUsername     string `env:"HTTP_SERVER_WEB_CONSOLE_USERNAME"`
@@ -106,6 +108,7 @@ type (
 		ExternalRedirectURL      string        `env:"AUTH_EXTERNAL_REDIRECT_URL"`
 		ExternalCookieSecret     string        `env:"AUTH_EXTERNAL_COOKIE_SECRET"`
 		BaseURL                  string        `env:"AUTH_BASE_URL"`
+		DefaultRedirectURIs      string        `env:"AUTH_DEFAULT_REDIRECT_URIS"`
 		SessionCookieName        string        `env:"AUTH_SESSION_COOKIE_NAME"`
 		SessionCookiePath        string        `env:"AUTH_SESSION_COOKIE_PATH"`
 		SessionCookieDomain      string        `env:"AUTH_SESSION_COOKIE_DOMAIN"`
@@ -120,6 +123,8 @@ type (
 		CsrfFieldName            string        `env:"AUTH_CSRF_FIELD_NAME"`
 		CsrfCookieName           string        `env:"AUTH_CSRF_COOKIE_NAME"`
 		DefaultClient            string        `env:"AUTH_DEFAULT_CLIENT"`
+		DefaultUserGroup         string        `env:"AUTH_DEFAULT_USER_GROUP"`
+		DefaultSubUserGroup      string        `env:"AUTH_DEFAULT_SUB_USER_GROUP"`
 		AssetsPath               string        `env:"AUTH_ASSETS_PATH"`
 		DevelopmentMode          bool          `env:"AUTH_DEVELOPMENT_MODE"`
 		ProvisionSuperUser       string        `env:"AUTH_PROVISION_SUPER_USER"`
@@ -257,10 +262,14 @@ type (
 	}
 
 	DiscoveryOpt struct {
-		Enabled       bool   `env:"DISCOVERY_ENABLED"`
-		Debug         bool   `env:"DISCOVERY_DEBUG"`
-		CortezaDomain string `env:"DISCOVERY_CORTEZA_DOMAIN"`
-		BaseUrl       string `env:"DISCOVERY_BASE_URL"`
+		Enabled             bool   `env:"DISCOVERY_ENABLED"`
+		Debug               bool   `env:"DISCOVERY_DEBUG"`
+		CortezaDomain       string `env:"DISCOVERY_CORTEZA_DOMAIN"`
+		BaseUrl             string `env:"DISCOVERY_BASE_URL"`
+		EmbeddingsEnabled   bool   `env:"DISCOVERY_EMBEDDINGS_ENABLED"`
+		EmbeddingsDimension int    `env:"DISCOVERY_EMBEDDINGS_DIMENSION"`
+		HnswEfConstruction  int    `env:"DISCOVERY_HNSW_EF_CONSTRUCTION"`
+		HnswM               int    `env:"DISCOVERY_HNSW_M"`
 	}
 
 	AttachmentOpt struct {
@@ -307,7 +316,8 @@ func DB() (o *DBOpt) {
 // This function is auto-generated
 func HTTPClient() (o *HTTPClientOpt) {
 	o = &HTTPClientOpt{
-		Timeout: 30 * time.Second,
+		Timeout:            30 * time.Second,
+		RestrictedNetworks: "link-local",
 	}
 
 	// Custom defaults
@@ -350,6 +360,7 @@ func HttpServer() (o *HttpServerOpt) {
 		WebappBaseDir:          "./webapp/public",
 		WebappList:             "admin,compose,workflow,reporter,privacy",
 		SslTerminated:          isSecure(),
+		CorsAllowedOrigins:     "http://*,https://*",
 		WebConsoleEnabled:      false,
 		WebConsoleUsername:     "admin",
 		WebConsolePassword:     string(rand.Bytes(32)),
@@ -541,6 +552,8 @@ func Auth() (o *AuthOpt) {
 		CsrfFieldName:            "same-site-authenticity-token",
 		CsrfCookieName:           "same-site-authenticity-token",
 		DefaultClient:            "corteza-webapp",
+		DefaultUserGroup:         "default-root",
+		DefaultSubUserGroup:      "default-sub-root",
 	}
 
 	// Custom defaults
@@ -1026,7 +1039,7 @@ func Workflow() (o *WorkflowOpt) {
 		Register:          true,
 		CallStackSize:     16,
 		StackTraceEnabled: true,
-		StackTraceFull:    true,
+		StackTraceFull:    false,
 	}
 
 	// Custom defaults
@@ -1053,8 +1066,12 @@ func Workflow() (o *WorkflowOpt) {
 // This function is auto-generated
 func Discovery() (o *DiscoveryOpt) {
 	o = &DiscoveryOpt{
-		Enabled: false,
-		Debug:   false,
+		Enabled:             false,
+		Debug:               false,
+		EmbeddingsEnabled:   false,
+		EmbeddingsDimension: 384,
+		HnswEfConstruction:  128,
+		HnswM:               16,
 	}
 
 	// Custom defaults

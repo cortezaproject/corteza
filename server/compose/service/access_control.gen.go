@@ -372,6 +372,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"any":  types.ComponentRbacResource(),
 			"op":   "resource-translations.manage",
 		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "email-notifications.send",
+		},
 	}
 
 	func(svc interface{}) {
@@ -778,6 +783,14 @@ func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool
 	return svc.can(ctx, "resource-translations.manage", r)
 }
 
+// CanSendEmailNotifications checks if current user can send email notifications
+//
+// This function is auto-generated
+func (svc accessControl) CanSendEmailNotifications(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "email-notifications.send", r)
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -946,6 +959,7 @@ func rbacResourceOperations(r string) map[string]bool {
 			"namespace.create":             true,
 			"namespaces.search":            true,
 			"resource-translations.manage": true,
+			"email-notifications.send":     true,
 		}
 	}
 

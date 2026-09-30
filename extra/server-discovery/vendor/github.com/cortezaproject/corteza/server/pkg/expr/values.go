@@ -43,6 +43,12 @@ type (
 		AssignFieldValue(Pather, TypedValue) error
 	}
 
+	// FlatStore marks types whose keys must never be path-split (e.g. KV, KVV).
+	// Assign will use the full key string as-is instead of traversing dot-separated segments.
+	FlatStore interface {
+		isFlatStore()
+	}
+
 	Iterator interface {
 		Each(func(k string, v TypedValue) error) error
 	}

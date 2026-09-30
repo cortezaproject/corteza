@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/service/event"
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
@@ -202,7 +203,7 @@ func (svc pageLayout) Create(ctx context.Context, new *types.PageLayout) (*types
 
 		// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 		if !svc.ac.CanCreatePageLayoutOnPage(ctx, pg) {
-			if new.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+			if !isPersonalPageLayout(ctx, pg, new) {
 				return PageLayoutErrNotAllowedToCreate()
 			}
 		}
@@ -398,6 +399,11 @@ func (svc pageLayout) lookup(ctx context.Context, namespaceID uint64, lookup fun
 			return err
 		}
 
+		if p.NamespaceID != namespaceID {
+			// Make sure page layout belongs to the right namespace
+			return PageLayoutErrNotFound()
+		}
+
 		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(locale.GetAcceptLanguageFromContext(ctx), p.ResourceTranslation()))
 
 		aProps.setPageLayout(p)
@@ -442,7 +448,7 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 
 		// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 		if !svc.ac.CanUpdatePageLayout(ctx, res) {
-			if res.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+			if !isPersonalPageLayout(ctx, pg, res) {
 				return pageLayoutUnchanged, PageLayoutErrNotAllowedToUpdate()
 			}
 		}
@@ -539,7 +545,7 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 func (svc pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
 	// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 	if !svc.ac.CanDeletePageLayout(ctx, m) {
-		if m.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+		if !isPersonalPageLayout(ctx, pg, m) {
 			return pageLayoutUnchanged, PageLayoutErrNotAllowedToDelete()
 		}
 	}
@@ -556,7 +562,7 @@ func (svc pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg 
 func (svc pageLayout) handleUndelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
 	// Allow users to manage their personal layouts regardless of RBAC (when enabled)
 	if !svc.ac.CanDeletePageLayout(ctx, m) {
-		if m.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+		if !isPersonalPageLayout(ctx, pg, m) {
 			return pageLayoutUnchanged, PageLayoutErrNotAllowedToUndelete()
 		}
 	}
@@ -585,6 +591,7 @@ func (svc *pageLayout) UpdateConfig(ss *systemTypes.AppSettings) {
 
 func loadPageLayoutCombo(ctx context.Context, s interface {
 	store.ComposePageLayouts
+	store.ComposePages
 	store.ComposeNamespaces
 }, namespaceID, pageID, pageLayoutID uint64) (ns *types.Namespace, pg *types.Page, c *types.PageLayout, err error) {
 	ns, err = loadNamespace(ctx, s, namespaceID)
@@ -593,6 +600,12 @@ func loadPageLayoutCombo(ctx context.Context, s interface {
 	}
 
 	c, err = loadPageLayout(ctx, s, namespaceID, pageID, pageLayoutID)
+	if err != nil {
+		return
+	}
+
+	// page is needed to check if personal layouts are allowed
+	pg, err = loadPage(ctx, s, namespaceID, c.PageID)
 	return
 }
 
@@ -632,4 +645,9 @@ func toLabeledPageLayouts(set []*types.PageLayout) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+// isPersonalPageLayout checks if layout is a personal layout of the current user
+func isPersonalPageLayout(ctx context.Context, pg *types.Page, l *types.PageLayout) bool {
+	return pg.Meta.AllowPersonalLayouts && l.OwnedBy != 0 && l.OwnedBy == auth.GetIdentityFromContext(ctx).Identity()
 }

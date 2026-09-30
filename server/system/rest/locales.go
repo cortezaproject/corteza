@@ -65,7 +65,7 @@ func (ctrl Locale) Get(ctx context.Context, r *request.LocaleGet) (interface{}, 
 		var ll = []language.Tag{}
 
 		for _, candidate := range strings.Split(r.Lang, langSplit) {
-			ll = append(ll, language.Make(candidate))
+			ll = append(ll, locale.MakeTag(candidate))
 			//if svc.HasLanguage(tmp) {
 			//	ll = append(ll, lang)
 			//	break
@@ -126,7 +126,7 @@ func (ctrl Locale) CreateResource(ctx context.Context, r *request.LocaleCreateRe
 	var (
 		err error
 		app = &types.ResourceTranslation{
-			Lang:     types.Lang{Tag: language.Make(r.Lang)},
+			Lang:     types.Lang{Tag: locale.MakeTag(r.Lang)},
 			Resource: r.Resource,
 			K:        r.Key,
 			Message:  r.Message,
@@ -143,7 +143,7 @@ func (ctrl Locale) UpdateResource(ctx context.Context, r *request.LocaleUpdateRe
 		err error
 		app = &types.ResourceTranslation{
 			ID:       r.TranslationID,
-			Lang:     types.Lang{Tag: language.Make(r.Lang)},
+			Lang:     types.Lang{Tag: locale.MakeTag(r.Lang)},
 			Resource: r.Resource,
 			K:        r.Key,
 			Message:  r.Message,

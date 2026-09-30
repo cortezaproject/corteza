@@ -528,6 +528,11 @@ func (svc page) lookup(ctx context.Context, namespaceID uint64, lookup func(*pag
 			return err
 		}
 
+		if p.NamespaceID != namespaceID {
+			// Make sure page belongs to the right namespace
+			return PageErrNotFound()
+		}
+
 		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(locale.GetAcceptLanguageFromContext(ctx), p.ResourceTranslation()))
 
 		aProps.setPage(p)

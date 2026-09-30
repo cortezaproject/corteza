@@ -18,8 +18,9 @@ type (
 	}
 
 	HTTPClientOpt struct {
-		TlsInsecure bool          `env:"HTTP_CLIENT_TLS_INSECURE"`
-		Timeout     time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
+		TlsInsecure        bool          `env:"HTTP_CLIENT_TLS_INSECURE"`
+		Timeout            time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
+		RestrictedNetworks string        `env:"HTTP_CLIENT_RESTRICTED_NETWORKS"`
 	}
 
 	HttpServerOpt struct {
@@ -107,6 +108,7 @@ type (
 		ExternalRedirectURL      string        `env:"AUTH_EXTERNAL_REDIRECT_URL"`
 		ExternalCookieSecret     string        `env:"AUTH_EXTERNAL_COOKIE_SECRET"`
 		BaseURL                  string        `env:"AUTH_BASE_URL"`
+		DefaultRedirectURIs      string        `env:"AUTH_DEFAULT_REDIRECT_URIS"`
 		SessionCookieName        string        `env:"AUTH_SESSION_COOKIE_NAME"`
 		SessionCookiePath        string        `env:"AUTH_SESSION_COOKIE_PATH"`
 		SessionCookieDomain      string        `env:"AUTH_SESSION_COOKIE_DOMAIN"`
@@ -314,7 +316,8 @@ func DB() (o *DBOpt) {
 // This function is auto-generated
 func HTTPClient() (o *HTTPClientOpt) {
 	o = &HTTPClientOpt{
-		Timeout: 30 * time.Second,
+		Timeout:            30 * time.Second,
+		RestrictedNetworks: "link-local",
 	}
 
 	// Custom defaults

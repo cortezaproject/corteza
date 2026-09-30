@@ -76,6 +76,7 @@ type (
 
 		CanExportNamespace(context.Context, *types.Namespace) bool
 		CanUpdateNamespace(context.Context, *types.Namespace) bool
+		CanManageResourceTranslations(context.Context) bool
 		CanDeleteNamespace(context.Context, *types.Namespace) bool
 		CanManageNamespace(context.Context, *types.Namespace) bool
 
@@ -154,6 +155,19 @@ func (ctrl Namespace) ListTranslations(ctx context.Context, r *request.Namespace
 }
 
 func (ctrl Namespace) UpdateTranslations(ctx context.Context, r *request.NamespaceUpdateTranslations) (interface{}, error) {
+	ns, err := ctrl.namespace.FindByID(ctx, r.NamespaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ctrl.ac.CanUpdateNamespace(ctx, ns) && !ctrl.ac.CanManageResourceTranslations(ctx) {
+		return nil, service.NamespaceErrNotAllowedToUpdate()
+	}
+
+	if err = checkTranslatedResources(r.Translations, ns.ResourceTranslation()); err != nil {
+		return nil, err
+	}
+
 	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 

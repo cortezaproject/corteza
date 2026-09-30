@@ -2,13 +2,13 @@ package types
 
 type (
 	RoleMember struct {
-		RoleID uint64
-		UserID uint64
+		RoleID   uint64
+		Resource string
 	}
 
 	RoleMemberFilter struct {
-		RoleID uint64
-		UserID uint64
-		Limit  uint
+		RoleID   uint64
+		Resource string
+		Limit    uint
 	}
 )

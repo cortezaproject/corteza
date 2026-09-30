@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/locale"
-	"golang.org/x/text/language"
 
 	"github.com/go-chi/jwtauth"
 	oauth2errors "github.com/go-oauth2/oauth2/v4/errors"
@@ -21,6 +20,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/spf13/cast"
 
+	"github.com/cortezaproject/corteza/server/auth/oauth2"
 	"github.com/cortezaproject/corteza/server/auth/request"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
@@ -55,7 +55,22 @@ func (h *AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 	}
 
 	if client != nil {
-		// No client validation is done at this point;
+		if redirectURI := req.Request.Form.Get("redirect_uri"); redirectURI != "" {
+			allowed := oauth2.AllowedRedirectURIs(client.RedirectURI, h.Opt.GetDefaultRedirectURIs())
+			if err = oauth2.ValidateRedirectURI(allowed, redirectURI); err != nil {
+				// oauth2 server redirects errors to the redirect URI from the request,
+				// stop here and never redirect to unverified URI
+				h.Log.Warn("invalid oauth2 redirect URI", zap.String("sent", redirectURI), zap.Strings("valid", allowed))
+				request.SetOauth2Client(req.Session, nil)
+
+				req.Status = http.StatusBadRequest
+				req.Template = TmplInternalError
+				req.Data["error"] = err
+				return nil
+			}
+		}
+
+		// No other client validation is done at this point;
 		// first, see if user is able to authenticate.
 		request.SetOauth2Client(req.Session, client)
 
@@ -279,6 +294,16 @@ func (h *AuthHandlers) oauth2authorizeDefaultClientProc(req *request.AuthReq) (e
 
 	if _, has := r.Form["code"]; has {
 		r.Form.Set("grant_type", oauth2def.AuthorizationCode.String())
+
+		// this endpoint adds the default client secret for the caller,
+		// never let it exchange codes issued for a foreign redirect URI
+		if redirectURI := r.Form.Get("redirect_uri"); redirectURI != "" {
+			allowed := oauth2.AllowedRedirectURIs(h.DefaultClient.RedirectURI, h.Opt.GetDefaultRedirectURIs())
+			if err = oauth2.ValidateRedirectURI(allowed, redirectURI); err != nil {
+				h.Log.Warn("invalid oauth2 redirect URI on default client token request", zap.String("sent", redirectURI), zap.Strings("valid", allowed))
+				return h.tokenError(req.Response, err)
+			}
+		}
 	} else if _, has := r.Form["refresh_token"]; has {
 		r.Form.Set("grant_type", oauth2def.Refreshing.String())
 	} else {
@@ -460,7 +485,7 @@ func (h *AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Au
 		response["avatarID"] = strconv.FormatUint(user.Meta.AvatarID, 10)
 	}
 
-	if h.Locale.HasLanguage(language.Make(user.Meta.PreferredLanguage)) {
+	if h.Locale.HasLanguage(locale.MakeTag(user.Meta.PreferredLanguage)) {
 		response["preferred_language"] = user.Meta.PreferredLanguage
 	} else {
 		response["preferred_language"] = locale.GetAcceptLanguageFromContext(req.Context()).String()

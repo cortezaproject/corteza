@@ -349,6 +349,11 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 			return RecordErrNotAllowedToSearch()
 		}
 
+		// values are aggregated, fields that can not be read must not be part of the report
+		if err = svc.validateReportFieldPermissions(ctx, m, metrics, dimensions, f); err != nil {
+			return err
+		}
+
 		pp, agg, err := recordReportToDalPipeline(m, metrics, dimensions, f)
 		if err != nil {
 			return err
@@ -1951,6 +1956,11 @@ func (svc record) TriggerScript(ctx context.Context, namespaceID, moduleID, reco
 		return nil, nil, err
 	}
 
+	// record is passed to the script and returned to the caller
+	if !svc.ac.CanReadRecord(ctx, r) {
+		return nil, nil, RecordErrNotAllowedToRead()
+	}
+
 	original := r.Clone()
 	r.Values = values.Sanitizer().Run(m, rvs)
 	validated := values.Validator().Run(ctx, svc.store, m, r)
@@ -2675,6 +2685,30 @@ func (svc record) validateFilterFieldPermissions(ctx context.Context, ac recordV
 
 		if !ac.CanReadRecordValueOnModuleField(ctx, field) {
 			return RecordErrNotAllowedToFilterByField(&recordActionProps{field: symbol})
+		}
+	}
+
+	return nil
+}
+
+// validateReportFieldPermissions checks if the user is allowed to read all fields used by the report
+//
+// Metrics and dimensions are free-form expressions, fields are matched by their name
+func (svc record) validateReportFieldPermissions(ctx context.Context, m *types.Module, exprs ...string) error {
+	for _, f := range m.Fields {
+		if svc.ac.CanReadRecordValueOnModuleField(ctx, f) {
+			continue
+		}
+
+		re, err := regexp.Compile(`(^|[^\w])` + regexp.QuoteMeta(f.Name) + `([^\w]|$)`)
+		if err != nil {
+			return err
+		}
+
+		for _, e := range exprs {
+			if re.MatchString(e) {
+				return RecordErrNotAllowedToFilterByField(&recordActionProps{field: f.Name})
+			}
 		}
 	}
 
