@@ -7,6 +7,7 @@ package service
 
 import (
 	"context"
+	"crypto/subtle"
 	"fmt"
 	internalAuth "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
@@ -16,7 +17,6 @@ import (
 	"github.com/crusttech/human/server/system/types"
 	"github.com/dgryski/dgoogauth"
 	"golang.org/x/crypto/bcrypt"
-	rand2 "math/rand"
 	"regexp"
 	"sort"
 	"strconv"
@@ -150,7 +150,7 @@ func (svc *auth) loadUserFromToken(ctx context.Context, token, kind string) (u *
 			return
 		}
 
-		if !c.Valid() || c.Credentials != credentials {
+		if !c.Valid() || subtle.ConstantTimeCompare([]byte(c.Credentials), []byte(credentials)) != 1 {
 			return AuthErrInvalidToken(aam)
 		}
 
@@ -222,7 +222,7 @@ func (svc *auth) createUserToken(ctx context.Context, u *types.User, kind string
 			expiresAt = now().Add(time.Second * time.Duration(expSec))
 
 			// random number, 6 chars
-			token = fmt.Sprintf("%06d", rand2.Int())[0:6]
+			token = fmt.Sprintf("%06d", rand.Intn(1000000))
 		case credentialsTypeCreatePasswordToken:
 			expSec := svc.settings.Auth.Internal.PasswordCreate.Expires
 			if expSec == 0 {
@@ -1032,7 +1032,7 @@ func (svc *auth) ValidateEmailOTP(ctx context.Context, code string) (err error) 
 				continue
 			}
 
-			if c.Credentials != code {
+			if subtle.ConstantTimeCompare([]byte(c.Credentials), []byte(code)) != 1 {
 				continue
 			}
 
