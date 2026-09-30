@@ -18,11 +18,11 @@ package schema
 	// Before/After event closures passed to onUpdate; false → noop closures.
 	cbEvents: bool | *false
 
-	// templateUpdate: when true, the customBodyOps Update method generates
-	// field copy (from settable), UpdatedAt, store.Update and label.Update
-	// AFTER calling onUpdate. onUpdate then owns only business logic (ACL,
-	// validation). When false (default), onUpdate receives before/after
-	// func() error callbacks and is responsible for the full update body.
+	// templateUpdate is not read by the template. A customBodyOps Update always
+	// calls onUpdate, then copies the settable fields (updateFields) from upd
+	// onto the loaded record and saves that record; onUpdate validates and
+	// prepares upd and does not save. Side effects that read the store go in
+	// the afterUpdate hook.
 	templateUpdate: bool | *false
 
 	// Action-log resource prop name from <resource>_actions.yaml. Usually the
@@ -110,7 +110,7 @@ package schema
 	//   beforeCreate  (ctx context.Context, new *T) error           // after access check, before id/timestamps
 	//   afterCreate   (ctx context.Context, res *T) error           // after store create (+ label create)
 	//   beforeUpdate  (ctx context.Context, upd, existing *T) error // after stale check, before field copy
-	//   afterUpdate   (ctx context.Context, res *T) error           // after store update (+ label update)
+	//   afterUpdate   (ctx context.Context, res *T) error           // after store update (+ label update); with customBodyOps update, after the tx commits
 	//   beforeDelete  (ctx context.Context, res *T) error           // after access check, before soft-delete
 	//   afterDelete   (ctx context.Context, res *T) error           // after store delete -- post-store side effects (reload, cascade, sync)
 	//   beforeUndelete(ctx context.Context, res *T) error           // after access check, before clearing deleted_at
