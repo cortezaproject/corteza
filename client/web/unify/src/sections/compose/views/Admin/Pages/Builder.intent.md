@@ -42,6 +42,7 @@ positions a subset of them.
 
 - Save contract: page blocks = preserved (not in this layout) first + working set tail; new blockIDs are mapped back by index from the response, Tabs children remapped in a second save if needed, then the layout is updated with `{blockID, xywh}` only. Breaking the preserved/tail order corrupts the ID mapping and can orphan or delete other layouts' blocks.
 - Unsaved blockIDs are NoID (`'0'`); identity falls back to `meta.tempID` — all lookups must go through that fallback.
+- A layout referencing the same blockID twice (older data) is loaded with the first reference only; duplicates would share a grid id.
 - `?layoutID` deep link (passed by the page editor's layout-builder buttons) selects that layout on load; falls back to the previously selected, then first, layout when absent or unknown.
 - Deleting an orphan block is staged like every other edit: applied on Save (dropped from the page payload and every referencing layout), discarded when leaving without saving.
 - The dirty baseline (`useDraftGuard`) is captured on load, on layout switch and after a save reloads the page; staged orphan deletions ride in `extra`. Block positions are part of the compared draft — gridstack writes `xywh` back into the working set, so a drag is caught by the same comparison as a config edit.

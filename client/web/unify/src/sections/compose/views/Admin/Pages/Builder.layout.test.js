@@ -78,6 +78,7 @@ vi.mock('@/sections/compose/components/PageBlocks/Grid.vue', () => ({
 }))
 
 import Builder from './Builder.vue'
+import Grid from '@/sections/compose/components/PageBlocks/Grid.vue'
 
 // Globally registered in the app, so `shallow` has nothing to stub them from
 // and each warns once per mount — noise that buries the test's own output.
@@ -185,5 +186,29 @@ describe('page builder load', () => {
     await mountBuilder()
 
     expect(wrapper.text()).toContain('page.build.noLayout')
+  })
+})
+
+describe('page builder layout blocks', () => {
+  it('places a block only once when the layout references it twice', async () => {
+    // Older layouts could list the same block twice after a double paste
+    pages.P1.blocks = [{ blockID: 'B1', kind: 'Content', meta: {} }]
+    layoutsByPage = {
+      P1: [
+        {
+          pageLayoutID: 'L1',
+          pageID: 'P1',
+          blocks: [
+            { blockID: 'B1', xywh: [0, 0, 48, 15] },
+            { blockID: 'B1', xywh: [0, 15, 48, 15] },
+          ],
+        },
+      ],
+    }
+
+    await mountBuilder()
+
+    const grid = wrapper.findComponent(Grid)
+    expect(grid.props('blocks').map(b => b.blockID)).toEqual(['B1'])
   })
 })

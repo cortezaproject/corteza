@@ -1179,7 +1179,10 @@ function saveBlockConfig() {
 // mirroring the view, so the builder shows exactly what the view renders.
 function buildLayoutBlocks(pg, layout) {
   if (!pg?.blocks?.length || !layout?.blocks?.length) return []
+  const seen = new Set()
   return layout.blocks
+    // Skip duplicate references, they would share a grid id
+    .filter(lb => !seen.has(String(lb.blockID)) && seen.add(String(lb.blockID)))
     .map(lb => {
       const pb = pg.blocks.find(b => String(b.blockID) === String(lb.blockID))
       return pb
