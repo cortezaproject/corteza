@@ -18,6 +18,7 @@ services:
       - HTTP_WEBAPP_ENABLED=true
       - ENVIRONMENT=dev
       - AUTH_REQUEST_RATE_LIMIT=0
+      - AUTH_DEFAULT_REDIRECT_URIS=http://localhost:8080
       - FEDERATION_ENABLED=true
       - FEDERATION_HOST=http://corteza
       - FEDERATION_LABEL=Corteza e2e federation host
