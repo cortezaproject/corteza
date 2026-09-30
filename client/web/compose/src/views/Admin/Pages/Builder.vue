@@ -1082,17 +1082,6 @@ export default {
     async copyBlock (index) {
       const block = JSON.stringify(this.blocks[index].clone())
 
-      // Change tabbed blockID to use tempID's since they are persisted on save
-      if (block.kind === 'Tabs') {
-        const { tabs = [] } = block.options
-
-        block.options.tabs = tabs.map(b => {
-          const { tempID } = (this.blocks.find(({ blockID }) => blockID === b.blockID) || {}).meta || {}
-          b.blockID = tempID
-          return b
-        })
-      }
-
       navigator.clipboard.writeText(block).then(() => {
         this.toastSuccess(this.$t('notification:page.copySuccess'))
         this.$refs.pageBuilder.focus()
@@ -1109,7 +1098,16 @@ export default {
         const paste = (event.clipboardData || window.clipboardData).getData('text')
         // Doing this to handle JSON parse error
         try {
-          const block = compose.PageBlockMaker(JSON.parse(paste))
+          // Clone so each paste gets its own tempID
+          const block = compose.PageBlockMaker(JSON.parse(paste)).clone()
+
+          // Drop tabs whose blocks are not on this page (pasted from another page)
+          if (block.kind === 'Tabs') {
+            block.options.tabs = block.options.tabs.filter(({ blockID }) => {
+              return !blockID || [...this.blocks, ...this.page.blocks].some(b => fetchID(b) === blockID)
+            })
+          }
+
           const valid = this.isValid(block)
 
           if (valid) {
@@ -1168,6 +1166,9 @@ export default {
       const { blocks = [] } = this.layout || {}
 
       blocks.forEach(({ blockID, xywh, meta = {} }) => {
+        // Skip duplicate references, the same block twice in the grid locks up the browser
+        if (tempBlocks.some(b => b.blockID === blockID)) return
+
         let block = this.page.blocks.find(b => b.blockID === blockID)
 
         if (block) {
