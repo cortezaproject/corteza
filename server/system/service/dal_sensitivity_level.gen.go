@@ -107,6 +107,7 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 		}
 		res.Handle = upd.Handle
 		res.Level = upd.Level
+		res.Meta = upd.Meta
 		res.UpdatedBy = upd.UpdatedBy
 		res.UpdatedAt = now()
 
@@ -116,6 +117,11 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 
 		return nil
 	})
+
+	// runs once the transaction has committed, so it reads what was saved
+	if err == nil {
+		err = svc.afterUpdate(ctx, res)
+	}
 
 	return res, svc.recordAction(ctx, aProps, DalSensitivityLevelActionUpdate, err, old, res)
 }

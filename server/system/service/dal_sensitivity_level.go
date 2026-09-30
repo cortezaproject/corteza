@@ -115,16 +115,12 @@ func (svc *dalSensitivityLevel) onUpdate(ctx context.Context, s store.Storer, up
 
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	ups, err := svc.prepare(ctx, s, upd)
-	if err != nil {
-		return err
-	}
+	_, err := svc.prepare(ctx, s, upd)
+	return err
+}
 
-	if err = store.UpsertDalSensitivityLevel(ctx, s, ups...); err != nil {
-		return err
-	}
-
-	return dalSensitivityLevelReplace(ctx, svc.services.dal, upd)
+func (svc *dalSensitivityLevel) afterUpdate(ctx context.Context, res *types.DalSensitivityLevel) error {
+	return dalSensitivityLevelReplace(ctx, svc.services.dal, res)
 }
 
 func (svc *dalSensitivityLevel) onDelete(ctx context.Context, s store.Storer, res *types.DalSensitivityLevel, aProps *dalSensitivityLevelActionProps) error {

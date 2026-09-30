@@ -145,10 +145,18 @@ func (svc *apigwFilter) onUpdate(ctx context.Context, s store.Storer, upd *types
 		return err
 	}
 
+	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+	return nil
+}
+
+func (svc *apigwFilter) afterUpdate(ctx context.Context, res *types.ApigwFilter) error {
+	r, err := svc.services.route.FindByID(ctx, res.Route)
+	if err != nil {
+		return err
+	}
+
 	if r.Enabled {
-		if err = apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint); err != nil {
-			return err
-		}
+		return apigw.Service().ReloadEndpoint(ctx, r.Method, r.Endpoint)
 	}
 
 	return nil

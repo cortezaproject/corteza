@@ -118,6 +118,8 @@ exposedModule: {
 
 		actionProp: "module"
 		createProp: "create"
+
+		updateFields: ["Handle", "Name", "NodeID", "ComposeModuleID", "ComposeNamespaceID", "Fields", "UpdatedBy"]
 	}
 
 	store: {

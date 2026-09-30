@@ -165,6 +165,14 @@ dal_connection: {
 		]
 
 		customAccessOps: ["search", "create"]
+
+		// type is fixed at create: an update never turns an external connection
+		// into the primary one, or blanks it
+		updateFields: ["Handle", "Meta", "Config", "UpdatedBy"]
+
+		hooks: {
+			afterUpdate: true
+		}
 	}
 
 	store: {

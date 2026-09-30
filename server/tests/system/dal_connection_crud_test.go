@@ -198,6 +198,69 @@ func Test_dal_connection_update(t *testing.T) {
 		End()
 }
 
+func Test_dal_connection_update_keeps_meta_and_config(t *testing.T) {
+	h := newHelper(t)
+	defer h.clearDalConnections()
+
+	c := h.createDalConnection(&types.DalConnection{Handle: "test_connection"})
+
+	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "update", "dal-config.manage")
+
+	const dsn = "sqlite3://file::memory:?cache=shared&mode=memory&_edited=1"
+
+	h.apiInit().
+		Put(fmt.Sprintf("/dal/connections/%d", c.ID)).
+		Header("Accept", "application/json").
+		Header("Content-Type", "application/json").
+		Body(fmt.Sprintf(`{
+			"handle": "test_connection",
+			"type": "corteza::system:primary-dal-connection",
+			"meta": {"name": "Edited", "ownership": "Ops", "location": {"properties": {"name": "Ljubljana"}}},
+			"config": {"dal": {"type": "corteza::dal:connection:dsn", "params": {"dsn": %q}, "modelIdent": "edited_{{module}}"}}
+		}`, dsn)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal("$.response.meta.name", "Edited")).
+		Assert(jsonpath.Equal("$.response.config.dal.params.dsn", dsn)).
+		End()
+
+	stored, err := store.LookupDalConnectionByID(context.Background(), service.DefaultStore, c.ID)
+	h.noError(err)
+	h.a.Equal("Edited", stored.Meta.Name)
+	h.a.Equal("Ops", stored.Meta.Ownership)
+	h.a.Equal("Ljubljana", stored.Meta.Location.Properties.Name)
+	h.a.Equal(dsn, stored.Config.DAL.Params["dsn"])
+	h.a.Equal("edited_{{module}}", stored.Config.DAL.ModelIdent)
+	h.a.Equal(types.DalConnectionResourceType, stored.Type, "type is fixed at create")
+	h.a.Equal(c.CreatedBy, stored.CreatedBy)
+}
+
+func Test_dal_connection_update_hides_dal_config(t *testing.T) {
+	h := newHelper(t)
+	defer h.clearDalConnections()
+
+	c := h.createDalConnection(&types.DalConnection{Handle: "test_connection"})
+
+	helpers.AllowMe(h, types.DalConnectionRbacResource(0), "update")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/dal/connections/%d", c.ID)).
+		Header("Accept", "application/json").
+		Header("Content-Type", "application/json").
+		Body(`{"handle": "test_connection", "type": "corteza::system:dal-connection", "meta": {"name": "Renamed"}, "config": {}}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal("$.response.meta.name", "Renamed")).
+		Assert(jsonpath.NotPresent("$.response.config.dal")).
+		End()
+
+	stored, err := store.LookupDalConnectionByID(context.Background(), service.DefaultStore, c.ID)
+	h.noError(err)
+	h.a.Equal(c.Config.DAL.Params["dsn"], stored.Config.DAL.Params["dsn"])
+}
+
 func Test_dal_connection_update_primary(t *testing.T) {
 	h := newHelper(t)
 	defer h.clearDalConnections()

@@ -134,13 +134,16 @@ func (svc *dalConnection) onUpdate(ctx context.Context, s store.Storer, upd *typ
 	}
 
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
+	return nil
+}
 
-	if err := store.UpdateDalConnection(ctx, s, upd); err != nil {
+func (svc *dalConnection) afterUpdate(ctx context.Context, res *types.DalConnection) error {
+	if err := dalConnectionReplace(ctx, svc.store.ToDalConn(), svc.services.dal, res); err != nil {
 		return err
 	}
 
-	svc.proc(ctx, upd)
-	return dalConnectionReplace(ctx, svc.store.ToDalConn(), svc.services.dal, upd)
+	svc.proc(ctx, res)
+	return nil
 }
 
 func (svc *dalConnection) onDelete(ctx context.Context, s store.Storer, res *types.DalConnection, aProps *dalConnectionActionProps) error {

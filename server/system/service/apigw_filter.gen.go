@@ -105,6 +105,7 @@ func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (res
 		res.Kind = upd.Kind
 		res.Ref = upd.Ref
 		res.Enabled = upd.Enabled
+		res.Params = upd.Params
 		res.UpdatedBy = upd.UpdatedBy
 		res.UpdatedAt = now()
 
@@ -114,6 +115,11 @@ func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (res
 
 		return nil
 	})
+
+	// runs once the transaction has committed, so it reads what was saved
+	if err == nil {
+		err = svc.afterUpdate(ctx, res)
+	}
 
 	return res, svc.recordAction(ctx, aProps, ApigwFilterActionUpdate, err, old, res)
 }

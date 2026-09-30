@@ -355,6 +355,13 @@ func (svc *{{ .ident }}) Update(ctx context.Context, upd *{{ .goType }}) (res *{
 
 		return nil
 	})
+{{- if .hooks.afterUpdate }}
+
+	// runs once the transaction has committed, so it reads what was saved
+	if err == nil {
+		err = svc.afterUpdate(ctx, res)
+	}
+{{- end }}
 {{- end }}
 {{- else }}
 	err = func() (err error) {

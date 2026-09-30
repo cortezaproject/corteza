@@ -107,6 +107,7 @@ func (svc *sharedModule) Update(ctx context.Context, upd *types.SharedModule) (r
 		}
 		res.Handle = upd.Handle
 		res.Name = upd.Name
+		res.Fields = upd.Fields
 		res.UpdatedBy = upd.UpdatedBy
 		res.UpdatedAt = now()
 

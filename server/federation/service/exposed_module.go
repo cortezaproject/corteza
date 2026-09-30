@@ -175,8 +175,6 @@ func (svc *exposedModule) onUpdate(ctx context.Context, s store.Storer, upd *typ
 		return ExposedModuleErrComposeModuleNotFound()
 	}
 
-	upd.UpdatedAt = now()
-	upd.CreatedAt = res.CreatedAt
 	upd.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
 	AddFederationLabel(m, "federation", node.BaseURL)

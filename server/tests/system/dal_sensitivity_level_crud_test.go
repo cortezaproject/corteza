@@ -113,7 +113,13 @@ func Test_dal_sensitivity_level_update(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present("$.response.sensitivityLevelID")).
 		Assert(jsonpath.Equal("$.response.handle", "private_edited")).
+		Assert(jsonpath.Equal("$.response.meta.name", "private sensitivity")).
 		End()
+
+	stored, err := store.LookupDalSensitivityLevelByID(context.Background(), service.DefaultStore, sl.ID)
+	h.noError(err)
+	h.a.Equal("private sensitivity", stored.Meta.Name)
+	h.a.Equal("data is private to the owner", stored.Meta.Description)
 }
 
 func Test_dal_sensitivity_level_update_forbidden(t *testing.T) {

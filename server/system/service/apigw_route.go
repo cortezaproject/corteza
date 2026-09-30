@@ -52,21 +52,21 @@ func (svc *apigwRoute) onUpdate(ctx context.Context, s store.Storer, upd *types.
 		return ApigwRouteErrNotAllowedToUpdate(aProps)
 	}
 
-	// res still holds old values here; gen copies Endpoint/Method/Enabled/Group after this hook.
+	// res still holds the stored values here; the generated Update copies upd onto it afterwards.
 	endpointMoved := res.Enabled != upd.Enabled || res.Method != upd.Method || res.Endpoint != upd.Endpoint
 
-	// Meta is not copied by gen.
-	res.Meta = upd.Meta
 	upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	ags := apigw.Service()
-
 	if endpointMoved {
-		ags.NotFound(ctx, res.Method, res.Endpoint)
+		apigw.Service().NotFound(ctx, res.Method, res.Endpoint)
 	}
 
-	if upd.Enabled {
-		return ags.ReloadEndpoint(ctx, upd.Method, upd.Endpoint)
+	return nil
+}
+
+func (svc *apigwRoute) afterUpdate(ctx context.Context, res *types.ApigwRoute) error {
+	if res.Enabled {
+		return apigw.Service().ReloadEndpoint(ctx, res.Method, res.Endpoint)
 	}
 
 	return nil

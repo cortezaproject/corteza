@@ -117,6 +117,8 @@ sharedModule: {
 		actionProp: "module"
 		createProp: "changed"
 		updateProp: "module"
+
+		updateFields: ["Handle", "Name", "Fields", "UpdatedBy"]
 	}
 
 	store: {

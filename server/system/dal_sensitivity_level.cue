@@ -111,6 +111,12 @@ dal_sensitivity_level: {
 		]
 
 		customAccessOps: ["search", "create"]
+
+		updateFields: ["Handle", "Level", "Meta", "UpdatedBy"]
+
+		hooks: {
+			afterUpdate: true
+		}
 	}
 
 	store: {

@@ -140,6 +140,7 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (res *
 		res.Method = upd.Method
 		res.Enabled = upd.Enabled
 		res.Group = upd.Group
+		res.Meta = upd.Meta
 		res.UpdatedBy = upd.UpdatedBy
 		res.UpdatedAt = now()
 
@@ -149,6 +150,11 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (res *
 
 		return nil
 	})
+
+	// runs once the transaction has committed, so it reads what was saved
+	if err == nil {
+		err = svc.afterUpdate(ctx, res)
+	}
 
 	return res, svc.recordAction(ctx, aProps, ApigwRouteActionUpdate, err, old, res)
 }

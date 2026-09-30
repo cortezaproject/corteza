@@ -86,10 +86,8 @@ func (svc *sharedModule) onUpdate(ctx context.Context, s store.Storer, upd *type
 		return SharedModuleErrNodeNotFound()
 	}
 
-	upd.UpdatedAt = now()
 	upd.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
-
-	return store.UpdateFederationSharedModule(ctx, s, upd)
+	return nil
 }
 
 func (svc sharedModule) uniqueCheck(ctx context.Context, m *types.SharedModule) (err error) {

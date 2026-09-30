@@ -551,6 +551,31 @@ func TestApigwFilterUpdate(t *testing.T) {
 		End()
 }
 
+func TestApigwFilterUpdate_params(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoutes()
+
+	r, f := h.createRouteWithFilter("test1", "")
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "read")
+	helpers.AllowMe(h, types.ApigwRouteRbacResource(r.ID), "update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/apigw/filter/%d", f.ID)).
+		Header("Accept", "application/json").
+		Header("Content-Type", "application/json").
+		Body(fmt.Sprintf(`{"routeID":"%d","params":{"header":"X-Edited"}}`, r.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.params.header`, "X-Edited")).
+		End()
+
+	stored, err := store.LookupApigwFilterByID(context.Background(), service.DefaultStore, f.ID)
+	h.noError(err)
+	h.a.Equal("X-Edited", stored.Params["header"])
+	h.a.NotZero(stored.UpdatedBy)
+}
+
 func TestApigwFilterUpdate_enabled(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()

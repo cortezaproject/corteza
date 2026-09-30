@@ -144,6 +144,12 @@ apigw_route: {
 		undelete: true
 
 		customBodyOps: ["create", "update", "delete", "undelete"]
+
+		updateFields: ["Endpoint", "Method", "Enabled", "Group", "Meta", "UpdatedBy"]
+
+		hooks: {
+			afterUpdate: true
+		}
 	}
 
 	store: {

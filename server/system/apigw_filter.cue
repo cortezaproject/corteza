@@ -131,6 +131,12 @@ apigw_filter: {
 		filterProp:     "search"
 		omitCreateProp: true
 		updateProp:     "filter"
+
+		updateFields: ["Route", "Weight", "Kind", "Ref", "Enabled", "Params", "UpdatedBy"]
+
+		hooks: {
+			afterUpdate: true
+		}
 	}
 
 	store: {

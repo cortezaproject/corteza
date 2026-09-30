@@ -106,7 +106,8 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 			return
 		}
 		res.Handle = upd.Handle
-		res.Type = upd.Type
+		res.Meta = upd.Meta
+		res.Config = upd.Config
 		res.UpdatedBy = upd.UpdatedBy
 		res.UpdatedAt = now()
 
@@ -116,6 +117,11 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 
 		return nil
 	})
+
+	// runs once the transaction has committed, so it reads what was saved
+	if err == nil {
+		err = svc.afterUpdate(ctx, res)
+	}
 
 	return res, svc.recordAction(ctx, aProps, DalConnectionActionUpdate, err, old, res)
 }

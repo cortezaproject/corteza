@@ -108,6 +108,9 @@ func (svc *exposedModule) Update(ctx context.Context, upd *types.ExposedModule) 
 		res.Handle = upd.Handle
 		res.Name = upd.Name
 		res.NodeID = upd.NodeID
+		res.ComposeModuleID = upd.ComposeModuleID
+		res.ComposeNamespaceID = upd.ComposeNamespaceID
+		res.Fields = upd.Fields
 		res.UpdatedBy = upd.UpdatedBy
 		res.UpdatedAt = now()
 
