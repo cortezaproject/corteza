@@ -20,7 +20,7 @@
     class="flex flex-col h-full"
     @submit="handleSubmit"
   >
-    <CViewContainer scroll>
+    <CViewContainer scroll width="list">
       <!-- Actions above cards -->
       <div v-if="isEdit" class="flex justify-end gap-2">
         <Button
@@ -154,7 +154,7 @@
                 v-model="animationEnabled"
                 :label="$t('chart.edit.animation.label')"
                 :description="$t('chart.edit.animation.description')"
-                class="self-start"
+                class="lg:col-span-2"
               />
             </div>
           </Panel>
