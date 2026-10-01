@@ -483,18 +483,14 @@ type (
 // WithDefaults sets defaults on copy (!!) of settings
 // to avoid any unintended corruption or leaks
 func (cs AppSettings) WithDefaults() *AppSettings {
-	// The built-in dark assets only stand in for the built-in light ones;
-	// a custom light logo or icon serves the dark theme until a dark one is uploaded.
 	if len(strings.TrimSpace(cs.UI.IconLogo)) == 0 {
 		cs.UI.IconLogo = "/assets/icon.svg"
-
-		if len(strings.TrimSpace(cs.UI.IconLogoDark)) == 0 {
-			cs.UI.IconLogoDark = "/assets/icon-dark.svg"
-		}
 	}
 	if len(strings.TrimSpace(cs.UI.MainLogo)) == 0 {
 		cs.UI.MainLogo = "/assets/logo.svg"
 
+		// The built-in dark wordmark only stands in for the built-in light one;
+		// a custom light logo serves the dark theme until a dark one is uploaded.
 		if len(strings.TrimSpace(cs.UI.MainLogoDark)) == 0 {
 			cs.UI.MainLogoDark = "/assets/logo-dark.svg"
 		}
