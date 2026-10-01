@@ -266,22 +266,12 @@ type (
 
 			Topbar struct {
 				HideAppSelector        bool `json:"hideAppSelector"`
-				HideHelp               bool `json:"hideHelp"`
-				HideForumLink          bool `json:"hideForumLink"`
-				HideDocumentationLink  bool `json:"hideDocumentationLink"`
-				HideFeedbackLink       bool `json:"hideFeedbackLink"`
 				HideProfile            bool `json:"hideProfile"`
 				HideChangePasswordLink bool `json:"hideChangePasswordLink"`
 				HideProfileLink        bool `json:"hideProfileLink"`
 				HideThemeSelector      bool `json:"hideThemeSelector"`
 				HideNotifications      bool `json:"hideNotifications"`
 				ShowDrafts             bool `json:"showDrafts"`
-
-				HelpLinks []struct {
-					Handle string `json:"handle"`
-					URL    string `json:"url"`
-					NewTab bool   `json:"newTab"`
-				} `json:"helpLinks"`
 
 				ProfileLinks []struct {
 					Handle string `json:"handle"`

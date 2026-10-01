@@ -92,11 +92,6 @@ navigation:
   automation: Automation
   chart: Charts
   configuration: Configuration
-  help:
-    documentation: Documentation
-    feedback: Send feedback
-    forum: Help
-    version: 'Version:'
   module: Modules
   more: More
   namespace: Namespaces

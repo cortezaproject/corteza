@@ -70,12 +70,6 @@ settings:
       drafts:
         hide: Hide drafts
       general: General
-      help:
-        hide: Hide help
-        hide-documentation-link: Hide documentation link
-        hide-feedback-link: Hide feedback link
-        hide-forum-link: Hide forum link
-        title: Help
       links:
         handle: Name
         invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
