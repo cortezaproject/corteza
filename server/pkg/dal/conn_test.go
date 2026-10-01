@@ -66,7 +66,7 @@ func Test_getConnection_nilUnderlyingConnection(t *testing.T) {
 	require.NoError(t, err)
 
 	svc.addConnection(&ConnectionWrap{ID: connID})
-	svc.addModelToRegistry(&Model{ConnectionID: connID, ResourceID: modelID, Ident: "t"}, false)
+	svc.addModelToRegistry(nil, &Model{ConnectionID: connID, ResourceID: modelID, Ident: "t"}, false)
 
 	_, err = svc.Search(context.Background(), ModelRef{ConnectionID: connID, ResourceID: modelID}, nil, nil)
 	require.ErrorContains(t, err, "not available")
