@@ -250,6 +250,10 @@ type (
 			MainLogo string `kv:"main-logo" json:"mainLogo"`
 			IconLogo string `kv:"icon-logo" json:"iconLogo"`
 
+			// Dark-theme counterparts; empty means the light asset serves both themes
+			MainLogoDark string `kv:"main-logo-dark" json:"mainLogoDark"`
+			IconLogoDark string `kv:"icon-logo-dark" json:"iconLogoDark"`
+
 			Sidebar struct {
 				// General sidebar settings
 				Disabled bool `json:"disabled"`
@@ -494,6 +498,12 @@ func (cs AppSettings) WithDefaults() *AppSettings {
 	}
 	if len(strings.TrimSpace(cs.UI.MainLogo)) == 0 {
 		cs.UI.MainLogo = "/assets/logo.svg"
+
+		// The built-in dark wordmark only stands in for the built-in light one;
+		// a custom light logo serves the dark theme until a dark one is uploaded.
+		if len(strings.TrimSpace(cs.UI.MainLogoDark)) == 0 {
+			cs.UI.MainLogoDark = "/assets/logo-dark.svg"
+		}
 	}
 
 	return &cs

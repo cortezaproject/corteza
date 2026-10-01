@@ -140,7 +140,13 @@ import { computed, inject, onBeforeUnmount, onMounted, provide, ref, watch } fro
 import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
 
-import { useModuleStore, useNamespaceStore, useUserStore } from '@planetcrust/human-vue'
+import {
+  useBrandLogo,
+  useModuleStore,
+  useNamespaceStore,
+  useOsColorScheme,
+  useUserStore,
+} from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
 import { useAppReachable } from '@/utils/appReachable'
 import { useDocumentTitle } from '@/utils/documentTitle'
@@ -171,8 +177,9 @@ const $eventBus = inject('$eventBus', null)
 
 const applicationsStore = useApplicationsStore()
 const notificationsStore = useNotificationsStore()
-// The configured app icon (a custom upload, or the default).
-const iconUrl = computed(() => $Settings.attachment('ui.iconLogo'))
+// The configured app icon for the OS colour scheme: it is drawn on the
+// browser tab and in desktop notifications, not inside the app.
+const iconUrl = useBrandLogo('icon', { scheme: useOsColorScheme() })
 const systemNotifications = useSystemNotifications({ icon: () => appIconImage(iconUrl.value) })
 const rightSidebarStore = useRightSidebarStore()
 const workflowPromptsStore = useWorkflowPromptsStore()
@@ -311,7 +318,7 @@ const searchRef = ref(null)
 const loading = ref(true)
 let realtimeClient
 
-const logoUrl = computed(() => $Settings.attachment('ui.mainLogo'))
+const logoUrl = useBrandLogo('main')
 
 // Tab title = the heading the active view teleports into the topbar, with the
 // unread count kept in front of it unless notifications are muted.

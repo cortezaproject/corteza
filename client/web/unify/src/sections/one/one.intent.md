@@ -46,7 +46,7 @@ unreachable, and `/one` renders the disabled screen.
 ## Data touched
 
 - `CAppList` (lib/vue) in its `grid` variant — this section is that variant's only consumer.
-- `$Settings.attachment('ui.mainLogo')` for the header logo.
+- `useBrandLogo('main')` (lib/vue) for the header logo, so it follows the active theme.
 - Locale keys `one.apps.*` in the merged `human-webapp` bundle.
 
 ## When changing this

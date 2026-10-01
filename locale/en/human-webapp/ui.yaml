@@ -3,8 +3,6 @@ navGroup:
 settings:
   editor:
     human-studio:
-      branding:
-        title: Branding
       colorPicker: Choose a color
       custom-css: Custom CSS
       iconLogo:
@@ -15,6 +13,8 @@ settings:
       installSassDocs: docs here
       label:
         default: Default
+      logo:
+        darkFallback: Leave empty to use the light-theme image in the dark theme as well
       mainLogo:
         title: Logo
         uploader:

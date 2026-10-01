@@ -147,9 +147,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/App.vue": {
-      "h": "6ce39b891ec8",
+      "h": "5e87e305eafd",
       "doc": "client/web/unify/src/App.intent.md",
-      "t": "2026-09-23"
+      "t": "2026-10-01"
     },
     "client/web/unify/src/config-check.js": {
       "h": "b8ddb8e7274a",
@@ -592,9 +592,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/sections/admin/views/ui/Theming/Index.vue": {
-      "h": "dcd70497d549",
+      "h": "ae8f3a0381b6",
       "doc": "client/web/unify/src/sections/admin/views/ui/Theming/Index.intent.md",
-      "t": "2026-08-19"
+      "t": "2026-10-01"
     },
     "client/web/unify/src/sections/agentic/components/AgentToolDialog.test.ts": {
       "h": "0ee75895019f",
@@ -1497,19 +1497,19 @@
       "t": "2026-08-24"
     },
     "client/web/unify/src/sections/compose/views/Namespace/Edit.back.test.js": {
-      "h": "4ac171ed5eb8",
+      "h": "a9687741ad31",
       "doc": "client/web/unify/src/sections/compose/views/Namespace/Namespace.intent.md",
-      "t": "2026-08-17"
+      "t": "2026-10-01"
     },
     "client/web/unify/src/sections/compose/views/Namespace/Edit.vue": {
-      "h": "acb548e99536",
+      "h": "9a1cc02851de",
       "doc": "client/web/unify/src/sections/compose/views/Namespace/Edit.intent.md",
-      "t": "2026-08-17"
+      "t": "2026-10-01"
     },
     "client/web/unify/src/sections/compose/views/Namespace/List.vue": {
-      "h": "9da0afbd6782",
+      "h": "baac9436fc5f",
       "doc": "client/web/unify/src/sections/compose/views/Namespace/List.intent.md",
-      "t": "2026-08-21"
+      "t": "2026-10-01"
     },
     "client/web/unify/src/sections/compose/views/Namespace/View.redirect.test.js": {
       "h": "c8dad296cdd4",
@@ -1592,9 +1592,9 @@
       "t": "2026-08-24"
     },
     "client/web/unify/src/sections/one/views/AppList.vue": {
-      "h": "3ac7af671ff9",
+      "h": "e3b392400ed6",
       "doc": "client/web/unify/src/sections/one/one.intent.md",
-      "t": "2026-08-24"
+      "t": "2026-10-01"
     },
     "client/web/unify/src/sections/project/components/agents/AgentCreateDialog.vue": {
       "h": "b7926dabdde9",
@@ -2986,6 +2986,11 @@
       "doc": "client/web/unify/src/utils/utils.intent.md",
       "t": "2026-09-23"
     },
+    "client/web/unify/src/utils/favicon.js": {
+      "h": "5d8ca0e051f2",
+      "doc": "client/web/unify/src/utils/utils.intent.md",
+      "t": "2026-10-01"
+    },
     "client/web/unify/tailwind.config.js": {
       "h": "7224bac9794f",
       "doc": "client/web/unify/unify.intent.md",
@@ -4192,9 +4197,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/input/CFileDropZone.vue": {
-      "h": "d158000afaa6",
+      "h": "75e092701289",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-10-01"
     },
     "lib/vue/src/components/input/CFormGroup.vue": {
       "h": "f2d6748488f5",
@@ -4452,9 +4457,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/components/navigation/CSidebar.vue": {
-      "h": "a0177d878eb7",
+      "h": "e5dfe1016b4f",
       "doc": "lib/vue/src/components/navigation/navigation.intent.md",
-      "t": "2026-08-19"
+      "t": "2026-10-01"
     },
     "lib/vue/src/components/navigation/CSidebarNav.expand.test.ts": {
       "h": "aeccd4420b1c",
@@ -4477,9 +4482,9 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/components/navigation/CTopbar.vue": {
-      "h": "1c7738e2b8db",
+      "h": "2652de4b348b",
       "doc": "lib/vue/src/components/navigation/navigation.intent.md",
-      "t": "2026-08-14"
+      "t": "2026-10-01"
     },
     "lib/vue/src/components/navigation/index.ts": {
       "h": "8a1e0cf55eef",
@@ -4706,6 +4711,16 @@
       "doc": "lib/vue/src/composables/composables.intent.md",
       "t": "2026-07-23"
     },
+    "lib/vue/src/composables/useBrandLogo.test.ts": {
+      "h": "e213ac90e576",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-10-01"
+    },
+    "lib/vue/src/composables/useBrandLogo.ts": {
+      "h": "db6a13377c3b",
+      "doc": "lib/vue/src/composables/composables.intent.md",
+      "t": "2026-10-01"
+    },
     "lib/vue/src/composables/useChangedAt.test.ts": {
       "h": "d08ddcb49eaf",
       "doc": "lib/vue/src/composables/composables.intent.md",
@@ -4807,9 +4822,9 @@
       "t": "2026-07-23"
     },
     "lib/vue/src/composables/useTheme.ts": {
-      "h": "c5a7c5616c35",
+      "h": "ad2fca64ea2a",
       "doc": "lib/vue/src/composables/composables.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-10-01"
     },
     "lib/vue/src/composables/useUnsavedGuard.test.ts": {
       "h": "c0ad8da139bc",
@@ -4907,9 +4922,9 @@
       "t": "2026-08-13"
     },
     "lib/vue/src/index.ts": {
-      "h": "c44675aa44b5",
+      "h": "f28d62598af3",
       "doc": "lib/vue/vue.intent.md",
-      "t": "2026-09-28"
+      "t": "2026-10-01"
     },
     "lib/vue/src/libs/url.ts": {
       "h": "2ce73c48a4fa",

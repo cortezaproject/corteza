@@ -1,7 +1,11 @@
 import { definePreset, palette, usePreset } from '@primeuix/themes'
 import Aura from '@primeuix/themes/aura'
+import { ref } from 'vue'
 
-type Theme = 'light' | 'dark'
+export type Theme = 'light' | 'dark'
+
+/** The theme the preset was last built for. */
+export const currentTheme = ref<Theme>('light')
 
 interface SurfacePalette {
   0: string
@@ -89,6 +93,7 @@ export function setThemes(tt: Record<string, any>) {
 export function getTheme(theme: Theme) {
   const variables = getThemeVariables(theme)
 
+  currentTheme.value = theme === 'dark' ? 'dark' : 'light'
   document.documentElement.classList.toggle('dark', theme === 'dark')
 
   return definePreset(Aura, {

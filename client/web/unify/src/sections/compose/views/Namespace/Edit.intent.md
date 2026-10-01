@@ -23,7 +23,7 @@ hide sidebar).
 ## UX capabilities
 
 - Name is required; slug validated as a handle (letter first, then alphanumerics/underscores).
-- Logo: opt-in toggle plus drop-zone upload to the namespace attachment endpoint; preview falls back to the global `ui.mainLogo` setting; clearable.
+- Logo: opt-in toggle plus drop-zone upload to the namespace attachment endpoint; preview falls back to the instance logo for the active theme (`useBrandLogo('main')`); clearable.
 - Edit mode adds topbar tools (visit — disabled while namespace is disabled, configure → `admin.modules`, translator) and export/permissions buttons.
 - Save gated by `canUpdateNamespace` on edit; clone creates a copy with blank slug; delete returns to the list.
 - Back reaches the previous screen, falling back to the namespace list when the editor is the first history entry — which it is whenever a deep link or a disabled namespace's redirect opened it.

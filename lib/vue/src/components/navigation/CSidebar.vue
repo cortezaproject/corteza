@@ -40,17 +40,14 @@
 <script setup>
 import { throttle } from 'lodash-es'
 import Drawer from 'primevue/drawer'
-import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useBrandLogo } from '../../composables/useBrandLogo'
 
 const expanded = defineModel()
 
-const $Settings = inject('$Settings')
-
 const isMobile = ref(false)
 
-const logo = computed(() => {
-  return $Settings.attachment('ui.mainLogo')
-})
+const logo = useBrandLogo('main')
 
 const checkIfMobile = throttle(() => {
   isMobile.value = window.innerWidth < 1024

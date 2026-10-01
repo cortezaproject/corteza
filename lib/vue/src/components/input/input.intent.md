@@ -45,7 +45,7 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 - `CInputSwitch` / `CInputToggleCard` — boolean toggles (inline label vs. card with description/warning).
 - `CInputDateTime` — date/time picker (`showTime`, `timeOnly`, `onlyDate`, min/max).
 - `CInputCron` — cron/interval expression editor.
-- `CInputColorPicker`, `CInputLocation` (map dialog geometry), `CInputFile` + `CFileDropZone` (attachment upload), `CRichTextInput` (tiptap editor + emoji, `submitOnEnter`).
+- `CInputColorPicker`, `CInputLocation` (map dialog geometry), `CInputFile` + `CFileDropZone` (attachment upload; `previewStyle` sets the surface the preview sits on, e.g. the theme's sidebar colour), `CRichTextInput` (tiptap editor + emoji, `submitOnEnter`).
 - `CInputDelete` — confirm-guarded delete button (emits confirmation, no v-model).
 - `CFieldPicker` — dual-list picker of module fields (`allFields` ⇄ v-model selection).
 - `CInputModuleField` — single/`multiple` select of one module's fields; takes `module` or a store-resolved `moduleID`, narrows with `kinds`/`excludeMulti`/`queryableOnly` plus a `filter` predicate for anything those cannot express, appends the record's system fields under `includeSystem`, and offers `extraOptions` (an aggregate like `count`, which is picked here but is not a field) above them. v-model holds `valueKey` (`name`, or `fieldID` for the record block). Labels fall back to the field name, system labels come from `field.system.<name>`, `showName` appends the technical name, and system fields sort last — a caller that builds its own option list drifts from all of it.

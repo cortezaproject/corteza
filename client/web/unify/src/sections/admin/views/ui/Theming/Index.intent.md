@@ -15,14 +15,15 @@ tests: []
 
 ## Intention
 
-Brand the whole webapp: upload main/icon logos and tune per-theme colors and
-custom CSS (`ui.studio` settings), with changes applied live on save.
+Brand the whole webapp per theme: upload a logo and icon for the light and
+the dark theme, tune per-theme colors and custom CSS (`ui.studio` settings),
+with changes applied live on save.
 
 ## UX capabilities
 
-- Logo drop zones upload straight to the `ui.main-logo` / `ui.icon-logo` setting endpoints, and clearing writes the same keys; the structured settings payload reads them back JSON-cased, as `ui.mainLogo` / `ui.iconLogo`. A logo is clearable (back to default) only when its raw setting value starts with `attachment:`.
-- Theme studio tabs — light (default) / dark / general: color variables (light+dark only; primary, success, warning, danger, body/sidebar/topbar backgrounds) with per-variable reset-to-default, and custom CSS per tab.
-- Save writes `ui.studio.themes` + `ui.studio.custom-css` and re-applies the theme immediately (`setThemes` + `useTheme`) so the admin sees changes without refreshing.
+- Theme studio tabs — light (default) / dark / general. The light and dark tabs open with that theme's logo and icon drop zones, previewed on the tab's sidebar colour; uploads go straight to the setting endpoint (`ui.main-logo` / `ui.icon-logo`, dark: `ui.main-logo-dark` / `ui.icon-logo-dark`) and clearing writes the same key; the structured settings payload reads them back JSON-cased (`ui.mainLogo`, `ui.mainLogoDark`, …). A logo is clearable (back to default) only when its raw setting value starts with `attachment:`. A dark slot left empty means the light image serves the dark theme too (the fallback lives in `useBrandLogo`), which the dark tab says under each zone.
+- Color variables (light+dark only; primary, success, warning, danger, body/sidebar/topbar backgrounds) with per-variable reset-to-default, and custom CSS per tab.
+- Save writes `ui.studio.themes` + `ui.studio.custom-css` and re-applies the current theme immediately (`setThemes` + `useTheme(currentTheme)`) so the admin sees changes without refreshing. Logo uploads are not part of Save; they land as they happen.
 
 ## Routes
 
@@ -33,3 +34,4 @@ custom CSS (`ui.studio` settings), with changes applied live on save.
 - Colors are stored as `#`-prefixed hex inside a JSON-stringified `values` blob per theme, but edited without the `#` — keep the strip/add round-trip intact.
 - The theme runtime and app shell consume these settings — key renames are cross-app contract changes.
 - Preserve the `attachment:` check when touching logo upload/clear.
+- Logo slots are one `logoSlot(key, read)` per theme and kind; adding a theme means adding its two slots, never a parallel set of refs and handlers.

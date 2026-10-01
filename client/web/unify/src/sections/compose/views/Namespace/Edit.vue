@@ -208,7 +208,13 @@
 <script setup>
 import { useNamespaceStore } from '@planetcrust/human-vue'
 import { compose } from '@planetcrust/human-js'
-import { components, useFileUpload, useHistoryBack, useDraftGuard } from '@planetcrust/human-vue'
+import {
+  components,
+  useBrandLogo,
+  useFileUpload,
+  useHistoryBack,
+  useDraftGuard,
+} from '@planetcrust/human-vue'
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 
 const { CInputDelete, CFileDropZone, CInputLabel } = components
@@ -222,7 +228,6 @@ const goBack = useHistoryBack()
 const { t } = useI18n()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
-const $Settings = inject('$Settings')
 const namespaceStore = useNamespaceStore()
 
 // State
@@ -244,14 +249,16 @@ const {
   reset: resetLogoUpload,
 } = useFileUpload()
 
+const mainLogo = useBrandLogo('main')
+
 const logoPreviewUrl = computed(() => {
   const logo = namespace.value?.meta?.logo
   if (logo) {
     if (logo.startsWith('http')) return logo
     return $ComposeAPI.baseURL + logo
   }
-  // Fall back to global main logo (same as namespace list view)
-  return $Settings.attachment('ui.mainLogo') || ''
+  // Fall back to the instance logo (same as namespace list view)
+  return mainLogo.value || ''
 })
 
 // Computed

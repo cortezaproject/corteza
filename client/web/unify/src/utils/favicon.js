@@ -1,5 +1,5 @@
-// The tab icon is the configured app icon (`ui.iconLogo`), with a dot over it
-// while there is anything unread.
+// The tab icon is the configured app icon for the OS colour scheme, with a
+// dot over it while there is anything unread.
 import { renderIcon } from '@planetcrust/human-vue'
 import { toValue, watch } from 'vue'
 

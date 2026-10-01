@@ -84,11 +84,7 @@
                   >
                     <Avatar
                       :label="namespace.meta.logoEnabled ? null : namespace.initials"
-                      :image="
-                        namespace.meta.logoEnabled
-                          ? namespace.meta.logo || $Settings.attachment('ui.mainLogo')
-                          : null
-                      "
+                      :image="namespace.meta.logoEnabled ? namespace.meta.logo || mainLogo : null"
                       :pt="{
                         image: { class: 'object-contain' },
                       }"
@@ -188,9 +184,7 @@
         <div class="flex items-center gap-2">
           <Avatar
             :label="data.meta?.logoEnabled ? null : getInitials(data)"
-            :image="
-              data.meta?.logoEnabled ? data.meta?.logo || $Settings.attachment('ui.mainLogo') : null
-            "
+            :image="data.meta?.logoEnabled ? data.meta?.logo || mainLogo : null"
             :pt="{ image: { class: 'object-contain' } }"
             shape="circle"
             :class="{ 'text-muted-color bg-emphasis': !data.meta?.logoEnabled }"
@@ -224,7 +218,7 @@
 
 <script setup>
 import NamespaceImporter from '@/sections/compose/components/Namespaces/NamespaceImporter.vue'
-import { useNamespaceStore } from '@planetcrust/human-vue'
+import { useBrandLogo, useNamespaceStore } from '@planetcrust/human-vue'
 import {
   changedAtText,
   changedAtField,
@@ -243,6 +237,8 @@ const { t } = useI18n()
 const router = useRouter()
 const $ComposeAPI = inject('$ComposeAPI')
 const $toast = inject('$toast')
+
+const mainLogo = useBrandLogo('main')
 const { confirmDelete } = useConfirmDelete()
 const { open: openPermissions } = usePermissions()
 const namespaceStore = useNamespaceStore()

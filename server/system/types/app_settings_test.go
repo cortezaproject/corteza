@@ -89,3 +89,29 @@ func Test_settingsExtAuthProvidersDecode(t *testing.T) {
 		aux.Providers.FindByHandle("nylas"),
 		&ExternalAuthProvider{Enabled: false, Key: "nylas", Handle: "nylas", Label: "Nylas"})
 }
+
+func Test_appSettingsLogoDefaults(t *testing.T) {
+	var (
+		none        = AppSettings{}
+		customLight = AppSettings{}
+		customBoth  = AppSettings{}
+	)
+
+	customLight.UI.MainLogo = "attachment:1"
+	customBoth.UI.MainLogo = "attachment:1"
+	customBoth.UI.MainLogoDark = "attachment:2"
+
+	d := none.WithDefaults()
+	require.Equal(t, "/assets/logo.svg", d.UI.MainLogo)
+	require.Equal(t, "/assets/logo-dark.svg", d.UI.MainLogoDark)
+	require.Equal(t, "/assets/icon.svg", d.UI.IconLogo)
+	require.Empty(t, d.UI.IconLogoDark)
+
+	// a custom light logo serves the dark theme too, never the built-in dark one
+	d = customLight.WithDefaults()
+	require.Equal(t, "attachment:1", d.UI.MainLogo)
+	require.Empty(t, d.UI.MainLogoDark)
+
+	d = customBoth.WithDefaults()
+	require.Equal(t, "attachment:2", d.UI.MainLogoDark)
+}

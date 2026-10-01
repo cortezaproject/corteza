@@ -27,6 +27,7 @@ beyond this app belongs in `lib/vue` / `lib/js` instead.
   application of its own. `enabled` is CAppList's own check and is applied on
   top of all three.
 - `documentTitle.js` — the browser tab title.
+- `favicon.js` — the browser tab icon: the configured app icon for the OS colour scheme, drawn as PNG with an unread dot over it; falls back to the built-in icon when the configured one cannot be drawn.
 
 ## When changing this
 

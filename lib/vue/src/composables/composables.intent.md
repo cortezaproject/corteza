@@ -42,7 +42,8 @@ Sections use these instead of re-implementing per-app variants.
 - useResourceList.ts — full list-view state machine: filter/sort/cursor pagination synced to route query, abortable requests; exposes `filterDefaults`.
 - useResourceStatus.ts — a list's one-at-a-time status: `statusOf(filter, states)` reads it, `statusFilter(status, states)` writes the per-state filters (Deleted keeps rows that also carry another state).
 - useRightSidebarResize.ts — mouse-drag resize state for the right sidebar (280–800px clamp).
-- useTheme.ts — PrimeVue preset construction from theme variables, light/dark handling.
+- useTheme.ts — PrimeVue preset construction from theme variables, light/dark handling; exports `currentTheme`, the reactive theme the preset was last built for (the one source for "is the app dark", in place of sniffing `html.dark`).
+- useBrandLogo.ts — `useBrandLogo(kind, { scheme?, settings? })`: the configured logo (`main`) or icon (`icon`) URL for a theme — dark reads `ui.*LogoDark` and falls back to the light setting when it is empty; follows `currentTheme` unless given another scheme. `useOsColorScheme()` is that other scheme: a singleton ref on `prefers-color-scheme`, for what the browser draws outside the app (tab icon, notifications).
 - useDraftGuard.ts — the unsaved-changes guard for a screen editing one resource: owns the baseline, the deep comparison and the busy suppression; `capture()` marks the current state saved, `extra` covers state held beside the draft.
 - useUnsavedGuard.ts — dirty-state route-leave + tab-close confirmation; `markSaved()` to bypass after save. The primitive under `useDraftGuard`, used directly when dirtiness is already a flag rather than a comparison.
 - useUserResolver.ts — userID → display name via useUserStore (cache-first, single read fallback; caching is best-effort, so a user the store cannot model is still returned to the caller, just uncached).

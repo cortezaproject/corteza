@@ -9,53 +9,6 @@
 
   <div v-else class="flex flex-col h-full">
     <CViewContainer scroll gap="5">
-      <!-- Branding section -->
-      <Panel
-        :header="$t('ui.settings.editor.human-studio.branding.title')"
-        toggleable
-        class="shadow mb-5"
-      >
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Main Logo -->
-          <CFormGroup :label="$t('ui.settings.editor.human-studio.mainLogo.title')">
-            <CFileDropZone
-              accept="image/*"
-              :uploading="mainLogoUploading"
-              :error="mainLogoError"
-              :preview-url="mainLogoUrl"
-              :clearable="mainLogoIsCustom"
-              :drop-label="$t('ui.settings.editor.human-studio.mainLogo.uploader.instructions')"
-              :uploading-label="$t('ui.settings.editor.human-studio.mainLogo.uploader.uploading')"
-              :label="$t('ui.settings.editor.human-studio.mainLogo.title')"
-              compact
-              preview-max-width="100%"
-              preview-max-height="200px"
-              @select="onMainLogoSelect"
-              @clear="onMainLogoClear"
-            />
-          </CFormGroup>
-
-          <!-- Icon Logo -->
-          <CFormGroup :label="$t('ui.settings.editor.human-studio.iconLogo.title')">
-            <CFileDropZone
-              accept="image/*"
-              :uploading="iconLogoUploading"
-              :error="iconLogoError"
-              :preview-url="iconLogoUrl"
-              :clearable="iconLogoIsCustom"
-              :drop-label="$t('ui.settings.editor.human-studio.iconLogo.uploader.instructions')"
-              :uploading-label="$t('ui.settings.editor.human-studio.iconLogo.uploader.uploading')"
-              :label="$t('ui.settings.editor.human-studio.iconLogo.title')"
-              compact
-              preview-max-width="100%"
-              preview-max-height="200px"
-              @select="onIconLogoSelect"
-              @clear="onIconLogoClear"
-            />
-          </CFormGroup>
-        </div>
-      </Panel>
-
       <Panel
         :header="$t('ui.settings.editor.human-studio.title')"
         toggleable
@@ -72,6 +25,41 @@
 
           <TabPanels>
             <TabPanel v-for="theme in themes" :key="theme.id" :value="theme.id">
+              <!-- Logos for this theme, previewed on its sidebar colour -->
+              <div v-if="theme.logos" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <CFormGroup
+                  v-for="kind in logoKinds"
+                  :key="kind"
+                  :label="$t(`ui.settings.editor.human-studio.${kind}Logo.title`)"
+                  :description="
+                    theme.id === 'dark'
+                      ? $t('ui.settings.editor.human-studio.logo.darkFallback')
+                      : undefined
+                  "
+                >
+                  <CFileDropZone
+                    accept="image/*"
+                    :uploading="theme.logos[kind].uploading"
+                    :error="theme.logos[kind].error"
+                    :preview-url="theme.logos[kind].url"
+                    :preview-style="{ backgroundColor: '#' + theme.variables['sidebar-bg'] }"
+                    :clearable="theme.logos[kind].custom"
+                    :drop-label="
+                      $t(`ui.settings.editor.human-studio.${kind}Logo.uploader.instructions`)
+                    "
+                    :uploading-label="
+                      $t(`ui.settings.editor.human-studio.${kind}Logo.uploader.uploading`)
+                    "
+                    :label="$t(`ui.settings.editor.human-studio.${kind}Logo.title`)"
+                    compact
+                    preview-max-width="100%"
+                    preview-max-height="200px"
+                    @select="onLogoSelect(theme.logos[kind], $event)"
+                    @clear="onLogoClear(theme.logos[kind])"
+                  />
+                </CFormGroup>
+              </div>
+
               <!-- Color variables for light/dark tabs only -->
               <div v-if="theme.id !== 'general'" class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                 <CFormGroup
@@ -128,7 +116,13 @@
 <script setup>
 import { inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { setThemes, useTheme, components, useFileUpload } from '@planetcrust/human-vue'
+import {
+  currentTheme,
+  setThemes,
+  useTheme,
+  components,
+  useFileUpload,
+} from '@planetcrust/human-vue'
 
 const { CFileDropZone, CInputColorPicker, CViewContainer } = components
 
@@ -141,25 +135,24 @@ const $Settings = inject('$Settings')
 const loading = ref(false)
 const saving = ref(false)
 
-// Logo upload state
-const {
-  uploading: mainLogoUploading,
-  uploadError: mainLogoError,
-  uploadFileRaw: uploadMainLogoRaw,
-  reset: resetMainLogoUpload,
-} = useFileUpload()
+// One upload slot per theme and kind. Uploads address the setting itself,
+// kebab-cased (`ui.main-logo-dark`); the structured settings payload reads it
+// back JSON-cased (`ui.mainLogoDark`).
+function logoSlot(key, read) {
+  const { uploading, uploadError, uploadFileRaw, reset } = useFileUpload()
+  return reactive({
+    key,
+    read,
+    url: '',
+    custom: false,
+    uploading,
+    error: uploadError,
+    uploadFileRaw,
+    reset,
+  })
+}
 
-const {
-  uploading: iconLogoUploading,
-  uploadError: iconLogoError,
-  uploadFileRaw: uploadIconLogoRaw,
-  reset: resetIconLogoUpload,
-} = useFileUpload()
-
-const mainLogoUrl = ref('')
-const iconLogoUrl = ref('')
-const mainLogoIsCustom = ref(false)
-const iconLogoIsCustom = ref(false)
+const logoKinds = ['main', 'icon']
 
 const themeVariableKeys = [
   'primary',
@@ -198,6 +191,10 @@ const themes = reactive([
     variables: { ...lightModeDefaults },
     defaultVariables: { ...lightModeDefaults },
     customCSS: '',
+    logos: {
+      main: logoSlot('ui.main-logo', 'ui.mainLogo'),
+      icon: logoSlot('ui.icon-logo', 'ui.iconLogo'),
+    },
   },
   {
     id: 'dark',
@@ -205,6 +202,10 @@ const themes = reactive([
     variables: { ...darkModeDefaults },
     defaultVariables: { ...darkModeDefaults },
     customCSS: '',
+    logos: {
+      main: logoSlot('ui.main-logo-dark', 'ui.mainLogoDark'),
+      icon: logoSlot('ui.icon-logo-dark', 'ui.iconLogoDark'),
+    },
   },
   {
     id: 'general',
@@ -212,6 +213,7 @@ const themes = reactive([
     variables: {},
     defaultVariables: {},
     customCSS: '',
+    logos: null,
   },
 ])
 
@@ -220,74 +222,42 @@ function stripHash(color) {
   return color.replace(/^#/, '')
 }
 
-// Logos are read back from the structured settings payload, which is JSON-cased
-// (`ui.mainLogo`); writes address the setting itself, which is kebab-cased
-// (`ui.main-logo`).
 function refreshLogoUrls() {
-  mainLogoUrl.value = $Settings.attachment('ui.mainLogo') || ''
-  iconLogoUrl.value = $Settings.attachment('ui.iconLogo') || ''
+  for (const theme of themes) {
+    for (const slot of Object.values(theme.logos || {})) {
+      slot.url = $Settings.attachment(slot.read) || ''
 
-  // Only show delete button when a custom logo was uploaded (setting starts with 'attachment:')
-  const mainLogoRaw = $Settings.get('ui.mainLogo', '')
-  const iconLogoRaw = $Settings.get('ui.iconLogo', '')
-  mainLogoIsCustom.value = typeof mainLogoRaw === 'string' && mainLogoRaw.startsWith('attachment:')
-  iconLogoIsCustom.value = typeof iconLogoRaw === 'string' && iconLogoRaw.startsWith('attachment:')
+      // Clearable only when a custom image was uploaded
+      const raw = $Settings.get(slot.read, '')
+      slot.custom = typeof raw === 'string' && raw.startsWith('attachment:')
+    }
+  }
 }
 
-async function onMainLogoSelect(files) {
+async function onLogoSelect(slot, files) {
   const file = files[0]
   if (!file) return
 
   try {
-    const endpoint = $SystemAPI.baseURL + $SystemAPI.settingsSetEndpoint({ key: 'ui.main-logo' })
+    const endpoint = $SystemAPI.baseURL + $SystemAPI.settingsSetEndpoint({ key: slot.key })
     const token = $SystemAPI.accessTokenFn ? $SystemAPI.accessTokenFn() : ''
-    await uploadMainLogoRaw(file, { url: endpoint, token })
+    await slot.uploadFileRaw(file, { url: endpoint, token })
     await $Settings.fetch()
     refreshLogoUrls()
     $toast.toastSuccess(t('notification.settings.theming.update.success'))
   } catch {
-    // uploadError is set by composable
+    // slot.error is set by the upload composable
   }
 }
 
-async function onIconLogoSelect(files) {
-  const file = files[0]
-  if (!file) return
-
-  try {
-    const endpoint = $SystemAPI.baseURL + $SystemAPI.settingsSetEndpoint({ key: 'ui.icon-logo' })
-    const token = $SystemAPI.accessTokenFn ? $SystemAPI.accessTokenFn() : ''
-    await uploadIconLogoRaw(file, { url: endpoint, token })
-    await $Settings.fetch()
-    refreshLogoUrls()
-    $toast.toastSuccess(t('notification.settings.theming.update.success'))
-  } catch {
-    // uploadError is set by composable
-  }
-}
-
-async function onMainLogoClear() {
+async function onLogoClear(slot) {
   try {
     await $SystemAPI.settingsUpdate({
-      values: [{ name: 'ui.main-logo', value: null }],
+      values: [{ name: slot.key, value: null }],
     })
     await $Settings.fetch()
     refreshLogoUrls()
-    resetMainLogoUpload()
-    $toast.toastSuccess(t('notification.settings.theming.update.success'))
-  } catch (e) {
-    $toast.toastErrorHandler(t('notification.settings.theming.update.error'))(e)
-  }
-}
-
-async function onIconLogoClear() {
-  try {
-    await $SystemAPI.settingsUpdate({
-      values: [{ name: 'ui.icon-logo', value: null }],
-    })
-    await $Settings.fetch()
-    refreshLogoUrls()
-    resetIconLogoUpload()
+    slot.reset()
     $toast.toastSuccess(t('notification.settings.theming.update.success'))
   } catch (e) {
     $toast.toastErrorHandler(t('notification.settings.theming.update.error'))(e)
@@ -362,8 +332,7 @@ async function handleSave() {
 
     // Apply theme immediately so admin sees changes without refreshing
     setThemes(themeValues)
-    const isDark = document.documentElement.classList.contains('dark')
-    useTheme(isDark ? 'dark' : 'light')
+    useTheme(currentTheme.value)
 
     $toast.toastSuccess(t('notification.settings.theming.update.success'))
   } catch (e) {

@@ -36,14 +36,12 @@
 </template>
 
 <script setup>
-import { components } from '@planetcrust/human-vue'
-import { computed, inject, ref } from 'vue'
+import { components, useBrandLogo } from '@planetcrust/human-vue'
+import { ref } from 'vue'
 
 const { CInputSearch, CAppList } = components
 
 const query = ref('')
 
-const $Settings = inject('$Settings')
-
-const logoUrl = computed(() => $Settings.attachment('ui.mainLogo'))
+const logoUrl = useBrandLogo('main')
 </script>

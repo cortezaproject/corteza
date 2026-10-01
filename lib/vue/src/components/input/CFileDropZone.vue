@@ -132,6 +132,11 @@ const props = defineProps({
     type: String,
     default: '100px',
   },
+  /** Extra styles for the preview container, e.g. the background the image will sit on */
+  previewStyle: {
+    type: Object,
+    default: () => ({}),
+  },
   /** Label for alt text */
   label: {
     type: String,
@@ -149,6 +154,7 @@ const hasPreview = computed(() => {
 })
 
 const previewContainerStyle = computed(() => ({
+  ...props.previewStyle,
   width: props.previewMaxWidth,
   height: props.previewMaxHeight,
 }))

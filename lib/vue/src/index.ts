@@ -65,7 +65,14 @@ export {
   resourceState,
 } from './composables/useChangedAt'
 export { statusFilter, statusOf } from './composables/useResourceStatus'
-export { getTheme, getThemeVariables, setThemes, useTheme } from './composables/useTheme'
+export {
+  currentTheme,
+  getTheme,
+  getThemeVariables,
+  setThemes,
+  useTheme,
+} from './composables/useTheme'
+export { brandLogoUrl, useBrandLogo, useOsColorScheme } from './composables/useBrandLogo'
 export { useDeferredBusy } from './composables/useDeferredBusy'
 export { useTableBusy } from './composables/useTableBusy'
 export { useGrowOnlyColumns } from './composables/useGrowOnlyColumns'

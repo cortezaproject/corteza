@@ -133,6 +133,7 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useInternalLink } from '../../composables/useInternalLink'
+import { useBrandLogo } from '../../composables/useBrandLogo'
 import CNotificationButton from '../notifications/CNotificationButton.vue'
 import CAgentSidebarButton from '../agent/CAgentSidebarButton.vue'
 
@@ -249,9 +250,7 @@ const visiblePageButtons = computed(() => {
   })
 })
 
-const iconLogo = computed(() => {
-  return $Settings.attachment('ui.iconLogo')
-})
+const iconLogo = useBrandLogo('icon')
 
 const helpMenuRef = ref()
 const helpMenu = ref()
