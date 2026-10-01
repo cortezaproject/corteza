@@ -38,14 +38,23 @@ func newIssueHelper() *issueHelper {
 }
 
 func (svc *service) SearchConnectionIssues(connectionID uint64) (out []Issue) {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
 	return svc.connectionIssues[connectionID]
 }
 
 func (svc *service) SearchModelIssues(resourceID uint64) (out []Issue) {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
 	return svc.modelIssues[resourceID]
 }
 
 func (svc *service) SearchResourceIssues(resourceType, resource string) (out []Issue) {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
 	var m *Model
 	for _, ax := range svc.models {
 		m = ax.FindByResourceIdent(resourceType, resource)
@@ -67,6 +76,9 @@ func (svc *service) hasModelIssues(modelID uint64) bool {
 }
 
 func (svc *service) updateIssues(issues *issueHelper) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
 	for _, connectionID := range issues.connections {
 		delete(svc.connectionIssues, connectionID)
 	}
@@ -83,6 +95,9 @@ func (svc *service) updateIssues(issues *issueHelper) {
 }
 
 func (svc *service) clearModelIssues() {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
 	svc.modelIssues = make(dalIssueIndex)
 }
 
@@ -132,8 +147,8 @@ func (a *issueHelper) mergeWith(b *issueHelper) {
 
 // Op check utils
 func (svc *service) canOpData(ref ModelRef) (err error) {
-	if svc.hasConnectionIssues(ref.ConnectionID) {
-		for _, i := range svc.connectionIssues[ref.ConnectionID] {
+	if issues := svc.SearchConnectionIssues(ref.ConnectionID); len(issues) > 0 {
+		for _, i := range issues {
 			svc.logger.Debug(
 				"can not perform data operation due to connection issue: "+i.err.Error(),
 				zap.Any("ref", ref.ResourceID),
@@ -148,8 +163,8 @@ func (svc *service) canOpData(ref ModelRef) (err error) {
 		return errModelNotFound(ref.ResourceID)
 	}
 
-	if svc.hasModelIssues(mod.ResourceID) {
-		for _, i := range svc.modelIssues[mod.ResourceID] {
+	if issues := svc.SearchModelIssues(mod.ResourceID); len(issues) > 0 {
+		for _, i := range issues {
 			svc.logger.Debug(
 				"can not perform data operation due to model issue: "+i.err.Error(),
 				zap.Any("ref", ref.ResourceID),

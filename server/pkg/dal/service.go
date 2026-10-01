@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
@@ -13,6 +14,10 @@ import (
 
 type (
 	service struct {
+		// Guards connections, models, defConnID, sensitivityLevels and the
+		// issue indexes; model and connection changes race record operations
+		mux sync.RWMutex
+
 		connections map[uint64]*ConnectionWrap
 
 		// Default connection ID
@@ -125,6 +130,9 @@ func SetGlobal(svc *service, err error) {
 //
 // Primarily used for testing reasons
 func (svc *service) Purge(ctx context.Context) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
 	nc := map[uint64]*ConnectionWrap{}
 	nc[svc.defConnID] = svc.connections[svc.defConnID]
 
@@ -167,10 +175,7 @@ func (svc *service) ReplaceSensitivityLevel(levels ...SensitivityLevel) (err err
 
 	log.Debug("replacing levels", zap.Any("levels", levels))
 
-	if svc.sensitivityLevels == nil {
-		svc.sensitivityLevels = SensitivityLevelIndex()
-	}
-	nx := svc.sensitivityLevels
+	nx := svc.levels()
 
 	for _, l := range levels {
 		log := log.With(logger.Uint64("ID", l.ID), zap.Int("level", l.Level), zap.String("handle", l.Handle))
@@ -181,7 +186,7 @@ func (svc *service) ReplaceSensitivityLevel(levels ...SensitivityLevel) (err err
 		}
 	}
 
-	nx = svc.sensitivityLevels.with(levels...)
+	nx = nx.with(levels...)
 
 	// Validate state after sensitivity level change
 	log.Debug("validating new levels")
@@ -190,7 +195,7 @@ func (svc *service) ReplaceSensitivityLevel(levels ...SensitivityLevel) (err err
 	}
 
 	// Replace the old one
-	svc.sensitivityLevels = nx
+	svc.setLevels(nx)
 
 	svc.logger.Debug("reloaded sensitivity levels")
 	return
@@ -209,10 +214,7 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 		levels[i] = MakeSensitivityLevel(lID, i, strconv.FormatUint(lID, 10))
 	}
 
-	if svc.sensitivityLevels == nil {
-		svc.sensitivityLevels = SensitivityLevelIndex()
-	}
-	nx := svc.sensitivityLevels
+	nx := svc.levels()
 
 	for _, l := range levels {
 		log := log.With(logger.Uint64("ID", l.ID))
@@ -222,7 +224,7 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 		}
 	}
 
-	nx = svc.sensitivityLevels.without(levels...)
+	nx = nx.without(levels...)
 
 	// Validate state after sensitivity level change
 	log.Debug("validating new levels")
@@ -231,7 +233,7 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 	}
 
 	// Replace the old one
-	svc.sensitivityLevels = nx
+	svc.setLevels(nx)
 
 	svc.logger.Debug("removed sensitivity levels")
 	return
@@ -240,6 +242,9 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 // InUseSensitivityLevel checks if and where the sensitivity level is being used
 func (svc *service) InUseSensitivityLevel(levelID uint64) (usage SensitivityLevelUsage) {
 	usage = SensitivityLevelUsage{}
+
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
 
 	// - connections
 	for _, c := range svc.connections {
@@ -299,7 +304,6 @@ func MakeConnection(ID uint64, conn Connection, p ConnectionParams, c Connection
 // Is isDefault when adding a default connection. Service will then
 // compensate and use proper IDs when models refer to connection with ID=0
 func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap, isDefault bool) (err error) {
-	// @todo lock/unlock
 	var (
 		ID      = conn.ID
 		issues  = newIssueHelper().addConnection(ID)
@@ -313,7 +317,9 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 	)
 
 	if isDefault {
+		svc.mux.Lock()
 		svc.defConnID = ID
+		svc.mux.Unlock()
 
 		// @note disabling this cause it removes some test-related boilerplate issues.
 		// 			 Optimally we'd have it so please figure something out.
@@ -331,7 +337,7 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 	defer svc.updateIssues(issues)
 
 	// Sensitivity level validations
-	if !svc.sensitivityLevels.includes(conn.Config.SensitivityLevelID) {
+	if !svc.levels().includes(conn.Config.SensitivityLevelID) {
 		issues.addConnectionIssue(ID, Issue{
 			err: errConnectionCreateMissingSensitivityLevel(ID, conn.Config.SensitivityLevelID),
 		})
@@ -345,7 +351,7 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 		//
 		// Defer the return till the end so we can get a nicer report of what all is wrong
 		errored := false
-		for _, model := range svc.models[ID] {
+		for _, model := range svc.connectionModels(ID) {
 			log.Debug("validating model before connection is updated", zap.String("ident", model.Ident))
 
 			// - sensitivity levels
@@ -694,6 +700,9 @@ func (svc *service) storeOpPrep(ctx context.Context, mf ModelRef, operations Ope
 //
 // Primarily used for testing (for data truncate).
 func (svc *service) SearchModels(ctx context.Context) (out ModelSet, err error) {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
 	out = make(ModelSet, 0, 100)
 	for _, models := range svc.models {
 		out = append(out, models...)
@@ -725,7 +734,7 @@ func (svc *service) ReplaceModel(ctx context.Context, currentAlts []*Alteration,
 	defer svc.updateIssues(issues)
 
 	if model.ConnectionID == 0 {
-		model.ConnectionID = svc.defConnID
+		model.ConnectionID = svc.defaultConnectionID()
 	}
 
 	// Check if we're creating or updating the model
@@ -759,18 +768,9 @@ func (svc *service) ReplaceModel(ctx context.Context, currentAlts []*Alteration,
 		)
 	}
 
-	// Remove the old model from the registry
-	if oldModel != nil {
-		svc.removeModelFromRegistry(oldModel)
-		log.Debug(
-			"removed old model from registry",
-			logger.Uint64("connectionID", model.ConnectionID),
-		)
-	}
-
-	// Add to registry
+	// Swap the old model for the new one in the registry
 	// Models should be added to the registry regardless of issues
-	svc.addModelToRegistry(model, upd)
+	svc.addModelToRegistry(oldModel, model, upd)
 	log.Debug(
 		"added to registry",
 		logger.Uint64("connectionID", model.ConnectionID),
@@ -968,7 +968,7 @@ func (svc *service) RemoveModel(ctx context.Context, connectionID, ID uint64) (e
 	log.Debug("deleting")
 
 	if connectionID == 0 {
-		connectionID = svc.defConnID
+		connectionID = svc.defaultConnectionID()
 	}
 
 	defer svc.updateIssues(issues)
@@ -1021,13 +1021,14 @@ func (svc *service) validateModel(issues *issueHelper, c *ConnectionWrap, model,
 	}
 
 	// Sensitivity level ok and valid?
-	if !svc.sensitivityLevels.includes(model.SensitivityLevelID) {
+	levels := svc.levels()
+	if !levels.includes(model.SensitivityLevelID) {
 		issues.addModelIssue(model.ResourceID, Issue{
 			err: errModelCreateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID),
 		})
 	} else {
 		// Only check if it is present
-		if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, c.Config.SensitivityLevelID) {
+		if !levels.isSubset(model.SensitivityLevelID, c.Config.SensitivityLevelID) {
 			issues.addModelIssue(model.ResourceID, Issue{
 				err: errModelCreateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID, c.Config.SensitivityLevelID),
 			})
@@ -1042,13 +1043,14 @@ func (svc *service) validateModel(issues *issueHelper, c *ConnectionWrap, model,
 }
 
 func (svc *service) validateAttributes(issues *issueHelper, model *Model, attr ...*Attribute) {
+	levels := svc.levels()
 	for _, a := range attr {
-		if !svc.sensitivityLevels.includes(a.SensitivityLevelID) {
+		if !levels.includes(a.SensitivityLevelID) {
 			issues.addModelIssue(model.ResourceID, Issue{
 				err: errModelCreateMissingAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, a.SensitivityLevelID),
 			})
 		} else {
-			if !svc.sensitivityLevels.isSubset(a.SensitivityLevelID, model.SensitivityLevelID) {
+			if !levels.isSubset(a.SensitivityLevelID, model.SensitivityLevelID) {
 				issues.addModelIssue(model.ResourceID, Issue{
 					err: errModelCreateGreaterAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, a.SensitivityLevelID, model.SensitivityLevelID),
 				})
@@ -1057,7 +1059,16 @@ func (svc *service) validateAttributes(issues *issueHelper, model *Model, attr .
 	}
 }
 
-func (svc *service) addModelToRegistry(model *Model, upd bool) {
+// addModelToRegistry registers the model, dropping oldModel in the same step
+// so a lookup in between can not miss both
+func (svc *service) addModelToRegistry(oldModel, model *Model, upd bool) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	if oldModel != nil {
+		svc.dropModel(oldModel)
+	}
+
 	if !upd {
 		svc.models[model.ConnectionID] = append(svc.models[model.ConnectionID], model)
 		return
@@ -1077,6 +1088,14 @@ func (svc *service) addModelToRegistry(model *Model, upd bool) {
 }
 
 func (svc *service) removeModelFromRegistry(model *Model) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	svc.dropModel(model)
+}
+
+// dropModel removes the model from the registry; the caller holds the lock
+func (svc *service) dropModel(model *Model) {
 	oldModels := svc.models[model.ConnectionID]
 	svc.models[model.ConnectionID] = make(ModelSet, 0, len(oldModels))
 	for _, o := range oldModels {
@@ -1094,6 +1113,9 @@ func (svc *service) removeModelFromRegistry(model *Model) {
 //
 //	by handles and slugs such as module and namespace.
 func (svc *service) FindModelByRefs(connectionID uint64, refs map[string]any) *Model {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
 	if connectionID == 0 {
 		connectionID = svc.defConnID
 	}
@@ -1101,6 +1123,9 @@ func (svc *service) FindModelByRefs(connectionID uint64, refs map[string]any) *M
 }
 
 func (svc *service) FindModelByResourceID(connectionID uint64, resourceID uint64) *Model {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
 	if connectionID == 0 {
 		connectionID = svc.defConnID
 	}
@@ -1109,6 +1134,9 @@ func (svc *service) FindModelByResourceID(connectionID uint64, resourceID uint64
 }
 
 func (svc *service) FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *Model {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
 	if connectionID == 0 {
 		connectionID = svc.defConnID
 	}
@@ -1117,23 +1145,21 @@ func (svc *service) FindModelByResourceIdent(connectionID uint64, resourceType, 
 }
 
 func (svc *service) FindModelByRef(ref ModelRef) *Model {
-	connectionID := ref.ConnectionID
-	if connectionID == 0 {
-		connectionID = svc.defConnID
-	}
-
 	if ref.Refs != nil {
-		return svc.FindModelByRefs(connectionID, ref.Refs)
+		return svc.FindModelByRefs(ref.ConnectionID, ref.Refs)
 	}
 
 	if ref.ResourceID > 0 {
-		return svc.models[connectionID].FindByResourceID(ref.ResourceID)
+		return svc.FindModelByResourceID(ref.ConnectionID, ref.ResourceID)
 	}
 
-	return svc.models[connectionID].FindByResourceIdent(ref.ResourceType, ref.Resource)
+	return svc.FindModelByResourceIdent(ref.ConnectionID, ref.ResourceType, ref.Resource)
 }
 
 func (svc *service) FindModelByIdent(connectionID uint64, ident string) *Model {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
 	if connectionID == 0 {
 		connectionID = svc.defConnID
 	}
@@ -1141,23 +1167,65 @@ func (svc *service) FindModelByIdent(connectionID uint64, ident string) *Model {
 	return svc.models[connectionID].FindByIdent(ident)
 }
 
+// connectionModels returns a copy of the models registered on the connection
+func (svc *service) connectionModels(connectionID uint64) ModelSet {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
+	return append(ModelSet(nil), svc.models[connectionID]...)
+}
+
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // Utilities
 
 func (svc *service) removeConnection(connectionID uint64) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
 	delete(svc.connections, connectionID)
 }
 
 func (svc *service) addConnection(cw *ConnectionWrap) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
 	svc.connections[cw.ID] = cw
 }
 
 func (svc *service) GetConnectionByID(connectionID uint64) (cw *ConnectionWrap) {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
 	if connectionID == 0 {
 		connectionID = svc.defConnID
 	}
 
 	return svc.connections[connectionID]
+}
+
+func (svc *service) defaultConnectionID() uint64 {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
+	return svc.defConnID
+}
+
+func (svc *service) levels() *sensitivityLevelIndex {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
+	if svc.sensitivityLevels == nil {
+		return SensitivityLevelIndex()
+	}
+
+	return svc.sensitivityLevels
+}
+
+func (svc *service) setLevels(levels *sensitivityLevelIndex) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	svc.sensitivityLevels = levels
 }
 
 func (svc *service) getConnection(connectionID uint64, oo ...Operation) (cw *ConnectionWrap, can OperationSet, err error) {
@@ -1185,10 +1253,6 @@ func (svc *service) getConnection(connectionID uint64, oo ...Operation) (cw *Con
 }
 
 func (svc *service) getModelByRef(mr ModelRef) *Model {
-	if mr.ConnectionID == 0 {
-		mr.ConnectionID = svc.defConnID
-	}
-
 	if mr.Refs != nil {
 		return svc.FindModelByRefs(mr.ConnectionID, mr.Refs)
 	} else if mr.ResourceID > 0 {
@@ -1199,6 +1263,9 @@ func (svc *service) getModelByRef(mr ModelRef) *Model {
 
 func (svc *service) validateNewSensitivityLevels(levels *sensitivityLevelIndex) (err error) {
 	err = func() (err error) {
+		svc.mux.RLock()
+		defer svc.mux.RUnlock()
+
 		cIndex := make(map[uint64]*ConnectionWrap)
 
 		// - connections
