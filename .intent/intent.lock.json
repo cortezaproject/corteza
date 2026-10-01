@@ -147,7 +147,7 @@
       "t": "2026-07-23"
     },
     "client/web/unify/src/App.vue": {
-      "h": "5e87e305eafd",
+      "h": "d5ee061b1041",
       "doc": "client/web/unify/src/App.intent.md",
       "t": "2026-10-01"
     },
@@ -4501,8 +4501,13 @@
       "doc": "lib/vue/src/components/navigation/navigation.intent.md",
       "t": "2026-08-13"
     },
+    "lib/vue/src/components/navigation/CTopbar.version.test.ts": {
+      "h": "6dabd5dd739e",
+      "doc": "lib/vue/src/components/navigation/navigation.intent.md",
+      "t": "2026-10-01"
+    },
     "lib/vue/src/components/navigation/CTopbar.vue": {
-      "h": "2652de4b348b",
+      "h": "ef7d0ce718ae",
       "doc": "lib/vue/src/components/navigation/navigation.intent.md",
       "t": "2026-10-01"
     },

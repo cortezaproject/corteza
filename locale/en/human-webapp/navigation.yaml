@@ -45,14 +45,6 @@ federation:
   items:
     nodes: Nodes
     permissions: Permissions
-help:
-  buyHuman: Buy
-  documentation: Documentation
-  feedback: Send feedback
-  forum: Help
-  manageSubscription: Manage Subscription
-  packageDetails: Package Details
-  version: 'Version:'
 home: Home
 module: Modules
 more: More
@@ -110,5 +102,6 @@ userSettings:
   profile: Profile
   reminders: Reminders
   theme: Theme
+  version: 'Version:'
 viewPage: View Page
 workflows: Workflows

@@ -29,10 +29,7 @@
           :labels="{
             appMenu: $t('navigation.appMenu'),
             home: $t('navigation.home'),
-            helpBuyHuman: $t('navigation.help.buyHuman'),
-            helpManageSubscription: $t('navigation.help.manageSubscription'),
-            helpPackageDetails: $t('navigation.help.packageDetails'),
-            helpVersion: $t('navigation.help.version'),
+            version: $t('navigation.userSettings.version'),
             userSettingsProfile: $t('navigation.userSettings.profile'),
             userSettingsChangePassword: $t('navigation.userSettings.changePassword'),
             userSettingsLogout: $t('navigation.userSettings.logout'),

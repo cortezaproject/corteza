@@ -87,20 +87,6 @@
         <CAgentSidebarButton v-if="!settings?.hideAgentSidebar" />
         <CNotificationButton v-if="!settings?.hideNotifications" />
 
-        <div v-if="!settings?.hideHelp" class="help-dropdown">
-          <Button
-            ref="helpMenuRef"
-            data-test-id="dropdown-helper"
-            icon="pi pi-dollar"
-            severity="success"
-            variant="text"
-            rounded
-            @click="toggleHelpMenu"
-          />
-
-          <Menu ref="helpMenu" :model="helpMenuItems" :popup="true" class="mt-2" />
-        </div>
-
         <div v-if="!settings?.hideProfile" class="flex">
           <Button
             ref="profileMenuRef"
@@ -252,8 +238,6 @@ const visiblePageButtons = computed(() => {
 
 const iconLogo = useBrandLogo('icon')
 
-const helpMenuRef = ref()
-const helpMenu = ref()
 const profileMenuRef = ref()
 const profileMenu = ref()
 
@@ -289,38 +273,6 @@ const themes = computed(() => [
     label: props.labels.darkTheme,
   },
 ])
-
-const helpMenuItems = computed(() => {
-  const items = []
-
-  items.push({
-    label: props.labels.helpBuyHuman,
-    url: 'https://buy.polar.sh/polar_cl_MKycmV54KogEiCMy7Oqf4zXIwWZ7wOPhtf5xg3dTn21',
-    target: '_blank',
-  })
-
-  items.push({
-    label: props.labels.helpManageSubscription,
-    url: 'https://polar.sh/planet-crust/portal/',
-    target: '_blank',
-  })
-
-  items.push({
-    label: props.labels.helpPackageDetails,
-    url: 'https://docs.planetcrust.com/price-and-terms',
-    target: '_blank',
-  })
-
-  items.push({ separator: true })
-
-  items.push({
-    label: buildVersion.value,
-    disabled: true,
-    class: 'text-sm',
-  })
-
-  return items
-})
 
 const profileMenuItems = computed(() => {
   const items = []
@@ -402,6 +354,14 @@ const profileMenuItems = computed(() => {
     command: () => logout(),
   })
 
+  items.push({ separator: true })
+
+  items.push({
+    label: `${props.labels.version} ${buildVersion.value}`,
+    disabled: true,
+    class: 'text-sm text-muted-color',
+  })
+
   return items
 })
 
@@ -425,10 +385,6 @@ const userInitials = computed(() => {
   if (email) return email[0].toUpperCase()
   return ''
 })
-
-const toggleHelpMenu = event => {
-  helpMenu.value.toggle(event)
-}
 
 const toggleProfileMenu = event => {
   profileMenu.value.toggle(event)
