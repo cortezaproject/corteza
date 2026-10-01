@@ -267,6 +267,8 @@ async function onLogoClear(slot) {
 async function loadSettings() {
   loading.value = true
   try {
+    // The boot snapshot may predate a server restart or another admin's upload
+    await $Settings.fetch()
     refreshLogoUrls()
 
     const result = await $SystemAPI.settingsList({ prefix: 'ui.studio' })
