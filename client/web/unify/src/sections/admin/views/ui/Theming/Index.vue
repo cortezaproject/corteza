@@ -31,21 +31,14 @@
                   v-for="kind in logoKinds"
                   :key="kind"
                   :label="$t(`ui.settings.editor.human-studio.${kind}Logo.title`)"
-                  :description="
-                    inheritedSlot(theme, kind)
-                      ? $t('ui.settings.editor.human-studio.logo.inheritedFromLight')
-                      : undefined
-                  "
+                  :description="$t(`ui.settings.editor.human-studio.logo.previewSurface.${kind}`)"
                 >
                   <CFileDropZone
                     accept="image/*"
                     :uploading="theme.logos[kind].uploading"
                     :error="theme.logos[kind].error"
                     :preview-url="theme.logos[kind].url || inheritedSlot(theme, kind)?.url"
-                    :preview-style="{
-                      backgroundColor: '#' + theme.variables['sidebar-bg'],
-                      opacity: inheritedSlot(theme, kind) ? 0.55 : 1,
-                    }"
+                    :preview-style="{ backgroundColor: '#' + theme.variables[logoSurface[kind]] }"
                     :clearable="theme.logos[kind].custom"
                     :drop-label="
                       $t(`ui.settings.editor.human-studio.${kind}Logo.uploader.instructions`)
@@ -156,6 +149,9 @@ function logoSlot(key, read) {
 }
 
 const logoKinds = ['main', 'icon']
+
+// The surface each image is shown on: the logo in the sidebar, the icon in the topbar
+const logoSurface = { main: 'sidebar-bg', icon: 'topbar-bg' }
 
 // The light slot a dark slot inherits from while it has no image of its own
 function inheritedSlot(theme, kind) {

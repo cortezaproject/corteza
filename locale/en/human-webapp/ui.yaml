@@ -14,7 +14,9 @@ settings:
       label:
         default: Default
       logo:
-        inheritedFromLight: Inherited from the light theme. Upload an image here to use a different one in the dark theme.
+        previewSurface:
+          icon: Previewed on this theme's topbar background
+          main: Previewed on this theme's sidebar background
       mainLogo:
         title: Logo
         uploader:
