@@ -98,6 +98,7 @@ func Test_appSettingsLogoDefaults(t *testing.T) {
 	)
 
 	customLight.UI.MainLogo = "attachment:1"
+	customLight.UI.IconLogo = "attachment:3"
 	customBoth.UI.MainLogo = "attachment:1"
 	customBoth.UI.MainLogoDark = "attachment:2"
 
@@ -105,12 +106,14 @@ func Test_appSettingsLogoDefaults(t *testing.T) {
 	require.Equal(t, "/assets/logo.svg", d.UI.MainLogo)
 	require.Equal(t, "/assets/logo-dark.svg", d.UI.MainLogoDark)
 	require.Equal(t, "/assets/icon.svg", d.UI.IconLogo)
-	require.Empty(t, d.UI.IconLogoDark)
+	require.Equal(t, "/assets/icon-dark.svg", d.UI.IconLogoDark)
 
-	// a custom light logo serves the dark theme too, never the built-in dark one
+	// a custom light logo or icon serves the dark theme too, never the built-in dark one
 	d = customLight.WithDefaults()
 	require.Equal(t, "attachment:1", d.UI.MainLogo)
 	require.Empty(t, d.UI.MainLogoDark)
+	require.Equal(t, "attachment:3", d.UI.IconLogo)
+	require.Empty(t, d.UI.IconLogoDark)
 
 	d = customBoth.WithDefaults()
 	require.Equal(t, "attachment:2", d.UI.MainLogoDark)
