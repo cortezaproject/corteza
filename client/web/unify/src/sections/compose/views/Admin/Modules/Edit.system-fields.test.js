@@ -48,6 +48,7 @@ vi.mock('@planetcrust/human-vue', () => ({
   useRBACStore: () => ({ can: () => true, canGlobal: () => true }),
   useDraftGuard: () => ({ capture: vi.fn(), markSaved: vi.fn(), isDirty: { value: false } }),
   components: {
+    CViewContainer: { name: 'CViewContainer', template: '<div><slot /></div>' },
     CInputDelete: { template: '<div />' },
     CRouterLinkButton: { props: ['to', 'label', 'icon'], template: '<div />' },
   },

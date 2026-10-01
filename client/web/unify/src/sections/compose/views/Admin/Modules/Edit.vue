@@ -36,332 +36,327 @@
     <!-- The page itself does not scroll: the card takes the height that is left
          and the active tab scrolls inside it, so the tab strip and the action
          bar stay put however many fields a module has. -->
-    <div class="flex-1 min-h-0 flex flex-col">
-      <div class="container mx-auto p-4 w-full flex-1 min-h-0 flex flex-col">
-        <!-- Related Pages Actions -->
-        <div
-          v-if="isEdit && namespace?.canManageNamespace"
-          class="flex justify-end gap-2 mb-4 shrink-0"
-        >
-          <!-- Discovery & Federation Buttons -->
-          <Button
-            v-if="discoveryEnabled"
-            :label="$t('module.edit.discoverySettings.title')"
-            icon="pi pi-globe"
-            size="small"
-            severity="secondary"
-            outlined
-            @click="discoveryModal = true"
-          />
-          <Button
-            v-if="federationEnabled"
-            :label="$t('module.edit.federationSettings.title')"
-            icon="pi pi-share-alt"
-            size="small"
-            severity="secondary"
-            outlined
-            @click="federationModal = true"
-          />
+    <CViewContainer width="list" class="flex flex-col">
+      <!-- Related Pages Actions -->
+      <div
+        v-if="isEdit && namespace?.canManageNamespace"
+        class="flex justify-end gap-2 mb-4 shrink-0"
+      >
+        <!-- Discovery & Federation Buttons -->
+        <Button
+          v-if="discoveryEnabled"
+          :label="$t('module.edit.discoverySettings.title')"
+          icon="pi pi-globe"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="discoveryModal = true"
+        />
+        <Button
+          v-if="federationEnabled"
+          :label="$t('module.edit.federationSettings.title')"
+          icon="pi pi-share-alt"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="federationModal = true"
+        />
 
-          <!-- Export Button -->
-          <Button
-            v-if="namespace?.canExportModules"
-            :label="$t('general.label.export')"
-            icon="pi pi-download"
-            size="small"
-            severity="secondary"
-            outlined
-            @click="exportModule"
-          />
+        <!-- Export Button -->
+        <Button
+          v-if="namespace?.canExportModules"
+          :label="$t('general.label.export')"
+          icon="pi pi-download"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="exportModule"
+        />
 
-          <!-- Record Page Button -->
-          <CRouterLinkButton
-            v-if="recordPage"
-            :to="{ name: 'admin.pages.builder', params: { pageID: recordPage.pageID } }"
-            :label="$t('module.recordPage.edit')"
-            icon="pi pi-file-edit"
-            size="small"
-            severity="secondary"
-            outlined
-          />
-          <Button
-            v-else
-            :label="$t('module.recordPage.create')"
-            icon="pi pi-file-plus"
-            size="small"
-            severity="secondary"
-            outlined
-            :loading="creatingRecordPage"
-            @click="handleRecordPageCreation"
-          />
+        <!-- Record Page Button -->
+        <CRouterLinkButton
+          v-if="recordPage"
+          :to="{ name: 'admin.pages.builder', params: { pageID: recordPage.pageID } }"
+          :label="$t('module.recordPage.edit')"
+          icon="pi pi-file-edit"
+          size="small"
+          severity="secondary"
+          outlined
+        />
+        <Button
+          v-else
+          :label="$t('module.recordPage.create')"
+          icon="pi pi-file-plus"
+          size="small"
+          severity="secondary"
+          outlined
+          :loading="creatingRecordPage"
+          @click="handleRecordPageCreation"
+        />
 
-          <!-- Record List Page Button -->
-          <CRouterLinkButton
-            v-if="recordListPage"
-            :to="{ name: 'admin.pages.builder', params: { pageID: recordListPage.pageID } }"
-            :label="$t('module.recordListPage.edit')"
-            icon="pi pi-list"
-            size="small"
-            severity="secondary"
-            outlined
-          />
-          <Button
-            v-else
-            :label="$t('module.recordListPage.create')"
-            icon="pi pi-list"
-            size="small"
-            severity="secondary"
-            outlined
-            :loading="creatingRecordListPage"
-            :disabled="!recordPage"
-            @click="handleRecordListPageCreation"
-          />
+        <!-- Record List Page Button -->
+        <CRouterLinkButton
+          v-if="recordListPage"
+          :to="{ name: 'admin.pages.builder', params: { pageID: recordListPage.pageID } }"
+          :label="$t('module.recordListPage.edit')"
+          icon="pi pi-list"
+          size="small"
+          severity="secondary"
+          outlined
+        />
+        <Button
+          v-else
+          :label="$t('module.recordListPage.create')"
+          icon="pi pi-list"
+          size="small"
+          severity="secondary"
+          outlined
+          :loading="creatingRecordListPage"
+          :disabled="!recordPage"
+          @click="handleRecordListPageCreation"
+        />
 
-          <Button
-            v-if="isEdit && module.canGrant"
-            type="button"
-            icon="pi pi-lock"
-            v-tooltip.bottom="$t('general.label.permissions')"
-            size="small"
-            severity="secondary"
-            @click="togglePermissionsMenu"
-            aria-haspopup="true"
-            aria-controls="permissions_menu"
-            outlined
-          />
-          <Menu
-            ref="permissionsMenu"
-            id="permissions_menu"
-            :model="permissionsMenuItems"
-            :popup="true"
-          />
-        </div>
+        <Button
+          v-if="isEdit && module.canGrant"
+          type="button"
+          icon="pi pi-lock"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          size="small"
+          severity="secondary"
+          @click="togglePermissionsMenu"
+          aria-haspopup="true"
+          aria-controls="permissions_menu"
+          outlined
+        />
+        <Menu
+          ref="permissionsMenu"
+          id="permissions_menu"
+          :model="permissionsMenuItems"
+          :popup="true"
+        />
+      </div>
 
-        <Card
-          :pt="{
-            body: { class: 'p-0 h-full flex flex-col min-h-0' },
-            content: { class: 'p-0 h-full flex flex-col min-h-0' },
-          }"
-          class="flex-1 min-h-0 flex flex-col overflow-hidden"
-        >
-          <!-- overflow-hidden above: the tab body scrolls to the card's edge,
+      <Card
+        :pt="{
+          body: { class: 'p-0 h-full flex flex-col min-h-0' },
+          content: { class: 'p-0 h-full flex flex-col min-h-0' },
+        }"
+        class="flex-1 min-h-0 flex flex-col overflow-hidden"
+      >
+        <!-- overflow-hidden above: the tab body scrolls to the card's edge,
                and without clipping it paints square corners over the rounding. -->
-          <template #content>
-            <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
-              <TabList class="rounded-t-lg overflow-x-auto whitespace-nowrap shrink-0">
-                <Tab value="fields">{{ $t('module.edit.fields.label') }}</Tab>
-                <Tab value="dal">{{ $t('module.edit.config.dal.title') }}</Tab>
-                <Tab value="unique">
-                  {{ $t('module.edit.config.uniqueValues.title') }}
-                </Tab>
-                <Tab value="revisions">
-                  {{ $t('module.edit.config.record-revisions.title') }}
-                </Tab>
-                <Tab v-if="hasIssues" value="issues" @click="onIssuesTabClick">
-                  <span class="text-red-500">
-                    {{ $t('module.edit.issues.label', { count: module.issues.length }) }}
-                  </span>
-                </Tab>
-              </TabList>
+        <template #content>
+          <Tabs v-model:value="activeTab" class="flex flex-col h-full min-h-0">
+            <TabList class="rounded-t-lg overflow-x-auto whitespace-nowrap shrink-0">
+              <Tab value="fields">{{ $t('module.edit.fields.label') }}</Tab>
+              <Tab value="dal">{{ $t('module.edit.config.dal.title') }}</Tab>
+              <Tab value="unique">
+                {{ $t('module.edit.config.uniqueValues.title') }}
+              </Tab>
+              <Tab value="revisions">
+                {{ $t('module.edit.config.record-revisions.title') }}
+              </Tab>
+              <Tab v-if="hasIssues" value="issues" @click="onIssuesTabClick">
+                <span class="text-red-500">
+                  {{ $t('module.edit.issues.label', { count: module.issues.length }) }}
+                </span>
+              </Tab>
+            </TabList>
 
-              <TabPanels class="flex-1 min-h-0 overflow-hidden" :pt="{ root: { class: 'h-full' } }">
-                <TabPanel value="fields" class="h-full flex flex-col min-h-0">
-                  <div class="shrink-0">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <CFormGroup name="name" :label="$t('module.general.label.name')" required>
-                        <!-- No :invalid — the resolver's required-only rule is the whole
+            <TabPanels class="flex-1 min-h-0 overflow-hidden" :pt="{ root: { class: 'h-full' } }">
+              <TabPanel value="fields" class="h-full flex flex-col min-h-0">
+                <div class="shrink-0">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <CFormGroup name="name" :label="$t('module.general.label.name')" required>
+                      <!-- No :invalid — the resolver's required-only rule is the whole
                          rule, and the form drives the state from it. -->
-                        <InputText id="name" name="name" v-model="module.name" />
-                      </CFormGroup>
+                      <InputText id="name" name="name" v-model="module.name" />
+                    </CFormGroup>
 
-                      <CFormGroup name="handle" :label="$t('module.general.label.handle')">
-                        <InputText
-                          id="handle"
-                          name="handle"
-                          v-model="module.handle"
-                          :invalid="!!module.handle && !isValidHandle(module.handle)"
-                        />
-                      </CFormGroup>
-                    </div>
-
-                    <Divider />
-
-                    <!-- Module Fields -->
-                    <div class="flex items-center mb-4">
-                      <Button
-                        :label="$t('module.edit.newField')"
-                        icon="pi pi-plus"
-                        severity="secondary"
-                        size="small"
-                        @click="addField"
+                    <CFormGroup name="handle" :label="$t('module.general.label.handle')">
+                      <InputText
+                        id="handle"
+                        name="handle"
+                        v-model="module.handle"
+                        :invalid="!!module.handle && !isValidHandle(module.handle)"
                       />
-                    </div>
+                    </CFormGroup>
                   </div>
 
-                  <!-- The list is the only part that scrolls, so the fields a
+                  <Divider />
+
+                  <!-- Module Fields -->
+                  <div class="flex items-center mb-4">
+                    <Button
+                      :label="$t('module.edit.newField')"
+                      icon="pi pi-plus"
+                      severity="secondary"
+                      size="small"
+                      @click="addField"
+                    />
+                  </div>
+                </div>
+
+                <!-- The list is the only part that scrolls, so the fields a
                      module has do not push its tabs or its Save bar away. -->
-                  <CFormList
-                    v-model="module.fields"
-                    class="flex-1 min-h-0"
-                    sticky-header
-                    fit-width
-                    draggable
-                    :empty-message="$t('module.edit.fields.empty')"
-                    :columns="fieldFormListColumns"
-                  >
-                    <template #row="{ item: field, index }">
-                      <div class="flex flex-col gap-1" v-tooltip.top="fieldLockedReason(field)">
+                <CFormList
+                  v-model="module.fields"
+                  class="flex-1 min-h-0"
+                  sticky-header
+                  fit-width
+                  draggable
+                  :empty-message="$t('module.edit.fields.empty')"
+                  :columns="fieldFormListColumns"
+                >
+                  <template #row="{ item: field, index }">
+                    <div class="flex flex-col gap-1" v-tooltip.top="fieldLockedReason(field)">
+                      <InputText
+                        v-model="field.name"
+                        class="w-full"
+                        size="small"
+                        :disabled="!!fieldLockedReason(field)"
+                        :invalid="validationTriggered && fieldNameError(field) !== ''"
+                      />
+                      <Message
+                        v-if="validationTriggered && fieldNameError(field)"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                      >
+                        {{ fieldNameError(field) }}
+                      </Message>
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                      <InputGroup>
                         <InputText
-                          v-model="field.name"
+                          v-model="field.label"
                           class="w-full"
                           size="small"
-                          :disabled="!!fieldLockedReason(field)"
-                          :invalid="validationTriggered && fieldNameError(field) !== ''"
+                          :invalid="validationTriggered && (!field.label || !field.label.trim())"
                         />
-                        <Message
-                          v-if="validationTriggered && fieldNameError(field)"
-                          severity="error"
-                          size="small"
-                          variant="simple"
+                        <InputGroupAddon
+                          v-if="
+                            showTranslatorButton && isEdit && field.fieldID && field.fieldID !== '0'
+                          "
                         >
-                          {{ fieldNameError(field) }}
-                        </Message>
-                      </div>
-
-                      <div class="flex flex-col gap-1">
-                        <InputGroup>
-                          <InputText
-                            v-model="field.label"
-                            class="w-full"
-                            size="small"
-                            :invalid="validationTriggered && (!field.label || !field.label.trim())"
-                          />
-                          <InputGroupAddon
-                            v-if="
-                              showTranslatorButton &&
-                              isEdit &&
-                              field.fieldID &&
-                              field.fieldID !== '0'
-                            "
-                          >
-                            <Button
-                              icon="pi pi-language"
-                              severity="secondary"
-                              size="small"
-                              class="w-full border-none"
-                              v-tooltip.top="$t('field.translate.label')"
-                              @click="openFieldTranslation(field)"
-                            />
-                          </InputGroupAddon>
-                        </InputGroup>
-                        <Message
-                          v-if="validationTriggered && (!field.label || !field.label.trim())"
-                          severity="error"
-                          size="small"
-                          variant="simple"
-                        >
-                          {{ $t('general.label.required') }}
-                        </Message>
-                      </div>
-
-                      <InputGroup v-tooltip.top="fieldLockedReason(field)">
-                        <Select
-                          v-model="field.kind"
-                          :options="fieldKinds"
-                          option-label="label"
-                          option-value="value"
-                          size="small"
-                          :disabled="!!fieldLockedReason(field)"
-                        />
-                        <InputGroupAddon v-if="field.expressions?.value">
-                          <i
-                            class="pi pi-calculator text-muted-color"
-                            v-tooltip.top="$t('field.valueExpr.indicator')"
-                          />
-                        </InputGroupAddon>
-                        <InputGroupAddon>
                           <Button
-                            icon="pi pi-cog"
+                            icon="pi pi-language"
                             severity="secondary"
                             size="small"
                             class="w-full border-none"
-                            @click="openFieldConfigurator(field, index)"
+                            v-tooltip.top="$t('field.translate.label')"
+                            @click="openFieldTranslation(field)"
                           />
                         </InputGroupAddon>
                       </InputGroup>
+                      <Message
+                        v-if="validationTriggered && (!field.label || !field.label.trim())"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                      >
+                        {{ $t('general.label.required') }}
+                      </Message>
+                    </div>
 
-                      <div class="flex justify-center" v-tooltip.top="requiredTooltip(field)">
-                        <Checkbox
-                          v-model="field.isRequired"
-                          :binary="true"
-                          :disabled="!!requiredDisabledReason(field)"
+                    <InputGroup v-tooltip.top="fieldLockedReason(field)">
+                      <Select
+                        v-model="field.kind"
+                        :options="fieldKinds"
+                        option-label="label"
+                        option-value="value"
+                        size="small"
+                        :disabled="!!fieldLockedReason(field)"
+                      />
+                      <InputGroupAddon v-if="field.expressions?.value">
+                        <i
+                          class="pi pi-calculator text-muted-color"
+                          v-tooltip.top="$t('field.valueExpr.indicator')"
                         />
-                      </div>
-
-                      <div class="flex justify-center" v-tooltip.top="multiDisabledReason(field)">
-                        <Checkbox
-                          v-model="field.isMulti"
-                          :binary="true"
-                          :disabled="!!multiDisabledReason(field)"
-                        />
-                      </div>
-
-                      <div class="flex items-center justify-end gap-1">
+                      </InputGroupAddon>
+                      <InputGroupAddon>
                         <Button
-                          v-if="canGrantField(field)"
-                          icon="pi pi-lock"
-                          outlined
+                          icon="pi pi-cog"
                           severity="secondary"
                           size="small"
-                          v-tooltip.top="$t('general.label.permissions')"
-                          @click="openFieldPermissions(field)"
+                          class="w-full border-none"
+                          @click="openFieldConfigurator(field, index)"
                         />
+                      </InputGroupAddon>
+                    </InputGroup>
+
+                    <div class="flex justify-center" v-tooltip.top="requiredTooltip(field)">
+                      <Checkbox
+                        v-model="field.isRequired"
+                        :binary="true"
+                        :disabled="!!requiredDisabledReason(field)"
+                      />
+                    </div>
+
+                    <div class="flex justify-center" v-tooltip.top="multiDisabledReason(field)">
+                      <Checkbox
+                        v-model="field.isMulti"
+                        :binary="true"
+                        :disabled="!!multiDisabledReason(field)"
+                      />
+                    </div>
+
+                    <div class="flex items-center justify-end gap-1">
+                      <Button
+                        v-if="canGrantField(field)"
+                        icon="pi pi-lock"
+                        outlined
+                        severity="secondary"
+                        size="small"
+                        v-tooltip.top="$t('general.label.permissions')"
+                        @click="openFieldPermissions(field)"
+                      />
+                    </div>
+                  </template>
+
+                  <template #footer="{ gridStyle }">
+                    <div
+                      v-for="f in systemFieldsForDisplay"
+                      :key="f.name"
+                      class="system-field-row border-t border-surface p-3"
+                      v-tooltip.left="$t('module.edit.systemField')"
+                    >
+                      <div :style="gridStyle" class="grid gap-3 items-center">
+                        <i class="pi pi-lock text-muted-color text-center" />
+                        <InputText :model-value="f.name" class="w-full" size="small" disabled />
+                        <InputText :model-value="f.label" class="w-full" size="small" disabled />
+                        <InputText :model-value="f.kind" class="w-full" size="small" disabled />
+                        <span />
+                        <span />
+                        <span />
+                        <span />
                       </div>
-                    </template>
+                    </div>
+                  </template>
+                </CFormList>
+              </TabPanel>
 
-                    <template #footer="{ gridStyle }">
-                      <div
-                        v-for="f in systemFieldsForDisplay"
-                        :key="f.name"
-                        class="system-field-row border-t border-surface p-3"
-                        v-tooltip.left="$t('module.edit.systemField')"
-                      >
-                        <div :style="gridStyle" class="grid gap-3 items-center">
-                          <i class="pi pi-lock text-muted-color text-center" />
-                          <InputText :model-value="f.name" class="w-full" size="small" disabled />
-                          <InputText :model-value="f.label" class="w-full" size="small" disabled />
-                          <InputText :model-value="f.kind" class="w-full" size="small" disabled />
-                          <span />
-                          <span />
-                          <span />
-                          <span />
-                        </div>
-                      </div>
-                    </template>
-                  </CFormList>
-                </TabPanel>
+              <TabPanel value="dal" class="h-full overflow-y-auto">
+                <DalSettings />
+              </TabPanel>
 
-                <TabPanel value="dal" class="h-full overflow-y-auto">
-                  <DalSettings />
-                </TabPanel>
+              <TabPanel value="unique" class="h-full overflow-y-auto">
+                <UniqueValues />
+              </TabPanel>
 
-                <TabPanel value="unique" class="h-full overflow-y-auto">
-                  <UniqueValues />
-                </TabPanel>
+              <TabPanel value="revisions" class="h-full overflow-y-auto">
+                <RecordRevisionsSettings />
+              </TabPanel>
 
-                <TabPanel value="revisions" class="h-full overflow-y-auto">
-                  <RecordRevisionsSettings />
-                </TabPanel>
-
-                <TabPanel value="issues" class="h-full overflow-y-auto">
-                  <ModuleIssues :module="module" />
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
-          </template>
-        </Card>
-      </div>
-    </div>
+              <TabPanel value="issues" class="h-full overflow-y-auto">
+                <ModuleIssues :module="module" />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </template>
+      </Card>
+    </CViewContainer>
 
     <CEditorActions
       :back-to="true"
@@ -444,7 +439,7 @@ import {
   moduleFieldKeyLabel,
 } from '@/sections/compose/lib/resource-translations'
 
-const { CInputDelete, CRouterLinkButton } = components
+const { CInputDelete, CRouterLinkButton, CViewContainer } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 

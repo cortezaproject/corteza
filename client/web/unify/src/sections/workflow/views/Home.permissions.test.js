@@ -13,6 +13,7 @@ vi.mock('@planetcrust/human-vue', async () => {
     changedAtField: header => ({ key: 'changedAt', header }),
     changedAtText: () => '',
     components: {
+      CViewContainer: { name: 'CViewContainer', template: '<div><slot /></div>' },
       CResourceList: {
         name: 'CResourceList',
         props: { actionItems: { type: Function, default: null } },

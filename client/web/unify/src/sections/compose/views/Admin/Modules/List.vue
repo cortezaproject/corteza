@@ -3,7 +3,7 @@
     <span>{{ $t('module.navigation.module') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="moduleID"
@@ -94,7 +94,7 @@
         {{ changedAtText(data) }}
       </template>
     </CResourceList>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -112,7 +112,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import ModuleImporter from '@/sections/compose/components/Modules/ModuleImporter.vue'
 
-const { CResourceList, CRouterLinkButton } = components
+const { CResourceList, CRouterLinkButton, CViewContainer } = components
 
 const props = defineProps({
   namespace: {

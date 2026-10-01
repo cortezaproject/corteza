@@ -3,7 +3,7 @@
     <span>{{ $t('agent.list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="agentID"
@@ -91,7 +91,7 @@
         />
       </div>
     </Popover>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -109,7 +109,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAgentStore } from '@planetcrust/human-vue'
 
-const { CResourceList, CResourceStatusFilter, CRouterLinkButton } = components
+const { CResourceList, CResourceStatusFilter, CRouterLinkButton, CViewContainer } = components
 
 const router = useRouter()
 const { t } = useI18n()

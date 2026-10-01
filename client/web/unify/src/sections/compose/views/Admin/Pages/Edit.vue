@@ -49,241 +49,236 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <!-- The scroller is full width; the container only centres what is inside
-         it. Putting overflow on the centred element leaves the gutters outside
-         it, where a wheel over them scrolls nothing. -->
-    <div class="flex-1 overflow-auto">
-      <div class="container mx-auto p-4 flex flex-col gap-4">
-        <div v-if="isEdit && page?.canGrant" class="flex justify-end">
-          <CPermissionsButton
-            :resource="`corteza::compose:page/${page.namespaceID}/${page.pageID}`"
-            :title="page.title || page.handle || page.pageID"
-            :target="page.title || page.handle || page.pageID"
-            v-tooltip.bottom="$t('general.label.permissions')"
+    <CViewContainer scroll>
+      <div v-if="isEdit && page?.canGrant" class="flex justify-end">
+        <CPermissionsButton
+          :resource="`corteza::compose:page/${page.namespaceID}/${page.pageID}`"
+          :title="page.title || page.handle || page.pageID"
+          :target="page.title || page.handle || page.pageID"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          severity="secondary"
+          size="small"
+        />
+      </div>
+
+      <!-- General Panel -->
+      <Panel :header="$t('general.label.general')" toggleable>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <CFormGroup name="title" :label="$t('page.label.title')" required>
+            <InputText id="title" name="title" v-model="page.title" />
+          </CFormGroup>
+
+          <CFormGroup name="handle" :label="$t('page.label.handle')">
+            <InputText id="handle" name="handle" v-model="page.handle" />
+          </CFormGroup>
+        </div>
+
+        <CFormGroup :label="$t('page.label.description')" input-id="description" class="mb-6">
+          <Textarea id="description" v-model="page.description" rows="4" auto-resize />
+        </CFormGroup>
+
+        <!-- Page Icon + Other Options (side by side like Human) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <!-- Page Icon -->
+          <CFormGroup :label="$t('page.icon.page')">
+            <template #actions>
+              <Button
+                v-tooltip.top="$t('page.icon.configure')"
+                icon="pi pi-pencil"
+                text
+                severity="secondary"
+                size="small"
+                @click="openIconModal"
+              />
+            </template>
+
+            <div class="inline-flex">
+              <img v-if="pageIconSrc" :src="pageIconSrc" class="h-10 w-auto" />
+              <span v-else class="text-muted-color">
+                {{ $t('page.icon.noIcon') }}
+              </span>
+            </div>
+          </CFormGroup>
+
+          <!-- Other Options -->
+          <CFormGroup>
+            <CInputToggleCard
+              v-model="page.visible"
+              :label="$t('page.edit.visible')"
+              :description="$t('page.edit.visibleDescription')"
+            />
+
+            <CInputToggleCard
+              v-model="showSubPages"
+              :label="$t('page.showSubPages')"
+              :description="$t('page.showSubPagesDescription')"
+            />
+
+            <CInputToggleCard
+              v-if="isRecordPage"
+              v-model="notificationsEnabled"
+              :label="$t('page.edit.notifications.enabled')"
+              :description="$t('page.edit.notifications.description')"
+            />
+          </CFormGroup>
+        </div>
+      </Panel>
+
+      <!-- Layouts Panel -->
+      <Panel v-if="isEdit" :header="$t('page.page-layout.layouts')" toggleable>
+        <div class="flex items-center mb-4">
+          <Button
+            :label="$t('page.page-layout.add')"
+            icon="pi pi-plus"
             severity="secondary"
             size="small"
+            @click="addLayout"
           />
         </div>
 
-        <!-- General Panel -->
-        <Panel :header="$t('general.label.general')" toggleable>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <CFormGroup name="title" :label="$t('page.label.title')" required>
-              <InputText id="title" name="title" v-model="page.title" />
-            </CFormGroup>
-
-            <CFormGroup name="handle" :label="$t('page.label.handle')">
-              <InputText id="handle" name="handle" v-model="page.handle" />
-            </CFormGroup>
-          </div>
-
-          <CFormGroup :label="$t('page.label.description')" input-id="description" class="mb-6">
-            <Textarea id="description" v-model="page.description" rows="4" auto-resize />
-          </CFormGroup>
-
-          <!-- Page Icon + Other Options (side by side like Human) -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <!-- Page Icon -->
-            <CFormGroup :label="$t('page.icon.page')">
-              <template #actions>
-                <Button
-                  v-tooltip.top="$t('page.icon.configure')"
-                  icon="pi pi-pencil"
-                  text
-                  severity="secondary"
-                  size="small"
-                  @click="openIconModal"
-                />
-              </template>
-
-              <div class="inline-flex">
-                <img v-if="pageIconSrc" :src="pageIconSrc" class="h-10 w-auto" />
-                <span v-else class="text-muted-color">
-                  {{ $t('page.icon.noIcon') }}
-                </span>
-              </div>
-            </CFormGroup>
-
-            <!-- Other Options -->
-            <CFormGroup>
-              <CInputToggleCard
-                v-model="page.visible"
-                :label="$t('page.edit.visible')"
-                :description="$t('page.edit.visibleDescription')"
-              />
-
-              <CInputToggleCard
-                v-model="showSubPages"
-                :label="$t('page.showSubPages')"
-                :description="$t('page.showSubPagesDescription')"
-              />
-
-              <CInputToggleCard
-                v-if="isRecordPage"
-                v-model="notificationsEnabled"
-                :label="$t('page.edit.notifications.enabled')"
-                :description="$t('page.edit.notifications.description')"
-              />
-            </CFormGroup>
-          </div>
-        </Panel>
-
-        <!-- Layouts Panel -->
-        <Panel v-if="isEdit" :header="$t('page.page-layout.layouts')" toggleable>
-          <div class="flex items-center mb-4">
-            <Button
-              :label="$t('page.page-layout.add')"
-              icon="pi pi-plus"
-              severity="secondary"
-              size="small"
-              @click="addLayout"
-            />
-          </div>
-
-          <CFormList
-            v-model="layouts"
-            hide-remove
-            draggable
-            fit-width
-            :empty-message="$t('page.noLayouts')"
-            :columns="[
-              {
-                label: $t('page.page-layout.title'),
-                width: 'minmax(180px, 1fr)',
-                tooltip: $t('page.page-layout.tooltip.title'),
-              },
-              {
-                label: $t('page.page-layout.condition.label'),
-                width: 'minmax(190px, 1.1fr)',
-                tooltip: $t('page.page-layout.tooltip.condition'),
-              },
-              {
-                label: $t('page.page-layout.roles.label'),
-                width: 'minmax(170px, 1fr)',
-                tooltip: $t('page.page-layout.tooltip.roles'),
-              },
-              { width: '7rem' },
-            ]"
-          >
-            <template #row="{ item, index }">
-              <div data-layout-title class="flex flex-col gap-1 min-w-0">
-                <!-- With useTitle on this string is the page's own title, read as
+        <CFormList
+          v-model="layouts"
+          hide-remove
+          draggable
+          fit-width
+          :empty-message="$t('page.noLayouts')"
+          :columns="[
+            {
+              label: $t('page.page-layout.title'),
+              width: 'minmax(180px, 1fr)',
+              tooltip: $t('page.page-layout.tooltip.title'),
+            },
+            {
+              label: $t('page.page-layout.condition.label'),
+              width: 'minmax(190px, 1.1fr)',
+              tooltip: $t('page.page-layout.tooltip.condition'),
+            },
+            {
+              label: $t('page.page-layout.roles.label'),
+              width: 'minmax(170px, 1fr)',
+              tooltip: $t('page.page-layout.tooltip.roles'),
+            },
+            { width: '7rem' },
+          ]"
+        >
+          <template #row="{ item, index }">
+            <div data-layout-title class="flex flex-col gap-1 min-w-0">
+              <!-- With useTitle on this string is the page's own title, read as
                      a `${}` template — so it is authored the way the config
                      dialog authors it. focusin, not a component event: the hint
                      under the list inserts into whichever row was last edited,
                      and CodeMirror has no focus event of its own. The translator
                      addon sits here because `meta.title` is what it translates. -->
-                <InputGroup @focusin="onLayoutTitleFocus(item, index)">
-                  <CInputExpression
-                    v-if="item.config?.useTitle"
-                    :ref="el => (layoutRowInputs[index] = el)"
-                    v-model="item.meta.title"
-                    dialect="interpolation"
-                    :scope="scope"
-                    :min-lines="1"
-                    size="small"
-                    :invalid="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
-                    @update:model-value="item._updated = true"
-                  />
-                  <InputText
-                    v-else
-                    v-model="item.meta.title"
-                    class="w-full"
-                    size="small"
-                    :invalid="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
-                    @input="item._updated = true"
-                  />
-                  <InputGroupAddon
-                    v-if="showTranslatorButton && item.pageLayoutID && item.pageLayoutID !== NoID"
-                  >
-                    <Button
-                      v-tooltip.top="$t('page.page-layout.tooltip.translate')"
-                      icon="pi pi-language"
-                      severity="secondary"
-                      size="small"
-                      class="w-full border-none"
-                      @click="openLayoutTranslation(item)"
-                    />
-                  </InputGroupAddon>
-                </InputGroup>
-                <Message
-                  v-if="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
-                  severity="error"
+              <InputGroup @focusin="onLayoutTitleFocus(item, index)">
+                <CInputExpression
+                  v-if="item.config?.useTitle"
+                  :ref="el => (layoutRowInputs[index] = el)"
+                  v-model="item.meta.title"
+                  dialect="interpolation"
+                  :scope="scope"
+                  :min-lines="1"
                   size="small"
-                  variant="simple"
+                  :invalid="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
+                  @update:model-value="item._updated = true"
+                />
+                <InputText
+                  v-else
+                  v-model="item.meta.title"
+                  class="w-full"
+                  size="small"
+                  :invalid="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
+                  @input="item._updated = true"
+                />
+                <InputGroupAddon
+                  v-if="showTranslatorButton && item.pageLayoutID && item.pageLayoutID !== NoID"
                 >
-                  {{ $t('general.label.required') }}
-                </Message>
-              </div>
+                  <Button
+                    v-tooltip.top="$t('page.page-layout.tooltip.translate')"
+                    icon="pi pi-language"
+                    severity="secondary"
+                    size="small"
+                    class="w-full border-none"
+                    @click="openLayoutTranslation(item)"
+                  />
+                </InputGroupAddon>
+              </InputGroup>
+              <Message
+                v-if="validationTriggered && (!item.meta?.title || !item.meta.title.trim())"
+                severity="error"
+                size="small"
+                variant="simple"
+              >
+                {{ $t('general.label.required') }}
+              </Message>
+            </div>
 
-              <!-- Layouts are matched in weight order and the first whose
+            <!-- Layouts are matched in weight order and the first whose
                    condition and roles both pass is the one shown. Both halves of
                    that rule are edited here and in the config dialog, the way the
                    title is; empty means the half imposes nothing. The handle is
                    the dialog's alone. -->
-              <InputGroup data-layout-condition class="min-w-0">
-                <!-- The addon has no small variant of its own, and at its normal
+            <InputGroup data-layout-condition class="min-w-0">
+              <!-- The addon has no small variant of its own, and at its normal
                      size it is what sets the group's height — 40px beside a
                      33.25px field. -->
-                <InputGroupAddon class="px-2 py-0 text-sm">ƒ</InputGroupAddon>
-                <CInputExpression
-                  v-model="item.config.visibility.expression"
-                  dialect="expr"
-                  :scope="exprScope"
-                  :min-lines="1"
-                  size="small"
-                  :placeholder="$t('page.page-layout.condition.listPlaceholder')"
-                  @update:model-value="item._updated = true"
-                />
-              </InputGroup>
-
-              <CInputRole
-                v-model="item.config.visibility.roles"
-                :placeholder="$t('page.page-layout.roles.listPlaceholder')"
-                multiple
+              <InputGroupAddon class="px-2 py-0 text-sm">ƒ</InputGroupAddon>
+              <CInputExpression
+                v-model="item.config.visibility.expression"
+                dialect="expr"
+                :scope="exprScope"
+                :min-lines="1"
                 size="small"
-                data-layout-roles
-                class="min-w-0"
+                :placeholder="$t('page.page-layout.condition.listPlaceholder')"
                 @update:model-value="item._updated = true"
               />
+            </InputGroup>
 
-              <div data-layout-actions class="flex items-center justify-end gap-1">
-                <Button
-                  v-tooltip.top="$t('page.page-layout.tooltip.configure')"
-                  icon="pi pi-cog"
-                  severity="secondary"
-                  text
-                  size="small"
-                  @click="openLayoutConfig(item)"
-                />
-                <Button
-                  v-tooltip.top="$t('page.page-layout.tooltip.builder')"
-                  icon="pi pi-wrench"
-                  severity="secondary"
-                  text
-                  size="small"
-                  :disabled="item.pageLayoutID === NoID"
-                  @click="goToLayoutBuilder(item)"
-                />
-                <Button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  text
-                  size="small"
-                  @click="removeLayout(index)"
-                />
-              </div>
-            </template>
-          </CFormList>
+            <CInputRole
+              v-model="item.config.visibility.roles"
+              :placeholder="$t('page.page-layout.roles.listPlaceholder')"
+              multiple
+              size="small"
+              data-layout-roles
+              class="min-w-0"
+              @update:model-value="item._updated = true"
+            />
 
-          <CExpressionHint
-            v-if="anyLayoutUsesTitle"
-            :scope="scope"
-            @insert="layoutRowInputs[activeLayoutRow]?.insert($event)"
-          />
-        </Panel>
-      </div>
-    </div>
+            <div data-layout-actions class="flex items-center justify-end gap-1">
+              <Button
+                v-tooltip.top="$t('page.page-layout.tooltip.configure')"
+                icon="pi pi-cog"
+                severity="secondary"
+                text
+                size="small"
+                @click="openLayoutConfig(item)"
+              />
+              <Button
+                v-tooltip.top="$t('page.page-layout.tooltip.builder')"
+                icon="pi pi-wrench"
+                severity="secondary"
+                text
+                size="small"
+                :disabled="item.pageLayoutID === NoID"
+                @click="goToLayoutBuilder(item)"
+              />
+              <Button
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                size="small"
+                @click="removeLayout(index)"
+              />
+            </div>
+          </template>
+        </CFormList>
+
+        <CExpressionHint
+          v-if="anyLayoutUsesTitle"
+          :scope="scope"
+          @insert="layoutRowInputs[activeLayoutRow]?.insert($event)"
+        />
+      </Panel>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'admin.pages' }">
       <!-- Delete with strategy for pages with children -->
@@ -786,7 +781,7 @@ import { components, useFileUpload, useUnsavedGuard } from '@planetcrust/human-v
 import { cloneDeep, isEqual } from 'lodash-es'
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 
-const { CInputDelete, CInputToggleCard, CFileDropZone } = components
+const { CInputDelete, CInputToggleCard, CFileDropZone, CViewContainer } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useExpressionScope } from '@/sections/compose/composables/useExpressionScope'

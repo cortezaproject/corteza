@@ -39,6 +39,7 @@ vi.mock('@planetcrust/human-vue', () => ({
     load: vi.fn(),
   }),
   components: {
+    CViewContainer: { name: 'CViewContainer', template: '<div><slot /></div>' },
     CInputSearch: { template: '<div />' },
     CPermissionsButton: { template: '<div />' },
     CRouterLinkButton: { template: '<div />' },

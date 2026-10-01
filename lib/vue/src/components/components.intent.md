@@ -29,9 +29,13 @@ governs only `index.ts` and the loose root components.
   callers own the v-if deciding when it shows.
 - `CResizeHandle.vue` — vertical drag handle emitting `mousedown`; pairs with
   useRightSidebarResize's drag-start handler.
-- `CViewContainer.vue` — standard page wrapper for section views. Two shapes:
-  default = fixed-height, content scrolls internally; `scroll` = column that
-  grows and scrolls as a whole (edit forms), with `gap` (4 or 5).
+- `CViewContainer.vue` — the one page wrapper for section views: a centred
+  column with the page padding (`p-4 md:p-6`) and a px width cap — `list`
+  1440px for tables and grids, `form` 1024px for editors; `width` overrides,
+  the default follows the shape. Default shape = fixed-height, content scrolls
+  internally; `scroll` = a full-width scroller around the column, so a wheel
+  over the gutters still scrolls, with `gap` (4 or 5). A `class` passed in
+  lands on the column. Caps are px because the root font-size is 15px.
 
 ## When changing this
 

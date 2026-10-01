@@ -3,7 +3,7 @@
     <span>{{ $t('list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="automationID"
@@ -95,7 +95,7 @@
 
     <!-- Create TAQ Dialog -->
     <TaqConfigModal v-model:visible="showCreateDialog" mode="create" />
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -114,7 +114,7 @@ import { useRouter } from 'vue-router'
 import TaqConfigModal from '../components/common/TaqConfigModal.vue'
 import { useAutomationStore } from '@planetcrust/human-vue'
 
-const { CResourceList, CResourceStatusFilter } = components
+const { CResourceList, CResourceStatusFilter, CViewContainer } = components
 
 const router = useRouter()
 const { t } = useI18n()

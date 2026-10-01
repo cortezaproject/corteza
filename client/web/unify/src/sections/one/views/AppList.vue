@@ -10,28 +10,26 @@
       />
     </div>
 
-    <div class="flex-1 overflow-auto">
-      <div class="container mx-auto p-4">
-        <CAppList
-          variant="grid"
-          :query="query"
-          :no-apps-text="$t('one.apps.empty')"
-          :no-results-text="$t('one.apps.noResults')"
-          :labels="{
-            tileMenu: $t('navigation.appList.tileMenu'),
-            setHome: $t('navigation.appList.setHome'),
-            clearHome: $t('navigation.appList.clearHome'),
-            homeSet: $t('navigation.appList.homeSet', { app: '{app}' }),
-            homeSetTitle: $t('navigation.appList.homeSetTitle'),
-            homeClearedTitle: $t('navigation.appList.homeClearedTitle'),
-            homeErrorTitle: $t('navigation.appList.homeErrorTitle'),
-            homeCleared: $t('navigation.appList.homeCleared', { app: '{app}' }),
-            homeOwn: $t('navigation.appList.homeOwn'),
-            homeGlobal: $t('navigation.appList.homeGlobal'),
-          }"
-        />
-      </div>
-    </div>
+    <CViewContainer scroll width="list">
+      <CAppList
+        variant="grid"
+        :query="query"
+        :no-apps-text="$t('one.apps.empty')"
+        :no-results-text="$t('one.apps.noResults')"
+        :labels="{
+          tileMenu: $t('navigation.appList.tileMenu'),
+          setHome: $t('navigation.appList.setHome'),
+          clearHome: $t('navigation.appList.clearHome'),
+          homeSet: $t('navigation.appList.homeSet', { app: '{app}' }),
+          homeSetTitle: $t('navigation.appList.homeSetTitle'),
+          homeClearedTitle: $t('navigation.appList.homeClearedTitle'),
+          homeErrorTitle: $t('navigation.appList.homeErrorTitle'),
+          homeCleared: $t('navigation.appList.homeCleared', { app: '{app}' }),
+          homeOwn: $t('navigation.appList.homeOwn'),
+          homeGlobal: $t('navigation.appList.homeGlobal'),
+        }"
+      />
+    </CViewContainer>
   </div>
 </template>
 
@@ -39,7 +37,7 @@
 import { components, useBrandLogo } from '@planetcrust/human-vue'
 import { ref } from 'vue'
 
-const { CInputSearch, CAppList } = components
+const { CInputSearch, CAppList, CViewContainer } = components
 
 const query = ref('')
 

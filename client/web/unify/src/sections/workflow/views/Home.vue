@@ -3,7 +3,7 @@
     <span>{{ $t('general.workflow-list') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="workflowID"
@@ -156,7 +156,7 @@
         />
       </div>
     </Popover>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -179,7 +179,7 @@ import Import from '../components/Import.vue'
 import Export from '../components/Export.vue'
 import NamespaceModuleSelector from '../components/NamespaceModuleSelector.vue'
 
-const { CResourceList, CResourceStatusFilter, CRouterLinkButton } = components
+const { CResourceList, CResourceStatusFilter, CRouterLinkButton, CViewContainer } = components
 
 const router = useRouter()
 const { t } = useI18n()

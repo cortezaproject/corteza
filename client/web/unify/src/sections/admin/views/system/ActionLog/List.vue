@@ -3,7 +3,7 @@
     <span>{{ $t('system.actionlog.list.title') }}</span>
   </Teleport>
 
-  <div class="p-4 h-full overflow-hidden min-w-0 flex flex-col gap-3">
+  <CViewContainer class="flex flex-col gap-3">
     <CResourceList
       primary-key="actionID"
       :fields="fields"
@@ -266,7 +266,7 @@
         </div>
       </template>
     </CResourceList>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -283,7 +283,7 @@ import {
   originLabel,
 } from './vocab'
 
-const { CResourceList, CInputUser, CInputDateTime } = components
+const { CResourceList, CInputUser, CInputDateTime, CViewContainer } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()

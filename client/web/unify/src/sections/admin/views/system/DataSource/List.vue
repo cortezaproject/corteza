@@ -3,7 +3,7 @@
     <span>{{ $t('system.data-sources.list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0 flex flex-col gap-4">
+  <CViewContainer class="flex flex-col gap-4">
     <Panel toggleable :collapsed="false" class="shrink-0">
       <template #header>
         <div class="flex items-center gap-2 flex-1">
@@ -156,7 +156,7 @@
         />
       </div>
     </Popover>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -172,7 +172,7 @@ import {
   useResourceList,
 } from '@planetcrust/human-vue'
 
-const { CResourceList, CResourceStatusFilter } = components
+const { CResourceList, CResourceStatusFilter, CViewContainer } = components
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()

@@ -68,6 +68,7 @@ vi.mock('@planetcrust/human-vue', () => ({
   useDraftGuard: () => ({ capture: vi.fn(), markSaved: vi.fn() }),
   useRBACStore: () => ({ can: (...a) => can(...a) }),
   components: {
+    CViewContainer: { name: 'CViewContainer', template: '<div><slot /></div>' },
     CInputDelete: {
       name: 'CInputDelete',
       emits: ['confirm'],

@@ -16,7 +16,7 @@
     @submit="handleSubmit"
     class="flex flex-col h-full"
   >
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
+    <CViewContainer scroll>
       <div v-if="isEdit" class="flex justify-end gap-2 shrink-0">
         <Button
           v-if="canEnable"
@@ -164,7 +164,7 @@
       <Message v-if="!canEdit" severity="warn" :closable="false">
         {{ $t('general.editor.readOnly') }}
       </Message>
-    </div>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.connections' }">
       <CInputDelete
@@ -203,7 +203,7 @@ import { system } from '@planetcrust/human-js'
 import { components, useConfirmDelete, useDraftGuard, useRBACStore } from '@planetcrust/human-vue'
 import ConfiguredConnectionsPanel from './ConfiguredConnectionsPanel.vue'
 
-const { CInputDelete } = components
+const { CInputDelete, CViewContainer } = components
 
 const route = useRoute()
 const rbac = useRBACStore()

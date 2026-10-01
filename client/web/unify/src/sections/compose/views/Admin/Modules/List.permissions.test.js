@@ -42,6 +42,7 @@ vi.mock('@planetcrust/human-vue', () => ({
   }),
   useModuleStore: () => ({ delete: vi.fn() }),
   components: {
+    CViewContainer: { name: 'CViewContainer', template: '<div><slot /></div>' },
     CResourceList: {
       name: 'CResourceList',
       props: {

@@ -20,194 +20,189 @@
     class="flex flex-col h-full"
     @submit="handleSubmit"
   >
-    <!-- The scroller is full width; the container only centres what is inside
-         it. Putting overflow on the centred element leaves the gutters outside
-         it, where a wheel over them scrolls nothing. -->
-    <div class="flex-1 overflow-auto">
-      <div class="container mx-auto p-4 min-w-0">
-        <!-- Actions above cards -->
-        <div v-if="isEdit" class="flex justify-end gap-2 mb-4">
-          <Button
-            v-if="namespace?.canExportCharts"
-            :label="$t('general.label.export')"
-            icon="pi pi-download"
-            size="small"
-            severity="secondary"
-            outlined
-            @click="exportChart"
-          />
-          <CPermissionsButton
-            v-if="chart.canGrant"
-            :resource="`corteza::compose:chart/${namespace.namespaceID}/${chart.chartID}`"
-            :title="chart.name || chart.handle || chart.chartID"
-            :target="chart.name || chart.handle || chart.chartID"
-            v-tooltip.bottom="$t('general.label.permissions')"
-            outlined
-          />
-        </div>
+    <CViewContainer scroll>
+      <!-- Actions above cards -->
+      <div v-if="isEdit" class="flex justify-end gap-2">
+        <Button
+          v-if="namespace?.canExportCharts"
+          :label="$t('general.label.export')"
+          icon="pi pi-download"
+          size="small"
+          severity="secondary"
+          outlined
+          @click="exportChart"
+        />
+        <CPermissionsButton
+          v-if="chart.canGrant"
+          :resource="`corteza::compose:chart/${namespace.namespaceID}/${chart.chartID}`"
+          :title="chart.name || chart.handle || chart.chartID"
+          :target="chart.name || chart.handle || chart.chartID"
+          v-tooltip.bottom="$t('general.label.permissions')"
+          outlined
+        />
+      </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          <!-- Left column: Settings -->
-          <div class="lg:col-span-7 flex flex-col gap-4">
-            <Panel :header="$t('chart.generalSettings')" toggleable>
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <CFormGroup name="name" :label="$t('chart.name')" required>
-                  <InputText
-                    id="name"
-                    name="name"
-                    v-model="chart.name"
-                    :placeholder="$t('chart.general.placeholder.name')"
-                    class="w-full"
-                  />
-                </CFormGroup>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Left column: Settings -->
+        <div class="lg:col-span-7 flex flex-col gap-4">
+          <Panel :header="$t('chart.generalSettings')" toggleable>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <CFormGroup name="name" :label="$t('chart.name')" required>
+                <InputText
+                  id="name"
+                  name="name"
+                  v-model="chart.name"
+                  :placeholder="$t('chart.general.placeholder.name')"
+                  class="w-full"
+                />
+              </CFormGroup>
 
-                <CFormGroup name="handle" :label="$t('chart.handle')">
-                  <InputText
-                    id="handle"
-                    name="handle"
-                    v-model="chart.handle"
-                    :placeholder="$t('chart.general.placeholder.handle')"
-                    class="w-full"
-                  />
-                </CFormGroup>
+              <CFormGroup name="handle" :label="$t('chart.handle')">
+                <InputText
+                  id="handle"
+                  name="handle"
+                  v-model="chart.handle"
+                  :placeholder="$t('chart.general.placeholder.handle')"
+                  class="w-full"
+                />
+              </CFormGroup>
 
-                <CFormGroup
-                  :label="$t('chart.description')"
-                  input-id="description"
-                  class="lg:col-span-2"
-                >
-                  <Textarea
-                    id="description"
-                    v-model="chart.meta.description"
-                    :placeholder="$t('chart.general.placeholder.description')"
-                    rows="2"
-                    autoResize
-                    class="w-full"
-                  />
-                </CFormGroup>
+              <CFormGroup
+                :label="$t('chart.description')"
+                input-id="description"
+                class="lg:col-span-2"
+              >
+                <Textarea
+                  id="description"
+                  v-model="chart.meta.description"
+                  :placeholder="$t('chart.general.placeholder.description')"
+                  rows="2"
+                  autoResize
+                  class="w-full"
+                />
+              </CFormGroup>
 
-                <CFormGroup :label="$t('chart.colorScheme.label')" input-id="colorScheme">
-                  <div class="flex items-center gap-2">
-                    <Select
-                      id="colorScheme"
-                      v-model="chart.config.colorScheme"
-                      :options="colorSchemes"
-                      option-label="name"
-                      option-value="id"
-                      :placeholder="$t('chart.colorScheme.placeholder')"
-                      class="flex-1 min-w-0"
-                      filter
-                      show-clear
-                    >
-                      <template #value="{ value }">
-                        <span v-if="value" class="truncate">{{ getSchemeName(value) }}</span>
-                        <span v-else>{{ $t('chart.colorScheme.placeholder') }}</span>
-                      </template>
-                      <template #option="{ option }">
-                        <div class="flex items-center gap-2 min-w-0">
-                          <div class="flex gap-0.5 items-center shrink-0">
-                            <div
-                              v-for="(color, ci) in option.colors"
-                              :key="ci"
-                              :style="`background: ${color};`"
-                              class="w-3.5 h-3.5 rounded-sm"
-                            />
-                          </div>
-                          <span class="truncate">{{ option.name }}</span>
-                        </div>
-                      </template>
-                      <template v-if="canManageColorSchemes" #header>
-                        <div class="p-2 border-b border-surface-200 dark:border-surface-700">
-                          <Button
-                            :label="$t('chart.colorScheme.custom.add')"
-                            icon="pi pi-plus"
-                            severity="secondary"
-                            text
-                            size="small"
-                            class="w-full"
-                            data-testid="chart-color-scheme-add"
-                            @click="createColorScheme"
+              <CFormGroup :label="$t('chart.colorScheme.label')" input-id="colorScheme">
+                <div class="flex items-center gap-2">
+                  <Select
+                    id="colorScheme"
+                    v-model="chart.config.colorScheme"
+                    :options="colorSchemes"
+                    option-label="name"
+                    option-value="id"
+                    :placeholder="$t('chart.colorScheme.placeholder')"
+                    class="flex-1 min-w-0"
+                    filter
+                    show-clear
+                  >
+                    <template #value="{ value }">
+                      <span v-if="value" class="truncate">{{ getSchemeName(value) }}</span>
+                      <span v-else>{{ $t('chart.colorScheme.placeholder') }}</span>
+                    </template>
+                    <template #option="{ option }">
+                      <div class="flex items-center gap-2 min-w-0">
+                        <div class="flex gap-0.5 items-center shrink-0">
+                          <div
+                            v-for="(color, ci) in option.colors"
+                            :key="ci"
+                            :style="`background: ${color};`"
+                            class="w-3.5 h-3.5 rounded-sm"
                           />
                         </div>
-                      </template>
-                    </Select>
+                        <span class="truncate">{{ option.name }}</span>
+                      </div>
+                    </template>
+                    <template v-if="canManageColorSchemes" #header>
+                      <div class="p-2 border-b border-surface-200 dark:border-surface-700">
+                        <Button
+                          :label="$t('chart.colorScheme.custom.add')"
+                          icon="pi pi-plus"
+                          severity="secondary"
+                          text
+                          size="small"
+                          class="w-full"
+                          data-testid="chart-color-scheme-add"
+                          @click="createColorScheme"
+                        />
+                      </div>
+                    </template>
+                  </Select>
 
-                    <Button
-                      v-if="showEditColorSchemeButton"
-                      v-tooltip.bottom="$t('chart.colorScheme.custom.edit')"
-                      :aria-label="$t('chart.colorScheme.custom.edit')"
-                      icon="pi pi-pencil"
-                      severity="secondary"
-                      outlined
-                      data-testid="chart-color-scheme-edit"
-                      @click="editColorScheme"
-                    />
-                  </div>
+                  <Button
+                    v-if="showEditColorSchemeButton"
+                    v-tooltip.bottom="$t('chart.colorScheme.custom.edit')"
+                    :aria-label="$t('chart.colorScheme.custom.edit')"
+                    icon="pi pi-pencil"
+                    severity="secondary"
+                    outlined
+                    data-testid="chart-color-scheme-edit"
+                    @click="editColorScheme"
+                  />
+                </div>
 
-                  <div v-if="currentColorScheme" class="flex flex-wrap gap-0.5 items-center mt-2">
-                    <div
-                      v-for="(color, ci) in currentColorScheme.colors"
-                      :key="ci"
-                      :style="`background: ${color};`"
-                      class="w-4 h-2 rounded-sm"
-                    />
-                  </div>
-                </CFormGroup>
+                <div v-if="currentColorScheme" class="flex flex-wrap gap-0.5 items-center mt-2">
+                  <div
+                    v-for="(color, ci) in currentColorScheme.colors"
+                    :key="ci"
+                    :style="`background: ${color};`"
+                    class="w-4 h-2 rounded-sm"
+                  />
+                </div>
+              </CFormGroup>
 
-                <CInputToggleCard
-                  v-model="animationEnabled"
-                  :label="$t('chart.edit.animation.label')"
-                  :description="$t('chart.edit.animation.description')"
-                  class="self-start"
-                />
-              </div>
-            </Panel>
-
-            <!-- Report editor: contributes its own panels -->
-            <component
-              :is="reportEditor"
-              v-if="chart && editReport"
-              :chart="chart"
-              :modules="modules"
-            />
-
-            <Panel :header="$t('chart.edit.toolbox.label')" toggleable collapsed>
               <CInputToggleCard
-                v-model="saveAsImageEnabled"
-                :label="$t('chart.edit.toolbox.saveAsImage.label')"
-                :description="$t('chart.edit.toolbox.saveAsImage.description')"
+                v-model="animationEnabled"
+                :label="$t('chart.edit.animation.label')"
+                :description="$t('chart.edit.animation.description')"
+                class="self-start"
               />
-            </Panel>
-          </div>
-
-          <!-- Right column: Preview -->
-          <div class="lg:col-span-5">
-            <div class="sticky top-0">
-              <Card>
-                <template #content>
-                  <div class="relative" style="height: 400px">
-                    <div
-                      v-if="previewNeedsRecord"
-                      class="absolute inset-0 flex items-center justify-center p-3 text-center text-muted-color text-sm"
-                    >
-                      {{ $t('chart.edit.filter.previewNeedsRecord') }}
-                    </div>
-
-                    <ChartRenderer
-                      v-else-if="chart"
-                      ref="chartPreview"
-                      :chart="chart"
-                      :reporter="reporter"
-                      @updated="onUpdated"
-                    />
-                  </div>
-                </template>
-              </Card>
             </div>
+          </Panel>
+
+          <!-- Report editor: contributes its own panels -->
+          <component
+            :is="reportEditor"
+            v-if="chart && editReport"
+            :chart="chart"
+            :modules="modules"
+          />
+
+          <Panel :header="$t('chart.edit.toolbox.label')" toggleable collapsed>
+            <CInputToggleCard
+              v-model="saveAsImageEnabled"
+              :label="$t('chart.edit.toolbox.saveAsImage.label')"
+              :description="$t('chart.edit.toolbox.saveAsImage.description')"
+            />
+          </Panel>
+        </div>
+
+        <!-- Right column: Preview -->
+        <div class="lg:col-span-5">
+          <div class="sticky top-0">
+            <Card>
+              <template #content>
+                <div class="relative" style="height: 400px">
+                  <div
+                    v-if="previewNeedsRecord"
+                    class="absolute inset-0 flex items-center justify-center p-3 text-center text-muted-color text-sm"
+                  >
+                    {{ $t('chart.edit.filter.previewNeedsRecord') }}
+                  </div>
+
+                  <ChartRenderer
+                    v-else-if="chart"
+                    ref="chartPreview"
+                    :chart="chart"
+                    :reporter="reporter"
+                    @updated="onUpdated"
+                  />
+                </div>
+              </template>
+            </Card>
           </div>
         </div>
       </div>
-    </div>
+    </CViewContainer>
 
     <CEditorActions
       :back-to="true"
@@ -347,7 +342,7 @@ import { evaluatePlacementFilter, usesRecordVariables } from '../../../lib/recor
 import ChartTranslator from '../../../components/Admin/Chart/ChartTranslator.vue'
 import * as Reports from '../../../components/Chart/Report/index.js'
 
-const { CInputDelete, CInputColorPicker } = components
+const { CInputDelete, CInputColorPicker, CViewContainer } = components
 
 const { t } = useI18n()
 const router = useRouter()

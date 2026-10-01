@@ -73,6 +73,7 @@ vi.mock('@planetcrust/human-vue', () => ({
     reset: vi.fn(),
   }),
   components: {
+    CViewContainer: { name: 'CViewContainer', template: '<div><slot /></div>' },
     CInputDelete: { template: '<div />' },
     CInputToggleCard: { props: ['modelValue'], template: '<div />' },
     CFileDropZone: { template: '<div />' },

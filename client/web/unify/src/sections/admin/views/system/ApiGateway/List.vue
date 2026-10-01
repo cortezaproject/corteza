@@ -3,7 +3,7 @@
     <span>{{ $t('system.apigw.list.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0 flex flex-col gap-4">
+  <CViewContainer class="flex flex-col gap-4">
     <!-- Profiler & Proxy Settings -->
     <Panel :header="$t('system.apigw.settings.title')" toggleable :collapsed="false">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -144,7 +144,7 @@
         />
       </div>
     </Popover>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -160,7 +160,7 @@ import {
   useResourceList,
 } from '@planetcrust/human-vue'
 
-const { CResourceList, CResourceStatusFilter } = components
+const { CResourceList, CResourceStatusFilter, CViewContainer } = components
 
 const { t } = useI18n()
 const { confirmDelete } = useConfirmDelete()

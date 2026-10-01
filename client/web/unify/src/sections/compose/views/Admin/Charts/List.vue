@@ -3,7 +3,7 @@
     <span>{{ $t('chart.navigation.chart') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <CResourceList
       ref="resourceListRef"
       primary-key="chartID"
@@ -93,7 +93,7 @@
         </div>
       </div>
     </Dialog>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -110,7 +110,7 @@ import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 
 const props = defineProps({
   namespace: {

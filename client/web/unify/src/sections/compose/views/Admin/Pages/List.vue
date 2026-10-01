@@ -3,11 +3,8 @@
     <span>{{ $t('page.navigation.page') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full flex flex-col overflow-hidden min-w-0">
-    <Card
-      class="flex-1 overflow-auto min-w-0 w-full max-w-6xl mx-auto"
-      :pt="{ body: { class: 'p-0' } }"
-    >
+  <CViewContainer class="flex flex-col">
+    <Card class="flex-1 overflow-auto min-w-0 w-full" :pt="{ body: { class: 'p-0' } }">
       <template #header>
         <!-- Header: Create + permissions on the left, search on the right -->
         <div class="flex items-center justify-between gap-3 p-3 border-b">
@@ -60,7 +57,7 @@
         </div>
       </template>
     </Card>
-  </div>
+  </CViewContainer>
 
   <!-- One popup shared by every node's actions button -->
   <Menu ref="actionsMenuRef" :model="currentMenuItems" popup>
@@ -171,7 +168,7 @@ import { useRouter } from 'vue-router'
 import PageTreeBranch from './PageTreeBranch.vue'
 import { dropPlan, projectDrop } from './pageTreeDrop'
 
-const { CInputSearch, CPermissionsButton, CRouterLinkButton } = components
+const { CInputSearch, CPermissionsButton, CRouterLinkButton, CViewContainer } = components
 const { t } = useI18n()
 const router = useRouter()
 const $toast = inject('$toast')

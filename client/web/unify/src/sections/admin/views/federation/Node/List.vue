@@ -3,80 +3,78 @@
     <span>{{ $t('federation.nodes.list.title') }}</span>
   </Teleport>
 
-  <div class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0">
-      <CResourceList
-        ref="resourceListRef"
-        primary-key="nodeID"
-        :fields="fields"
-        :items="items"
-        :filter="filter"
-        :sorting="sorting"
-        :pagination="pagination"
-        :action-items="getActionsMenuItems"
-        :loading="loading"
-        :translations="{
-          searchPlaceholder: $t('federation.nodes.list.filter.query.placeholder'),
-          showingPagination: 'general.resourceList.pagination.showing',
-          singlePluralPagination: 'general.resourceList.pagination.single',
-          prevPagination: $t('general.resourceList.pagination.prev'),
-          nextPagination: $t('general.resourceList.pagination.next'),
-          recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
-          resourceSingle: $t('general.label.federation-node.single'),
-          resourcePlural: $t('general.label.federation-node.plural'),
-        }"
-        clickable
-        @update:filter="Object.assign(filter, $event)"
-        @sort="handleSort"
-        @row-click="
-          ({ data }) =>
-            $router.push({ name: 'federation.nodes.edit', params: { nodeID: data.nodeID } })
-        "
-        @page-change="handlePageChange"
-      >
-        <template #header>
-          <div class="flex gap-2">
-            <Button
-              v-if="canCreate"
-              :label="$t('federation.nodes.list.new')"
-              icon="pi pi-plus"
-              size="small"
-              @click="$router.push({ name: 'federation.nodes.create' })"
-            />
-            <Button
-              v-if="canCreate"
-              :label="$t('federation.nodes.list.pair')"
-              icon="pi pi-link"
-              size="small"
-              severity="secondary"
-              @click="pairDialogVisible = true"
-            />
-            <CPermissionsButton
-              v-if="canGrant"
-              v-tooltip.bottom="$t('general.label.permissions')"
-              resource="corteza::federation:node/*"
-            />
-          </div>
-        </template>
-
-        <template #body-status="{ data }">
-          <Tag
-            :value="data.status || 'unknown'"
-            :severity="
-              data.status === 'paired'
-                ? 'success'
-                : data.status === 'pair_requested'
-                  ? 'warn'
-                  : 'secondary'
-            "
+  <CViewContainer>
+    <CResourceList
+      ref="resourceListRef"
+      primary-key="nodeID"
+      :fields="fields"
+      :items="items"
+      :filter="filter"
+      :sorting="sorting"
+      :pagination="pagination"
+      :action-items="getActionsMenuItems"
+      :loading="loading"
+      :translations="{
+        searchPlaceholder: $t('federation.nodes.list.filter.query.placeholder'),
+        showingPagination: 'general.resourceList.pagination.showing',
+        singlePluralPagination: 'general.resourceList.pagination.single',
+        prevPagination: $t('general.resourceList.pagination.prev'),
+        nextPagination: $t('general.resourceList.pagination.next'),
+        recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
+        resourceSingle: $t('general.label.federation-node.single'),
+        resourcePlural: $t('general.label.federation-node.plural'),
+      }"
+      clickable
+      @update:filter="Object.assign(filter, $event)"
+      @sort="handleSort"
+      @row-click="
+        ({ data }) =>
+          $router.push({ name: 'federation.nodes.edit', params: { nodeID: data.nodeID } })
+      "
+      @page-change="handlePageChange"
+    >
+      <template #header>
+        <div class="flex gap-2">
+          <Button
+            v-if="canCreate"
+            :label="$t('federation.nodes.list.new')"
+            icon="pi pi-plus"
+            size="small"
+            @click="$router.push({ name: 'federation.nodes.create' })"
           />
-        </template>
-        <template #body-changedAt="{ data }">
-          {{ changedAtText(data) }}
-        </template>
-      </CResourceList>
-    </div>
-  </div>
+          <Button
+            v-if="canCreate"
+            :label="$t('federation.nodes.list.pair')"
+            icon="pi pi-link"
+            size="small"
+            severity="secondary"
+            @click="pairDialogVisible = true"
+          />
+          <CPermissionsButton
+            v-if="canGrant"
+            v-tooltip.bottom="$t('general.label.permissions')"
+            resource="corteza::federation:node/*"
+          />
+        </div>
+      </template>
+
+      <template #body-status="{ data }">
+        <Tag
+          :value="data.status || 'unknown'"
+          :severity="
+            data.status === 'paired'
+              ? 'success'
+              : data.status === 'pair_requested'
+                ? 'warn'
+                : 'secondary'
+          "
+        />
+      </template>
+      <template #body-changedAt="{ data }">
+        {{ changedAtText(data) }}
+      </template>
+    </CResourceList>
+  </CViewContainer>
 
   <!-- Pair Dialog -->
   <Dialog
@@ -122,7 +120,7 @@ import {
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 
 const { t } = useI18n()
 const $toast = inject('$toast')

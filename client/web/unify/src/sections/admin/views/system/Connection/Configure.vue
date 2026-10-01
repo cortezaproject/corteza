@@ -4,7 +4,7 @@
   </Teleport>
 
   <div class="flex flex-col h-full">
-    <div class="container mx-auto p-4 flex-1 flex flex-col min-h-0 gap-4">
+    <CViewContainer scroll>
       <Card
         :pt="{
           body: { class: 'p-4 flex flex-col gap-2' },
@@ -38,7 +38,7 @@
         :connection="connection"
         class="flex-1 min-h-0"
       />
-    </div>
+    </CViewContainer>
 
     <CEditorActions :back-to="{ name: 'system.connections' }" />
   </div>
@@ -50,6 +50,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useRBACStore } from '@planetcrust/human-vue'
 import ConfiguredConnectionsPanel from './ConfiguredConnectionsPanel.vue'
+import { components } from '@planetcrust/human-vue'
+
+const { CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()

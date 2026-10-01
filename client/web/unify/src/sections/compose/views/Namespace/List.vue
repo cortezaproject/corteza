@@ -3,7 +3,7 @@
     <span>{{ $t('namespace.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0">
+  <CViewContainer>
     <div v-if="viewMode === 'cards'" class="h-full flex flex-col min-w-0 overflow-hidden gap-4">
       <Card
         :pt="{
@@ -203,7 +203,7 @@
         {{ changedAtText(data) }}
       </template>
     </CResourceList>
-  </div>
+  </CViewContainer>
 
   <!-- One popup shared by every card's actions button -->
   <Menu ref="cardMenuRef" :model="cardMenuItems" popup>
@@ -231,7 +231,8 @@ import {
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-const { CInputSearch, CPermissionsButton, CResourceList, CRouterLinkButton } = components
+const { CInputSearch, CPermissionsButton, CResourceList, CRouterLinkButton, CViewContainer } =
+  components
 
 const { t } = useI18n()
 const router = useRouter()

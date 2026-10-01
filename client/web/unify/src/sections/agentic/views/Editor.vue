@@ -19,9 +19,7 @@
     class="flex flex-col h-full overflow-hidden"
   >
     <div class="flex-1 flex flex-row min-h-0 overflow-hidden">
-      <div
-        class="flex-1 min-w-0 p-4 pr-2 flex flex-col gap-4 overflow-hidden w-full max-w-screen-2xl mx-auto"
-      >
+      <CViewContainer width="list" class="flex-1 flex flex-col gap-4">
         <Card
           :pt="{
             body: { class: 'p-0 h-full flex flex-col' },
@@ -657,7 +655,7 @@
             </Tabs>
           </template>
         </Card>
-      </div>
+      </CViewContainer>
 
       <!-- Resize handle -->
       <div v-if="showChat" class="resize-handle group" @mousedown="startChatResize">
@@ -786,6 +784,7 @@ const {
   CInputNamespace,
   CInputLabel,
   CConversationTabs,
+  CViewContainer,
 } = components
 
 const route = useRoute()

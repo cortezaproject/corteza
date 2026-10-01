@@ -3,7 +3,7 @@
     <span>{{ $t('automation.sessions.list.title') }}</span>
   </Teleport>
 
-  <div class="p-4 h-full overflow-hidden min-w-0 flex flex-col">
+  <CViewContainer class="flex flex-col">
     <Card
       :pt="{
         root: { class: 'flex-1 flex flex-col min-h-0 overflow-hidden' },
@@ -232,7 +232,7 @@
         </Tabs>
       </template>
     </Card>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -247,7 +247,7 @@ import {
   useResourceList,
 } from '@planetcrust/human-vue'
 
-const { CResourceList } = components
+const { CResourceList, CViewContainer } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()

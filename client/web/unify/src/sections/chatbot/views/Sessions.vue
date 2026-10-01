@@ -3,7 +3,7 @@
     <span>{{ $t('chatbot.sessions.title') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-4 h-full overflow-hidden min-w-0 flex flex-col">
+  <CViewContainer class="flex flex-col">
     <Card
       :pt="{
         body: { class: 'p-0 h-full flex flex-col min-h-0' },
@@ -21,7 +21,7 @@
         />
       </template>
     </Card>
-  </div>
+  </CViewContainer>
 </template>
 
 <script setup>
@@ -29,6 +29,9 @@ import { CChatbotInbox, makeChatbotInboxTranslations } from '@planetcrust/human-
 import { computed, inject, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useChatbotStore } from '@planetcrust/human-vue'
+import { components } from '@planetcrust/human-vue'
+
+const { CViewContainer } = components
 
 const { t } = useI18n()
 const $SystemAPI = inject('$SystemAPI')
