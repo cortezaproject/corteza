@@ -96,8 +96,18 @@
             </div>
           </template>
 
-          <Column v-if="selectable" selectionMode="multiple" headerStyle="width: 3rem" />
-          <Column v-if="expandable" :expander="true" style="width: 3rem" />
+          <Column
+            v-if="selectable"
+            selectionMode="multiple"
+            headerStyle="width: 3rem"
+            :pt="{ headerCell: { class: headerCellClass } }"
+          />
+          <Column
+            v-if="expandable"
+            :expander="true"
+            style="width: 3rem"
+            :pt="{ headerCell: { class: headerCellClass } }"
+          />
           <Column
             v-for="field in computedFields"
             :key="field.key"
@@ -111,10 +121,7 @@
               headerCell: {
                 ...field.pt?.headerCell,
                 'data-field': field.key,
-                class: [
-                  'bg-emphasis text-muted-color font-semibold uppercase text-sm tracking-wide',
-                  field.pt?.headerCell?.class,
-                ],
+                class: [headerCellClass, field.pt?.headerCell?.class],
               },
             }"
             :frozen="field.frozen"
@@ -139,7 +146,7 @@
             frozen
             alignFrozen="right"
             :pt="{
-              headerCell: { class: 'border-l-0' },
+              headerCell: { class: [headerCellClass, 'border-l-0'] },
               bodyCell: { class: 'px-2 py-1 border-l-0' },
             }"
           >
@@ -360,6 +367,9 @@ const computedFields = computed(() => {
   }
   return props.fields
 })
+
+/** Every header cell, the frozen actions column included, shares one look. */
+const headerCellClass = 'bg-emphasis text-muted-color font-semibold uppercase text-sm tracking-wide'
 
 // show() rather than toggle(): one popup serves every row, so clicking a second
 // row's button must re-anchor and open there rather than close the first.
