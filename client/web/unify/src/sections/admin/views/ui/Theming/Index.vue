@@ -32,8 +32,8 @@
                   :key="kind"
                   :label="$t(`ui.settings.editor.human-studio.${kind}Logo.title`)"
                   :description="
-                    theme.id === 'dark'
-                      ? $t('ui.settings.editor.human-studio.logo.darkFallback')
+                    inheritedSlot(theme, kind)
+                      ? $t('ui.settings.editor.human-studio.logo.inheritedFromLight')
                       : undefined
                   "
                 >
@@ -41,8 +41,11 @@
                     accept="image/*"
                     :uploading="theme.logos[kind].uploading"
                     :error="theme.logos[kind].error"
-                    :preview-url="theme.logos[kind].url"
-                    :preview-style="{ backgroundColor: '#' + theme.variables['sidebar-bg'] }"
+                    :preview-url="theme.logos[kind].url || inheritedSlot(theme, kind)?.url"
+                    :preview-style="{
+                      backgroundColor: '#' + theme.variables['sidebar-bg'],
+                      opacity: inheritedSlot(theme, kind) ? 0.55 : 1,
+                    }"
                     :clearable="theme.logos[kind].custom"
                     :drop-label="
                       $t(`ui.settings.editor.human-studio.${kind}Logo.uploader.instructions`)
@@ -153,6 +156,12 @@ function logoSlot(key, read) {
 }
 
 const logoKinds = ['main', 'icon']
+
+// The light slot a dark slot inherits from while it has no image of its own
+function inheritedSlot(theme, kind) {
+  if (theme.id !== 'dark' || theme.logos[kind].url) return null
+  return themes.find(t => t.id === 'light').logos[kind]
+}
 
 const themeVariableKeys = [
   'primary',

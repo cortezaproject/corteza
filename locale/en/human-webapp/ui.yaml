@@ -14,7 +14,7 @@ settings:
       label:
         default: Default
       logo:
-        darkFallback: Leave empty to use the light-theme image in the dark theme as well
+        inheritedFromLight: Inherited from the light theme. Upload an image here to use a different one in the dark theme.
       mainLogo:
         title: Logo
         uploader:
