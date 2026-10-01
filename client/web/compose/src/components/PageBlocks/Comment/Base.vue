@@ -810,15 +810,7 @@ export default {
 
         return this.fetchCommentRecords(this.roModule, this.expandFilter())
           .then(groupedRecords => {
-            if (this.showNewestFirst) {
-              this.comments = groupedRecords.sort((a, b) => {
-                return new Date(a.date) - new Date(b.date)
-              })
-            } else {
-              this.comments = groupedRecords.sort((a, b) => {
-                return new Date(b.date) - new Date(a.date)
-              })
-            }
+            this.comments = groupedRecords
           })
           .catch(e => {
             console.error(e)
