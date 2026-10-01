@@ -166,6 +166,16 @@ DOM as it is; use a visibility assertion when visibility is the question.
   it the links come back pointing at the API, which does not serve the webapp.
 - **Errors come back as HTTP 200** with `{"error":{"message":…}}` — `api.sh`
   detects this and exits non-zero.
+- **`api.sh` cannot upload a file.** It always sends
+  `Content-Type: application/json`, so a `-F upload=@file` body is parsed as
+  JSON and fails with `invalid character '-' in numeric literal`. Multipart
+  endpoints (settings logos, attachments) take a raw curl: the token from
+  `token.sh`, the `/api` prefix (`http://localhost:<api>/api/system/settings/ui.main-logo`;
+  without `/api` the auth server answers with its HTML), and `-F upload=@file`.
+- **A user update needs a fresh read first.** `PUT /system/users/{id}` is
+  optimistically locked: a body saved from an earlier GET fails with "Someone
+  else, or a workflow, changed this user after you opened it". GET, patch, PUT
+  in one go.
 - **`api.sh` shows an error's English message, the webapp its translation.**
   The webapp's JSON requests make the server translate an error from
   `locale/en/human-server/`, and a missing string comes back as the raw key
