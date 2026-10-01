@@ -553,16 +553,16 @@ function showContent(comment) {
 
 // ---- Merge message groups for auto-refresh ----
 
-function mergeMessageGroups(existing, newGroups) {
+function mergeMessageGroups(existing, newGroups, append) {
   if (!existing.length || !newGroups.length) {
-    return showNewestFirst.value ? [...existing, ...newGroups] : [...newGroups, ...existing]
+    return append ? [...existing, ...newGroups] : [...newGroups, ...existing]
   }
 
-  const existingGroup = showNewestFirst.value ? existing[existing.length - 1] : existing[0]
-  const newGroup = showNewestFirst.value ? newGroups[0] : newGroups[newGroups.length - 1]
+  const existingGroup = append ? existing[existing.length - 1] : existing[0]
+  const newGroup = append ? newGroups[0] : newGroups[newGroups.length - 1]
 
   if (existingGroup.date === newGroup.date) {
-    if (showNewestFirst.value) {
+    if (append) {
       newGroup.messages.forEach(newMessage => {
         const lastExisting = existingGroup.messages[existingGroup.messages.length - 1]
         if (lastExisting && lastExisting.authorId === newMessage.authorId) {
@@ -578,7 +578,7 @@ function mergeMessageGroups(existing, newGroups) {
     }
   }
 
-  return showNewestFirst.value ? [...existing, ...newGroups] : [...newGroups, ...existing]
+  return append ? [...existing, ...newGroups] : [...newGroups, ...existing]
 }
 
 // ---- Last comment timestamp for auto-refresh ----
@@ -606,7 +606,7 @@ async function loadNewComments() {
 
   const wasAtBottom = isScrollAtBottom()
   const newGroups = await fetchCommentRecords(filter, false)
-  comments.value = mergeMessageGroups(comments.value, newGroups)
+  comments.value = mergeMessageGroups(comments.value, newGroups, true)
 
   if (wasAtBottom) {
     nextTick(() => scrollToLatest())
@@ -625,13 +625,7 @@ async function refresh() {
   filter.value.nextPage = ''
 
   try {
-    const groupedRecords = await fetchCommentRecords(expandFilter())
-
-    if (showNewestFirst.value) {
-      comments.value = groupedRecords.sort((a, b) => new Date(a.date) - new Date(b.date))
-    } else {
-      comments.value = groupedRecords.sort((a, b) => new Date(b.date) - new Date(a.date))
-    }
+    comments.value = await fetchCommentRecords(expandFilter())
   } catch (e) {
     console.error('Comment refresh error:', e)
   } finally {
@@ -654,7 +648,7 @@ async function loadMoreMessages() {
 
   try {
     const newGroups = await fetchCommentRecords(expandFilter())
-    comments.value = mergeMessageGroups(comments.value, newGroups)
+    comments.value = mergeMessageGroups(comments.value, newGroups, !showNewestFirst.value)
   } finally {
     nextTick(() => {
       if (container && showNewestFirst.value) {
