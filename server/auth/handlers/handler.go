@@ -215,9 +215,13 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 				return
 			}
 
-			if !validFormPost(r) {
-				req.Status = http.StatusRequestEntityTooLarge
-				return
+			// Only validate form post for actual POST/PUT/PATCH requests, not GET
+			// GET requests with query params (like OIDC callbacks) can have long values
+			if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodPatch {
+				if !validFormPost(r) {
+					req.Status = http.StatusRequestEntityTooLarge
+					return
+				}
 			}
 
 			req.Client = request.GetOauth2Client(req.Session)
