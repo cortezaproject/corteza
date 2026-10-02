@@ -39,6 +39,11 @@ test('braces keep named keys, nested paths included', () => {
   assert.equal(r.out.trim(), '{"userID":"0","values.name":"n0"}')
 })
 
+test('an empty string prints as "" so a row never reads as missing', () => {
+  const r = run('{"set":[{"slug":""},{"slug":"crm"}]}', '--pick', 'set[].slug')
+  assert.deepEqual(r.out.split('\n').filter(Boolean), ['""', 'crm'])
+})
+
 test('a missing key is null, not an error', () => {
   const r = run(users, '--pick', 'response.nope.deeper')
   assert.equal(r.status, 0)

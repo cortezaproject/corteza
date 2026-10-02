@@ -133,11 +133,20 @@ def main(argv):
     body = truncate(body, limit)
 
     scalar = lambda v: v is None or isinstance(v, (str, int, float, bool))
+
+    def show(v):
+        # an empty string prints as "" so a row never vanishes into a blank line
+        if v is None:
+            return "null"
+        if isinstance(v, str):
+            return v if v else '""'
+        return json.dumps(v)
+
     if scalar(body):
-        print("null" if body is None else body if isinstance(body, str) else json.dumps(body))
+        print(show(body))
     elif isinstance(body, list) and all(scalar(v) for v in body):
         for v in body:
-            print("null" if v is None else v if isinstance(v, str) else json.dumps(v))
+            print(show(v))
     elif pretty:
         print(json.dumps(body, indent=2, ensure_ascii=False))
     else:

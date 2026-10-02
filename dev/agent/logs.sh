@@ -13,7 +13,11 @@
 # that place it, and a footer counting what was hidden. The raw tail is behind
 # -a because most of it is a restart's warn banner, repeated per rebuild.
 #
-# HUMAN_DEV_LOG points the script at another file; the tests use it.
+# Identical entries (level, logger, msg, error) print once with a ×N count, and
+# stamps carry the date when the window spans more than one day.
+#
+# HUMAN_DEV_LOG points the script at another checkout's log, e.g. the primary's
+# server/build/dev.log from a worktree whose own server is not running.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
@@ -51,8 +55,8 @@ done
 
 if [[ ! -f "$LOG" ]]; then
   bad "no dev log at $LOG"
-  note "(re)start the dev server with 'cd server && make watch'"
-  note "the watch target tees its output there; an older session may predate this"
+  note "this checkout's server has not run under 'make watch' (it tees its output there)"
+  note "another checkout's log: HUMAN_DEV_LOG=<checkout>/server/build/dev.log $0"
   exit 1
 fi
 
@@ -74,42 +78,61 @@ window = sys.argv[2]
 loud = {"error", "dpanic", "panic", "fatal"}
 hidden = {"warn": 0, "info": 0, "debug": 0}
 shown = 0
+out = []            # (ts, text) in first-seen order; repeats fold into their first line
+seen = {}           # entry key -> index into out
+counts_by = {}
 
-def stamp(ts):
+def ts_of(e):
     try:
-        return time.strftime("%H:%M:%S", time.localtime(float(ts)))
+        return float(e.get("ts"))
     except (TypeError, ValueError):
-        return "--:--:--"
+        return None
 
 for raw in sys.stdin:
     line = raw.rstrip("\n")
     if not line:
         continue
     if line.startswith("[devwatch]"):
-        print(line)
+        out.append((None, line))
         continue
     try:
         e = json.loads(line)
     except ValueError:
         # a panic trace or a bare "Error:" has no envelope and is always news
-        print(line)
+        out.append((None, line))
         shown += 1
         continue
     level = str(e.get("level", "")).lower()
     if level in loud or (show_warn and level == "warn"):
-        parts = [stamp(e.get("ts")), level.upper()]
+        parts = [level.upper()]
         if e.get("logger"):
             parts.append(e["logger"] + ":")
         parts.append(str(e.get("msg", "")))
         if e.get("error"):
             parts.append("— " + str(e["error"]))
-        print(" ".join(parts))
-        shown += 1
+        key = " ".join(parts)
+        if key in seen:
+            counts_by[key] += 1
+        else:
+            seen[key] = len(out)
+            counts_by[key] = 1
+            out.append((ts_of(e), key))
+            shown += 1
     elif level in hidden:
         hidden[level] += 1
     else:
         hidden.setdefault(level or "other", 0)
         hidden[level or "other"] += 1
+
+stamps = [t for t, _ in out if t is not None]
+fmt = "%m-%d %H:%M:%S" if stamps and max(stamps) - min(stamps) > 86400 else "%H:%M:%S"
+for t, text in out:
+    if t is None and text.startswith("[devwatch]"):
+        print(text)
+        continue
+    n = counts_by.get(text, 1)
+    prefix = time.strftime(fmt, time.localtime(t)) + " " if t is not None else ""
+    print(prefix + (f"×{n} " if n > 1 else "") + text)
 
 counts = ", ".join(f"{n} {k}" for k, n in hidden.items() if n)
 if shown == 0:

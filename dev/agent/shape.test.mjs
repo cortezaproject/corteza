@@ -45,6 +45,11 @@ test('a call shows the verb, scope path params, body fields and traps', () => {
   assert.match(r.out, /values.*is an array of \{name, value\}/)
 })
 
+test('the trailing-slash trap is shown for collection calls only', () => {
+  assert.doesNotMatch(run('compose/record', 'update').out, /trailing slash/)
+  assert.match(run('compose/record', 'list').out, /trailing slash/)
+})
+
 test('the three-segment form and a case-insensitive group both resolve', () => {
   assert.equal(run('compose/record/update').out, run('compose/record', 'update').out)
   assert.match(run('compose/pagelayout').out, /^list\s+GET/m)

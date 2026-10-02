@@ -54,7 +54,9 @@ def load():
     return out
 
 
-def traps_for(key):
+def traps_for(key, path=None):
+    """Traps whose key matches; a `:collection` suffix limits one to calls whose
+    path ends in a slash, so an item call is not warned about the trailing slash."""
     f = os.path.join(HERE, "traps.yaml")
     if not os.path.exists(f):
         return []
@@ -62,6 +64,11 @@ def traps_for(key):
     hits = []
     for pattern, notes in t.items():
         pat = str(pattern)
+        only_collection = pat.endswith(":collection")
+        if only_collection:
+            pat = pat[: -len(":collection")]
+            if path is not None and not path.endswith("/"):
+                continue
         if fnmatch.fnmatch(key, pat) or fnmatch.fnmatch(key, pat + "/*") or pat == "*":
             hits.extend(notes if isinstance(notes, list) else [notes])
     return hits
@@ -93,7 +100,7 @@ def show_call(svc, gname, cname, call):
             print(f"{label}:")
             for p in ps:
                 print(fmt_param(p))
-    traps = traps_for(f"{svc}/{gname}/{cname}")
+    traps = traps_for(f"{svc}/{gname}/{cname}", call["path"])
     if traps:
         print("traps:")
         for t in traps:

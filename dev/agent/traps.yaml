@@ -1,8 +1,10 @@
 # What a REST definition cannot say about a call. shape.sh prints the entries
 # whose key matches the call: a service, service/group, service/group/call, or
-# `*` for every call. Keep each entry to one line stating the trap and the move.
-'*':
+# `*` for every call, and a `:collection` suffix for calls whose path ends in a
+# slash. Keep each entry to one line stating the trap and the move.
+'*:collection':
   - Collection paths need the trailing slash; without it the server serves the webapp's HTML with HTTP 200.
+'*':
   - Errors ride HTTP 200 as {"error":{message}}; api.sh exits non-zero on them, raw curl does not.
   - Paths are absolute with the service prefix (/system, /compose, /automation, /federation).
 compose:

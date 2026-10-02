@@ -33,6 +33,13 @@ const sample =
       msg: 'create failed',
       error: 'not unique',
     }),
+    JSON.stringify({
+      level: 'error',
+      ts: 1790928808.0,
+      logger: 'compose.record',
+      msg: 'create failed',
+      error: 'not unique',
+    }),
     'panic: runtime error: index out of range',
   ].join('\n') + '\n'
 
@@ -55,7 +62,7 @@ test('the default keeps errors and markers, hides warn and info, and says so', (
     '[devwatch] 10:23:54 building',
     '[devwatch] 10:24:01 serving /x/dev-bin',
   ])
-  assert.match(r.lines[2], /ERROR compose\.record: create failed — not unique$/)
+  assert.match(r.lines[2], /^\d\d:\d\d:\d\d ×2 ERROR compose\.record: create failed — not unique$/)
   assert.equal(r.lines[3], 'panic: runtime error: index out of range')
   assert.match(r.lines[4], /^— hidden: 2 warn, 1 info; -w shows warnings/)
   assert.equal(r.lines.length, 5)
@@ -71,7 +78,7 @@ test('-w adds the warnings in order', () => {
 
 test('-a is the raw tail', () => {
   const r = run('-a')
-  assert.equal(r.lines.length, 7)
+  assert.equal(r.lines.length, 8)
   assert.equal(r.lines[2], sample.split('\n')[2])
 })
 
