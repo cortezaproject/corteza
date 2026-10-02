@@ -1,0 +1,51 @@
+# Human
+
+> Build apps, automations and AI agents on Human.
+
+Data models, pages, automations and AI agents in one open platform. Start in ten minutes, then go as deep as you need.
+
+## Table of Contents
+
+### Get started
+
+- [What is Human](/get-started.md): An open platform for building business apps, automations and AI agents.
+- [Quickstart](/get-started/quickstart.md): Run Human with Docker Compose and sign in as the administrator.
+- [Core concepts](/get-started/concepts.md): The terms the rest of the Human docs use, and how they fit together.
+- [How building works](/get-started/building.md): How data, pages, automation, agents and permissions fit together when you build on Human.
+
+### Platform
+
+- [The platform](/platform.md): A map of Human's parts — home, namespaces, automation, agents, chatbots, projects and administration — and how they relate.
+- [Home and apps](/platform/home.md): The home screen, the app menu, the application registry behind it, and notifications.
+- [Namespaces and data](/platform/namespaces.md): Namespaces, modules and fields, records, pages and blocks, charts, and how people use an app built in Human.
+- [Automation (TAQ)](/platform/automation.md): What a TAQ is, the triggers that start it, the steps, branches and loops it is built from, and how it runs.
+- [Agents](/platform/agents.md): LLM providers, what an agent is made of, how tool access works, and everywhere an agent can run.
+- [Chatbots](/platform/chatbots.md): What a chatbot is, the journey of steps it takes visitors through, handoff to human operators, styling, and the widget key and allowed origins.
+- [Projects](/platform/projects.md): What a project is in Human.
+- [Administration](/platform/administration.md): The Admin Area — people, roles and the permission model, the application registry, LLM providers, connections, email, templates and the action log.
+
+### Reference
+
+- [Expressions](/reference/expressions.md): The expression language used in field expressions, page conditions, contextual roles and TAQ loops.
+- [Expression functions](/reference/expressions/functions.md): Every function of the expression language, with its signature and an example.
+- [Expression types](/reference/expressions/types.md): The value types of the expression language and the fields of each structured type.
+- [TAQ triggers](/reference/taq/triggers.md): Every trigger a TAQ can start from, with the inputs it takes and the values it provides.
+- [TAQ steps](/reference/taq/steps.md): Every step a TAQ can run, with the inputs it takes and the values it returns.
+- [MCP tools](/reference/mcp-tools.md): Every tool Human's MCP server offers, with its risk level and parameters.
+- [Environment variables](/reference/environment.md): Every server option, with its type and default.
+- [Permissions](/reference/permissions.md)
+
+#### Permissions
+
+- [System permissions](/reference/permissions/system.md)
+- [Compose permissions](/reference/permissions/compose.md)
+- [Automation permissions](/reference/permissions/automation.md)
+- [Federation permissions](/reference/permissions/federation.md)
+
+### Upgrading
+
+- [Upgrading from Corteza](/upgrading/corteza.md): What changes when you move a Corteza installation to Human, starting with Corredor and its automation scripts.
+
+### Other
+
+- [Docs screenshots](/tools/screenshots/README.md)

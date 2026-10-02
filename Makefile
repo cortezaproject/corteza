@@ -1,4 +1,4 @@
-.PHONY: e2e e2e-ui setup setup-agent doctor claude claude-yolo intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen mcp-apps tag ftag
+.PHONY: e2e e2e-ui setup setup-agent doctor claude claude-yolo docs-llms intent-check intent-hooks dev dev-all test test-lib test-client test-server lint fresh audit codegen mcp-apps tag ftag
 
 WEB_APPS := unify
 
@@ -12,6 +12,11 @@ codegen:
 
 # MCP Apps views: one self-contained HTML per view, committed where the server
 # embeds it (server/compose/agentic/mcpui).
+# Regenerate docs/llms.txt and docs/llms-full.txt from the docs site build.
+# dev/agent/docs-llms.test.mjs fails when they are stale.
+docs-llms:
+	cd docs && npx vitepress build --outDir .vitepress/dist >/dev/null && cp .vitepress/dist/llms.txt .vitepress/dist/llms-full.txt .
+
 mcp-apps:
 	@(cd $(CURDIR)/client/web/mcp-apps && pnpm build)
 
