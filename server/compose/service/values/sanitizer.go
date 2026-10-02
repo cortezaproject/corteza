@@ -241,7 +241,15 @@ func sDatetime(v interface{}, onlyDate, onlyTime bool) string {
 }
 
 func sNumber(num interface{}, p uint, s uint) string {
-	base, err := strconv.ParseFloat(fmt.Sprintf("%v", num), 64)
+	raw := strings.TrimSpace(fmt.Sprintf("%v", num))
+
+	// No value is not the same as zero; keep it empty so that clearing a
+	// number field (for example through a bulk update) does not store 0
+	if raw == "" {
+		return ""
+	}
+
+	base, err := strconv.ParseFloat(raw, 64)
 	if err != nil {
 		return "0"
 	}
