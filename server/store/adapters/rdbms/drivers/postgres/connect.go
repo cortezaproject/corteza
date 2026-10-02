@@ -92,6 +92,11 @@ func NewConfig(dsn string) (c *rdbms.ConnConfig, err error) {
 		MaskedDSN:      u.Redacted(),
 	}
 
+	// Pick up store params (*connMaxOpen, ...) and strip them from the DSN
+	if err = c.ParseExtra(); err != nil {
+		return nil, err
+	}
+
 	c.SetDefaults()
 
 	return c, nil
