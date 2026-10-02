@@ -16,11 +16,11 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
 - Test data: versioned fixtures in `dev/fixtures/`; `dev/agent/seed.sh` /
   `cleanup.sh`. Pages/charts are built via `dev/agent/pagebuild.py` (never
   via envoy YAML — block refs don't resolve).
-- **`mcp__claude_ai_Human__*` is a REMOTE Human, not the dev server.** It looks
-  like "the Human MCP" and writes to somebody's live data, and nothing it
-  creates is in the cleanup ledger. This checkout is `mcp__human-local__*`
-  (`make claude` mints its token), `dev/agent/mcp.py` or `api.sh`; use the
-  connector only when the remote instance is the point.
+- **Only `mcp__human-local__*` (`make claude MCP=1`), `dev/agent/mcp.py` and
+  `api.sh` reach this checkout's dev server.** Any other MCP server offering
+  Human tools is a remote instance: it writes to somebody's live data, and
+  nothing it creates is in the cleanup ledger. Use one only when the remote
+  instance is the point.
 - Building whole systems (datamodel + pages) in Human: `/sys-design` skill.
 - Several independent issues at once: `/orchestrate` — parallel lanes, one per
   worktree. Invoking it is what authorises spawning subagents; nothing else

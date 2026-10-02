@@ -176,18 +176,19 @@ assignment.
 
 ## The MCP servers, and which Human they reach
 
-| tools                     | from                             | reaches                                           |
-| ------------------------- | -------------------------------- | ------------------------------------------------- |
-| `mcp__human-local__*`     | `make claude MCP=1`, http        | **this checkout's** `/api/mcp` — the configurator |
-| `mcp__human-dev__*`       | `.mcp.json`, stdio               | **this repo** — the developer layer               |
-| `mcp__claude_ai_Human__*` | your claude.ai account connector | **a remote instance**, NOT this checkout          |
-| `dev/agent/mcp.py`        | the shell                        | this checkout's `/api/mcp`, re-auth'd each call   |
+| tools                  | from                       | reaches                                           |
+| ---------------------- | -------------------------- | ------------------------------------------------- |
+| `mcp__human-local__*`  | `make claude MCP=1`, http  | **this checkout's** `/api/mcp` — the configurator |
+| `mcp__human-dev__*`    | `.mcp.json`, stdio         | **this repo** — the developer layer               |
+| any other `*_Human__*` | an account-level connector | **a remote instance**, NOT this checkout          |
+| `dev/agent/mcp.py`     | the shell                  | this checkout's `/api/mcp`, re-auth'd each call   |
 
-**The connector is not the dev server.** Its tool names read as "the Human MCP"
-and it carries the same configurator surface — compose CRUD, TAQ and workflow
-exec, users and roles — against somebody's live data. Nothing it writes is in
+**A connector is not the dev server.** A Human instance attached to your own
+account shows up with tool names that read as "the Human MCP" and carries the
+same configurator surface — compose CRUD, TAQ and workflow exec, users and
+roles — against somebody's live data. Nothing it writes is in
 `dev/agent/.state/created.jsonl`, so `cleanup.sh` cannot undo it. Local work
-goes through `human-local`, `mcp.py` or `api.sh`; reach for the connector only
+goes through `human-local`, `mcp.py` or `api.sh`; reach for a connector only
 when the remote instance is the point, and say so.
 
 `human-local` is why `make claude MCP=1` exists. `dev/human-local.mcp.json`
