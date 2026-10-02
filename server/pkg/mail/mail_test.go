@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
+	gomail "gopkg.in/mail.v2"
 )
 
 func TestDialerInvalidSetup(t *testing.T) {
@@ -25,6 +26,21 @@ func TestDialerValidSetup(t *testing.T) {
 	require.True(t, defaultDialerError == nil, "defaultDialerError should be nil, got %v", defaultDialerError)
 	require.True(t, defaultDialer != nil, "defaultDialer should be set, got %v", defaultDialer)
 
+}
+
+func TestDialerTrimsWhitespace(t *testing.T) {
+	defaultDialer = nil
+	defaultDialerError = nil
+
+	SetupDialer("  localhost:321 ", 0, " user ", "pass", " some@email.tld ")
+	require.NoError(t, defaultDialerError)
+
+	d, ok := defaultDialer.(*gomail.Dialer)
+	require.True(t, ok, "expecting gomail dialer, got %T", defaultDialer)
+	require.Equal(t, "localhost", d.Host)
+	require.Equal(t, 321, d.Port)
+	require.Equal(t, "user", d.Username)
+	require.Equal(t, "some@email.tld", defaultFrom)
 }
 
 func TestMailSendWithoutDialer(t *testing.T) {

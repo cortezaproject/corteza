@@ -36,6 +36,11 @@ func init() {
 //
 // Host variable can contain "<host>:<port>" that will override port value
 func SetupDialer(host string, port int, user, pass, from string, ff ...applyCfg) {
+	// Values come from settings or env and may carry stray whitespace
+	host = strings.TrimSpace(host)
+	user = strings.TrimSpace(user)
+	from = strings.TrimSpace(from)
+
 	if host == "" {
 		defaultDialerError = fmt.Errorf("no hostname provided for SMTP")
 		return

@@ -237,11 +237,24 @@ export default {
 
   methods: {
     submit () {
-      this.$emit('submit', this.server)
+      this.$emit('submit', this.trimmedServer())
     },
 
     smtpConnectionCheck () {
-      this.$emit('smtpConnectionCheck', this.server)
+      this.$emit('smtpConnectionCheck', this.trimmedServer())
+    },
+
+    // Hosts and addresses with stray whitespace fail silently when sending
+    trimmedServer () {
+      const trim = v => (typeof v === 'string' ? v.trim() : v)
+
+      return {
+        ...this.server,
+        host: trim(this.server.host),
+        user: trim(this.server.user),
+        from: trim(this.server.from),
+        tlsServerName: trim(this.server.tlsServerName),
+      }
     },
   },
 }

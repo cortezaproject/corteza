@@ -50,6 +50,11 @@ func (svc smtpConfigurationChecker) Check(ctx context.Context, smtpConfigs *type
 
 	checkResults = &types.SmtpCheckResult{}
 
+	// Normalize the same way the dialer does so the check reflects sending
+	smtpConfigs.Host = strings.TrimSpace(smtpConfigs.Host)
+	smtpConfigs.Username = strings.TrimSpace(smtpConfigs.Username)
+	smtpConfigs.TLSServerName = strings.TrimSpace(smtpConfigs.TLSServerName)
+
 	if smtpConfigs.Port == 0 {
 		smtpConfigs.Port = 25
 	}
