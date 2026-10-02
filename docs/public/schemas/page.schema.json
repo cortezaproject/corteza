@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/crusttech/human/server/compose/types/page",
+  "$defs": {
+    "LabelValue": {
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "PageBlock": {
+      "properties": {
+        "blockID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "options": {
+          "type": "object",
+          "description": "See page-block-options.schema.json under the block's kind."
+        },
+        "style": {
+          "$ref": "#/$defs/PageBlockStyle"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "AgentChat",
+            "Automation",
+            "Calendar",
+            "Chart",
+            "ChatbotInbox",
+            "Comment",
+            "Content",
+            "File",
+            "Geometry",
+            "IFrame",
+            "Metric",
+            "Navigation",
+            "Progress",
+            "Record",
+            "RecordList",
+            "RecordOrganizer",
+            "RecordRevisions",
+            "SocialFeed",
+            "Tabs"
+          ]
+        },
+        "xywh": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array",
+          "maxItems": 4,
+          "minItems": 4
+        },
+        "meta": {
+          "type": "object"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kind",
+        "xywh"
+      ]
+    },
+    "PageBlockStyle": {
+      "properties": {
+        "variants": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "wrap": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "border": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "PageBlocks": {
+      "items": {
+        "$ref": "#/$defs/PageBlock"
+      },
+      "type": "array"
+    },
+    "PageConfig": {
+      "properties": {
+        "navItem": {
+          "$ref": "#/$defs/PageConfigNavItem"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "navItem"
+      ]
+    },
+    "PageConfigIcon": {
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "src": {
+          "type": "string"
+        },
+        "style": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "src"
+      ]
+    },
+    "PageConfigNavItem": {
+      "properties": {
+        "expanded": {
+          "type": "boolean"
+        },
+        "icon": {
+          "$ref": "#/$defs/PageConfigIcon"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "expanded"
+      ]
+    },
+    "PageMeta": {
+      "properties": {
+        "allowPersonalLayouts": {
+          "type": "boolean"
+        },
+        "notifications": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "allowPersonalLayouts"
+      ]
+    },
+    "PageSet": {
+      "items": {
+        "$ref": "#/$defs/Page"
+      },
+      "type": "array"
+    }
+  },
+  "properties": {
+    "pageID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "tenantID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "projectID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "selfID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "moduleID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "namespaceID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "meta": {
+      "$ref": "#/$defs/PageMeta"
+    },
+    "config": {
+      "$ref": "#/$defs/PageConfig"
+    },
+    "blocks": {
+      "$ref": "#/$defs/PageBlocks"
+    },
+    "children": {
+      "$ref": "#/$defs/PageSet"
+    },
+    "visible": {
+      "type": "boolean"
+    },
+    "weight": {
+      "type": "integer"
+    },
+    "description": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deletedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdByAgent": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "labels": {
+      "additionalProperties": {
+        "$ref": "#/$defs/LabelValue"
+      },
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "pageID",
+    "title",
+    "handle",
+    "selfID",
+    "moduleID",
+    "namespaceID",
+    "meta",
+    "config",
+    "blocks",
+    "visible",
+    "weight",
+    "description"
+  ],
+  "title": "Page",
+  "description": "A compose page: what its blocks are. Where they sit on the grid is the page layout's (page-layout.schema.json). A record page sets moduleID."
+}

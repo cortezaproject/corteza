@@ -1,1 +1,2 @@
 docs/**/*.gen.md
+docs/public/schemas/*.json

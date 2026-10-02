@@ -173,6 +173,7 @@ cue.fmt: $(CUE)
 docs-reference:
 	HUMAN_UPDATE_DOCS=1 go test ./tests/mcp/ -run TestToolReferenceIsCurrent -count=1
 	HUMAN_UPDATE_DOCS=1 go test ./tests/automation/ -run TestDocsCatalog -count=1
+	HUMAN_UPDATE_DOCS=1 go test ./tests/schemas/ -run TestSchemasAreCurrent -count=1
 
 codegen-legacy: $(CODEGEN)
 	@ $(CODEGEN) -v -d $(DOCS_DIR)

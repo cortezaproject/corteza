@@ -78,6 +78,7 @@ export default defineConfig({
           { text: 'TAQ triggers', link: '/reference/taq/triggers' },
           { text: 'TAQ steps', link: '/reference/taq/steps' },
           { text: 'MCP tools', link: '/reference/mcp-tools' },
+          { text: 'Schemas', link: '/reference/schemas' },
           { text: 'Environment variables', link: '/reference/environment' },
           {
             text: 'Permissions',

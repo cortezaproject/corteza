@@ -1,0 +1,783 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/crusttech/human/server/automation/types/ng-automation",
+  "$defs": {
+    "ASTNode": {
+      "properties": {
+        "meta": {
+          "type": "object"
+        },
+        "ref": {
+          "type": "string"
+        },
+        "args": {
+          "$ref": "#/$defs/ASTNodeSet"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/TypedValue"
+        },
+        "raw": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ASTNodeSet": {
+      "items": {
+        "$ref": "#/$defs/ASTNode"
+      },
+      "type": "array"
+    },
+    "DetailCycle": {
+      "properties": {
+        "stepIDs": {
+          "$ref": "#/$defs/IssueIDs"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "stepIDs"
+      ]
+    },
+    "DetailDuplicateID": {
+      "properties": {
+        "resource": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "indices": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "resource",
+        "id"
+      ]
+    },
+    "DetailEmptyField": {
+      "properties": {
+        "resource": {
+          "type": "string"
+        },
+        "index": {
+          "type": "integer"
+        },
+        "field": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "resource",
+        "index"
+      ]
+    },
+    "DetailGatewayPaths": {
+      "properties": {
+        "stepID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "violation": {
+          "type": "string"
+        },
+        "got": {
+          "type": "integer"
+        },
+        "want": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "stepID",
+        "violation",
+        "got"
+      ]
+    },
+    "DetailInvalidType": {
+      "properties": {
+        "stepID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "field": {
+          "type": "string"
+        },
+        "fieldIndex": {
+          "type": "integer"
+        },
+        "target": {
+          "type": "string"
+        },
+        "expected": {
+          "type": "string"
+        },
+        "actual": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "stepID",
+        "expected",
+        "actual"
+      ]
+    },
+    "DetailMissingReference": {
+      "properties": {
+        "refKind": {
+          "type": "string"
+        },
+        "ref": {
+          "type": "string"
+        },
+        "stepID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "field": {
+          "type": "string"
+        },
+        "fieldIndex": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "refKind",
+        "ref"
+      ]
+    },
+    "DetailResourceRef": {
+      "properties": {
+        "resource": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "index": {
+          "type": "integer"
+        },
+        "field": {
+          "type": "string"
+        },
+        "fieldIndex": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "resource"
+      ]
+    },
+    "Expr": {
+      "properties": {
+        "argumentName": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "expr": {
+          "type": "string"
+        },
+        "value": true,
+        "type": {
+          "type": "string"
+        },
+        "tests": {
+          "$ref": "#/$defs/TestSet"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "argumentName",
+        "target"
+      ]
+    },
+    "IssueIDs": {
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]+$",
+        "description": "64-bit integer as a string"
+      },
+      "type": "array"
+    },
+    "LabelValue": {
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "NgAutomationIcon": {
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "type",
+        "value"
+      ]
+    },
+    "NgAutomationIssue": {
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "items": {
+            "$ref": "#/$defs/NgAutomationIssueDetail"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "code",
+        "severity",
+        "message"
+      ]
+    },
+    "NgAutomationIssueDetail": {
+      "properties": {
+        "missingReference": {
+          "$ref": "#/$defs/DetailMissingReference"
+        },
+        "invalidType": {
+          "$ref": "#/$defs/DetailInvalidType"
+        },
+        "duplicateID": {
+          "$ref": "#/$defs/DetailDuplicateID"
+        },
+        "cycle": {
+          "$ref": "#/$defs/DetailCycle"
+        },
+        "resourceRef": {
+          "$ref": "#/$defs/DetailResourceRef"
+        },
+        "gatewayPaths": {
+          "$ref": "#/$defs/DetailGatewayPaths"
+        },
+        "emptyField": {
+          "$ref": "#/$defs/DetailEmptyField"
+        },
+        "details": {
+          "items": {
+            "$ref": "#/$defs/NgAutomationIssueDetail"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "missingReference",
+        "invalidType",
+        "duplicateID",
+        "cycle",
+        "resourceRef",
+        "gatewayPaths",
+        "emptyField",
+        "details"
+      ]
+    },
+    "NgAutomationIssueSet": {
+      "items": {
+        "$ref": "#/$defs/NgAutomationIssue"
+      },
+      "type": "array"
+    },
+    "NgAutomationMeta": {
+      "properties": {
+        "short": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "visual": {
+          "$ref": "#/$defs/NgAutomationVisual"
+        },
+        "icon": {
+          "$ref": "#/$defs/NgAutomationIcon"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "short",
+        "description",
+        "visual"
+      ]
+    },
+    "NgAutomationPath": {
+      "properties": {
+        "parentID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "childID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "condition": {
+          "$ref": "#/$defs/ASTNode"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "meta": {
+          "$ref": "#/$defs/NgAutomationPathMeta"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "parentID",
+        "childID",
+        "meta"
+      ]
+    },
+    "NgAutomationPathMeta": {
+      "properties": {
+        "short": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "visual": {
+          "$ref": "#/$defs/NgAutomationVisual"
+        },
+        "icon": {
+          "$ref": "#/$defs/NgAutomationIcon"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "short",
+        "description",
+        "visual"
+      ]
+    },
+    "NgAutomationPathSet": {
+      "items": {
+        "$ref": "#/$defs/NgAutomationPath"
+      },
+      "type": "array"
+    },
+    "NgAutomationStep": {
+      "properties": {
+        "stepID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "handle": {
+          "type": "string"
+        },
+        "meta": {
+          "$ref": "#/$defs/NgAutomationStepMeta"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "ref": {
+          "type": "string",
+          "description": "A function or construct ref from the TAQ steps reference (docs/reference/taq/steps)."
+        },
+        "arguments": {
+          "items": {
+            "$ref": "#/$defs/Expr"
+          },
+          "type": "array"
+        },
+        "results": {
+          "items": {
+            "$ref": "#/$defs/Expr"
+          },
+          "type": "array"
+        },
+        "recoverable": {
+          "type": "boolean"
+        },
+        "maxRetries": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "stepID",
+        "handle",
+        "meta",
+        "kind",
+        "ref",
+        "arguments",
+        "results"
+      ]
+    },
+    "NgAutomationStepMeta": {
+      "properties": {
+        "short": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "visual": {
+          "$ref": "#/$defs/NgAutomationVisual"
+        },
+        "icon": {
+          "$ref": "#/$defs/NgAutomationIcon"
+        },
+        "extra": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "short",
+        "description",
+        "visual"
+      ]
+    },
+    "NgAutomationStepSet": {
+      "items": {
+        "$ref": "#/$defs/NgAutomationStep"
+      },
+      "type": "array"
+    },
+    "NgAutomationTrigger": {
+      "properties": {
+        "triggerID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "labels": {
+          "additionalProperties": {
+            "$ref": "#/$defs/LabelValue"
+          },
+          "type": "object"
+        },
+        "handle": {
+          "type": "string"
+        },
+        "meta": {
+          "$ref": "#/$defs/NgTriggerMeta"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "resourceType": {
+          "type": "string",
+          "description": "A resource type from the TAQ triggers reference (docs/reference/taq/triggers)."
+        },
+        "eventType": {
+          "type": "string",
+          "description": "An event type the resource type offers, from the TAQ triggers reference."
+        },
+        "constraints": {
+          "items": {
+            "$ref": "#/$defs/NgTriggerConstraint"
+          },
+          "type": "array"
+        },
+        "input": {
+          "type": "object"
+        },
+        "inputSchema": {
+          "$ref": "#/$defs/NgAutomationTriggerSchema"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "triggerID",
+        "handle",
+        "enabled",
+        "resourceType",
+        "eventType",
+        "constraints",
+        "input"
+      ]
+    },
+    "NgAutomationTriggerParam": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "type",
+        "required",
+        "description"
+      ]
+    },
+    "NgAutomationTriggerSchema": {
+      "items": {
+        "$ref": "#/$defs/NgAutomationTriggerParam"
+      },
+      "type": "array"
+    },
+    "NgAutomationTriggerSet": {
+      "items": {
+        "$ref": "#/$defs/NgAutomationTrigger"
+      },
+      "type": "array"
+    },
+    "NgAutomationVisual": {
+      "properties": {},
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "NgTriggerConstraint": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "op": {
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/NgTriggerConstraintValue"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name"
+      ]
+    },
+    "NgTriggerConstraintValue": {
+      "properties": {
+        "@type": {
+          "type": "string"
+        },
+        "@value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "@type",
+        "@value"
+      ]
+    },
+    "NgTriggerMeta": {
+      "properties": {
+        "short": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "visual": {
+          "$ref": "#/$defs/NgAutomationVisual"
+        },
+        "icon": {
+          "$ref": "#/$defs/NgAutomationIcon"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "short",
+        "description",
+        "visual"
+      ]
+    },
+    "Test": {
+      "properties": {
+        "expr": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "error"
+      ]
+    },
+    "TestSet": {
+      "items": {
+        "$ref": "#/$defs/Test"
+      },
+      "type": "array"
+    },
+    "TypedValue": {
+      "properties": {
+        "V": {
+          "$ref": "#/$defs/TypedValue"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "V"
+      ]
+    }
+  },
+  "properties": {
+    "automationID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "tenantID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "projectID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "meta": {
+      "$ref": "#/$defs/NgAutomationMeta"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "scope": {
+      "type": "object"
+    },
+    "triggers": {
+      "$ref": "#/$defs/NgAutomationTriggerSet"
+    },
+    "steps": {
+      "$ref": "#/$defs/NgAutomationStepSet"
+    },
+    "paths": {
+      "$ref": "#/$defs/NgAutomationPathSet"
+    },
+    "issues": {
+      "$ref": "#/$defs/NgAutomationIssueSet"
+    },
+    "runAs": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "ownedBy": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deletedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdBy": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "updatedBy": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "deletedBy": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "labels": {
+      "additionalProperties": {
+        "$ref": "#/$defs/LabelValue"
+      },
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "automationID",
+    "handle",
+    "enabled",
+    "scope",
+    "triggers",
+    "steps",
+    "paths",
+    "runAs",
+    "ownedBy",
+    "createdBy"
+  ],
+  "title": "TAQ (Trigger Action Query)",
+  "description": "A TAQ definition: triggers that start it, steps (ref names the function or construct), and paths that connect them. Step arguments and results are {scope, expr} references; the taq_authoring skill and the TAQ reference pages carry the rules."
+}

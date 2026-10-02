@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/crusttech/human/server/compose/types/page-layout",
+  "$defs": {
+    "LabelValue": {
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "PageLayoutAction": {
+      "properties": {
+        "actionID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "placement": {
+          "type": "string"
+        },
+        "meta": {
+          "$ref": "#/$defs/PageLayoutActionMeta"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "params": true
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "actionID",
+        "placement",
+        "meta",
+        "enabled",
+        "kind",
+        "params"
+      ]
+    },
+    "PageLayoutActionMeta": {
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "style": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "label"
+      ]
+    },
+    "PageLayoutBlock": {
+      "properties": {
+        "blockID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "xywh": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array",
+          "maxItems": 4,
+          "minItems": 4
+        },
+        "meta": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "xywh"
+      ]
+    },
+    "PageLayoutBlocks": {
+      "items": {
+        "$ref": "#/$defs/PageLayoutBlock"
+      },
+      "type": "array"
+    },
+    "PageLayoutButton": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "enabled",
+        "label"
+      ]
+    },
+    "PageLayoutButtonConfig": {
+      "properties": {
+        "new": {
+          "$ref": "#/$defs/PageLayoutButton"
+        },
+        "edit": {
+          "$ref": "#/$defs/PageLayoutButton"
+        },
+        "submit": {
+          "$ref": "#/$defs/PageLayoutButton"
+        },
+        "delete": {
+          "$ref": "#/$defs/PageLayoutButton"
+        },
+        "clone": {
+          "$ref": "#/$defs/PageLayoutButton"
+        },
+        "back": {
+          "$ref": "#/$defs/PageLayoutButton"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "new",
+        "edit",
+        "submit",
+        "delete",
+        "clone",
+        "back"
+      ]
+    },
+    "PageLayoutConfig": {
+      "properties": {
+        "visibility": {
+          "$ref": "#/$defs/PageLayoutVisibility"
+        },
+        "buttons": {
+          "$ref": "#/$defs/PageLayoutButtonConfig"
+        },
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/PageLayoutAction"
+          },
+          "type": "array"
+        },
+        "validation": {
+          "$ref": "#/$defs/PageLayoutValidation"
+        },
+        "useTitle": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "visibility",
+        "buttons",
+        "validation",
+        "useTitle"
+      ]
+    },
+    "PageLayoutMeta": {
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "style": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "title",
+        "description"
+      ]
+    },
+    "PageLayoutRequiredField": {
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "condition": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "field",
+        "condition"
+      ]
+    },
+    "PageLayoutValidation": {
+      "properties": {
+        "requiredFields": {
+          "items": {
+            "$ref": "#/$defs/PageLayoutRequiredField"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "PageLayoutVisibility": {
+      "properties": {
+        "expression": {
+          "type": "string"
+        },
+        "roles": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "expression"
+      ]
+    }
+  },
+  "properties": {
+    "pageLayoutID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "tenantID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "projectID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "primary": {
+      "type": "boolean"
+    },
+    "pageID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "parentID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "namespaceID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "weight": {
+      "type": "integer"
+    },
+    "meta": {
+      "$ref": "#/$defs/PageLayoutMeta"
+    },
+    "config": {
+      "$ref": "#/$defs/PageLayoutConfig"
+    },
+    "blocks": {
+      "$ref": "#/$defs/PageLayoutBlocks"
+    },
+    "ownedBy": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deletedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdByAgent": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "labels": {
+      "additionalProperties": {
+        "$ref": "#/$defs/LabelValue"
+      },
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "pageLayoutID",
+    "handle",
+    "primary",
+    "pageID",
+    "parentID",
+    "namespaceID",
+    "weight",
+    "config",
+    "ownedBy"
+  ],
+  "title": "Page layout",
+  "description": "One arrangement of a page's blocks on the 48-column grid, with the visibility condition that selects it."
+}

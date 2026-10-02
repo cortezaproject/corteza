@@ -21,6 +21,16 @@ import (
 // few kinds add (every Automation button needing a target, say) are where a
 // mirror starts to drift from the thing it mirrors; the exception is a Metric's
 // per-tile module, which is the mistake people actually make.
+// RequiredBlockOptions is the per-kind list of options a block cannot render
+// without, for the schema reference; the map above is the one declaration.
+func RequiredBlockOptions() map[string][]string {
+	out := make(map[string][]string, len(requiredBlockOptions))
+	for k, v := range requiredBlockOptions {
+		out[k] = append([]string(nil), v...)
+	}
+	return out
+}
+
 var requiredBlockOptions = map[string][]string{
 	"AgentChat":       {"allowedAgentIDs"},
 	"Automation":      {"buttons"},

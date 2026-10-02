@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/crusttech/human/server/compose/types/chart",
+  "$defs": {
+    "ChartConfig": {
+      "properties": {
+        "reports": {
+          "items": {
+            "$ref": "#/$defs/ChartConfigReport"
+          },
+          "type": "array"
+        },
+        "colorScheme": {
+          "type": "string"
+        },
+        "noAnimation": {
+          "type": "boolean"
+        },
+        "toolbox": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ChartConfigReport": {
+      "properties": {
+        "reportID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "filter": {
+          "type": "string"
+        },
+        "moduleID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "metrics": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "dimensions": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "yAxis": {
+          "type": "object"
+        },
+        "legend": {
+          "type": "object"
+        },
+        "tooltip": {
+          "type": "object"
+        },
+        "offset": {
+          "type": "object"
+        },
+        "renderer": {
+          "properties": {
+            "version": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "filter"
+      ]
+    },
+    "ChartMeta": {
+      "properties": {
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "LabelValue": {
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  },
+  "properties": {
+    "chartID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "tenantID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "projectID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "namespaceID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "meta": {
+      "$ref": "#/$defs/ChartMeta"
+    },
+    "config": {
+      "$ref": "#/$defs/ChartConfig"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deletedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "labels": {
+      "additionalProperties": {
+        "$ref": "#/$defs/LabelValue"
+      },
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "chartID",
+    "handle",
+    "namespaceID",
+    "name",
+    "config"
+  ],
+  "title": "Chart",
+  "description": "A compose chart. config.reports[] names the module, filter, dimensions and metrics; dimension and metric entries are free objects whose keys the chart_building skill lists."
+}

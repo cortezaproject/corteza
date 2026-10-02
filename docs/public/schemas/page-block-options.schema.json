@@ -1,0 +1,1642 @@
+{
+  "properties": {
+    "AgentChat": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/agent-chat-block-options",
+      "properties": {
+        "allowedAgentIDs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "defaultAgentID": {
+          "type": "string"
+        },
+        "autoResume": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "allowedAgentIDs"
+      ],
+      "title": "AgentChat"
+    },
+    "Automation": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/automation-block-options",
+      "$defs": {
+        "AutomationButton": {
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "resourceType": {
+              "type": "string"
+            },
+            "script": {
+              "type": "string"
+            },
+            "workflowID": {
+              "type": "string"
+            },
+            "automationID": {
+              "type": "string"
+            },
+            "stepID": {
+              "type": "string"
+            },
+            "triggerHandle": {
+              "type": "string"
+            },
+            "scriptType": {
+              "type": "string"
+            },
+            "variant": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "label",
+            "enabled",
+            "resourceType",
+            "script",
+            "workflowID",
+            "automationID",
+            "stepID",
+            "triggerHandle",
+            "scriptType",
+            "variant"
+          ]
+        }
+      },
+      "properties": {
+        "buttons": {
+          "items": {
+            "$ref": "#/$defs/AutomationButton"
+          },
+          "type": "array"
+        },
+        "sealed": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "buttons"
+      ],
+      "title": "Automation"
+    },
+    "Calendar": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/calendar-block-options",
+      "$defs": {
+        "CalendarFeed": {
+          "properties": {
+            "resource": {
+              "type": "string"
+            },
+            "startField": {
+              "type": "string"
+            },
+            "endField": {
+              "type": "string"
+            },
+            "titleField": {
+              "type": "string"
+            },
+            "allDay": {
+              "type": "boolean"
+            },
+            "options": {
+              "$ref": "#/$defs/CalendarFeedOptions"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "resource",
+            "startField",
+            "endField",
+            "titleField",
+            "allDay",
+            "options"
+          ]
+        },
+        "CalendarFeedOptions": {
+          "properties": {
+            "moduleID": {
+              "type": "string"
+            },
+            "color": {
+              "type": "string"
+            },
+            "prefilter": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "moduleID",
+            "color",
+            "prefilter"
+          ]
+        },
+        "CalendarHeader": {
+          "properties": {
+            "hide": {
+              "type": "boolean"
+            },
+            "views": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "hidePrevNext": {
+              "type": "boolean"
+            },
+            "hideToday": {
+              "type": "boolean"
+            },
+            "hideTitle": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "hide",
+            "views",
+            "hidePrevNext",
+            "hideToday",
+            "hideTitle"
+          ]
+        }
+      },
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "defaultView": {
+          "type": "string"
+        },
+        "feeds": {
+          "items": {
+            "$ref": "#/$defs/CalendarFeed"
+          },
+          "type": "array"
+        },
+        "header": {
+          "$ref": "#/$defs/CalendarHeader"
+        },
+        "locale": {
+          "type": "string"
+        },
+        "eventDisplayOption": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "feeds"
+      ],
+      "title": "Calendar"
+    },
+    "Chart": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/chart-block-options",
+      "$defs": {
+        "BlockField": {
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "name"
+          ]
+        },
+        "DrillDown": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "blockID": {
+              "type": "string"
+            },
+            "recordListOptions": {
+              "$ref": "#/$defs/DrillDownRecordList"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "enabled",
+            "blockID",
+            "recordListOptions"
+          ]
+        },
+        "DrillDownRecordList": {
+          "properties": {
+            "fields": {
+              "items": {
+                "$ref": "#/$defs/BlockField"
+              },
+              "type": "array"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "fields"
+          ]
+        }
+      },
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "chartID": {
+          "type": "string"
+        },
+        "liveFilterEnabled": {
+          "type": "boolean"
+        },
+        "drillDown": {
+          "$ref": "#/$defs/DrillDown"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "chartID"
+      ],
+      "title": "Chart"
+    },
+    "ChatbotInbox": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/chatbot-inbox-block-options",
+      "properties": {
+        "chatbotIDs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "statusFilter": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "autoOpenFirst": {
+          "type": "boolean"
+        },
+        "showFilter": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "chatbotIDs"
+      ],
+      "title": "ChatbotInbox"
+    },
+    "Comment": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/comment-block-options",
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "moduleID": {
+          "type": "string"
+        },
+        "filter": {
+          "type": "string"
+        },
+        "titleField": {
+          "type": "string"
+        },
+        "contentField": {
+          "type": "string"
+        },
+        "replyField": {
+          "type": "string"
+        },
+        "referenceField": {
+          "type": "string"
+        },
+        "attachmentField": {
+          "type": "string"
+        },
+        "reactionsField": {
+          "type": "string"
+        },
+        "sortDirection": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "moduleID",
+        "contentField"
+      ],
+      "title": "Comment"
+    },
+    "Content": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/content-block-options",
+      "properties": {
+        "body": {
+          "type": "string"
+        },
+        "magnifyOption": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "body"
+      ],
+      "title": "Content"
+    },
+    "File": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/file-block-options",
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "attachments": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "hideFileName": {
+          "type": "boolean"
+        },
+        "height": {
+          "type": "string"
+        },
+        "width": {
+          "type": "string"
+        },
+        "maxHeight": {
+          "type": "string"
+        },
+        "maxWidth": {
+          "type": "string"
+        },
+        "borderRadius": {
+          "type": "string"
+        },
+        "margin": {
+          "type": "string"
+        },
+        "backgroundColor": {
+          "type": "string"
+        },
+        "clickToView": {
+          "type": "boolean"
+        },
+        "enableDownload": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "title": "File"
+    },
+    "Geometry": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/geometry-block-options",
+      "$defs": {
+        "GeometryFeed": {
+          "properties": {
+            "resource": {
+              "type": "string"
+            },
+            "titleField": {
+              "type": "string"
+            },
+            "geometryField": {
+              "type": "string"
+            },
+            "displayMarker": {
+              "type": "boolean"
+            },
+            "displayPolygon": {
+              "type": "boolean"
+            },
+            "options": {
+              "$ref": "#/$defs/GeometryFeedOptions"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "resource",
+            "titleField",
+            "geometryField",
+            "displayMarker",
+            "displayPolygon",
+            "options"
+          ]
+        },
+        "GeometryFeedOptions": {
+          "properties": {
+            "moduleID": {
+              "type": "string"
+            },
+            "color": {
+              "type": "string"
+            },
+            "prefilter": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "moduleID",
+            "color",
+            "prefilter"
+          ]
+        }
+      },
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "defaultView": {
+          "type": "string"
+        },
+        "center": {
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "feeds": {
+          "items": {
+            "$ref": "#/$defs/GeometryFeed"
+          },
+          "type": "array"
+        },
+        "zoomStarting": {
+          "type": "integer"
+        },
+        "zoomMin": {
+          "type": "integer"
+        },
+        "zoomMax": {
+          "type": "integer"
+        },
+        "bounds": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "type": "array"
+        },
+        "lockBounds": {
+          "type": "boolean"
+        },
+        "displayOption": {
+          "type": "string"
+        },
+        "hideGeoSearch": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "feeds"
+      ],
+      "title": "Geometry"
+    },
+    "IFrame": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/i-frame-block-options",
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "src": {
+          "type": "string"
+        },
+        "srcField": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "src"
+      ],
+      "title": "IFrame"
+    },
+    "Metric": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/metric-block-options",
+      "$defs": {
+        "BlockField": {
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "name"
+          ]
+        },
+        "DrillDown": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "blockID": {
+              "type": "string"
+            },
+            "recordListOptions": {
+              "$ref": "#/$defs/DrillDownRecordList"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "enabled",
+            "blockID",
+            "recordListOptions"
+          ]
+        },
+        "DrillDownRecordList": {
+          "properties": {
+            "fields": {
+              "items": {
+                "$ref": "#/$defs/BlockField"
+              },
+              "type": "array"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "fields"
+          ]
+        },
+        "MetricComparison": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "type": {
+              "type": "string"
+            },
+            "period": {
+              "type": "string"
+            },
+            "customFilter": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "enabled",
+            "type",
+            "period",
+            "customFilter"
+          ]
+        },
+        "MetricItem": {
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "moduleID": {
+              "type": "string"
+            },
+            "filter": {
+              "type": "string"
+            },
+            "deleted": {
+              "type": "integer"
+            },
+            "metricField": {
+              "type": "string"
+            },
+            "operation": {
+              "type": "string"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "suffix": {
+              "type": "string"
+            },
+            "numberFormat": {
+              "type": "string"
+            },
+            "dimensionField": {
+              "type": "string"
+            },
+            "dateFormat": {
+              "type": "string"
+            },
+            "bucketSize": {
+              "type": "string"
+            },
+            "transformFx": {
+              "type": "string"
+            },
+            "valueStyle": {
+              "$ref": "#/$defs/MetricValueStyle"
+            },
+            "drillDown": {
+              "$ref": "#/$defs/DrillDown"
+            },
+            "comparison": {
+              "$ref": "#/$defs/MetricComparison"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "label",
+            "moduleID",
+            "filter",
+            "deleted",
+            "metricField",
+            "operation",
+            "prefix",
+            "suffix",
+            "numberFormat",
+            "dimensionField",
+            "dateFormat",
+            "bucketSize",
+            "transformFx",
+            "valueStyle",
+            "drillDown",
+            "comparison"
+          ]
+        },
+        "MetricValueStyle": {
+          "properties": {
+            "color": {
+              "type": "string"
+            },
+            "backgroundColor": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "color",
+            "backgroundColor"
+          ]
+        }
+      },
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/MetricItem"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "metrics"
+      ],
+      "title": "Metric"
+    },
+    "Navigation": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/navigation-block-options",
+      "$defs": {
+        "NavigationDisplay": {
+          "properties": {
+            "appearance": {
+              "type": "string"
+            },
+            "alignment": {
+              "type": "string"
+            },
+            "justify": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "appearance",
+            "alignment",
+            "justify"
+          ]
+        },
+        "NavigationDropdown": {
+          "properties": {
+            "items": {
+              "items": {
+                "$ref": "#/$defs/NavigationDropdownItem"
+              },
+              "type": "array"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "items"
+          ]
+        },
+        "NavigationDropdownItem": {
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string"
+            },
+            "delimiter": {
+              "type": "boolean"
+            },
+            "target": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "label",
+            "url",
+            "delimiter",
+            "target"
+          ]
+        },
+        "NavigationItem": {
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "options": {
+              "$ref": "#/$defs/NavigationItemOptions"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "options"
+          ]
+        },
+        "NavigationItemDestination": {
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            },
+            "delimiter": {
+              "type": "boolean"
+            },
+            "pageID": {
+              "type": "string"
+            },
+            "pageLayoutID": {
+              "type": "string"
+            },
+            "moduleID": {
+              "type": "string"
+            },
+            "displaySubPages": {
+              "type": "boolean"
+            },
+            "align": {
+              "type": "string"
+            },
+            "dropdown": {
+              "$ref": "#/$defs/NavigationDropdown"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "label",
+            "url",
+            "target",
+            "delimiter",
+            "pageID",
+            "pageLayoutID",
+            "moduleID",
+            "displaySubPages",
+            "align",
+            "dropdown"
+          ]
+        },
+        "NavigationItemOptions": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "textColor": {
+              "type": "string"
+            },
+            "backgroundColor": {
+              "type": "string"
+            },
+            "item": {
+              "$ref": "#/$defs/NavigationItemDestination"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "enabled",
+            "textColor",
+            "backgroundColor",
+            "item"
+          ]
+        }
+      },
+      "properties": {
+        "display": {
+          "$ref": "#/$defs/NavigationDisplay"
+        },
+        "navigationItems": {
+          "items": {
+            "$ref": "#/$defs/NavigationItem"
+          },
+          "type": "array"
+        },
+        "magnifyOption": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "navigationItems"
+      ],
+      "title": "Navigation"
+    },
+    "Progress": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/progress-block-options",
+      "$defs": {
+        "ProgressDisplayOptions": {
+          "properties": {
+            "showValue": {
+              "type": "boolean"
+            },
+            "showRelative": {
+              "type": "boolean"
+            },
+            "showProgress": {
+              "type": "boolean"
+            },
+            "variant": {
+              "type": "string"
+            },
+            "thresholds": {
+              "items": {
+                "$ref": "#/$defs/ProgressThreshold"
+              },
+              "type": "array"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "showValue",
+            "showRelative",
+            "showProgress",
+            "variant",
+            "thresholds"
+          ]
+        },
+        "ProgressThreshold": {
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "variant": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "value",
+            "variant"
+          ]
+        },
+        "ProgressValueOptions": {
+          "properties": {
+            "default": {
+              "type": "number"
+            },
+            "moduleID": {
+              "type": "string"
+            },
+            "filter": {
+              "type": "string"
+            },
+            "field": {
+              "type": "string"
+            },
+            "operation": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "default",
+            "moduleID",
+            "filter",
+            "field",
+            "operation"
+          ]
+        }
+      },
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/ProgressValueOptions"
+        },
+        "minValue": {
+          "$ref": "#/$defs/ProgressValueOptions"
+        },
+        "maxValue": {
+          "$ref": "#/$defs/ProgressValueOptions"
+        },
+        "display": {
+          "$ref": "#/$defs/ProgressDisplayOptions"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "title": "Progress"
+    },
+    "Record": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/record-block-options",
+      "$defs": {
+        "BlockField": {
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "name"
+          ]
+        },
+        "FieldCondition": {
+          "properties": {
+            "field": {
+              "type": "string"
+            },
+            "condition": {
+              "type": "string"
+            },
+            "clearOnHide": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "field",
+            "condition",
+            "clearOnHide"
+          ]
+        }
+      },
+      "properties": {
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/BlockField"
+          },
+          "type": "array"
+        },
+        "fieldConditions": {
+          "items": {
+            "$ref": "#/$defs/FieldCondition"
+          },
+          "type": "array"
+        },
+        "clearConditionalFieldsOnHide": {
+          "type": "boolean"
+        },
+        "recordSelectorShowAddRecordButton": {
+          "type": "boolean"
+        },
+        "recordSelectorDisplayOption": {
+          "type": "string"
+        },
+        "recordSelectorAddRecordDisplayOption": {
+          "type": "string"
+        },
+        "referenceField": {
+          "type": "string"
+        },
+        "referenceModuleID": {
+          "type": "string"
+        },
+        "inlineRecordEditEnabled": {
+          "type": "boolean"
+        },
+        "inlineRecordCopyEnabled": {
+          "type": "boolean"
+        },
+        "horizontalFieldLayoutEnabled": {
+          "type": "boolean"
+        },
+        "recordFieldLayoutOption": {
+          "type": "string"
+        },
+        "magnifyOption": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "title": "Record"
+    },
+    "RecordList": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/record-list-block-options",
+      "$defs": {
+        "BlockField": {
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "name"
+          ]
+        },
+        "RecordListFilterPreset": {
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "filter": {
+              "items": true,
+              "type": "array"
+            },
+            "roles": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "name",
+            "filter",
+            "roles"
+          ]
+        },
+        "RecordListSummary": {
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "field": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "metric": {
+              "type": "string"
+            },
+            "roles": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "label",
+            "field",
+            "metric",
+            "roles"
+          ]
+        },
+        "RecordListTextStyles": {
+          "properties": {
+            "wrappedFields": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "wrappedFields"
+          ]
+        },
+        "SelectionButton": {
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "buttonID": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "label",
+            "buttonID",
+            "enabled"
+          ]
+        }
+      },
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "moduleID": {
+          "type": "string"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/BlockField"
+          },
+          "type": "array"
+        },
+        "prefilter": {
+          "type": "string"
+        },
+        "presort": {
+          "type": "string"
+        },
+        "perPage": {
+          "type": "integer"
+        },
+        "selectable": {
+          "type": "boolean"
+        },
+        "selectMode": {
+          "type": "string"
+        },
+        "selectionButtons": {
+          "items": {
+            "$ref": "#/$defs/SelectionButton"
+          },
+          "type": "array"
+        },
+        "editable": {
+          "type": "boolean"
+        },
+        "draggable": {
+          "type": "boolean"
+        },
+        "editFields": {
+          "items": {
+            "$ref": "#/$defs/BlockField"
+          },
+          "type": "array"
+        },
+        "inlineEditFields": {
+          "items": {
+            "$ref": "#/$defs/BlockField"
+          },
+          "type": "array"
+        },
+        "inlineRecordEditEnabled": {
+          "type": "boolean"
+        },
+        "inlineRecordEditAllowAddField": {
+          "type": "boolean"
+        },
+        "inlineRecordCopyEnabled": {
+          "type": "boolean"
+        },
+        "inlineValueFiltering": {
+          "type": "boolean"
+        },
+        "bulkRecordEditEnabled": {
+          "type": "boolean"
+        },
+        "openRecordInEditMode": {
+          "type": "boolean"
+        },
+        "hideHeader": {
+          "type": "boolean"
+        },
+        "hideAddButton": {
+          "type": "boolean"
+        },
+        "hideImportButton": {
+          "type": "boolean"
+        },
+        "hideConfigureFieldsButton": {
+          "type": "boolean"
+        },
+        "hideSearch": {
+          "type": "boolean"
+        },
+        "hidePaging": {
+          "type": "boolean"
+        },
+        "hideSorting": {
+          "type": "boolean"
+        },
+        "hideFiltering": {
+          "type": "boolean"
+        },
+        "hideRecordViewButton": {
+          "type": "boolean"
+        },
+        "hideRecordEditButton": {
+          "type": "boolean"
+        },
+        "hideRecordCloneButton": {
+          "type": "boolean"
+        },
+        "hideRecordReminderButton": {
+          "type": "boolean"
+        },
+        "hideRecordPermissionsButton": {
+          "type": "boolean"
+        },
+        "hideRecordDeleteButton": {
+          "type": "boolean"
+        },
+        "allowExport": {
+          "type": "boolean"
+        },
+        "enableRecordPageNavigation": {
+          "type": "boolean"
+        },
+        "fullPageNavigation": {
+          "type": "boolean"
+        },
+        "showTotalCount": {
+          "type": "boolean"
+        },
+        "showRecordPerPageOption": {
+          "type": "boolean"
+        },
+        "showDeletedRecordsOption": {
+          "type": "boolean"
+        },
+        "showDeletedRecordsInitially": {
+          "type": "boolean"
+        },
+        "searchableFields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "searchSubmitMode": {
+          "type": "string"
+        },
+        "linkToParent": {
+          "type": "boolean"
+        },
+        "openInNewTab": {
+          "type": "boolean"
+        },
+        "positionField": {
+          "type": "string"
+        },
+        "refField": {
+          "type": "string"
+        },
+        "recordDisplayOption": {
+          "type": "string"
+        },
+        "recordSelectorDisplayOption": {
+          "type": "string"
+        },
+        "addRecordDisplayOption": {
+          "type": "string"
+        },
+        "customFilterPresets": {
+          "type": "boolean"
+        },
+        "filterPresets": {
+          "items": {
+            "$ref": "#/$defs/RecordListFilterPreset"
+          },
+          "type": "array"
+        },
+        "customSummaries": {
+          "type": "boolean"
+        },
+        "summaries": {
+          "items": {
+            "$ref": "#/$defs/RecordListSummary"
+          },
+          "type": "array"
+        },
+        "textStyles": {
+          "$ref": "#/$defs/RecordListTextStyles"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "moduleID"
+      ],
+      "title": "RecordList"
+    },
+    "RecordOrganizer": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/record-organizer-block-options",
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "moduleID": {
+          "type": "string"
+        },
+        "groupField": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "labelField": {
+          "type": "string"
+        },
+        "descriptionField": {
+          "type": "string"
+        },
+        "positionField": {
+          "type": "string"
+        },
+        "filter": {
+          "type": "string"
+        },
+        "displayOption": {
+          "type": "string"
+        },
+        "addRecordDisplayOption": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "moduleID"
+      ],
+      "title": "RecordOrganizer"
+    },
+    "RecordRevisions": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/record-revisions-block-options",
+      "properties": {
+        "refreshRate": {
+          "type": "integer"
+        },
+        "showRefresh": {
+          "type": "boolean"
+        },
+        "magnifyOption": {
+          "type": "string"
+        },
+        "preload": {
+          "type": "boolean"
+        },
+        "displayedFields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sortDirection": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "title": "RecordRevisions"
+    },
+    "SocialFeed": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/social-feed-block-options",
+      "properties": {
+        "profileSourceField": {
+          "type": "string"
+        },
+        "profileUrl": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "title": "SocialFeed"
+    },
+    "Tabs": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/tabs-block-options",
+      "$defs": {
+        "Tab": {
+          "properties": {
+            "blockID": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "lazy": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "blockID",
+            "title",
+            "lazy"
+          ]
+        },
+        "TabsStyle": {
+          "properties": {
+            "appearance": {
+              "type": "string"
+            },
+            "alignment": {
+              "type": "string"
+            },
+            "justify": {
+              "type": "string"
+            },
+            "orientation": {
+              "type": "string"
+            },
+            "position": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "appearance",
+            "alignment",
+            "justify",
+            "orientation",
+            "position"
+          ]
+        }
+      },
+      "properties": {
+        "style": {
+          "$ref": "#/$defs/TabsStyle"
+        },
+        "tabs": {
+          "items": {
+            "$ref": "#/$defs/Tab"
+          },
+          "type": "array"
+        },
+        "magnifyOption": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "tabs"
+      ],
+      "title": "Tabs"
+    }
+  },
+  "type": "object",
+  "title": "Page block options",
+  "description": "The options object of each page block kind, keyed by kind. required lists the options a block cannot render without; compose_page_block_schema returns the same per kind at run time."
+}

@@ -1,0 +1,667 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/crusttech/human/server/compose/types/module",
+  "$defs": {
+    "DeDupRule": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "strict": {
+          "type": "boolean"
+        },
+        "errorMessage": {
+          "type": "string"
+        },
+        "constraints": {
+          "$ref": "#/$defs/DeDupRuleConstraintSet"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "strict",
+        "errorMessage",
+        "constraints"
+      ]
+    },
+    "DeDupRuleConstraint": {
+      "properties": {
+        "attribute": {
+          "type": "string"
+        },
+        "modifier": {
+          "type": "string"
+        },
+        "multiValue": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "attribute",
+        "modifier",
+        "multiValue"
+      ]
+    },
+    "DeDupRuleConstraintSet": {
+      "items": {
+        "$ref": "#/$defs/DeDupRuleConstraint"
+      },
+      "type": "array"
+    },
+    "DeDupRuleSet": {
+      "items": {
+        "$ref": "#/$defs/DeDupRule"
+      },
+      "type": "array"
+    },
+    "DiscoveryResult": {
+      "properties": {
+        "result": {
+          "items": {
+            "properties": {
+              "lang": {
+                "type": "string"
+              },
+              "fields": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "lang",
+              "fields"
+            ]
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "result"
+      ]
+    },
+    "EncodingStrategy": {
+      "properties": {
+        "omit": {
+          "type": "boolean"
+        },
+        "alias": {
+          "$ref": "#/$defs/EncodingStrategyAlias"
+        },
+        "json": {
+          "$ref": "#/$defs/EncodingStrategyJSON"
+        },
+        "plain": {
+          "$ref": "#/$defs/EncodingStrategyPlain"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EncodingStrategyAlias": {
+      "properties": {
+        "ident": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "ident"
+      ]
+    },
+    "EncodingStrategyJSON": {
+      "properties": {
+        "ident": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "ident"
+      ]
+    },
+    "EncodingStrategyPlain": {
+      "properties": {},
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Issue": {
+      "properties": {
+        "issue": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "meta": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "JSONText": {
+      "type": "string",
+      "contentEncoding": "base64"
+    },
+    "LabelValue": {
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ModuleConfig": {
+      "properties": {
+        "dal": {
+          "$ref": "#/$defs/ModuleConfigDAL"
+        },
+        "privacy": {
+          "$ref": "#/$defs/ModuleConfigDataPrivacy"
+        },
+        "discovery": {
+          "$ref": "#/$defs/ModuleConfigDiscovery"
+        },
+        "recordRevisions": {
+          "$ref": "#/$defs/ModuleConfigRecordRevisions"
+        },
+        "recordDeDup": {
+          "$ref": "#/$defs/ModuleConfigRecordDeDup"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "dal",
+        "privacy",
+        "discovery",
+        "recordRevisions",
+        "recordDeDup"
+      ]
+    },
+    "ModuleConfigDAL": {
+      "properties": {
+        "connectionID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "constraints": {
+          "additionalProperties": {
+            "items": true,
+            "type": "array"
+          },
+          "type": "object"
+        },
+        "ident": {
+          "type": "string"
+        },
+        "systemFieldEncoding": {
+          "$ref": "#/$defs/SystemFieldEncoding"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "connectionID",
+        "constraints",
+        "ident",
+        "systemFieldEncoding"
+      ]
+    },
+    "ModuleConfigDataPrivacy": {
+      "properties": {
+        "sensitivityLevelID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "usageDisclosure": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "usageDisclosure"
+      ]
+    },
+    "ModuleConfigDiscovery": {
+      "properties": {
+        "public": {
+          "$ref": "#/$defs/DiscoveryResult"
+        },
+        "private": {
+          "$ref": "#/$defs/DiscoveryResult"
+        },
+        "protected": {
+          "$ref": "#/$defs/DiscoveryResult"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "public",
+        "private",
+        "protected"
+      ]
+    },
+    "ModuleConfigRecordDeDup": {
+      "properties": {
+        "rules": {
+          "$ref": "#/$defs/DeDupRuleSet"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ModuleConfigRecordRevisions": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "ident": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "enabled",
+        "ident"
+      ]
+    },
+    "ModuleField": {
+      "properties": {
+        "fieldID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "tenantID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "projectID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "namespaceID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "moduleID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "String",
+            "Number",
+            "Bool",
+            "DateTime",
+            "Select",
+            "Email",
+            "Url",
+            "File",
+            "User",
+            "Record",
+            "Geometry"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "options": {
+          "type": "object"
+        },
+        "config": {
+          "$ref": "#/$defs/ModuleFieldConfig"
+        },
+        "isRequired": {
+          "type": "boolean"
+        },
+        "isMulti": {
+          "type": "boolean"
+        },
+        "defaultValue": {
+          "$ref": "#/$defs/RecordValueSet"
+        },
+        "expressions": {
+          "$ref": "#/$defs/ModuleFieldExpr"
+        },
+        "labels": {
+          "additionalProperties": {
+            "$ref": "#/$defs/LabelValue"
+          },
+          "type": "object"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "deletedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdByAgent": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "fieldID",
+        "namespaceID",
+        "moduleID",
+        "kind",
+        "name",
+        "options",
+        "config",
+        "isRequired",
+        "isMulti",
+        "defaultValue",
+        "expressions",
+        "label"
+      ]
+    },
+    "ModuleFieldConfig": {
+      "properties": {
+        "dal": {
+          "$ref": "#/$defs/ModuleFieldConfigDAL"
+        },
+        "privacy": {
+          "$ref": "#/$defs/ModuleFieldConfigDataPrivacy"
+        },
+        "recordRevisions": {
+          "$ref": "#/$defs/ModuleFieldConfigRecordRevisions"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "dal",
+        "privacy",
+        "recordRevisions"
+      ]
+    },
+    "ModuleFieldConfigDAL": {
+      "properties": {
+        "encodingStrategy": {
+          "$ref": "#/$defs/EncodingStrategy"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "encodingStrategy"
+      ]
+    },
+    "ModuleFieldConfigDataPrivacy": {
+      "properties": {
+        "sensitivityLevelID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "usageDisclosure": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "usageDisclosure"
+      ]
+    },
+    "ModuleFieldConfigRecordRevisions": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "enabled"
+      ]
+    },
+    "ModuleFieldExpr": {
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "sanitizers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "validators": {
+          "items": {
+            "$ref": "#/$defs/ModuleFieldValidator"
+          },
+          "type": "array"
+        },
+        "disableDefaultValidators": {
+          "type": "boolean"
+        },
+        "formatters": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "disableDefaultFormatters": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ModuleFieldSet": {
+      "items": {
+        "$ref": "#/$defs/ModuleField"
+      },
+      "type": "array"
+    },
+    "ModuleFieldValidator": {
+      "properties": {
+        "validatorID": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "test": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RecordValue": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "place": {
+          "type": "integer"
+        },
+        "deletedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name"
+      ]
+    },
+    "RecordValueSet": {
+      "items": {
+        "$ref": "#/$defs/RecordValue"
+      },
+      "type": "array"
+    },
+    "SystemFieldEncoding": {
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "moduleID": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "namespaceID": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "revision": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "meta": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "ownedBy": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "createdBy": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "updatedBy": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "deletedAt": {
+          "$ref": "#/$defs/EncodingStrategy"
+        },
+        "deletedBy": {
+          "$ref": "#/$defs/EncodingStrategy"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "moduleID",
+        "namespaceID",
+        "revision",
+        "meta",
+        "ownedBy",
+        "createdAt",
+        "createdBy",
+        "updatedAt",
+        "updatedBy",
+        "deletedAt",
+        "deletedBy"
+      ]
+    }
+  },
+  "properties": {
+    "moduleID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "tenantID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "projectID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "config": {
+      "$ref": "#/$defs/ModuleConfig"
+    },
+    "meta": {
+      "$ref": "#/$defs/JSONText"
+    },
+    "fields": {
+      "$ref": "#/$defs/ModuleFieldSet"
+    },
+    "labels": {
+      "additionalProperties": {
+        "$ref": "#/$defs/LabelValue"
+      },
+      "type": "object"
+    },
+    "issues": {
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "type": "array"
+    },
+    "namespaceID": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deletedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdByAgent": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "moduleID",
+    "handle",
+    "config",
+    "meta",
+    "fields",
+    "namespaceID",
+    "name"
+  ],
+  "title": "Module",
+  "description": "A compose module: the data structure records of one kind follow. fields[].kind is the closed list of field kinds; fields[].options depends on the kind."
+}

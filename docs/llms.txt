@@ -33,6 +33,7 @@ Data models, pages, automations and AI agents in one open platform. Start in ten
 - [TAQ triggers](/reference/taq/triggers.md): Every trigger a TAQ can start from, with the inputs it takes and the values it provides.
 - [TAQ steps](/reference/taq/steps.md): Every step a TAQ can run, with the inputs it takes and the values it returns.
 - [MCP tools](/reference/mcp-tools.md): Every tool Human's MCP server offers, with its risk level and parameters.
+- [Schemas](/reference/schemas.md): JSON Schema for the resources you define in Human — module, page, page layout, block options, chart and TAQ — generated from the server's own types.
 - [Environment variables](/reference/environment.md): Every server option, with its type and default.
 - [Permissions](/reference/permissions.md)
 
