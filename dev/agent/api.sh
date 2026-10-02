@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 # Authenticated curl wrapper for the local dev API.
 #
-# Usage: api.sh [--json] METHOD PATH [extra curl args...]
+# Usage: api.sh [--json] [--pick EXPR] [--all|--limit N] [--pretty] METHOD PATH [curl args...]
 #   api.sh GET '/system/users/?limit=5'
+#   api.sh --pick 'response.set[].email' GET '/system/users/'
+#   api.sh --pick 'response.set[].{recordID,values.name}' GET "$records"
 #   api.sh POST /compose/namespace/ -d '{"name":"Agent Test","slug":"agent-test"}'
 #   api.sh --json GET /nope/          # every outcome is JSON on stdout
+#
+# Output is shaped for reading by jsonout.py: --pick projects a path (its
+# header has the grammar), every list longer than 20 items is cut with a
+# visible "… N more (--all)" marker (--all or --limit N changes that), and JSON
+# is compact unless stdout is a terminal or --pretty says otherwise. --json
+# mode never truncates: it is for parsers, and a parser gets the whole body.
 #
 # Notes:
 #  - --json (or HUMAN_API_JSON=1) guarantees a JSON object on stdout whatever
@@ -22,9 +30,36 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 json_mode="${HUMAN_API_JSON:-}"
-if [[ "${1:-}" == "--json" ]]; then
-  json_mode=1
-  shift
+out_args=()
+while [[ "${1:-}" == --* ]]; do
+  case "$1" in
+  --json)
+    json_mode=1
+    shift
+    ;;
+  --pick)
+    out_args+=(--pick "${2:?--pick needs an EXPR}")
+    shift 2
+    ;;
+  --all)
+    out_args+=(--limit 0)
+    shift
+    ;;
+  --limit)
+    out_args+=(--limit "${2:?--limit needs a number}")
+    shift 2
+    ;;
+  --pretty)
+    out_args+=(--pretty)
+    shift
+    ;;
+  *)
+    break
+    ;;
+  esac
+done
+if [[ -n "$json_mode" ]]; then
+  out_args+=(--limit 0 --compact)
 fi
 
 # One diagnostic, in whichever shape the caller can consume.
@@ -147,7 +182,7 @@ if [[ "$method" == "POST" && "$path" =~ ^/compose/namespace/?(\?.*)?$ ]]; then
     ledger_record namespace "$ns_id" "$(json_get response.slug <"$body" 2>/dev/null || true)"
   fi
 fi
-if ! python3 -m json.tool <"$body" 2>/dev/null; then
+if ! python3 "$AGENT_DIR/jsonout.py" "${out_args[@]}" <"$body" 2>/dev/null; then
   # A restarting dev server answers on the socket with its boot banner rather
   # than a response. Printing that and exiting 0 makes every caller that pipes
   # into a JSON parser fail with "Expecting value: line 1 column 1", which reads
