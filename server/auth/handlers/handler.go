@@ -507,11 +507,6 @@ func translator(req *request.AuthReq, ns string) func(key string, rr ...string) 
 	return req.Locale.NS(req.Context(), ns)
 }
 
-// general validation of posted data
-//
-// quite primitive for now but should be effective against out-of-bounds attacks
-//
-// in the future, more sophisticated validation might be needed
 // parseRequestForm parses query, form and multipart data of the request
 // and reports whether the posted form exceeds what auth forms may carry
 func parseRequestForm(r *http.Request) (tooLarge bool, err error) {
@@ -533,9 +528,13 @@ func parseRequestForm(r *http.Request) (tooLarge bool, err error) {
 	return !validFormPost(r), nil
 }
 
-// validFormPost checks the posted fields only; query parameters are not
-// limited since identity providers send long values (authorization codes)
-// to the callback URL
+// validFormPost is a general validation of posted data
+//
+// quite primitive for now but should be effective against out-of-bounds attacks;
+// in the future, more sophisticated validation might be needed
+//
+// Only the posted fields are checked; query parameters are not limited since
+// identity providers send long values (authorization codes) to the callback URL
 func validFormPost(r *http.Request) bool {
 	if len(r.PostForm) > maxPostFields {
 		// auth does not have any large forms
