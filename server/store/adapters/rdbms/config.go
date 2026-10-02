@@ -128,7 +128,7 @@ func (c *ConnConfig) ParseExtra() (err error) {
 	for key := range vv {
 		val = vv.Get(key)
 
-		if storePrefixChar != key[:1] {
+		if !strings.HasPrefix(key, storePrefixChar) {
 			// skip non-store specific config
 			continue
 		}
@@ -166,8 +166,10 @@ func (c *ConnConfig) ParseExtra() (err error) {
 		delete(vv, key)
 	}
 
-	// Encode QS back to DSN
-	c.DataSourceName += q + vv.Encode()
+	// Encode the remaining (driver) params back to the DSN
+	if len(vv) > 0 {
+		c.DataSourceName += q + vv.Encode()
+	}
 
 	return nil
 }

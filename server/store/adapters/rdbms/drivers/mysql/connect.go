@@ -100,6 +100,12 @@ func NewConfig(in string) (*rdbms.ConnConfig, error) {
 		return nil, fmt.Errorf("expecting valid schema (mysql://) at the beginning of the DSN")
 	}
 
+	// Pick up store params (*connMaxOpen, ...) and strip them from the DSN
+	// before the driver parses it
+	if err := c.ParseExtra(); err != nil {
+		return nil, err
+	}
+
 	if pdsn, err := mysql.ParseDSN(c.DataSourceName); err != nil {
 		return nil, err
 	} else {
