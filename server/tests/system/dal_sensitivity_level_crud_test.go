@@ -281,7 +281,8 @@ func Test_dal_sensitivity_level_undelete_duplicate_level(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("failed to complete transaction: invalid sensitivity level: duplicated level value 9")).
+		// the transaction wrapper prefixes the message on some drivers
+		Assert(helpers.AssertErrorP("invalid sensitivity level: duplicated level value 9")).
 		End()
 }
 
