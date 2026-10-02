@@ -27,3 +27,10 @@ Working facts about the intent tooling (`.intent/intent.mjs`, `dev_intent_check`
 `check` and `coverage` print their failures to stderr and exit 1; a clean run prints one OK line to stdout. Piping through `tail` or `head` can hide a failure block or drop it entirely.
 
 **How to apply:** read the whole output and the exit status, never a truncated pipe.
+
+## server/ is documented but not enforced
+
+`.intent/config.mjs` excludes `server` from enforcement, so a `*.intent.md`
+under `server/` (`pkg/mcpkit`, `system/agentic/mcp`) has no lock entries:
+`intent.mjs sync <server files>` reports 0 updated and `check` never flags
+drift there. The docs are kept true by hand, in the same commit as the code.

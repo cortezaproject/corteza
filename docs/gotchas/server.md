@@ -78,6 +78,17 @@ Design for `?refs=` labels and sort-by-displayed-label on records is `server/dev
 
 **How to apply:** read the doc's open rulings before building past them.
 
+### Generated action errors are all KindInternal
+
+`NamespaceErrNotFound()`, `ModuleErrNotAllowedToUpdate()` and the rest of the
+`*_actions.gen.go` constructors are `errors.KindInternal`; what kind of failure
+they are is in their `type` meta (`notFound`, `notAllowedToRead`, `invalidID`,
+`staleData`, `generic`). `errors.IsNotFound(err)` is false for every one of them.
+
+**How to apply:** classify a service error by `(*errors.Error).MetaValue("type")`
+first and by kind second; `mcp.ClassifyError` in `server/system/agentic/mcp` is
+the one place that does it for the MCP surface.
+
 ## RBAC and auth
 
 ### Auth sessions cache the user
