@@ -72,8 +72,8 @@ telling them to ask an administrator for access. This gate is a convenience, not
 boundary: every request behind it checks its own permissions.
 
 Human also ships two applications that are switched off and unlisted on new
-instances. One of them is **Automation (Workflows)**, a separate automation
-designer; these docs cover TAQs.
+instances. One of them is **Workflows**, a separate automation designer; these docs cover
+TAQs.
 
 ## Notifications
 

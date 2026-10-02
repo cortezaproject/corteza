@@ -53,6 +53,7 @@ export default defineConfig({
           { text: 'Quickstart', link: '/get-started/quickstart' },
           { text: 'Core concepts', link: '/get-started/concepts' },
           { text: 'How building works', link: '/get-started/building' },
+          { text: 'Glossary', link: '/get-started/glossary' },
         ],
       },
       {

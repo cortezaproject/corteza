@@ -12,6 +12,7 @@ Data models, pages, automations and AI agents in one open platform. Start in ten
 - [Quickstart](/get-started/quickstart.md): Run Human with Docker Compose and sign in as the administrator.
 - [Core concepts](/get-started/concepts.md): The terms the rest of the Human docs use, and how they fit together.
 - [How building works](/get-started/building.md): How data, pages, automation, agents and permissions fit together when you build on Human.
+- [Glossary](/get-started/glossary.md): Every term Human uses, what it means, where it appears in the web app, and the name the API and MCP tools use for it.
 
 ### Platform
 
