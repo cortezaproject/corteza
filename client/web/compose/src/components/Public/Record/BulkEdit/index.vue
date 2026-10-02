@@ -224,10 +224,11 @@ export default {
     onModalHide () {
       this.showModal = false
 
-      if (this.openOnSelect) {
-        this.fields = []
-        this.record = new compose.Record(this.module, {})
-      }
+      // The next bulk edit starts from a clean slate: no leftover values and
+      // only the fields the parent asked for (inline edit) or none at all
+      this.fields = this.openOnSelect ? [] : [...this.selectedFields]
+      this.record = new compose.Record(this.module, this.openOnSelect ? {} : this.initialRecord)
+      this.selectedField = undefined
 
       this.$emit('close')
     },
@@ -298,6 +299,7 @@ export default {
       this.showModal = false
       this.selectedField = undefined
       this.fields = []
+      this.record = new compose.Record(this.module, {})
     },
   },
 }
