@@ -100,6 +100,13 @@ func (d StoreDecoder) extendPageLayoutFilter(scope *envoyx.Node, refs map[string
 func (d StoreDecoder) extendPageFilter(scope *envoyx.Node, refs map[string]*envoyx.Node, auxf envoyx.ResourceFilter, base types.PageFilter) (out types.PageFilter) {
 	out = base
 
+	// Export pages in the order the page tree shows them so that an import
+	// recreates them in the same order; without this the order is left to
+	// the database
+	if len(out.Sort) == 0 {
+		_ = out.Sort.Set("weight ASC, id ASC")
+	}
+
 	if scope == nil {
 		return
 	}
