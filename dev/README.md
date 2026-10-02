@@ -204,16 +204,16 @@ of a session, because nothing can refresh it in flight.
 Built on demand by `dev/mcp/run.sh`: it rebuilds when a source file is newer
 than the binary, so restarting the MCP client is all a tool edit needs.
 
-| tool                                            | use it for                                          |
-| ----------------------------------------------- | --------------------------------------------------- |
-| `dev_test_run`                                  | the touched package's suite — returns failures only |
-| `dev_format_run`                                | gofmt/prettier on named files                       |
-| `dev_commit_create`                             | commit with the convention enforced                 |
-| `dev_branch_status`                             | branch, base, ahead/behind, working tree            |
-| `dev_intent_governing` / `_check` / `_affected` | intent docs, drift, affected e2e specs              |
-| `dev_server_status` / `dev_server_logs`         | up, how stale (`wait` blocks), filtered log tail    |
-| `dev_ui_verify`                                 | render-check a webapp path in a real browser        |
-| `dev_fixture_cleanup`                           | remove this session's seeded data                   |
+| tool                                            | use it for                                                                                                                       |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `dev_test_run`                                  | the touched package's suite — returns failures only; `related` runs just the tests covering named source files, for the baseline |
+| `dev_format_run`                                | gofmt/prettier on named files                                                                                                    |
+| `dev_commit_create`                             | commit with the convention enforced                                                                                              |
+| `dev_branch_status`                             | branch, base, ahead/behind, working tree                                                                                         |
+| `dev_intent_governing` / `_check` / `_affected` | intent docs, drift, affected e2e specs                                                                                           |
+| `dev_server_status` / `dev_server_logs`         | up, how stale (`wait` blocks), filtered log tail                                                                                 |
+| `dev_ui_verify`                                 | render-check a webapp path in a real browser                                                                                     |
+| `dev_fixture_cleanup`                           | remove this session's seeded data                                                                                                |
 
 `dev/mcp/SPEC.md` also describes `dev_diff_survey`, `dev_lint_run`,
 `dev_fixture_seed`, `dev_scratch_build` and `dev_e2e_run` — those are **planned,

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -70,6 +71,12 @@ func registerTestRun(reg *mcpkit.Registry, root string) {
 			mcp.WithString("run", mcp.Description(
 				"Only run tests whose name matches this. Go passes it to -run, vitest to -t. Use it to "+
 					"re-run one failure without paying for the whole package.")),
+			mcp.WithString("related", mcp.Description(
+				"Whitespace-separated repo-relative source files. Runs only the tests that cover them: "+
+					"vitest's import graph (vitest related) or, for Go, the packages the files live in. "+
+					"This is the baseline before an edit — seconds instead of the whole suite. Zero "+
+					"related tests reports passed with a note, since no test is reachable from the files; "+
+					"run the whole workspace before committing. Not available for mocha.")),
 			checkoutOption(),
 			mcpkit.InGroup(mcpkit.GroupDevelopment),
 			mcpkit.WithRisk(mcpkit.RiskRead),
@@ -91,17 +98,24 @@ func registerTestRun(reg *mcpkit.Registry, root string) {
 				return nil, err
 			}
 
+			run, related := toolkit.Str(args, "run"), toolkit.Str(args, "related")
+
 			var report testReport
-			switch runnerFor(at, target) {
+			switch runner := runnerFor(at, target); runner {
 			case "go":
 				module, _ := goModuleFor(target)
-				report, err = runGoTests(ctx, at, module, target, toolkit.Str(args, "run"))
-			case "mocha":
-				report, err = runMocha(ctx, at, target, toolkit.Str(args, "run"))
-			case "node":
-				report, err = runNode(ctx, at, target, toolkit.Str(args, "run"))
+				report, err = runGoTests(ctx, at, module, target, run, related)
+			case "mocha", "node":
+				if related != "" {
+					return nil, fmt.Errorf("related is not available for the %s runner; run the workspace %s", runner, target)
+				}
+				if runner == "mocha" {
+					report, err = runMocha(ctx, at, target, run)
+				} else {
+					report, err = runNode(ctx, at, target, run)
+				}
 			default:
-				report, err = runVitest(ctx, at, target, toolkit.Str(args, "run"))
+				report, err = runVitest(ctx, at, target, run, related)
 			}
 			if err != nil {
 				return nil, err
@@ -197,17 +211,23 @@ func mochaConfig(root, dir string) string {
 // output means guessing at line prefixes, while the event stream says exactly
 // which test failed, in which package, with which output attached. A non-zero
 // exit is expected on failure and is not itself an error.
-func runGoTests(ctx context.Context, root, module, target, run string) (testReport, error) {
+func runGoTests(ctx context.Context, root, module, target, run, related string) (testReport, error) {
 	out := testReport{Suite: "go", Target: target}
 
 	clean := strings.TrimPrefix(target, "./")
 
-	pkg := "./" + strings.TrimPrefix(strings.TrimPrefix(clean, module), "/")
-	if pkg == "./" {
-		pkg = "./..."
+	pkgs := []string{"./" + strings.TrimPrefix(strings.TrimPrefix(clean, module), "/")}
+	if pkgs[0] == "./" {
+		pkgs[0] = "./..."
 	}
+	if related != "" {
+		if pkgs = goRelatedPkgs(module, related); len(pkgs) == 0 {
+			return out, fmt.Errorf("none of the related files are under the %s module", module)
+		}
+	}
+	pkg := strings.Join(pkgs, " ")
 
-	argv := []string{"test", "-json", pkg}
+	argv := append([]string{"test", "-json"}, pkgs...)
 	if run != "" {
 		argv = append(argv, "-run", run)
 	}
@@ -552,13 +572,15 @@ func mochaBails(configPath string) bool {
 // vitest's json reporter writes to stdout alongside its own progress output, so
 // the report is found by locating the JSON object rather than assuming the
 // whole of stdout is JSON.
-func runVitest(ctx context.Context, root, target, run string) (testReport, error) {
+func runVitest(ctx context.Context, root, target, run, related string) (testReport, error) {
 	out := testReport{Suite: "vitest", Target: target}
 
 	dir, spec := splitWorkspace(target)
 
 	argv := []string{"vitest", "run", "--reporter=json"}
-	if spec != "" {
+	if related != "" {
+		argv = vitestRelatedArgv(root, related)
+	} else if spec != "" {
 		argv = append(argv, spec)
 	}
 	if run != "" {
@@ -622,6 +644,14 @@ func runVitest(ctx context.Context, root, target, run string) (testReport, error
 	// empty report, and reporting that as green is the exact false negative
 	// this tool exists to prevent.
 	if report.NumTotalTests == 0 {
+		if related != "" {
+			// Nothing imports these files, so there is nothing to baseline; that
+			// is information, not a failed run.
+			out.Passed = report.Success
+			out.Note = "no test in " + dir + " imports " + related +
+				"; nothing to baseline for these files — run the workspace before committing"
+			return out, nil
+		}
 		out.Passed = false
 		out.Note = "no tests ran: nothing matched " + target +
 			". Check the path is inside the workspace's include globs and that the spec name is right."
@@ -637,4 +667,43 @@ func runVitest(ctx context.Context, root, target, run string) (testReport, error
 	}
 
 	return out, nil
+}
+
+// goRelatedPkgs turns repo-relative source files into the ./dir packages go
+// test takes inside module: one per directory, first-seen order, files outside
+// the module dropped.
+func goRelatedPkgs(module, related string) []string {
+	var pkgs []string
+	seen := map[string]bool{}
+	for _, f := range strings.Fields(related) {
+		f = strings.TrimPrefix(f, "./")
+		rel, ok := strings.CutPrefix(f, module+"/")
+		if !ok {
+			continue
+		}
+		dir := "./" + path.Dir(rel)
+		if dir == "./." {
+			dir = "./"
+		}
+		if !seen[dir] {
+			seen[dir] = true
+			pkgs = append(pkgs, dir)
+		}
+	}
+	return pkgs
+}
+
+// vitestRelatedArgv is the `vitest related` command for repo-relative source
+// files. Paths are made absolute so they resolve the same from whichever
+// workspace runs them; --passWithNoTests keeps an empty match from exiting
+// non-zero, since the report says what was covered.
+func vitestRelatedArgv(root, related string) []string {
+	argv := []string{"vitest", "related"}
+	for _, f := range strings.Fields(related) {
+		if !path.IsAbs(f) {
+			f = root + "/" + strings.TrimPrefix(f, "./")
+		}
+		argv = append(argv, f)
+	}
+	return append(argv, "--run", "--reporter=json", "--passWithNoTests")
 }
