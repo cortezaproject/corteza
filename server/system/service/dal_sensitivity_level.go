@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	a "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -131,6 +132,10 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 		upd.CreatedAt = qq.CreatedAt
 		upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
+		// Updating a deleted level must not undelete it
+		upd.DeletedAt = qq.DeletedAt
+		upd.DeletedBy = qq.DeletedBy
+
 		ups, err := svc.prepare(ctx, s, upd)
 		if err != nil {
 			return
@@ -141,6 +146,11 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 		}
 
 		q = upd
+
+		// Deleted levels are not registered with the DAL
+		if upd.DeletedAt != nil {
+			return nil
+		}
 
 		return dalSensitivityLevelReplace(ctx, svc.dal, upd)
 	})
@@ -232,9 +242,18 @@ func (svc *dalSensitivityLevel) UndeleteByID(ctx context.Context, ID uint64) (er
 		qProps.setSensitivityLevel(q)
 
 		q.DeletedAt = nil
+		q.DeletedBy = 0
+		q.UpdatedAt = now()
 		q.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if err = store.UpdateDalSensitivityLevel(ctx, s, q); err != nil {
+		// Validate against the active levels so that undeleting
+		// can not produce two levels with the same level value
+		ups, err := svc.prepare(ctx, s, q)
+		if err != nil {
+			return err
+		}
+
+		if err = store.UpsertDalSensitivityLevel(ctx, s, ups...); err != nil {
 			return
 		}
 
@@ -278,7 +297,11 @@ func (svc *dalSensitivityLevel) ReloadSensitivityLevels(ctx context.Context, s s
 }
 
 func (svc *dalSensitivityLevel) prepare(ctx context.Context, s store.Storer, sl *types.DalSensitivityLevel) (_ types.DalSensitivityLevelSet, err error) {
-	set, _, err := store.SearchDalSensitivityLevels(ctx, s, types.DalSensitivityLevelFilter{})
+	// Deleted levels are included so that they can still be updated
+	// and so that undeleting one can be validated against the active ones
+	set, _, err := store.SearchDalSensitivityLevels(ctx, s, types.DalSensitivityLevelFilter{
+		Deleted: filter.StateInclusive,
+	})
 	if err != nil {
 		return
 	}
@@ -288,10 +311,17 @@ func (svc *dalSensitivityLevel) prepare(ctx context.Context, s store.Storer, sl 
 
 	// Validation
 	{
-		// Assure unique level
-		for _, crt := range set {
-			if crt.Level == sl.Level && crt.ID != sl.ID {
-				return nil, fmt.Errorf("invalid sensitivity level: duplicated level value %d", sl.Level)
+		// Assure unique level among active levels; a deleted level
+		// may share its level value with an active one
+		if !deleting {
+			for _, crt := range set {
+				if crt.DeletedAt != nil {
+					continue
+				}
+
+				if crt.Level == sl.Level && crt.ID != sl.ID {
+					return nil, fmt.Errorf("invalid sensitivity level: duplicated level value %d", sl.Level)
+				}
 			}
 		}
 
