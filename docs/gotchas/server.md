@@ -6,9 +6,9 @@ Facts about the Go backend that are easy to get wrong: store and DAL, RBAC and a
 
 ### store.Search ignores the context scope
 
-`store.Search<X>(ctx, s, filter)` does not apply the project/tenant scope from the context; `scope.GetScopeFromContext` is a service-layer concern. Code calling the store directly sees every project's rows unless the filter narrows them. Compose module, page and chart filters honour `NamespaceID` only — their `ProjectID` field is a silent no-op in `filters.gen.go`. System and automation resources (agent, chatbot, ng_automation, role, configured connection) honour `ProjectID` (applied only when `> 0`, `store/adapters/rdbms/filter.go`).
+`store.Search<X>(ctx, s, filter)` does not apply the project/tenant scope from the context; `scope.GetScopeFromContext` is a service-layer concern. Code calling the store directly sees every project's rows unless the filter narrows them. Each generated filter (`server/store/adapters/rdbms/filters.gen.go`, plus `filter.go` for roles) applies `ProjectID` and `NamespaceID` only when `> 0`, so a zero value means every project.
 
-**How to apply:** direct store calls filter compose resources by `NamespaceID` and system/automation resources by `ProjectID`; never rely on ctx scope.
+**How to apply:** direct store calls set `NamespaceID` or `ProjectID` on the filter explicitly; never rely on ctx scope.
 
 ### compose_record has two models
 
@@ -24,13 +24,13 @@ The generated `Record` model (`server/compose/model/models.gen.go`, from `record
 
 ### The DDL index surface
 
-`TableLookup(...).Indexes` is always empty on every driver — `scanColumns` fills Columns only. Postgres `IndexLookup` works. The upgrade only ever adds indexes the model declares and never drops ones it stopped declaring, so renaming an index in cue needs a hand-written fix in `upgrade_fixes.go`, or migrated databases keep enforcing the old one. `dropIndexes` (`upgrade.go`) attempts the drop and tolerates failure; postgres emits `DROP INDEX IF EXISTS`.
+`TableLookup(...).Indexes` is always empty on every driver — the lookup fills Columns only. Postgres `IndexLookup` works. The upgrade only ever adds indexes the model declares and never drops ones it stopped declaring, so renaming an index in cue needs a hand-written fix in `upgrade_fixes.go`, or migrated databases keep enforcing the old one. `dropIndexes` (`upgrade.go`) attempts the drop and tolerates failure; postgres emits `DROP INDEX IF EXISTS`.
 
 ### Two cursor builders
 
 `store/adapters/rdbms/cursor.go` builds paging cursors two ways: `CursorCondition` (raw SQL, most resources) and `CursorExpression` (any resource with a `json:` sortable — workflows, TAQs, agents — and the compose DAL). Both handle the `coalesce` and `isnull` sort modifiers.
 
-**How to apply:** a new sort modifier touches `filter.SetModifier`, `generateSorting`, both cursor builders and the collect switch in `rdbms.go.tpl` (then `make codegen`). Test paging by comparing a cursor walk with one big page.
+**How to apply:** a new sort modifier touches `filter.SortExpr.SetModifier`, `generateSorting`, both cursor builders and the collect switch in `rdbms.go.tpl` (then `make codegen`). Test paging by comparing a cursor walk with one big page.
 
 ### Timestamps in cursors are normalised to UTC
 
@@ -42,11 +42,11 @@ RFC3339 writes a zone offset as hours and minutes only. Go's zero time in a zone
 
 Eleven resources keep their display name in the JSON `meta` column (`meta.name` or `meta.short`) and declare a virtual `name` attribute with `sortableJSON` and `store: false`. Codegen turns it into a `"json:meta.short"` sortable and, via `queryJSON` in `server.store.cue`, a `queryJSONExpr` query filter. `storeIdent` defaults to the attribute name, so a virtual attribute looks like a real column to codegen that ignores `sortableJSON`; a bare `"name"` in a `query:` list fails at SQL time.
 
-**How to apply:** filter structs are hand-written (`system/types/*.go`), so a new `query` needs the struct field, a `rest.yaml` param and the `Query: r.Query` mapping in the REST handler.
+**How to apply:** filter structs are hand-written (`system/types/*.go`, `automation/types/*.go`), so a new `query` needs the struct field, a `rest.yaml` param and the `Query: r.Query` mapping in the REST handler.
 
 ### Unique-violation errors name their constraint
 
-`store.ErrNotUniqueOn(resource, fields...)` (`server/store/errors.go`) is raised by both the generated `check<X>Constraints` and the drivers' `errorHandler`; postgres's carries the table and constraint name. It keeps `errors.KindDuplicateData`, and returns `*errors.Error` so callers keep `.Wrap()`.
+`store.ErrNotUniqueOn(resource, fields...)` (`server/store/errors.go`) is raised by the generated `check<X>Constraints` and by the postgres `errorHandler`, which names the table and constraint; the mysql, mssql and sqlite handlers return the bare `store.ErrNotUnique`. It keeps `errors.KindDuplicateData`, and returns `*errors.Error` so callers keep `.Wrap()`.
 
 **Why:** a service-level duplicate and a database violation from a stale index have opposite fixes; the message tells them apart.
 
@@ -58,7 +58,7 @@ Eleven resources keep their display name in the JSON `meta` column (`meta.name` 
 
 ### In-memory SQLite runs Tx without a transaction
 
-`sqlite.ConnectInMemory` sets `TxRetryLimit: -1`, and `(*Store).Tx` then runs the body directly. Service tests on that store cannot reproduce a bug about reading uncommitted state.
+`sqlite.Connect` (and so `ConnectInMemory`) sets `TxRetryLimit: -1`, and `(*Store).Tx` then runs the body directly. Service tests on that store cannot reproduce a bug about reading uncommitted state.
 
 **How to apply:** test the ordering with a synchronous stub dispatcher (the real eventbus dispatches in a goroutine) and confirm visibility against the dev server.
 
@@ -92,7 +92,7 @@ At login the auth server gob-serialises the whole `types.User` into `auth_sessio
 
 ### A permission refusal is invisible to clients
 
-Every API error is HTTP 200 (`server/pkg/errors/http.go`). In production `meta` and `stack` are stripped, so `meta.type: notAllowedTo*` exists only in dev; only the translated, locale-dependent message survives.
+A REST handler's error is HTTP 200 (`errors.ServeHTTP`, `server/pkg/errors/http.go`); only the token and scope middleware answer with real status codes. In production `meta` and `stack` are stripped, so `meta.type: notAllowedTo*` exists only in dev; only the translated, locale-dependent message survives.
 
 **How to apply:** gate a control on a `can*` flag from the resource payload, never on a caught error. Where no flag answers the question, an empty result is ambiguous and should not be labelled a permission problem.
 
@@ -136,11 +136,11 @@ An RBAC resource needs one segment per ID in its `RbacResource()` (`server/compo
 
 ### Can refuses wildcards; Trace reads them
 
-`checkValidity` (`pkg/rbac/service.go`) returns false for any resource containing `*`, so `Can` and `/permissions/effective` report every op denied. `Trace` evaluates a wildcard: a rule at the same or broader scope matches, a narrower one does not. It skips the org-tree branch, so it can only under-report. `callerHolds` in `server/system/agentic/permission_handler.go` uses `Can` for concrete resources and `Trace` for wildcards.
+`checkValidity` (`pkg/rbac/service.go`) returns false for any resource containing `*`, so `Can` and `/permissions/effective` report every op denied. `Trace` evaluates a wildcard: a rule at the same or broader scope matches, a narrower one does not. It skips the org-tree branch, so it can only under-report. `callerHolds` in `server/system/agentic/permission_handler.go` calls `rbac.CanPassOn` (`pkg/rbac/grant_ceiling.go`), which tries `Can` and falls back to `Trace`.
 
 ### Rule PATCH is per component
 
-`PATCH /<service>/permissions/<roleID>/rules` validates every rule with that service's validator; mixing components fails with `unknown resource type`. Component-level resources need the trailing slash: `corteza::compose/`. `GET .../rules` returns `[]` unless `?resource=` is passed.
+`PATCH /<service>/permissions/<roleID>/rules` validates every rule with that service's validator; mixing components fails with `unknown resource type`. Component-level resources need the trailing slash: `corteza::compose/`. Without `?resource=`, `GET .../rules` returns only rules on the component and type-wildcard resources (`accessControl.Resources()`).
 
 **How to apply:** one PATCH per component, then a filtered GET per resource to confirm.
 
@@ -158,7 +158,7 @@ Only compose Record, automation Workflow and NgAutomation have an `undelete` RBA
 
 ### ngAutomation execute is not enforced
 
-`canExecuteNgAutomation` is declared and returned in the payload, but `ngAutomation.Exec`/`ExecAndWait` load the automation with `loadNgAutomation` and never call `CanExecuteNgAutomation`, and the REST exec handler does not check it either. Only `read` is enforced.
+`canExecuteNgAutomation` is declared and returned in the payload, but `ngAutomation.Exec`/`ExecAndWait` load the automation with `loadNgAutomation` and run no RBAC check at all — only tenant membership and the write capability (`checkScope`, `automation/service/ng_automation.gen.go`). The REST exec handler checks nothing either.
 
 ## REST API
 
@@ -178,7 +178,7 @@ Every generated `*Undelete` handler returns `api.OK()` → `{success:{message:"O
 
 ### Envoy scope is compose-only
 
-`getScopeNodes` in a non-compose `envoy/store_decode.gen.go` is a stub, so `ResourceFilter.Scope` is ignored and a scoped decode of a system or automation resource reads every row in the store. `matchup<X>` (create-vs-update on encode) is generated for compose only, so a system encode has no defined create-vs-update behaviour. `schema.ProjectRefField` is a plain `ID`, not a ref, so envoy never repoints `ProjectID` on a clone. System branch copies are hand-written in `system/service/project_revision_clone.go`.
+`getScopeNodes` in a non-compose `envoy/store_decode.gen.go` is a stub, so `ResourceFilter.Scope` is ignored and a scoped decode of a system or automation resource reads every row in the store. `matchup<X>` (create-vs-update on encode) is scope-aware for compose only; the system and automation ones match identifiers against every row in the store, so an encode updates a same-ID or same-handle row in any project. `schema.ProjectRefField` is a plain `ID`, not a ref, so envoy never repoints `ProjectID` on a clone. System branch copies are hand-written in `system/service/project_revision_clone.go`.
 
 **How to apply:** narrow a non-compose decode with explicit `ResourceFilter.Identifiers` from a normal store query.
 
@@ -190,7 +190,7 @@ Every generated `*Undelete` handler returns `api.OK()` → `{success:{message:"O
 
 ### Provisioning never corrects an existing install
 
-A full import runs only when the store holds zero RBAC rules (`canImportConfig`, `server/pkg/provision/config.go`). Otherwise `provisionPartialBase` (`partial.go`) re-imports `000_base` only when a named `baseMarkers` entry is missing, so a new base grant needs a marker. The `003_auth` partial directory is listed but `server/provision/003_auth/` does not exist; when its gate fires, the empty decode makes `collectUnimportedConfigs` return early and skip the later directories. Envoy files carry `skipIf: '!missing'`, so an existing row is never updated. Roles import with `OnConflictSkip`, which keeps the stored role; only `contextRoleTypes` fills empty `meta.context.resourceTypes`.
+A full import runs only when the store holds zero RBAC rules (`canImportConfig`, `server/pkg/provision/config.go`). Otherwise `provisionPartialBase` (`partial.go`) re-imports `000_base` only when a named `baseMarkers` entry is missing, so a new base grant needs a marker. The `003_auth` partial directory is listed but `server/provision/003_auth/` does not exist; when its gate fires, the empty decode makes `collectUnimportedConfigs` return early and skip the later directories. Every import encodes with `envoyx.OnConflictSkip`, which keeps the stored row (roles included), and the application files also carry `skipIf: '!missing'`; only `contextRoleTypes` (`context_roles.go`) fills empty `meta.context.resourceTypes`.
 
 **How to apply:** a change to an existing install's rules, rows or roles needs a migration or a widened gate.
 
@@ -214,7 +214,7 @@ Writes (`PATCH /settings/`, `POST /settings/{key}`) address the kebab `kv:` name
 
 - The rdbms aux `db:` tag uses the attribute key, not `storeIdent`; name the attribute after the column.
 - `precision: 0` is falsy and omitted; codegen cannot emit `Precision: 0`.
-- `genConstructor: false` lets a service hand-write its struct and constructor.
+- Service codegen emits the struct and method bodies; the constructor always lives in the hand-written companion file.
 - Generated `Update` copies every field, zeroing ones the payload omits; guard with `service.omitUpdateFields`.
 - `store/tests/all_test.go` calls a hand-written `test<Resources>` per resource; a missing one stops the whole package compiling.
 - Expr types need hand-written `CastTo<Type>` and `Clone()`.

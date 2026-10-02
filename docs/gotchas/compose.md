@@ -72,7 +72,7 @@ A rollup stored on a parent record has nothing to keep it true: the TAQ construc
 
 ## Query literals escape with a backslash
 
-`TokenConsumerString.Consume` (`server/pkg/ql/token_consumers.go`) treats `\` as the escape: `name = 'Urza\'s Saga'`. The SQL habit `'Urza''s Saga'` closes the literal and matches nothing, with no error. Double quotes are not string delimiters (`illegal token`). There is no `IN`: batch by ID with the `recordID` REST parameter (`RecordFilter.RecordID`) or `recordIDs` on `compose_record_lookup`. No subqueries or joins; a dotted path (`card.name = 'Bolt'`) is resolved by the agentic layer for `=` and `LIKE` only (`server/compose/agentic/record_filter_refs.go`).
+`TokenConsumerString.Consume` (`server/pkg/ql/token_consumers.go`) treats `\` as the escape: `name = 'Urza\'s Saga'`. The SQL habit `'Urza''s Saga'` closes the literal and matches nothing, with no error. Double quotes are not string delimiters (`illegal token`). `IN` tests membership in a multi-value field (`'Blue' IN color`, the order `getFieldFilter` writes); for a list of IDs, batch with the `recordID` REST parameter (`RecordFilter.RecordID`) or `recordIDs` on `compose_record_lookup`. No subqueries or joins; a dotted path (`card.name = 'Bolt'`) is resolved by the agentic layer for `=` and `LIKE` only (`server/compose/agentic/record_filter_refs.go`).
 
 ## Corteza is the regression oracle
 

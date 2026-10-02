@@ -14,11 +14,11 @@ Facts about the `dev/agent` scripts, the dev MCP tools, worktrees, running tests
 
 ### `stack.sh` resolves which server a checkout talks to
 
-`dev/agent/stack.sh` resolves `HUMAN_API`, `HUMAN_BASE`, `HUMAN_AUTH` and `HUMAN_WEBAPP` from the checkout's own files, so a call made in a worktree reaches that worktree. `common.sh` sources it, `stack.mjs` execs it for the node scripts, and `dev/mcp/tools` resolves the same way in Go. Precedence: environment, then `server/.env` (`HTTP_ADDR`, `HTTP_API_BASE_URL`) and `.env.e2e` (`E2E_BASE_URL`), the worktree registry, then the defaults 1043/5173.
+`dev/agent/stack.sh` resolves `HUMAN_API`, `HUMAN_BASE`, `HUMAN_AUTH` and `HUMAN_WEBAPP` from the checkout's own files, so a call made in a worktree reaches that worktree. `common.sh` sources it and `stack.mjs` execs it for the node scripts; `dev/mcp/tools` reads the same files in Go (`HTTP_ADDR` from `server/.env`, `E2E_BASE_URL` from `.env.e2e`). Precedence: environment, then `server/.env` (`HTTP_ADDR`, `HTTP_API_BASE_URL`) for the API; for the webapp `VITE_PORT` (`.env.local` over `.env`), then `.env.e2e` (`E2E_BASE_URL`), then the worktree registry; then the defaults 1043/5173.
 
 **Why:** a hardcoded port makes a worktree's checks pass against the primary's database.
 
-**How to apply:** never type a dev port or export `HUMAN_API` for a worktree; run `stack.sh` bare to see where a checkout points. Reading an env file by hand, take the last uncommented assignment, and skip `//` lines in `config.js`.
+**How to apply:** never type a dev port or export `HUMAN_API` for a worktree; run `stack.sh` bare to see where a checkout points. Reading an env file by hand, take the last uncommented assignment, and skip `//` lines in `public/config.js`.
 
 ### `bootstrap.sh` against a separate database overwrites the shared secret
 
@@ -72,9 +72,9 @@ The unify vite server resolves `@planetcrust/human-js` and `@planetcrust/human-v
 
 ### Tool edits need an MCP reconnect
 
-`dev/mcp/run.sh` rebuilds `build/dev-mcp` when a source is newer, but only at server start; `/mcp` reconnect is enough. Each Claude session runs its own `dev-mcp` child, so only the reconnecting session gets the new code. `dev/mcp/uiverify.mjs` runs as `node uiverify.mjs` per call and takes effect at once, though a new field it returns is dropped until the Go struct in `tools/ui.go` ships.
+`dev/mcp/run.sh` rebuilds `build/dev-mcp` when a source (or `server/pkg/mcpkit`) is newer, but only at server start; `/mcp` reconnect is enough. A failed rebuild keeps serving the previous binary, with the compiler output on stderr and in `dev/mcp/build/build.log`. Each Claude session runs its own `dev-mcp` child, so only the reconnecting session gets the new code. `dev/mcp/uiverify.mjs` runs as `node uiverify.mjs` per call and takes effect at once, though a new field it returns is dropped until the Go struct in `tools/ui.go` ships.
 
-**Why:** stale tool output reads as "my fix did not work".
+**Why:** stale tool output reads as "my fix did not work", and a broken build still connects.
 
 **How to apply:** verify a `dev/mcp/tools` change in the same session from a temporary Go test in `package tools`, and tell the human a reconnect is needed.
 
@@ -88,7 +88,7 @@ The checkout tools (`dev_format_run`, `dev_test_run`, `dev_commit_create`, `dev_
 
 `run` is vitest's `-t` name filter, not a file selector. A path fragment matches no test, zero tests execute, and the tool returns `passed: true`; the only tell is `skipped` dwarfing `packages`.
 
-**How to apply:** use `run` only for a real `describe`/`it` string. For a file, use `npx vitest run <path>` in the package, or `dev_test_run` with `target` alone.
+**How to apply:** use `run` only for a real `describe`/`it` string. For a file, put it in `target` after the workspace (`client/web/unify/src/….test.js`), or name the sources under test in `related`.
 
 ### `dev_ui_verify` is for one-shot checks
 
@@ -97,14 +97,6 @@ Each call writes a uniquely named screenshot under `dev/mcp/.state/shots/` (`dev
 **How to apply:** for anything longer, or a mouse drag, drive playwright directly: resolve `@playwright/test` through `client/web/unify/package.json`, reuse the session file as `storageState`, write screenshots to scratch. An SVG `<pattern>`/`<defs>` node is never visible; wait with `{ state: 'attached' }`.
 
 ## Worktrees and git
-
-### A worktree's slot can change across down and up
-
-`worktree.sh down` frees the slot; another session's `new` can take it, and your next `up` lands on a different slot with new api and vite ports and a freshly cloned database. Your old ports then serve someone else's stack. Vite also auto-increments when its port is taken. Slot 0, the primary, never moves.
-
-**Why:** a curl against a remembered port checks another session's app and data.
-
-**How to apply:** re-read `worktree.sh info <name>` after every `down`/`up`, confirm the vite port from `.run/webapp.log`, and re-create fixtures after a reassignment.
 
 ### Recovering a half-finished `land` or `rm`
 
@@ -224,7 +216,7 @@ Reuse a fixture rather than creating one per run: soft-deleting a user does not 
 
 The left sidebar is a PrimeVue `Drawer` with `data-testid="app-sidebar"` (`.p-drawer-left`). Its open state is per section in `localStorage` `ui.sidebar.expanded`, defaulting to the section's `sidebarExpandedByDefault`, so a fresh context can show zero rows; an open drawer also puts its search box first in the DOM. The app launcher is `.right-sidebar`, not a PrimeVue overlay. `offsetParent` is null for these fixed-position panels, so it is no visibility test.
 
-**How to apply:** set `ui.sidebar.expanded` before navigating, scope form selectors to the form, use `getClientRects().length > 0` for visibility, and assert the launcher is shut first and on something only it carries.
+**How to apply:** set `ui.sidebar.expanded` before navigating (`drive.mjs` has `page.expandSidebar(section)`), scope form selectors to the form, use `getClientRects().length > 0` for visibility, and assert the launcher is shut first and on something only it carries.
 
 ### Capturing a record list's own requests
 

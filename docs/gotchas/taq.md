@@ -10,7 +10,7 @@ gval is forked in-repo at `server/third_party/gval` (`replace` in `server/go.mod
 
 ## The manual trigger's namespace and module decide nothing at run time
 
-A page's automation button runs a TAQ by ID (`ngAutomationExec`/`workflowExec`) with an `input` built from the page; `ExecuteAndWait` never merges a trigger's constraints, and nothing dispatches a `compose:record`/`onManual` event. The Automation block supplies namespace, page, record and module; record-list selection buttons add `selected` and `filter`. The constraints only scope the builder's record picker and Reference panel (`getTriggerProperties` in `useFlowEditor.ts`).
+A page's automation button runs a TAQ by ID (`ngAutomationExec`/`workflowExec`) with an `input` built from the page; `ExecuteAndWait` never merges a trigger's constraints, and nothing dispatches a `compose:record`/`onManual` event. The Automation block supplies namespace, page, record and module; record-list selection buttons add `selected` and `filter`. The constraints only scope the builder's Run modal record picker (`getTriggerProperties`) and Reference panel (`getUpstreamResults`), both in `useFlowEditor.ts`.
 
 **Why:** a required namespace/module there looks load-bearing and is not.
 
@@ -64,7 +64,7 @@ Every step `executeStep` runs gets a frame, including a reached termination. A g
 
 ## The TAQ catalog is hand-curated, not derived from events.yaml
 
-The builder palette (`/automation/construct-library/triggers` and `/functions`) is populated by `init()` in `server/automation/service/legacy_triggers.go`. Page, module, namespace and page-layout events in `events.yaml` are not catalogued, and only a small slice of the workflow function registry is reachable. Trigger properties come from shared helpers (`recordProperties()`, `userProperties()`); `manualProperties()` is separate so `page` appears only on `onManual`.
+The builder's trigger palette (`/automation/construct-library/triggers`) is populated by `init()` in `server/automation/service/legacy_triggers.go`; its function palette (`/functions`) holds only the `Ng*Handler` functions (`server/*/automation/ng_*.go`) that compose and system services add to `ConstructLibrary()`. Page, module, namespace and page-layout events in `events.yaml` are not catalogued, and only a small slice of the workflow function registry is reachable. Trigger properties come from shared helpers (`recordProperties()`, `userProperties()`); `manualProperties()` is separate so `page` appears only on `onManual`.
 
 **Why:** an advertised property the runtime never supplies resolves to nothing in an expression.
 
@@ -78,12 +78,12 @@ In `server/*/automation/expr_types.yaml`, a field whose exprType is another expr
 
 ## The exec ledger hears completion twice
 
-`runtime.complete`/`fail` (`server/pkg/automation_exec/runtime/runtime.go`) and `runtime_manager.go` both report the same execution's end, so a terminal-transition hook fires twice unless it checks the previous status (`ledger.apply` does). `id.ID.String()` and `Value()` include JSON quotes; use `strconv.FormatUint(v.Num(), 10)` or `v.Str()`.
+`runtime.complete`/`fail` (`server/pkg/automation_exec/runtime/runtime.go`) and `runtime_manager.go` both report the same execution's end, so a terminal-transition hook fires twice unless it checks the previous status (`ledger.apply` does). `id.ID.String()` and `Value()` include JSON quotes; use `strconv.FormatUint(v.Num(), 10)`, or `v.Str()` for a string ID (it is empty for a numeric one).
 
 **How to apply:** a manual exec answering `manager: executable not found` means the TAQ never registered (any validation issue does it); fix its steps or pick another TAQ rather than debugging the engine.
 
 ## vue-flow connects by distance, not hit-testing
 
-Starting a drag is a DOM event on the handle, so z-index, overlap and `pointer-events` decide edge versus node drag. Ending one is geometric: `getClosestHandle` in `@vue-flow/core` scans `handleBounds` within `connectionRadius` (default 20) and finds a target even when it is fully covered.
+Starting a drag is a DOM event on the handle, so z-index, overlap and `pointer-events` decide edge versus node drag. Ending one is geometric: `getClosestHandle` in `@vue-flow/core` scans `handleBounds` within `connectionRadius` (default 20) and finds a target even when it is fully covered; `isValidHandle` prefers a handle under the pointer (`elementFromPoint`) and otherwise takes the closest one's DOM node.
 
 **How to apply:** to fix "hard to start a connection", raise the handle above the node and pad its hit area (a `::before` with negative `inset`). Do not gate `pointer-events` to free an occluded target; nothing blocks it.

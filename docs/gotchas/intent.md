@@ -4,7 +4,7 @@ Working facts about the intent tooling (`.intent/intent.mjs`, `dev_intent_check`
 
 ## Build the sync file list by hand
 
-`node .intent/intent.mjs sync <files>` records each named file's current hash as reconciled with its governing doc. Never feed it `git status` output: another session often edits the same checkout, and its unsynced files are in that list too. `dev_intent_check`'s `yours` is not your list either — it is every drifted file in the working tree, whoever changed it.
+`node .intent/intent.mjs sync <files>` records each named file's current hash as reconciled with its governing doc. Never feed it `git status` output: another session often edits the same checkout, and its unsynced files are in that list too. `dev_intent_check`'s `yours` is not your list either — it is every drifted file that git reports as staged, modified or untracked, whoever changed it (`dev/mcp/tools/verify.go` intersects the full `check` drift with `git` changes).
 
 **Why:** a sync over a derived list marks someone else's in-flight files reconciled against docs nobody read.
 
@@ -12,13 +12,13 @@ Working facts about the intent tooling (`.intent/intent.mjs`, `dev_intent_check`
 
 ## Sync scope widens silently
 
-`sync` with no paths syncs every enforced file, and a folder path syncs everything beneath it. Every sync also drops lock entries for files that no longer exist, repo-wide. There is no dry run. A scoped sync changes a handful of lock lines; a diff in the hundreds means it went repo-wide.
+`sync` with no paths syncs every enforced file, and a folder path syncs everything beneath it. Every sync also drops lock entries for files that no longer exist, repo-wide. There is no dry run: `sync` takes no options and exits 2 on one. A scoped sync changes a handful of lock lines; a diff in the hundreds means it went repo-wide.
 
 **How to apply:** check the `.intent/intent.lock.json` diff before committing; if it is wrong and the lock was clean beforehand, `git checkout -- .intent/intent.lock.json` and re-sync the right list. Splitting a change into two commits means one sync per commit, each with its own files.
 
 ## Full check fails on the baseline
 
-`intent.mjs check` with no option covers every enforced file and fails on hundreds of `(never synced)` files nobody has backfilled; that is not a signal about the task. Positional paths are ignored: `check <paths>` still prints the full baseline. Only `--changed` (working tree plus untracked) and `--staged` narrow it.
+`intent.mjs check` with no option covers every enforced file and fails on hundreds of `(never synced)` files nobody has backfilled; that is not a signal about the task. Positional paths are ignored: `check <paths>` still prints the full baseline. Only `--changed` (working tree plus untracked) and `--staged` narrow the file scope; doc errors still run repo-wide, and `--changed` still reports every orphaned lock entry.
 
 **How to apply:** judge a task by `check --changed`. To compare full runs, compare the line count against the primary checkout, and grep the output for the task's own paths — short names like `CSidebar` match `CSidebarSearchNav` too.
 

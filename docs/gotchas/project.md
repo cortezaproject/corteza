@@ -17,7 +17,7 @@ Rulings and non-obvious behaviour of projects: lifecycle, revisions and branch c
 - `PUT /projects/{id}` cannot change status. Create forces `draft`, and archiving goes through `/archive` and `/unarchive`.
 - One draft per chain. An archived draft still counts against the gate.
 - Publishing over a deleted parent revision is refused.
-- Publish with no mappings fills them from the plan. `discardRecords: true` is the explicit opt-out.
+- Publish fills every module the request leaves unmapped from the plan's suggested mappings (`resolveMappings`). `discardRecords: true` is the explicit opt-out.
 - Record migration runs as one `dml.Migration` across all mappings. Record links are remapped in a second pass through an old-to-new id map. Each migrated row is stamped with its source id, so a retry clears only migrated rows and hand-typed draft records survive. `ownedBy`, `createdBy`, `createdAt` and `updatedAt` are written straight to the DAL.
 - Value-level rejections land in `ValueError`, not `Error`. A run that only checks `Error` counts rejected rows as processed.
 - Work items (incidents, tasks, features, privacy, backlog, reviews) are chain-wide: reads and writes both resolve to the chain root through `rootProjectID` (`system/service/project.go`).
@@ -30,7 +30,7 @@ Rulings and non-obvious behaviour of projects: lifecycle, revisions and branch c
 3. A copied role's handle is `proj_<newRevisionID>_<suffix>` (`projectRoleHandle`). `diffSources` compares project roles by suffix, so the plan reports no role churn.
 4. Chain identity belongs to the root: the live namespace slug is always the root's handle, and revision handles carry `-revN` without compounding.
 5. Migration stays outside the flip transaction. Retries are made safe by idempotent import, not by locking the revision.
-6. Archiving disables the project's namespace and unarchiving re-enables it. Both write an action-log entry.
+6. Archiving disables the project's namespace. Unarchiving re-enables it only if archiving was what disabled it (`Config.RestoreNamespaceOnUnarchive`), so a draft's namespace stays off. Both write an action-log entry.
 7. Record ids change on migration. Record revisions and attachments are not carried.
 8. The project list's status chip handles `active` and `deprecated`.
 9. Intent docs for the project section are reconciled only through `/intent-task`.
@@ -75,6 +75,7 @@ Rulings and non-obvious behaviour of projects: lifecycle, revisions and branch c
 Not enforced yet:
 
 - `risk_class` is not validated.
+- The server does not require `aiSystemID` on a FRIA scenario. Only the FE refuses to save one without it (`friaScenarioSaveable`, `config/friaScenario.js`).
 - `prohibited` does not block publish.
 - The service merges only non-empty fields, so `riskClass` cannot be cleared.
 - `chart` is in `MEMBER_KINDS` (`config/resourceRefs.js`) with no `KIND_SOURCES` entry in `AiSystemEditor.vue`, so it always lists empty.
@@ -90,11 +91,11 @@ Not enforced yet:
 6. `can*` flags stay RBAC-only. They can advertise a delete that the status lock then refuses.
 7. Compose create, update and delete on a non-draft project fail with `project.errors.locked`. Records stay writable.
 
-Rules 1 to 5 are not implemented. `onDelete` (`system/service/project.go`) stamps only the project and its namespace, has no status check, and the generated `guard` returns nil. The delete confirmation in `project.yaml` still says "can't be undone", although the delete is soft.
+Rule 7 is implemented (`guardProjectWritable` / `guardNamespaceWritable`, `compose/service/guard.go`; create calls the guard by hand). Rules 1 to 5 are not implemented. `onDelete` (`system/service/project.go`) stamps only the project and its namespace, has no status check, and the generated `guard` returns nil. The delete confirmation in `project.yaml` still says "can't be undone", although the delete is soft.
 
 ## Isolation rulings
 
-Status: decided, not implemented.
+Status: decided. Only the copying of role members on branch is implemented (`cloneRoleMembers`, `project_revision_clone.go`). Handles are unique per project today (`unique_handle_per_project`, `system/agent.cue`).
 
 - RBAC is the single authority. Non-members get a 404 by default, but an explicit system rule can open parts of a project (to an auditor, say).
 - Project roles are contextual-style roles. They apply only to that project's resources and only to users assigned to them. Membership means holding at least one project role, and every project gets default roles that include "End user".
@@ -110,10 +111,10 @@ Status: decided, not implemented.
 
 ## Projects webapp: server versus client state
 
-- The server owns project CRUD, members, governance step state (`/projects/{id}/governance/{stepKey}`), AI systems, the resource graph and `ProjectConfig`.
+- The server owns project CRUD, members, approval, AI systems, the resource graph and `ProjectConfig`. Governance step state has no server endpoint: it is session-local (`governanceByProject`, `stores/projects.js`) and lost on reload.
 - Creating a project also creates its compose namespace (slug = handle, `config.namespaceID`) and makes the creator a developer member (`system/service/project.go`).
 - Wizard modules are real compose modules in the project namespace.
-- Resource-management values persist as generic governance step values (`/governance/resource-management`), not through `ProjectConfig.ResourceManagement`.
+- Resource-management values live in the same session-local governance step values. `ProjectConfig.ResourceManagement` exists on the server, but the resource-management step does not use it.
 - Sensitivity levels are real global `dalSensitivityLevel` resources. `ensureStandardLevels` (`stores/projects.js`) seeds the scheme from `config/sensitivity.js`, and each level needs a unique `level` int. Only fields carry sensitivity. Modules do not.
 - When the server's capabilities disagree with the FE's `roles.js` flags, the server wins.
 - `scopedTables()` (`store/adapters/rdbms/upgrade_tenancy.go`) is a handwritten list. It must name every model that carries `rel_tenant` or `rel_project` scope columns.

@@ -8,7 +8,7 @@ Facts about the unify webapp, lib/vue, PrimeVue, Vue 3, Tailwind, CodeMirror and
 
 In `<script setup>`, `watch(..., { immediate: true })` fires at the line where it is written, so a `const`/`let` declared further down is still in its temporal dead zone and throws `ReferenceError`. A surrounding `try/catch` meant for one environmental failure (such as no localStorage) swallows it silently, and unit tests stay green.
 
-**Why:** turning a hoisted `function` into a `const … = computed(...)` changes when the binding exists, which is how `RecordListBlock.vue`'s stored filter stopped loading.
+**Why:** a hoisted `function` exists from the top of setup, a `const … = computed(...)` only from its line; `RecordListBlock.vue` loads its stored filter from such an immediate watcher.
 
 **How to apply:** helpers reached from an immediate watcher are `function` declarations or sit above the watcher; when something inside a tolerant `try/catch` stops working, suspect the catch first and verify persistence in a browser.
 
@@ -20,13 +20,13 @@ Vue's default `whitespace: 'condense'` removes a whitespace-only node containing
 
 ### Kebab attributes camelize to lowerCamel
 
-`:role-id` becomes `roleId`, never `roleID`. `CInputUser` declares both (`roleId` as a backwards-compatible alias), so `:role-id` still works and nothing looks wrong while the value arrives through the deprecated alias.
+`:role-id` becomes `roleId`, never `roleID`. `CInputUser` declares only `roleID`, so `:role-id` matches no prop and falls through as an attribute, silently dropping the filter.
 
 **How to apply:** bind props with an acronym tail in camelCase (`:roleID="roles"`); Vue matches the raw attribute name.
 
 ### Fallthrough attrs override the root component's bound prop
 
-An attribute a parent passes that a component does not declare falls through to its root; if that root is a component, it arrives as a prop and overrides what the template binds explicitly. Vue 2 only set such attrs on the DOM, so a Corteza port can turn a dead attr live (radar chart lost "+ Add metric" because `Edit.vue`'s `supported-metrics="1"` beat `RadarChart.vue`'s own binding).
+An attribute a parent passes that a component does not declare falls through to its root; if that root is a component, it arrives as a prop and overrides what the template binds explicitly. Vue 2 only set such attrs on the DOM, so a Corteza port can turn a dead attr live (a `supported-metrics` passed to `RadarChart.vue` would beat its own `:supported-metrics="-1"` on `ReportEdit`).
 
 **How to apply:** when porting a Vue 2 wrapper whose root is a component, check what the parent passes that the wrapper does not declare.
 
@@ -78,7 +78,7 @@ PrimeVue popups bind a scroll handler to every scrollable ancestor of their targ
 
 PrimeVue 4.5 `Select` computes its label from `visibleOptions`, the filtered list, so while the filter hides the current option the closed box shows the placeholder, and it stays blank without `reset-filter-on-hide`. Typing in the filter resets `focusedOptionIndex` to -1, so Enter right after typing closes without selecting (ArrowDown then Enter works). Without `auto-filter-focus`, each keystroke on the closed Select replaces the filter instead of appending.
 
-**How to apply:** render the label through a `#value="{ value, placeholder }"` slot (`value?.name || placeholder`), as the sidebar namespace switcher does; test via `[data-pc-section="label"]`, since `unstyled: true` leaves no `p-*` classes.
+**How to apply:** render the label through a `#value="{ value, placeholder }"` slot (`value?.name || placeholder`), as the sidebar namespace switcher does; test via `[data-pc-section="label"]`, since tests mount PrimeVue with `unstyled: true`, which leaves no `p-*` classes.
 
 ### An empty-string option is never selected inside a Form
 
@@ -170,7 +170,7 @@ Tailwind utilities sit in `@layer tailwind-utilities` (`client/web/unify/src/ass
 
 ### Tailwind turns generic class names into rules
 
-The JIT scans `./src/**/*.{vue,js,ts}` (`tailwind.config.shared.js`), so a literal semantic class that matches a utility becomes a real rule: Corteza's `block` emitted `.block { display: block }` and broke every PrimeVue Card. Only literals count; dynamic PascalCase kind classes are safe. The rule lives in an injected layer, so searching `document.styleSheets` for it finds nothing.
+The JIT scans `./src/**/*.{vue,js,ts,jsx,tsx}` and `lib/vue/src` (`tailwind.config.shared.js`), so a literal semantic class that matches a utility becomes a real rule: Corteza's `block` emitted `.block { display: block }` and broke every PrimeVue Card. Only literals count; dynamic PascalCase kind classes are safe. The rule lives in an injected layer, so searching `document.styleSheets` for it finds nothing.
 
 **How to apply:** check hook class names against Tailwind's utilities (the compose block root is `page-block`); assert on `getComputedStyle`, not the rule.
 
@@ -198,7 +198,7 @@ A `<table>` inside `flex flex-col` is a flex item, so `align-items: stretch` siz
 
 ### The filename is the i18n namespace
 
-Each `locale/en/human-webapp/<name>.yaml` mounts under `<name>`, so its content starts at root keys: `general.yaml` begins with `label:` and is read as `$t('general.label.cancel')`. The FE loads it with one `localeGet({ lang, application: 'human-webapp' })` (`client/web/unify/src/plugins/index.js`). vue-i18n uses `a | b` plurals with a numeric choice, not `_one`/`_other` suffixes; `numberOfResults` stays non-plural because its call site passes a named `{count}`. Edits are live in development: the server overlays `LOCALE_PATH` and refreshes per request, so re-query `GET /system/locale/en/human-webapp` instead of rebuilding.
+Each `locale/en/human-webapp/<name>.yaml` mounts under `<name>`, so its content starts at root keys: `general.yaml` has a root `label:` read as `$t('general.label.cancel')`. The FE loads it with one `localeGet({ lang, application: 'human-webapp' })` (`client/web/unify/src/plugins/index.js`). vue-i18n uses `a | b` plurals with a numeric choice, not `_one`/`_other` suffixes; `numberOfResults` stays non-plural because its call site passes a named `{count}`. Edits are live in development: the server overlays `LOCALE_PATH` and refreshes per request, so re-query `GET /system/locale/en/human-webapp` instead of rebuilding.
 
 **How to apply:** never wrap a file in its own name; parse locale YAML with a YAML 1.2 loader, because PyYAML's 1.1 default turns `yes/no/on/off` into booleans.
 
