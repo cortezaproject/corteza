@@ -100,6 +100,30 @@ func TestWorkflowList(t *testing.T) {
 		End()
 }
 
+func TestWorkflowList_queryByName(t *testing.T) {
+	h := newHelper(t)
+	h.clearWorkflows()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "workflows.search")
+	helpers.AllowMe(h, types.WorkflowRbacResource(0), "read")
+
+	h.repoMakeWorkflow()
+	named := h.repoMakeWorkflow()
+	named.Meta = &types.WorkflowMeta{Name: "Monthly Invoicing"}
+	h.a.NoError(store.UpdateAutomationWorkflow(context.Background(), service.DefaultStore, named))
+
+	h.apiInit().
+		Get("/workflows/").
+		Query("query", "invoic").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response.set`, 1)).
+		Assert(jsonpath.Present(fmt.Sprintf(`$.response.set[? @.handle=="%s"]`, named.Handle))).
+		End()
+}
+
 func TestWorkflowList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 

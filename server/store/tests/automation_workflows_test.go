@@ -94,6 +94,11 @@ func testAutomationWorkflows(t *testing.T, s store.AutomationWorkflows) {
 				wf.Meta = &types.WorkflowMeta{SubWorkflow: true}
 				return wf
 			}(),
+			func() *types.Workflow {
+				wf := makeNew("named")
+				wf.Meta = &types.WorkflowMeta{Name: "Monthly Invoicing"}
+				return wf
+			}(),
 		}
 
 		count := len(prefill)
@@ -126,6 +131,12 @@ func testAutomationWorkflows(t *testing.T, s store.AutomationWorkflows) {
 		set, f, err = s.SearchAutomationWorkflows(ctx, types.WorkflowFilter{Query: "two-"})
 		req.NoError(err)
 		req.Len(set, 2)
+
+		// find by name (kept in meta), case-insensitive
+		set, f, err = s.SearchAutomationWorkflows(ctx, types.WorkflowFilter{Query: "invoic"})
+		req.NoError(err)
+		req.Len(set, 1)
+		req.Equal("named", set[0].Handle)
 
 		// find just sub-workflows (one)
 		set, f, err = s.SearchAutomationWorkflows(ctx, types.WorkflowFilter{SubWorkflow: filter.StateExclusive})
