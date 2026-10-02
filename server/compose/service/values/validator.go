@@ -148,7 +148,9 @@ fields:
 	for _, f := range m.Fields {
 		vv := r.Values.FilterByName(f.Name)
 
-		if f.Required {
+		// A boolean is never empty: false is stored as an empty string, so a
+		// required Bool must not be rejected for being false
+		if f.Required && !f.IsBoolean() {
 			if len(vv) == 0 {
 				out.Push(makeEmptyErr(ctx, f, vldtr.localeSvc))
 				continue fields
