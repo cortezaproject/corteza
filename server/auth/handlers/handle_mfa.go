@@ -22,7 +22,7 @@ func (h *AuthHandlers) mfaForm(req *request.AuthReq) (err error) {
 		)
 
 		if err != nil {
-			req.SetKV(map[string]string{"emailOtpError": err.Error()})
+			req.SetKV(map[string]string{"emailOtpError": errorText(req, err)})
 			return nil
 		}
 
@@ -54,7 +54,7 @@ func (h *AuthHandlers) mfaProc(req *request.AuthReq) (err error) {
 		)
 
 		if err != nil {
-			req.SetKV(map[string]string{"emailOtpError": err.Error()})
+			req.SetKV(map[string]string{"emailOtpError": errorText(req, err)})
 			return nil
 		}
 
@@ -70,7 +70,7 @@ func (h *AuthHandlers) mfaProc(req *request.AuthReq) (err error) {
 		)
 
 		if err != nil {
-			req.SetKV(map[string]string{"totpError": err.Error()})
+			req.SetKV(map[string]string{"totpError": errorText(req, err)})
 			return nil
 		}
 

@@ -40,7 +40,7 @@ func (h *AuthHandlers) changePasswordProc(req *request.AuthReq) (err error) {
 		service.AuthErrPasswordChangeFailedForUnknownUser().Is(err),
 		service.AuthErrPasswordResetFailedOldPasswordCheckFailed().Is(err):
 		req.SetKV(map[string]string{
-			"error": err.Error(),
+			"error": errorText(req, err),
 		})
 		req.RedirectTo = GetLinks().ChangePassword
 

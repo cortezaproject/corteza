@@ -126,7 +126,7 @@ func (h *AuthHandlers) loginProc(req *request.AuthReq) (err error) {
 		service.AuthErrInvalidCredentials().Is(err),
 		service.AuthErrCredentialsLinkedToInvalidUser().Is(err):
 		req.SetKV(map[string]string{
-			"error": err.Error(),
+			"error": errorText(req, err),
 			"email": email,
 		})
 
