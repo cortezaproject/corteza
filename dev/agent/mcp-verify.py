@@ -16,8 +16,9 @@ answers. The /api/mcp auth fix passed its unit tests and did nothing, because
 HttpTokenValidator lets a request with no token through — that was only visible
 by asking the running server. Run this after every batch.
 
-Exercise mode writes to the dev server using the `agent-` prefix required by
-CLAUDE.md, and deletes what it creates. Local-only.
+Exercise mode writes to the dev server and deletes what it creates; nothing it
+makes is in the cleanup ledger, so a run that dies mid-way leaves rows to remove
+by hand. Local-only.
 """
 
 import json
