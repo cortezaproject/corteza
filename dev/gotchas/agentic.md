@@ -54,3 +54,14 @@ An agent carries no `invocation` object (user/system switches, service account, 
 **Why:** the false-positive cost outweighs the residual risk.
 
 **How to apply:** do not add a `<\|[a-z]+\|>` pattern as a fix; raise it as a question if the threat model changes.
+
+## Skills are embedded markdown with a shape test
+
+`server/system/agentic/skills/library/*.md` is what `system_skill_lookup` hands
+an assistant. The frontmatter is strict (`name`, `description`, `triggers`,
+`announce`; anything else fails the load), the name must equal the file name,
+the body needs a title and `##` sections and at least 600 characters, and
+`server/tests/mcp` checks that every trigger is a registered tool and every
+block option a skill shows exists. The server embeds the files at build time,
+so an edit reaches a running server only after a rebuild, which `make watch`
+does on `.go` writes alone.
