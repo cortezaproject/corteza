@@ -14,6 +14,9 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
   call's method, path, params and traps, then `api.sh METHOD PATH`. Setup:
   `bootstrap.sh` (idempotent). Skills: `/dev-api`, `/dev-seed`. Reference:
   `dev/agent/README.md`.
+- **Never start, stop or restart a dev server** (vite, `make watch`) yourself,
+  even one that is stale or misbehaving: it may be another session's. Say what
+  is wrong and let the human relaunch it.
 - **Non-obvious behaviour by area lives in `docs/gotchas/`** (server, compose,
   TAQ, agentic, project, frontend, dev-toolkit, intent). Read the area file
   before working in it; add an entry when something cost a turn.
@@ -62,6 +65,16 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
 - **Commits**: see **[Commit convention](#commit-convention)** below — the one
   statement of it. Skills and `dev_commit_create` point here rather than
   restating it.
+- **Teeth checks**: undo a mutation from a `.bak` copy you took first, never
+  `git checkout <file>` (reverts your own edits to HEAD) or `git stash` (sweeps a
+  peer session's in-flight files along with yours).
+- **Editors open clean**: an editor for an existing resource must not start
+  dirty. Resolve defaults for display (a computed with a fallback getter), never
+  write them into the draft on load; only create forms may start dirty.
+- **Never truncate text, wrap it**: `whitespace-normal break-words` inside a
+  bounded width, not Tailwind's `truncate`. An ellipsis hides exactly what
+  distinguishes two similar options; dense ID or filename chips are the one
+  arguable exception.
 - **Tests**: run the touched package's suite (e.g. `cd client/web/unify && npx
 vitest run`) before committing behavior changes. Baseline every suite you will
   verify with, e2e included, **before** editing — a failure first seen
