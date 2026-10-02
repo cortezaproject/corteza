@@ -78,7 +78,7 @@ yours to debug, and you cannot tell it from your own once you have edited.
 
 Every suite step 5 will run, not only the unit tests — an e2e suite you baseline
 here costs one run; the same fact established after editing costs a revert and a
-second. CLAUDE.md § Conventions, Tests.
+second. AGENTS.md § Conventions, Tests.
 
 ## 4. Make the change
 
@@ -130,7 +130,7 @@ first time" as a question, not an answer.
 
 ## 7. Commit — once the work is verified
 
-**The rule is CLAUDE.md § Commit convention.** Read it there; it is not
+**The rule is AGENTS.md § Commit convention.** Read it there; it is not
 restated here, and it is not what `dev_commit_create` decides — the tool
 enforces the mechanical half (message shape, no AI attribution, formatting
 before staging) and warns on the rest.

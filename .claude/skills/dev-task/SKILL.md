@@ -13,7 +13,7 @@ Four rules govern everything below:
   would produce materially different work. Never ask "shall I proceed" — that is
   the human doing your job. `➡️ NEXT` follows the same test — offer the moves
   when there is something to weigh, name the next one when there is not.
-  Options arrive priced — CLAUDE.md § Conventions, Questions. An offer the human
+  Options arrive priced — AGENTS.md § Conventions, Questions. An offer the human
   cannot act on buys a round trip that decides nothing.
 - **Nothing is true because a report said so.** Not a subagent's transcript, not
   a green test, not your own earlier reasoning. Claims get re-run.
@@ -221,7 +221,7 @@ Review means exercising the claims, not reading the diff.
   believing one; a spec that still fails and cannot be reached from the change
   is its own task, named in `⚠️ NOT DONE`, not absorbed into this one.
 - **Attributing a late failure costs one spec, not the whole set.** Revert your
-  files, re-run that spec alone, restore — CLAUDE.md § Conventions, Tests. The
+  files, re-run that spec alone, restore — AGENTS.md § Conventions, Tests. The
   step-5 baseline is what makes this unnecessary; take it on every suite you
   will verify with, e2e included.
 - **Re-run anything a subagent claimed.** Their transcripts are evidence, not
@@ -236,7 +236,7 @@ Anything that fails here goes back to step 7 — or further, per the loop rules.
 **The full block, every section, per `.claude/reporting.md`.** Failures and
 skipped work go in `⚠️ NOT DONE` plainly, with the output — a task that half
 worked reports as a task that half worked. The report is where a task ends: the
-issue tracker is never yours to close, comment on, or ask about (CLAUDE.md
+issue tracker is never yours to close, comment on, or ask about (AGENTS.md
 § Commit convention).
 
 **Queue what you are not doing.** Every `⚠️ NOT DONE` entry that should outlive
@@ -289,7 +289,7 @@ than absorbing it as another iteration.
 
 ## Committing
 
-**The rule is CLAUDE.md § Commit convention** — authorship, message, atomicity,
+**The rule is AGENTS.md § Commit convention** — authorship, message, atomicity,
 intent docs riding with their code, and never pushing. Use `dev_commit_create`.
 
 What this skill adds is what its two conditions mean in terms of these steps:

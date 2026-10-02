@@ -6,7 +6,7 @@ is always safe.
 
 Reference material is linked rather than restated: `dev/agent/README.md`
 (toolkit + gotchas), `dev/mcp/SPEC.md` (why the developer MCP exists),
-`CLAUDE.md` (conventions and the commit rule), `server/.env.min.example` (every
+`AGENTS.md` (conventions and the commit rule), `server/.env.min.example` (every
 server option that matters, with what breaks if you omit it).
 
 ## 0. Prerequisites
