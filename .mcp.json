@@ -1,12 +1,5 @@
 {
   "mcpServers": {
-    "human-local": {
-      "type": "http",
-      "url": "${HUMAN_MCP_URL:-http://localhost:1043/api/mcp}",
-      "headers": {
-        "Authorization": "Bearer ${HUMAN_MCP_TOKEN}"
-      }
-    },
     "human-dev": {
       "type": "stdio",
       "command": "./dev/mcp/run.sh",

@@ -56,11 +56,11 @@ normal use needs one.
 | `drive.mjs SUITE.mjs [--only N]`             | multi-step browser checks: navigate, click, assert where you landed. Logged in already, dialogs recorded, console/network collected per check                                                |
 | `ids.sh [SLUG…]`                             | handle → ID map for a namespace (modules/pages/charts/records) cached in `.state/ids.json`; `seed.sh` refreshes it                                                                           |
 
-For interactive Claude Code sessions, `.mcp.json` registers `human-local`
-against this checkout's `/api/mcp`. Launch with `make claude`, which mints the
-token it needs — `.mcp.json` can interpolate an environment variable but cannot
-run a command to produce one. `mcp.py` needs none of that; it authenticates per
-call and is the better bet from a script.
+For interactive Claude Code sessions, `make claude MCP=1` attaches
+`human-local`, this checkout's `/api/mcp`, through `dev/human-local.mcp.json`
+and mints the token it needs — a config file can interpolate an environment
+variable but cannot run a command to produce one. `mcp.py` needs none of that;
+it authenticates per call and is the better bet from a script.
 
 ```sh
 dev/agent/smoke.sh

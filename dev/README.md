@@ -156,15 +156,19 @@ which otherwise look identical.
 
 ```sh
 make claude
+make claude MCP=1                               # also attach human-local (see below)
 make claude-yolo                                # --dangerously-skip-permissions
 make claude -- --model opus --verbose           # any other flags, after `--`
 ```
 
-Not `claude` directly: the launcher mints the token `human-local` needs, which
-`.mcp.json` cannot do for itself. Approve both servers once in the session
-(`/mcp`); they are already listed in `.claude/settings.local.json`. A flag
-containing `=` has to go through `ARGS="…"` instead, since make reads it as a
-variable assignment.
+`.mcp.json` registers `human-dev` only. `human-local` — Human's own `/api/mcp`,
+some 150 configurator tools — is opt-in with `MCP=1`: the launcher mints the
+token it needs, which a config file cannot do for itself, and passes
+`dev/human-local.mcp.json` with `--mcp-config`. Without it a session reaches
+the dev server through `dev/agent/api.sh` and `mcp.py`, which authenticate per
+call and record what they create in the cleanup ledger. A flag containing `=`
+has to go through `ARGS="…"` instead, since make reads it as a variable
+assignment.
 
 ---
 
@@ -174,7 +178,7 @@ variable assignment.
 
 | tools                     | from                             | reaches                                           |
 | ------------------------- | -------------------------------- | ------------------------------------------------- |
-| `mcp__human-local__*`     | `.mcp.json`, http                | **this checkout's** `/api/mcp` — the configurator |
+| `mcp__human-local__*`     | `make claude MCP=1`, http        | **this checkout's** `/api/mcp` — the configurator |
 | `mcp__human-dev__*`       | `.mcp.json`, stdio               | **this repo** — the developer layer               |
 | `mcp__claude_ai_Human__*` | your claude.ai account connector | **a remote instance**, NOT this checkout          |
 | `dev/agent/mcp.py`        | the shell                        | this checkout's `/api/mcp`, re-auth'd each call   |
@@ -186,13 +190,13 @@ exec, users and roles — against somebody's live data. Nothing it writes is in
 goes through `human-local`, `mcp.py` or `api.sh`; reach for the connector only
 when the remote instance is the point, and say so.
 
-`human-local` is why `make claude` exists. `.mcp.json` can interpolate an
-environment variable into its Authorization header but cannot run a command to
-produce one, and Human offers no dynamic client registration
-(`registration_endpoint` is absent from both discovery documents), so a token
-has to be in the environment before Claude Code starts. `make claude` mints it;
-`AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME=720h` keeps it alive past the end of a
-session, because nothing can refresh it in flight.
+`human-local` is why `make claude MCP=1` exists. `dev/human-local.mcp.json`
+can interpolate an environment variable into its Authorization header but
+cannot run a command to produce one, and Human offers no dynamic client
+registration (`registration_endpoint` is absent from both discovery documents),
+so a token has to be in the environment before Claude Code starts. The launcher
+mints it; `AUTH_OAUTH2_ACCESS_TOKEN_LIFETIME=720h` keeps it alive past the end
+of a session, because nothing can refresh it in flight.
 
 ### `human-dev` — repo tools
 

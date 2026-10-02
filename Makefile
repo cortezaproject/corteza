@@ -133,6 +133,7 @@ doctor:
 # the same trick `tag` uses for its version argument.
 #
 #   make claude
+#   make claude MCP=1                    # also attach this checkout's human-local MCP
 #   make claude -- --dangerously-skip-permissions
 #   make claude ARGS="--model opus"      # for a flag containing '=', which
 #                                        # make would read as an assignment
@@ -142,11 +143,11 @@ ifeq (claude,$(firstword $(MAKECMDGOALS)))
 endif
 
 claude:
-	@dev/claude.sh $(CLAUDE_ARGS) $(ARGS)
+	@HUMAN_MCP=$(MCP) dev/claude.sh $(CLAUDE_ARGS) $(ARGS)
 
 # The one flag common enough to be worth not typing `--` for.
 claude-yolo:
-	@dev/claude.sh --dangerously-skip-permissions $(ARGS)
+	@HUMAN_MCP=$(MCP) dev/claude.sh --dangerously-skip-permissions $(ARGS)
 
 # E2E (Playwright) — needs the dev stack running and client/web/unify/.env.e2e filled.
 e2e:

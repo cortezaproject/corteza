@@ -381,10 +381,11 @@ case "$MODE" in
     setup_agent
     cat <<EOF
 
-Ready. Launch Claude Code with 'make claude' — it mints the token the
-human-local MCP server needs, which .mcp.json cannot do for itself:
+Ready. Launch Claude Code with 'make claude'. MCP=1 also attaches this
+checkout's human-local MCP server and mints the token it needs:
 
   make claude
+  make claude MCP=1
   make claude-yolo    # --dangerously-skip-permissions
 EOF
     ;;
