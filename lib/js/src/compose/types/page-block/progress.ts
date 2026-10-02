@@ -162,46 +162,50 @@ export class PageBlockProgress extends PageBlock {
 
     return Promise.all(reports).then(([value, min, max]: Array<any>) => {
       if (Array.isArray(value)) {
-        const datasets = value.map((r: any) => r.rp !== undefined ? r.rp : r.count)
-        if (valueOperation === 'max') {
-          value = datasets.sort((a: number, b: number) => b - a)[0]
-        } else if (valueOperation === 'min') {
-          value = datasets.sort((a: number, b: number) => a - b)[0]
-        } else if (valueOperation === 'avg') {
-          value = datasets.reduce((acc: number, cur: number) => acc + cur, 0) / datasets.length
-        } else {
-          value = datasets.reduce((acc: number, cur: number) => acc + cur, 0)
-        }
+        value = aggregateReport(value, valueOperation, this.options.value.default)
       }
 
       if (Array.isArray(min)) {
-        const datasets = min.map((r: any) => r.rp !== undefined ? r.rp : r.count)
-        if (minValueOperation === 'max') {
-          min = datasets.sort((a: number, b: number) => b - a)[0]
-        } else if (minValueOperation === 'min') {
-          min = datasets.sort((a: number, b: number) => a - b)[0]
-        } else if (minValueOperation === 'avg') {
-          min = datasets.reduce((acc: number, cur: number) => acc + cur, 0) / datasets.length
-        } else {
-          min = datasets.reduce((acc: number, cur: number) => acc + cur, 0)
-        }
+        min = aggregateReport(min, minValueOperation, this.options.minValue.default)
       }
 
       if (Array.isArray(max)) {
-        const datasets = max.map((r: any) => r.rp !== undefined ? r.rp : r.count)
-        if (maxValueOperation === 'max') {
-          max = datasets.sort((a: number, b: number) => b - a)[0]
-        } else if (maxValueOperation === 'min') {
-          max = datasets.sort((a: number, b: number) => a - b)[0]
-        } else if (maxValueOperation === 'avg') {
-          max = datasets.reduce((acc: number, cur: number) => acc + cur, 0) / datasets.length
-        } else {
-          max = datasets.reduce((acc: number, cur: number) => acc + cur, 0)
-        }
+        max = aggregateReport(max, maxValueOperation, this.options.maxValue.default)
       }
 
       return { value, min, max }
     })
+  }
+}
+
+/**
+ * Reduces the rows of a record report into a single number.
+ *
+ * A report over a module without matching records comes back empty; the
+ * configured default is used then instead of dividing or picking from nothing.
+ */
+export function aggregateReport (rows: Array<any>, operation: string, fallback: number): number {
+  const datasets = rows
+    .map((r: any) => r.rp !== undefined ? r.rp : r.count)
+    .filter((v: any) => v !== undefined && v !== null && v !== '')
+    .map((v: any) => Number(v))
+    .filter((n: number) => Number.isFinite(n))
+
+  if (!datasets.length) {
+    return Number.isFinite(fallback) ? fallback : 0
+  }
+
+  const sum = datasets.reduce((acc: number, cur: number) => acc + cur, 0)
+
+  switch (operation) {
+    case 'max':
+      return Math.max(...datasets)
+    case 'min':
+      return Math.min(...datasets)
+    case 'avg':
+      return sum / datasets.length
+    default:
+      return sum
   }
 }
 
