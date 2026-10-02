@@ -215,6 +215,10 @@ than the binary, so restarting the MCP client is all a tool edit needs.
 | `dev_ui_verify`                                 | render-check a webapp path in a real browser                                                                                     |
 | `dev_fixture_cleanup`                           | remove this session's seeded data                                                                                                |
 
+From the shell, `related` is `npx vitest related --run <files>` inside the
+workspace (`cd lib/vue && npx vitest related --run src/components/input/CInputModule.vue`),
+and the whole suite is `npx vitest run` there; `lib/js` runs mocha.
+
 `dev/mcp/SPEC.md` also describes `dev_diff_survey`, `dev_lint_run`,
 `dev_fixture_seed`, `dev_scratch_build` and `dev_e2e_run` — those are **planned,
 not registered**. Use the scripts for those jobs today.
@@ -224,11 +228,11 @@ a session sitting in the primary checkout while its work lives in a worktree
 must pass it on **every** call, or the tests pass on the wrong tree and the
 commit lands on the wrong branch, both reporting success.
 
-### `human` — configure a running Human
+### `human-local` — configure a running Human
 
 Compose/system/automation CRUD against the local server: namespaces, modules,
-pages, records, TAQs, workflows. A stale `HUMAN_MCP_TOKEN` means the server
-simply never connects — re-export and restart Claude Code, or use
+pages, records, TAQs, workflows. Attached only by `make claude MCP=1`; a stale
+token means the server simply never connects — relaunch, or use
 `dev/agent/mcp.py tools|schema|call`, which re-authenticates per call and is the
 better bet in a long session.
 
