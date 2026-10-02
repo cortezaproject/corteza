@@ -157,9 +157,12 @@ func ConvertModel(m *dal.Model, d driverDialect) (t *Table, err error) {
 
 			// throw away the attribute and create a new one
 			// to for JSON storage
+			//
+			// The column stays behind once every attribute moves to its own
+			// column, so it must not reject rows that no longer write to it
 			a = &dal.Attribute{
 				Ident: a.StoreIdent(),
-				Type:  &dal.TypeJSON{Nullable: false},
+				Type:  &dal.TypeJSON{Nullable: true},
 				Store: &dal.CodecPlain{},
 			}
 		}

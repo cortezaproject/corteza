@@ -29,7 +29,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -39,7 +39,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -52,7 +52,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -63,7 +63,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -77,7 +77,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -85,7 +85,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -93,7 +93,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -103,7 +103,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -116,7 +116,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -126,7 +126,7 @@ func TestMerge(t *testing.T) {
 					AttributeDelete: &AttributeDelete{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -136,7 +136,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -144,7 +144,7 @@ func TestMerge(t *testing.T) {
 					AttributeDelete: &AttributeDelete{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -157,7 +157,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -167,7 +167,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -177,7 +177,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -190,7 +190,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -200,7 +200,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "bar",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -210,7 +210,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -218,7 +218,7 @@ func TestMerge(t *testing.T) {
 					AttributeAdd: &AttributeAdd{
 						Attr: &Attribute{
 							Ident: "bar",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -232,7 +232,7 @@ func TestMerge(t *testing.T) {
 					AttributeDelete: &AttributeDelete{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -242,7 +242,7 @@ func TestMerge(t *testing.T) {
 					AttributeDelete: &AttributeDelete{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -252,7 +252,7 @@ func TestMerge(t *testing.T) {
 					AttributeDelete: &AttributeDelete{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -265,7 +265,7 @@ func TestMerge(t *testing.T) {
 					AttributeDelete: &AttributeDelete{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -275,7 +275,7 @@ func TestMerge(t *testing.T) {
 					AttributeDelete: &AttributeDelete{
 						Attr: &Attribute{
 							Ident: "bar",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -285,7 +285,7 @@ func TestMerge(t *testing.T) {
 					AttributeDelete: &AttributeDelete{
 						Attr: &Attribute{
 							Ident: "foo",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},
@@ -293,7 +293,7 @@ func TestMerge(t *testing.T) {
 					AttributeDelete: &AttributeDelete{
 						Attr: &Attribute{
 							Ident: "bar",
-							Type:  &TypeJSON{Nullable: false},
+							Type:  &TypeJSON{Nullable: true},
 						},
 					},
 				},

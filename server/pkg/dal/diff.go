@@ -145,9 +145,12 @@ func (dd ModelDiffSet) Alterations() (out []*Alteration) {
 				if d.Asserted.Store.Type() == AttributeCodecRecordValueSetJSON {
 					add(&Alteration{
 						AttributeAdd: &AttributeAdd{
+							// the document column is left behind once every
+							// attribute moves to its own column, so it must
+							// not reject rows that no longer write to it
 							Attr: &Attribute{
 								Ident: d.Asserted.StoreIdent(),
-								Type:  &TypeJSON{Nullable: false},
+								Type:  &TypeJSON{Nullable: true},
 								Store: &CodecPlain{},
 							},
 						},
