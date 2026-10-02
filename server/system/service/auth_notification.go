@@ -110,12 +110,12 @@ func (svc authNotification) send(ctx context.Context, name, sendTo string, paylo
 	payload["EmailAddress"] = sendTo
 
 	// Render document
-	subject, err := svc.ts.Render(suCtx, st.ID, "text/plain", payload, nil)
+	subject, err := svc.ts.Render(suCtx, st.ID, "text/plain", payload, nil, types.TemplateRenderAux{})
 	if err != nil {
 		return err
 	}
 
-	content, err := svc.ts.Render(suCtx, ct.ID, "text/plain", payload, nil)
+	content, err := svc.ts.Render(suCtx, ct.ID, "text/plain", payload, nil, types.TemplateRenderAux{})
 	if err != nil {
 		return err
 	}

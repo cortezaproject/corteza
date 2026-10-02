@@ -753,7 +753,7 @@ export default {
       return this.loadRecord().then(record => {
         this.tempRecord = record
 
-        const pageLayoutID = this.$route.query.layoutID
+        const pageLayoutID = this.inModal ? this.$route.query.modalLayoutID : this.$route.query.layoutID
 
         return this.determineLayout({ pageLayoutID }).then(blocks => {
           if (blocks) {

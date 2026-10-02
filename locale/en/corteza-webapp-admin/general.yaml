@@ -62,6 +62,20 @@ label:
   dropFiles: Click or drop files here to upload
 editor:
   unsavedChanges:  Unsaved changes will be lost. Do you wish to leave the page?
+system:
+  field:
+    createdAt: Created at
+    createdBy: Created by
+    updatedAt: Updated at
+    updatedBy: Updated by
+    deletedAt: Deleted at
+    deletedBy: Deleted by
+    archivedAt: Archived at
+    suspendedAt: Suspended at
+    lastUsedAt: Last used at
+    completedAt: Completed at
+    ownedBy: Owned by
+    runAs: Run as
 resourceList:
   pagination:
     recordsPerPage: Per page

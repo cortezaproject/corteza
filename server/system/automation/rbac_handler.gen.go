@@ -75,14 +75,23 @@ func (h rbacHandler) Allow() *atypes.Function {
 			{
 				Name:  "resource",
 				Types: []string{"RbacResource"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "role",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Role",
+				},
 			},
 			{
 				Name:  "operation",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Operation",
+				},
 			},
 		},
 
@@ -157,14 +166,23 @@ func (h rbacHandler) Deny() *atypes.Function {
 			{
 				Name:  "resource",
 				Types: []string{"RbacResource"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "role",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Role",
+				},
 			},
 			{
 				Name:  "operation",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Operation",
+				},
 			},
 		},
 
@@ -239,14 +257,23 @@ func (h rbacHandler) Inherit() *atypes.Function {
 			{
 				Name:  "resource",
 				Types: []string{"RbacResource"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "role",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Role",
+				},
 			},
 			{
 				Name:  "operation",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Operation",
+				},
 			},
 		},
 
@@ -318,14 +345,23 @@ func (h rbacHandler) Check() *atypes.Function {
 			{
 				Name:  "resource",
 				Types: []string{"RbacResource"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "operation",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Operation",
+				},
 			},
 			{
 				Name:  "user",
 				Types: []string{"User"},
+				Meta: &atypes.ParamMeta{
+					Label: "User",
+				},
 			},
 		},
 

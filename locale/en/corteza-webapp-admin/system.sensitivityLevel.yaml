@@ -12,12 +12,8 @@ editor:
     name: Name *
     description: Description
     level: Level {{level}}
-    createdAt: Created at
-    createdBy: Created by
     delete: Delete
-    deletedAt: Deleted at
     undelete: Undelete
-    updatedAt: Updated at
 
 list:
   title: Sensitivity Levels

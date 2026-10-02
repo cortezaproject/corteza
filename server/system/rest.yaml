@@ -1756,6 +1756,10 @@ endpoints:
         title: Limit
         type: uint
         required: false
+      - name: incTotal
+        title: Include total counter
+        type: bool
+        required: false
       - name: pageCursor
         title: Page cursor
         type: string

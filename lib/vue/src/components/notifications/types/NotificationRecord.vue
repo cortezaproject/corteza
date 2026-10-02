@@ -7,9 +7,10 @@
       {{ title }}
     </h5>
 
-    <div class="text-secondary mb-1 text-break">
-      {{ description }}
-    </div>
+    <div
+      class="rt-content text-secondary mb-1 text-break"
+      v-html="description"
+    />
   </div>
 </template>
 

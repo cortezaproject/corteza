@@ -161,14 +161,13 @@
         </b-form-group>
 
         <b-form-group
-          :description="$t('recordList.export.resolveRefsNote')"
           label-class="text-primary"
         >
           <b-form-checkbox
-            v-model="resolveRefs"
+            v-model="includeRefID"
             class="mb-2"
           >
-            {{ $t('recordList.export.resolveRefs') }}
+            {{ $t('recordList.export.includeRefID') }}
           </b-form-checkbox>
         </b-form-group>
       </template>
@@ -302,7 +301,7 @@ export default {
       showExportModal: false,
 
       fields: [],
-      resolveRefs: false,
+      includeRefID: false,
       forTimezone: false,
       exportTimezone: undefined,
       exportConfig: {
@@ -656,19 +655,20 @@ export default {
 
       let dateRangeQuery = ''
 
-      if (date.start && date.end) {
-        // If dates are the same, set range to that date
-        date = { ...date }
-        if (date.start === date.end) {
-          date.start = moment(date.start, 'YYYY-MM-DD HH:mm').utc().format()
-          date.end = moment(date.end, 'YYYY-MM-DD HH:mm').add(1, 'days').utc().format()
-        }
+      // Normalize date-only boundaries to cover the whole selected days: start from
+      // the beginning of the start day and up to the end of the end day. Without the
+      // end-of-day adjustment the end date resolves to midnight and records logged
+      // during the end day itself are excluded from the export.
+      const startOfDay = d => moment(d, 'YYYY-MM-DD HH:mm').utc().format()
+      const endOfDay = d => moment(d, 'YYYY-MM-DD HH:mm').endOf('day').utc().format()
 
+      if (date.start && date.end) {
+        date = { start: startOfDay(date.start), end: endOfDay(date.end) }
         dateRangeQuery = getFieldFilter(rangeBy, 'DateTime', date, 'BETWEEN')
       } else if (date.start) {
-        dateRangeQuery = getFieldFilter(rangeBy, 'DateTime', date.start, '>=')
+        dateRangeQuery = getFieldFilter(rangeBy, 'DateTime', startOfDay(date.start), '>=')
       } else if (date.end) {
-        dateRangeQuery = getFieldFilter(rangeBy, 'DateTime', date.end, '<=')
+        dateRangeQuery = getFieldFilter(rangeBy, 'DateTime', endOfDay(date.end), '<=')
       }
 
       return filter && dateRangeQuery ? `(${filter}) AND ${dateRangeQuery}` : dateRangeQuery
@@ -679,10 +679,11 @@ export default {
         ext: kind,
         fields: encodeURIComponent(this.fields.map(({ name }) => name)),
         filter: encodeURIComponent(this.makeFilter(this.exportConfig)),
-        filterRaw: encodeURIComponent(this.exportConfig),
+        filterRaw: this.exportConfig,
         multiValueDelimiter: encodeURIComponent(this.exportConfig.multiValueDelimiter),
-        timezone: encodeURIComponent(this.forTimezone ? this.exportTimezone : undefined),
-        resolveRefs: encodeURIComponent(this.resolveRefs),
+        timezone: this.forTimezone ? this.exportTimezone : undefined,
+        resolveRefs: encodeURIComponent(true),
+        includeRefID: encodeURIComponent(this.includeRefID),
       })
     },
 

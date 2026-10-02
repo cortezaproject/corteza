@@ -12,7 +12,7 @@
         :class="authorIsCurrentUser ? 'text-primary' : 'text-muted'"
         class="text-nowrap font-weight-bold text-truncate"
       >
-        {{ authorName }}
+        <c-user-label :user="authorUser" />
       </span>
     </div>
 
@@ -40,12 +40,16 @@
 
 <script>
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
+import { components } from '@cortezaproject/corteza-vue'
+
+const { CUserLabel } = components
 
 export default {
   name: 'CommentReply',
 
   components: {
     FieldViewer,
+    CUserLabel,
   },
 
   props: {
@@ -73,6 +77,10 @@ export default {
   computed: {
     authorName () {
       return (((this.reply || {}).author || {}).name) || ''
+    },
+
+    authorUser () {
+      return (((this.reply || {}).author || {}).user) || {}
     },
 
     authorInitials () {

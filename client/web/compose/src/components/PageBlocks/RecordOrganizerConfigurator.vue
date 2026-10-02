@@ -163,6 +163,7 @@
           >
             <c-input-select
               v-model="options.positionField"
+              :options="positionFields"
               :placeholder="$t('recordOrganizer.positionField.placeholder')"
               :reduce="f => f.name"
               label="label"

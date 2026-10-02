@@ -77,6 +77,9 @@ func (h remindersHandler) Lookup() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Reminder"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -155,6 +158,9 @@ type (
 		hasLimit bool
 		Limit    uint64
 
+		hasIncTotal bool
+		IncTotal    bool
+
 		hasPageCursor bool
 		PageCursor    string
 	}
@@ -186,30 +192,58 @@ func (h remindersHandler) Search() *atypes.Function {
 			{
 				Name:  "resource",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "assignedTo",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Assigned to",
+				},
 			},
 			{
 				Name:  "excludeDismissed",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Exclude dismissed",
+				},
 			},
 			{
 				Name:  "scheduledOnly",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Scheduled only",
+				},
 			},
 			{
 				Name:  "sort",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Sort",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
+			},
+			{
+				Name:  "incTotal",
+				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
 			},
 			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Page cursor",
+				},
 			},
 		},
 
@@ -236,6 +270,7 @@ func (h remindersHandler) Search() *atypes.Function {
 					hasScheduledOnly:    in.Has("scheduledOnly"),
 					hasSort:             in.Has("sort"),
 					hasLimit:            in.Has("limit"),
+					hasIncTotal:         in.Has("incTotal"),
 					hasPageCursor:       in.Has("pageCursor"),
 				}
 			)
@@ -309,6 +344,9 @@ type (
 		hasLimit bool
 		Limit    uint64
 
+		hasIncTotal bool
+		IncTotal    bool
+
 		hasPageCursor bool
 		PageCursor    string
 	}
@@ -339,30 +377,58 @@ func (h remindersHandler) Each() *atypes.Function {
 			{
 				Name:  "resource",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "assignedTo",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Assigned to",
+				},
 			},
 			{
 				Name:  "excludeDismissed",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Exclude dismissed",
+				},
 			},
 			{
 				Name:  "scheduledOnly",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Scheduled only",
+				},
 			},
 			{
 				Name:  "sort",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Sort",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
+			},
+			{
+				Name:  "incTotal",
+				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
 			},
 			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Page cursor",
+				},
 			},
 		},
 
@@ -388,6 +454,7 @@ func (h remindersHandler) Each() *atypes.Function {
 					hasScheduledOnly:    in.Has("scheduledOnly"),
 					hasSort:             in.Has("sort"),
 					hasLimit:            in.Has("limit"),
+					hasIncTotal:         in.Has("incTotal"),
 					hasPageCursor:       in.Has("pageCursor"),
 				}
 			)
@@ -444,22 +511,37 @@ func (h remindersHandler) Create() *atypes.Function {
 			{
 				Name:  "resource",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "assignedTo",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Assigned to",
+				},
 			},
 			{
 				Name:  "assignedBy",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Assigned by",
+				},
 			},
 			{
 				Name:  "remindAt",
 				Types: []string{"DateTime"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Remind at",
+				},
 			},
 			{
 				Name:  "payload",
 				Types: []string{"Bytes"},
+				Meta: &atypes.ParamMeta{
+					Label: "Payload",
+				},
 			},
 		},
 
@@ -563,26 +645,44 @@ func (h remindersHandler) Update() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Reminder"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 			{
 				Name:  "resource",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "assignedTo",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Assigned to",
+				},
 			},
 			{
 				Name:  "assignedBy",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Assigned by",
+				},
 			},
 			{
 				Name:  "remindAt",
 				Types: []string{"DateTime"},
+				Meta: &atypes.ParamMeta{
+					Label: "Remind at",
+				},
 			},
 			{
 				Name:  "payload",
 				Types: []string{"Bytes"},
+				Meta: &atypes.ParamMeta{
+					Label: "Payload",
+				},
 			},
 		},
 
@@ -679,6 +779,9 @@ func (h remindersHandler) Dismiss() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Reminder"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -745,10 +848,16 @@ func (h remindersHandler) Snooze() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Reminder"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 			{
 				Name:  "remindAt",
 				Types: []string{"DateTime"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Remind at",
+				},
 			},
 		},
 
@@ -813,6 +922,9 @@ func (h remindersHandler) Delete() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Reminder"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 

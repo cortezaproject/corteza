@@ -41,7 +41,6 @@
             :reduce="o => o.name"
             :placeholder="$t('recordList.import.pickModuleField')"
             :class="{ 'border border-danger': data.item.selected && !data.item.moduleField }"
-            @input="moduleChanged(data)"
           />
           <span
             v-if="data.item.fileColumn === 'id'"
@@ -207,26 +206,48 @@ export default {
       moduleFields[name] = name
     })
 
-    this.rows = Object.entries(fields)
-      .map(([fileColumn, moduleField]) => {
-        moduleField = moduleField || moduleFields[fileColumn]
+    // Fields whose stored value is an ID but whose exported label column shows
+    // a resolved name. The exporter pairs each of these with a companion
+    // "<field> ID" column when `includeRefID` is enabled — for those rows we
+    // want to import the ID column instead of the human-readable label.
+    const idBearingFields = new Set(['createdBy', 'updatedBy', 'ownedBy', 'deletedBy'])
+    this.module.fields.forEach(({ name, kind }) => {
+      if (kind === 'Record' || kind === 'User') {
+        idBearingFields.add(name)
+      }
+    })
 
-        return {
-          selected: false,
-          fileColumn,
-          moduleField,
+    const fileColumns = Object.keys(fields)
+    const fileColumnSet = new Set(fileColumns)
+    const idSuffix = ' ID'
+
+    this.rows = fileColumns.map((fileColumn) => {
+      let moduleField = fields[fileColumn] || moduleFields[fileColumn]
+
+      if (fileColumn.endsWith(idSuffix)) {
+        const baseName = fileColumn.slice(0, -idSuffix.length)
+        if (idBearingFields.has(baseName) && moduleFields[baseName]) {
+          // "<X> ID" column referencing an ID-bearing module field — map to
+          // the base field so the import would write the raw IDs if the
+          // user opts in.
+          moduleField = baseName
         }
-      })
+      } else if (idBearingFields.has(fileColumn) && !fileColumnSet.has(fileColumn + idSuffix)) {
+        // Label-only export for an ID-bearing field — don't preselect a
+        // mapping; the import would write labels into an ID field and
+        // silently fail.
+        moduleField = null
+      }
+
+      return {
+        selected: false,
+        fileColumn,
+        moduleField,
+      }
+    })
   },
 
   methods: {
-    moduleChanged (data) {
-      if (data.item.moduleField) {
-        const result = this.rows.find(row => row.moduleField === data.item.moduleField)
-        result.selected = true
-      }
-    },
-
     nextStep () {
       if (!this.canContinue) {
         return

@@ -45,7 +45,7 @@
     />
 
     <c-template-editor-content
-      v-if="template && template.templateID != '0'"
+      v-if="template"
       class="mt-3"
       :template="template"
       :partials="partials"

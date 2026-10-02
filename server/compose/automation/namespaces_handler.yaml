@@ -5,6 +5,7 @@ imports:
 
 params:
   namespaceLookup: &namespaceLookup
+    meta: { label: Namespace }
     required: true
     types:
       - { wf: ID,               }

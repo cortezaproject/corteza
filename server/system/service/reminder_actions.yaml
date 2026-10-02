@@ -71,5 +71,8 @@ errors:
   - error: notAllowedToUndismiss
     message: "not allowed to undo dismissed reminders of other users"
 
+  - error: notAllowedToSnooze
+    message: "not allowed to snooze reminders of other users"
+
   - error: notAllowedToRead
     message: "not allowed to read reminders of other users"

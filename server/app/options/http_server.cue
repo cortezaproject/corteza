@@ -98,7 +98,7 @@ HTTPServer: schema.#optionsGroup & {
 			defaultValue: "/"
 			description: """
 				When webapps are enabled (HTTP_WEBAPP_ENABLED) this is moved to '/api' if not explicitly set otherwise.
-				API base URL is internaly prefixed with baseUrl
+				API base URL is internally prefixed with baseUrl
 				"""
 			env: "HTTP_API_BASE_URL"
 		}
@@ -108,7 +108,7 @@ HTTPServer: schema.#optionsGroup & {
 		}
 		webappBaseUrl: {
 			defaultValue: "/"
-			description:  "Webapp base URL is internaly prefixed with baseUrl"
+			description:  "Webapp base URL is internally prefixed with baseUrl"
 			env:          "HTTP_WEBAPP_BASE_URL"
 		}
 		webappBaseDir: {
@@ -125,7 +125,7 @@ HTTPServer: schema.#optionsGroup & {
 			description: """
 				Is SSL termination enabled in ingres, proxy or load balancer that is in front of Corteza?
 				By default, Corteza checks for presence of LETSENCRYPT_HOST environmental variable.
-				This DOES NOT enable SSL termination in Cortreza!
+				This DOES NOT enable SSL termination in Corteza!
 				"""
 			env: "HTTP_SSL_TERMINATED"
 		}

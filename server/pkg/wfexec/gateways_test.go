@@ -40,7 +40,7 @@ func TestJoinGateway(t *testing.T) {
 
 	r, err = gw.Exec(context.TODO(), &ExecRequest{Parent: p3, SessionID: 1})
 	req.NoError(err)
-	req.IsType(&expr.Vars{}, r)
+	req.IsType(&joined{}, r)
 
 	r, err = gw.Exec(context.TODO(), &ExecRequest{Parent: p1, SessionID: 2})
 	req.NoError(err)

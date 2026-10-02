@@ -111,7 +111,7 @@
               :label="$t('createdByUserName')"
               label-class="text-primary"
             >
-              {{ createdByUserName }}
+              <c-user-label :user="user" />
             </b-form-group>
           </b-col>
         </template>
@@ -133,8 +133,16 @@
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
+
+const { CUserLabel } = components
+
 export default {
   name: 'CSessionEditorInfo',
+
+  components: {
+    CUserLabel,
+  },
 
   i18nOptions: {
     namespaces: 'automation.sessions',

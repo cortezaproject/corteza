@@ -5,7 +5,25 @@ imports:
 
 snippets:
   lookup: &lookup
+    meta: { label: Lookup }
     required: true
+    types:
+      - { wf: ID     }
+      - { wf: Handle }
+      - { wf: Template,   suffix: res }
+
+  # same as lookup but labeled for the render function where it is the body of the document
+  bodyLookup: &bodyLookup
+    required: true
+    meta:
+      label: Body template
+      description: Template rendered as the body of the document
+    types:
+      - { wf: ID     }
+      - { wf: Handle }
+      - { wf: Template,   suffix: res }
+
+  auxTemplate: &auxTemplate
     types:
       - { wf: ID     }
       - { wf: Handle }
@@ -29,33 +47,43 @@ snippets:
 
   filterParams: &filterParams
     handle:
+      meta: { label: Handle }
       types:
         - { wf: String }
     type:
+      meta: { label: Type }
       types:
         - { wf: String }
     ownerID:
+      meta: { label: Owner ID }
       types:
         - { wf: ID }
     partial:
+      meta: { label: Partial }
       types:
         - { wf: Boolean }
     labels:
+      meta: { label: Labels }
       types:
         - { wf: LabelValue }
     sort:
+      meta: { label: Sort }
       types:
         - { wf: String }
     limit:
+      meta: { label: Limit }
       types:
         - { wf: UnsignedInteger }
     incTotal:
+      meta: { label: Include total }
       types:
         - { wf: Boolean }
     incPageNavigation:
+      meta: { label: Include page navigation }
       types:
         - { wf: Boolean }
     pageCursor:
+      meta: { label: Page cursor }
       types:
         - { wf: String }
 
@@ -105,6 +133,7 @@ functions:
     params:
       template:
         <<: *template
+        meta: { label: Template }
         required: true
     results:
       template: *rvTemplate
@@ -117,6 +146,7 @@ functions:
     params:
       template:
         <<: *template
+        meta: { label: Template }
         required: true
     results:
       template: *rvTemplate
@@ -146,17 +176,31 @@ functions:
       <<: *labels
       render: "step"
     params:
-      lookup: *lookup
+      lookup: *bodyLookup
+      headerTemplate:
+        <<: *auxTemplate
+        meta:
+          label: Header template
+          description: Overrides the header template set on the body template; used by drivers that support it
+      footerTemplate:
+        <<: *auxTemplate
+        meta:
+          label: Footer template
+          description: Overrides the footer template set on the body template; used by drivers that support it
       documentName:
+        meta: { label: Document name }
         types:
           - { wf: String }
       documentType:
+        meta: { label: Document type }
         types:
           - { wf: String }
       variables:
+        meta: { label: Variables }
         types:
           - { wf: Vars, go: '*expr.Vars' }
       options:
+        meta: { label: Options }
         types:
           - { wf: RenderOptions }
     results:

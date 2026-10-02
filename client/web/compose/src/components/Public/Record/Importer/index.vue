@@ -111,6 +111,20 @@ export default {
       this.step = 2
 
       this.$ComposeAPI.recordImportRun(this.session)
+        .catch((err) => {
+          // Initial run failed (auth, bad payload, server error, …).
+          // Without this catch the progress poller would never see a
+          // finishedAt and the spinner would tick forever.
+          const message = (err && err.message) || this.$t('recordList.import.startFailed')
+          this.$set(this.session, 'progress', {
+            startedAt: new Date().toISOString(),
+            finishedAt: new Date().toISOString(),
+            entryCount: 0,
+            completed: 0,
+            failed: 0,
+            startupError: message,
+          })
+        })
     },
 
     onImportSuccessful () {

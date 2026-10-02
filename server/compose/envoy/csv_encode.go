@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
@@ -51,18 +52,20 @@ func (e CsvEncoder) encodeRecordDatasource(ctx context.Context, writer *csv.Writ
 	rds := node.Datasource.(*RecordDatasource)
 	resolved := map[string]string{}
 
+	var loc *time.Location
+	loc, err = resolveTimezone(p)
+	if err != nil {
+		return
+	}
+
 	header := make([]string, 0, 4)
 
-	hasID := false
 	for _, m := range p.FieldMapping {
-		header = append(header, m.Field)
-
-		hasID = hasID || strings.ToLower(m.Field) == "id"
+		if strings.ToLower(m.Field) != "id" {
+			header = append(header, m.Field)
+		}
 	}
-
-	if !hasID {
-		header = append([]string{"ID"}, header...)
-	}
+	header = append([]string{"ID"}, header...)
 
 	mvDelimiter := ";"
 	wrapBrackets := false
@@ -101,12 +104,22 @@ func (e CsvEncoder) encodeRecordDatasource(ctx context.Context, writer *csv.Writ
 
 		// Encode as mf if the OG field is multi value OR we're on the resolved record column
 		src, ok := resolved[h]
+		isDt := rds.datetimeFields[h] || (ok && rds.datetimeFields[src])
 		if !rds.multivalues[h] && !(ok && rds.multivalues[src]) {
-			return v.Values[0]
+			vv := v.Values[0]
+			if isDt {
+				vv = formatInTimezone(vv, loc)
+			}
+
+			return vv
 		}
 
 		auxv := make([]string, 0, len(v.Values))
 		for _, vv := range v.Values {
+			if isDt {
+				vv = formatInTimezone(vv, loc)
+			}
+
 			if strings.Contains(vv, mvDelimiter) {
 				auxv = append(auxv, fmt.Sprintf("\"%s\"", vv))
 			} else {
@@ -120,6 +133,13 @@ func (e CsvEncoder) encodeRecordDatasource(ctx context.Context, writer *csv.Writ
 		}
 
 		return out
+	}
+
+	// Pre-build resolved field set from datasource so header is correct even
+	// when the first row has no value for a resolved field.
+	resolvedFieldSet := make(map[string]bool)
+	for _, f := range rds.ResolvedFields() {
+		resolvedFieldSet[f] = true
 	}
 
 	row := make([]string, 0, 4)
@@ -143,16 +163,17 @@ func (e CsvEncoder) encodeRecordDatasource(ctx context.Context, writer *csv.Writ
 		if !hWritten {
 			hWritten = true
 
-			// Splice in resolved ref values
-			for i, h := range header {
-				if _, ok := cache[fmt.Sprintf("%s value", h)]; ok {
-					header = append(header, "")
-					copy(header[i+1:], header[i:])
-					header[i] = fmt.Sprintf("%s value", h)
-
-					resolved[header[i]] = h
+			// Splice in "X ID" columns after each resolved field
+			newHeader := make([]string, 0, len(header)+len(resolvedFieldSet))
+			for _, h := range header {
+				newHeader = append(newHeader, h)
+				if resolvedFieldSet[h] {
+					idCol := fmt.Sprintf("%s ID", h)
+					newHeader = append(newHeader, idCol)
+					resolved[idCol] = h
 				}
 			}
+			header = newHeader
 
 			err = writer.Write(header)
 			if err != nil {

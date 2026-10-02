@@ -29,41 +29,37 @@
           class="d-flex align-items-center justify-content-between gap-1"
         >
           <div class="d-flex align-items-center flex-grow-1 flex-wrap flex-fill-child gap-1">
-            <template v-if="recordListModule.canCreateRecord">
-              <template v-if="inlineEditing">
-                <b-button
-                  v-if="!options.hideAddButton"
-                  data-test-id="button-add-record"
-                  variant="primary"
-                  size="lg"
-                  @click="addInlineRecord()"
-                >
-                  + {{ $t('recordList.addRecord') }}
-                </b-button>
-              </template>
+            <template v-if="recordListModule.canCreateRecord && !options.hideAddButton">
+              <b-button
+                v-if="inlineEditing"
+                data-test-id="button-add-record"
+                variant="primary"
+                size="lg"
+                @click="addInlineRecord()"
+              >
+                + {{ $t('recordList.addRecord') }}
+              </b-button>
 
-              <template v-else-if="!inlineEditing && (recordPageID || options.allRecords)">
-                <b-button
-                  v-if="!options.hideAddButton"
-                  data-test-id="button-add-record"
-                  variant="primary"
-                  size="lg"
-                  @click="handleAddRecord()"
-                >
-                  + {{ $t('recordList.addRecord') }}
-                </b-button>
-
-                <importer-modal
-                  v-if="!options.hideImportButton"
-                  :module="recordListModule"
-                  :namespace="namespace"
-                  @importSuccessful="onImportSuccessful"
-                />
-              </template>
+              <b-button
+                v-else-if="recordPageID || options.allRecords"
+                data-test-id="button-add-record"
+                variant="primary"
+                size="lg"
+                @click="handleAddRecord()"
+              >
+                + {{ $t('recordList.addRecord') }}
+              </b-button>
             </template>
 
+            <importer-modal
+              v-if="recordListModule.canCreateRecord && !options.hideImportButton"
+              :module="recordListModule"
+              :namespace="namespace"
+              @importSuccessful="onImportSuccessful"
+            />
+
             <exporter-modal
-              v-if="options.allowExport && !inlineEditing"
+              v-if="options.allowExport"
               :module="recordListModule"
               :filter="filter.query"
               :selection="selected"
@@ -119,7 +115,9 @@
             <c-input-search
               :value="query"
               :placeholder="$t('general.label.search')"
-              submittable
+              :submittable="searchSubmittable"
+              :debounce="searchSubmittable ? 0 : 300"
+              @input="onSearchInput"
               @search="handleSearch"
             />
           </div>
@@ -1197,6 +1195,10 @@ export default {
       return this.showPagination || this.options.customSummaries
     },
 
+    searchSubmittable () {
+      return (this.options.searchSubmitMode || 'submit') !== 'typing'
+    },
+
     perPageOptions () {
       const defaultText = this.options.perPage === 0 ? this.$t('general:label.all') : this.options.perPage.toString()
       return [
@@ -1569,6 +1571,11 @@ export default {
     handleSearch (searchQuery) {
       this.query = searchQuery ? searchQuery.trim() : null
       this.refresh(true)
+    },
+
+    onSearchInput (searchQuery) {
+      if (this.searchSubmittable) return
+      this.handleSearch(searchQuery)
     },
 
     onSaveFilterPreset (filter = []) {
@@ -2142,46 +2149,57 @@ export default {
       this.$root.$emit('rightPanel.toggle', true)
     },
 
-    onExport (e) {
+    async onExport (e) {
       this.processing = true
 
-      const { namespaceID, moduleID } = this.filter || {}
-      const { filter, filterRaw, timezone, resolveRefs } = e
-      e = {
-        ...e,
-        namespaceID,
-        moduleID,
-        filename: `${this.namespace.slug || namespaceID} - ${this.recordListModule.name}`,
-      }
+      try {
+        const { namespaceID, moduleID } = this.filter || {}
+        const { filter, filterRaw, timezone, includeRefID } = e
 
-      if (filterRaw.rangeType === 'range') {
-        e.filename += ` - ${filterRaw.date.start} - ${filterRaw.date.end}`
-      } else {
-        e.filename += ` - ${filterRaw.rangeType}`
-      }
+        let filename = `${this.namespace.slug || namespaceID} - ${this.recordListModule.name}`
+        if (filterRaw.rangeType === 'range') {
+          filename += ` - ${filterRaw.date.start} - ${filterRaw.date.end}`
+        } else {
+          filename += ` - ${filterRaw.rangeType}`
+        }
+        if (timezone) {
+          filename += ` - ${timezone.label}`
+        }
+        filename = encodeURIComponent(filename.replace(/\./g, '-'))
 
-      if (timezone) {
-        e.filename += ` - ${timezone.label}`
-      }
+        // Exporter emits URI-encoded values for the legacy GET flow; decode
+        // them so we can send raw values in the POST body.
+        const decode = v => (typeof v === 'string' ? decodeURIComponent(v) : v)
 
-      // Make sure the generated filename won't break the URL
-      e.filename = encodeURIComponent(e.filename.replace(/\./g, '-'))
-
-      const exportUrl = url.Make({
-        url: `${this.$ComposeAPI.baseURL}${this.$ComposeAPI.recordExportEndpoint(e)}`,
-        query: {
-          fields: e.fields,
-          // url.Make already URL encodes the the values, so the filter shouldn't be encoded
-          multiValueDelimiter: e.multiValueDelimiter,
-          filter: this.selectedAllRecords ? this.bulkQuery : filter,
-          jwt: this.$auth.accessToken,
+        const { sessionID } = await this.$ComposeAPI.recordExportInit({
+          namespaceID,
+          moduleID,
+          filename,
+          ext: e.ext,
+          filter: this.selectedAllRecords ? this.bulkQuery : decode(filter),
+          fields: decode(e.fields).split(','),
           timezone: timezone ? timezone.tzCode : undefined,
-          resolveRefs,
-        },
-      })
+          multiValueDelimiter: decode(e.multiValueDelimiter),
+          wrapMultiValue: decode(e.wrapMultiValue),
+          resolveRefs: true,
+          includeRefID: decode(includeRefID) === 'true',
+        })
 
-      window.open(exportUrl)
-      this.processing = false
+        const downloadUrl = url.Make({
+          url: `${this.$ComposeAPI.baseURL}${this.$ComposeAPI.recordExportPullEndpoint({
+            namespaceID, moduleID, sessionID, filename, ext: e.ext,
+          })}`,
+          query: {
+            jwt: this.$auth.accessToken,
+          },
+        })
+
+        window.open(downloadUrl)
+      } catch (err) {
+        this.toastErrorHandler(this.$t('notification:record.exportFailed'))(err)
+      } finally {
+        this.processing = false
+      }
     },
 
     handleRowClick ({ r: { recordID } }) {
@@ -2467,11 +2485,12 @@ export default {
             this.processing = false
           })
         }).catch((e) => {
-          if (!axios.isCancel(e)) {
-            this.toastErrorHandler(this.$t('notification:record.listLoadFailed'))(e)
-          } else {
+          if (axios.isCancel(e)) {
             this.cancelled = true
+            return
           }
+
+          this.toastErrorHandler(this.$t('notification:record.listLoadFailed'))(e)
           this.processing = false
         }).finally(() => {
           this.cancelled = false

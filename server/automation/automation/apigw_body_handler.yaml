@@ -10,6 +10,7 @@ functions:
       short: Read request body from integration gateway
     params:
       request:
+        meta: { label: Request }
         required: true
         types:
           - { wf: HttpRequest, go: '*http.Request' }
@@ -21,10 +22,12 @@ functions:
       short: Read file from integration gateway
     params:
       request:
+        meta: { label: Request }
         required: true
         types:
           - { wf: HttpRequest, go: '*http.Request' }
       name:
+        meta: { label: Name }
         required: true
         types:
           - { wf: String }

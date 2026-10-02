@@ -71,6 +71,7 @@ var (
 
 	DefaultNamespace           NamespaceService
 	DefaultImportSession       ImportSessionService
+	DefaultExportSession       ExportSessionService
 	DefaultRecord              *record
 	DefaultModule              ModuleService
 	DefaultChart               *chart
@@ -187,6 +188,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultModule = Module(c.SchemaAltManager)
 
 	DefaultImportSession = ImportSession()
+	DefaultExportSession = ExportSession()
 	DefaultRecord = Record(RecordOptions{LimitRecords: c.Limit.RecordCountPerModule})
 	DefaultPage = Page()
 	DefaultPageLayout = PageLayout()

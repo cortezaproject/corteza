@@ -11,13 +11,14 @@ params:
     required: true
     types:
       - { wf: String }
-    meta: { visual: { input: { type: url } } }
+    meta: { label: URL, visual: { input: { type: url } } }
 
   method: &method
     required: true
     types:
       - { wf: String }
     meta:
+      label: Method
       visual:
         input:
           type: select
@@ -34,38 +35,47 @@ params:
               - { value: "TRACE",    text: "TRACE" }
 
   params: &params
+    meta: { label: Parameters }
     types:
       - { wf: KVV,      go: 'url.Values' }
 
   headers: &headers
     types:
       - { wf: KVV,      go: 'http.Header' }
-    meta: { visual: { input: { type: http-headers } } }
+    meta: { label: Headers, visual: { input: { type: http-headers } } }
 
 
   headerAuthBearer: &headerAuthBearer
+    meta: { label: Bearer token }
     types:
       - { wf: String }
 
   headerAuthUsername: &headerAuthUsername
+    meta: { label: Basic auth username }
     types:
       - { wf: String }
   headerAuthPassword: &headerAuthPassword
+    meta: { label: Basic auth password }
     types:
       - { wf: String }
   headerContentType: &headerContentType
+    meta: { label: Content type }
     types:
       - { wf: String }
   headerUserAgent: &headerUserAgent
+    meta: { label: User agent }
     types:
       - { wf: String }
   timeout: &timeout
+    meta: { label: Timeout }
     types:
       - { wf: Duration }
   form: &form
+    meta: { label: Form }
     types:
       - { wf: KVV,      go: 'url.Values' }
   body: &body
+    meta: { label: Body }
     types:
       - { wf: String,   suffix: String }
       - { wf: Reader,   suffix: Stream }

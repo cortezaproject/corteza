@@ -45,23 +45,6 @@ export default function (SystemAPI) {
         commit(types.updateSet, user)
       },
 
-      async fetchUsers ({ commit }, userID) {
-        commit(types.pending)
-
-        if (userID.length === 0) {
-          return null
-        }
-
-        return SystemAPI.userList({ userID }).then(({ set }) => {
-          commit(types.updateSet, set)
-        }).finally(() => {
-          commit(types.completed)
-        })
-      },
-
-      /**
-       * Similar to fetchUsers but it only fetches unknown (not in set) ids
-       */
       async resolveUsers ({ commit, getters }, list) {
         if (list.length === 0) {
           // save ourselves some work

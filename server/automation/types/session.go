@@ -20,6 +20,7 @@ type (
 	runtimeOptions struct {
 		disableStacktrace bool
 		fullStacktrace    bool
+		traced            bool
 	}
 
 	// Instance of single workflow execution
@@ -65,7 +66,16 @@ type (
 		// This is required due to the change in exec stack traces.
 		FlushCounter int `json:"-"`
 
+		// When the first frame was recorded; used to calculate how long it took
+		// to get to any later step, even after the oldest frames are dropped
+		stacktraceStartedAt time.Time
+
 		l sync.RWMutex
+
+		// RuntimeStacktrace is guarded separately from the rest of the session;
+		// WaitResults holds the read lock on l for the entire execution, so
+		// frames can not be appended under l's write lock
+		stl sync.Mutex
 	}
 
 	SessionStartParams struct {
@@ -112,6 +122,15 @@ type (
 	SessionStatus uint
 )
 
+// maxRuntimeStacktraceFrames caps the number of frames kept in memory for
+// sessions that did not explicitly ask to be traced
+//
+// Every frame carries a deep copy of the session scope, so an unbounded
+// stacktrace makes memory grow with the number of executed steps; a workflow
+// holding a few thousand records in scope exhausts the server well before it
+// completes.
+const maxRuntimeStacktraceFrames = 64
+
 const (
 	SessionStarted SessionStatus = iota
 	SessionPrompted
@@ -134,6 +153,20 @@ func (s *Session) DisableStacktrace() {
 
 func (s *Session) FullStacktrace() {
 	s.runtimeOpts.fullStacktrace = true
+}
+
+// Traced marks a session that was started with tracing explicitly requested
+func (s *Session) Traced() {
+	s.runtimeOpts.traced = true
+}
+
+// KeepsFrameScope reports whether frames have to carry a snapshot of the scope
+//
+// The whole stacktrace is only ever read back for sessions that asked to be
+// traced or that record every step; for the rest it is read when the session
+// fails, where the scope that matters is the one of the step that failed.
+func (s *Session) KeepsFrameScope() bool {
+	return s.runtimeOpts.traced || s.runtimeOpts.fullStacktrace
 }
 
 func (s *Session) Exec(ctx context.Context, step wfexec.Step, input *expr.Vars) error {
@@ -200,13 +233,50 @@ func (s *Session) AppendRuntimeStacktrace(frame *wfexec.Frame) {
 		return
 	}
 
-	s.l.RLock()
-	defer s.l.RUnlock()
+	s.stl.Lock()
+	defer s.stl.Unlock()
 
-	if !s.runtimeOpts.fullStacktrace {
-		s.appendTruncatedRuntimeStacktrace(frame)
+	if s.stacktraceStartedAt.IsZero() {
+		s.stacktraceStartedAt = frame.CreatedAt
 	} else {
+		// calculate how long it took to get to this step
+		frame.ElapsedTime = uint(frame.CreatedAt.Sub(s.stacktraceStartedAt) / time.Millisecond)
+	}
+
+	if s.runtimeOpts.fullStacktrace {
 		s.appendFullRuntimeStacktrace(frame)
+		return
+	}
+
+	s.appendTruncatedRuntimeStacktrace(frame)
+
+	// Sessions that explicitly asked to be traced keep every frame they collect;
+	// the rest only ever read the stacktrace back when the session fails, and
+	// the most recent frames are the ones that explain the failure.
+	if !s.runtimeOpts.traced {
+		s.capRuntimeStacktrace(maxRuntimeStacktraceFrames)
+	}
+}
+
+// capRuntimeStacktrace drops the oldest frames, keeping at most max of them
+func (s *Session) capRuntimeStacktrace(max int) {
+	drop := len(s.RuntimeStacktrace) - max
+	if drop <= 0 {
+		return
+	}
+
+	kept := copy(s.RuntimeStacktrace, s.RuntimeStacktrace[drop:])
+	s.clearRuntimeStacktrace(kept)
+	s.RuntimeStacktrace = s.RuntimeStacktrace[:kept]
+}
+
+// clearRuntimeStacktrace nils out every frame from i onwards
+//
+// Re-slicing alone keeps the dropped frames reachable through the underlying
+// array, and every frame holds a deep copy of the entire scope.
+func (s *Session) clearRuntimeStacktrace(i int) {
+	for ; i < len(s.RuntimeStacktrace); i++ {
+		s.RuntimeStacktrace[i] = nil
 	}
 }
 
@@ -230,7 +300,7 @@ func (s *Session) appendTruncatedRuntimeStacktrace(frame *wfexec.Frame) {
 			}
 		}
 
-		// @todo this might cause a memory leak; investigate further
+		s.clearRuntimeStacktrace(i)
 		s.RuntimeStacktrace = s.RuntimeStacktrace[0:i]
 	}
 
@@ -244,13 +314,10 @@ func (s *Session) appendFullRuntimeStacktrace(frame *wfexec.Frame) {
 	s.RuntimeStacktrace = append(s.RuntimeStacktrace, frame)
 }
 
-// @todo potentially optimize this; it'll probably be fine for now but
-// might degrade performance for larger workflows.
-// To investigate and potentially optimize it.
+// hasDuplicate reports whether a frame for the given step was already recorded
+//
+// Caller is expected to hold the stacktrace lock.
 func (s *Session) hasDuplicate(stepID uint64) bool {
-	s.l.RLock()
-	defer s.l.RUnlock()
-
 	for _, f := range s.RuntimeStacktrace {
 		if f.StepID == stepID {
 			return true
@@ -261,8 +328,8 @@ func (s *Session) hasDuplicate(stepID uint64) bool {
 }
 
 func (s *Session) CopyRuntimeStacktrace() {
-	s.l.RLock()
-	defer s.l.RUnlock()
+	s.stl.Lock()
+	defer s.stl.Unlock()
 
 	if s.Stacktrace != nil || s.Error != "" {
 		// Save stacktrace when we know we're tracing workflows OR whenever there is an error...

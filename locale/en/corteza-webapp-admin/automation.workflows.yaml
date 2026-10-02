@@ -1,9 +1,6 @@
 editor:
   info:
-    createdAt: Created at
-    createdBy: Created by
     delete: Delete
-    deletedAt: Deleted at
     enabled: Enabled
     handle: Handle
     invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
@@ -12,7 +9,6 @@ editor:
     openBuilder: Open builder
     title: Basic information
     undelete: Undelete
-    updatedAt: Updated at
   new: New Workflow
   permissions: Permissions
   title:

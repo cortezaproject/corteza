@@ -47,6 +47,10 @@ func TestMain(m *testing.M) {
 	defApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 		// some test suites require action-log enabled
 		app.Opt.ActionLog.WorkflowFunctionsEnabled = true
+
+		// trace assertions in this suite expect every executed step to be
+		// recorded; the default only keeps the last iteration of each loop
+		app.Opt.Workflow.StackTraceFull = true
 		defStore = app.Store
 		eventbus.Set(eventBus)
 

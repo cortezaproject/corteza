@@ -117,8 +117,7 @@
                     <b-form-input
                       v-model.trim="f.options.options[index].text"
                       plain
-                      :placeholder="$t('kind.select.options.label')"
-                      :state="f.options.options[index].text ? null : false"
+                      :placeholder="option.value || $t('kind.select.options.label')"
                     />
 
                     <b-input-group-append>

@@ -380,6 +380,250 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 	}
 }
 
+func TestDeDupRule_checkCompositeConstraintDuplication(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+		ls  = locale.Global()
+
+		compositeRule = DeDupRule{
+			Name:   "composite rule",
+			Strict: true,
+			ConstraintSet: []*DeDupRuleConstraint{
+				{
+					Attribute: "name",
+					Modifier:  ignoreCase,
+				},
+				{
+					Attribute: "email",
+					Modifier:  caseSensitive,
+				},
+			},
+		}
+
+		makeRecord = func(id uint64, name, email string) Record {
+			return Record{
+				ID: id,
+				module: &Module{
+					ID: 1,
+					Fields: ModuleFieldSet{
+						&ModuleField{
+							Name:  "name",
+							Kind:  "String",
+							Multi: false,
+						},
+						&ModuleField{
+							Name:  "email",
+							Kind:  "Email",
+							Multi: false,
+						},
+					},
+				},
+				Values: RecordValueSet{
+					&RecordValue{
+						RecordID: id,
+						Name:     "name",
+						Value:    name,
+					},
+					&RecordValue{
+						RecordID: id,
+						Name:     "email",
+						Value:    email,
+					},
+				},
+			}
+		}
+
+		tests = []struct {
+			name      string
+			rule      DeDupRule
+			rec       Record
+			vv        RecordValueSet
+			expectErr bool
+		}{
+			{
+				name: "composite match - both fields match same record",
+				rule: compositeRule,
+				rec:  makeRecord(1, "John Doe", "john@test.com"),
+				vv: RecordValueSet{
+					&RecordValue{RecordID: 2, Name: "name", Value: "John Doe"},
+					&RecordValue{RecordID: 2, Name: "email", Value: "john@test.com"},
+				},
+				expectErr: true,
+			},
+			{
+				name: "composite partial match - only name matches (bug fix)",
+				rule: compositeRule,
+				rec:  makeRecord(1, "John Doe", "john@test.com"),
+				vv: RecordValueSet{
+					&RecordValue{RecordID: 2, Name: "name", Value: "John Doe"},
+					&RecordValue{RecordID: 2, Name: "email", Value: "other@test.com"},
+				},
+				expectErr: false,
+			},
+			{
+				name: "composite partial match - only email matches (bug fix)",
+				rule: compositeRule,
+				rec:  makeRecord(1, "John Doe", "john@test.com"),
+				vv: RecordValueSet{
+					&RecordValue{RecordID: 2, Name: "name", Value: "Jane Smith"},
+					&RecordValue{RecordID: 2, Name: "email", Value: "john@test.com"},
+				},
+				expectErr: false,
+			},
+			{
+				name: "composite no match - neither field matches",
+				rule: compositeRule,
+				rec:  makeRecord(1, "John Doe", "john@test.com"),
+				vv: RecordValueSet{
+					&RecordValue{RecordID: 2, Name: "name", Value: "Jane Smith"},
+					&RecordValue{RecordID: 2, Name: "email", Value: "jane@test.com"},
+				},
+				expectErr: false,
+			},
+			{
+				name: "composite cross-field value swap - new(2,1) vs existing(1,2)",
+				rule: compositeRule,
+				rec:  makeRecord(1, "2", "1"),
+				vv: RecordValueSet{
+					&RecordValue{RecordID: 2, Name: "name", Value: "1"},
+					&RecordValue{RecordID: 2, Name: "email", Value: "2"},
+				},
+				expectErr: false,
+			},
+			{
+				name: "composite with missing field - new record has no email",
+				rule: compositeRule,
+				rec: Record{
+					ID: 1,
+					module: &Module{
+						ID: 1,
+						Fields: ModuleFieldSet{
+							&ModuleField{Name: "name", Kind: "String", Multi: false},
+							&ModuleField{Name: "email", Kind: "Email", Multi: false},
+						},
+					},
+					Values: RecordValueSet{
+						&RecordValue{RecordID: 1, Name: "name", Value: "John Doe"},
+					},
+				},
+				vv: RecordValueSet{
+					&RecordValue{RecordID: 2, Name: "name", Value: "John Doe"},
+					&RecordValue{RecordID: 2, Name: "email", Value: "john@test.com"},
+				},
+				expectErr: false,
+			},
+			{
+				name: "composite with missing field - existing record has no email",
+				rule: compositeRule,
+				rec:  makeRecord(1, "John Doe", "john@test.com"),
+				vv: RecordValueSet{
+					&RecordValue{RecordID: 2, Name: "name", Value: "John Doe"},
+				},
+				expectErr: false,
+			},
+		}
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotOut := tt.rule.checkDuplication(ctx, ls, tt.rec, tt.vv)
+			if tt.expectErr {
+				req.False(gotOut.IsValid(), "expected duplication errors but got none")
+				req.Greater(gotOut.Len(), 0, "expected at least one error")
+			} else {
+				req.True(gotOut.IsValid(), "expected no duplication errors but got: %v", gotOut)
+			}
+		})
+	}
+}
+
+func TestDeDupRule_checkDuplicationOnRemovedField(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+		ls  = locale.Global()
+
+		rule = DeDupRule{
+			Name:   "removed field rule",
+			Strict: true,
+			ConstraintSet: []*DeDupRuleConstraint{
+				{
+					Attribute: "gone",
+					Modifier:  caseSensitive,
+				},
+			},
+		}
+
+		// module no longer has the "gone" field, but the record and the
+		// existing values still carry it
+		rec = Record{
+			ID: 1,
+			module: &Module{
+				ID:     1,
+				Fields: ModuleFieldSet{&ModuleField{Name: "name"}},
+			},
+			Values: RecordValueSet{
+				&RecordValue{RecordID: 1, Name: "gone", Value: "same"},
+			},
+		}
+
+		vv = RecordValueSet{
+			&RecordValue{RecordID: 2, Name: "gone", Value: "same"},
+		}
+	)
+
+	req.NotPanics(func() {
+		out := rule.checkDuplication(ctx, ls, rec, vv)
+		req.True(out.IsValid(), "expected no duplication errors but got: %v", out)
+	})
+}
+
+func TestDeDupRule_checkMultiValueEqualNoDuplication(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+		ls  = locale.Global()
+
+		tagRule = DeDupRule{
+			Name:   "tag rule",
+			Strict: true,
+			ConstraintSet: []*DeDupRuleConstraint{
+				{
+					Attribute:  "tags",
+					Modifier:   caseSensitive,
+					MultiValue: equal,
+				},
+			},
+		}
+
+		rec = Record{
+			ID: 1,
+			module: &Module{
+				ID: 1,
+				Fields: ModuleFieldSet{
+					&ModuleField{Name: "tags", Multi: true},
+				},
+			},
+			Values: RecordValueSet{
+				&RecordValue{RecordID: 1, Name: "tags", Value: "one"},
+				&RecordValue{RecordID: 1, Name: "tags", Value: "two"},
+			},
+		}
+
+		vv = RecordValueSet{
+			&RecordValue{RecordID: 2, Name: "tags", Value: "three"},
+			&RecordValue{RecordID: 2, Name: "tags", Value: "four"},
+		}
+	)
+
+	// none of the values match, so nothing may be reported — an empty
+	// RecordValueError must not end up in the set
+	out := tagRule.checkDuplication(ctx, ls, rec, vv)
+	req.True(out.IsValid(), "expected no duplication errors but got: %v", out)
+	req.Zero(out.Len())
+}
+
 func Test_matchValue(t *testing.T) {
 	tests := []struct {
 		name     string

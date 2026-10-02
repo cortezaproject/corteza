@@ -31,7 +31,7 @@
 
       <a
         v-else-if="['modal', 'newTab'].includes(extraOptions.recordSelectorDisplayOption)"
-        href="#"
+        :href="resolveHref(v.to)"
         :class="{ 'text-decoration-none default-cursor': !v.to}"
         @click="(e) => onRecordSelectorClick(e, v.to)"
       >
@@ -109,7 +109,7 @@ export default {
     formattedValue () {
       const value = Array.isArray(this.value) ? this.value : [this.value]
       return value.map(recordID => {
-        let record = this.findRecordByID(recordID)
+        let record = this.findRecordByID(recordID, this.field.options.moduleID)
 
         if (record) {
           record = new compose.Record(this.recordModule, record)
@@ -196,6 +196,13 @@ export default {
       }
     },
 
+    resolveHref (route) {
+      if (!route) {
+        return '#'
+      }
+      return this.$router.resolve(route).href
+    },
+
     formatRecordValues (recordIDs) {
       recordIDs = Array.isArray(recordIDs) ? recordIDs : [recordIDs].filter(v => v) || []
       const { namespaceID = NoID } = this.namespace
@@ -211,7 +218,7 @@ export default {
         }, 300)
       }
 
-      const records = this.findRecordsByIDs(recordIDs).map(r => new compose.Record(this.recordModule, r))
+      const records = this.findRecordsByIDs(recordIDs, this.field.options.moduleID).map(r => new compose.Record(this.recordModule, r))
 
       if (this.labelField.kind === 'Record' && recordLabelField) {
         this.processing = true
@@ -225,6 +232,12 @@ export default {
     },
 
     onRecordSelectorClick (e, route) {
+      // Let the browser handle ctrl/cmd/shift/middle-click natively so users
+      // can open the record page in a new tab via standard browser conventions.
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) {
+        return
+      }
+
       e.preventDefault()
 
       if (!route) {

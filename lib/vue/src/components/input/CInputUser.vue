@@ -13,16 +13,28 @@
     v-bind="$attrs"
     @search="search"
     @input="onUserUpdate"
-  />
+  >
+    <template #option="option">
+      <c-user-label :user="option" />
+    </template>
+    <template #selected-option="option">
+      <c-user-label :user="option" />
+    </template>
+  </c-input-select>
 </template>
 
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
 import { debounce } from 'lodash'
 import axios from 'axios'
+import CUserLabel from './CUserLabel.vue'
 
 export default {
   name: 'CInputUser',
+
+  components: {
+    CUserLabel,
+  },
 
   props: {
     value: {
@@ -86,7 +98,13 @@ export default {
         this.cancelRequest = null
       }
 
-      const { response, cancel } = this.$SystemAPI.userListCancellable(this.user.filter)
+      const params = { ...this.user.filter }
+      if (params.query) {
+        params.suspended = 1
+        params.deleted = 1
+      }
+
+      const { response, cancel } = this.$SystemAPI.userListCancellable(params)
       this.cancelRequest = cancel
 
       return Promise.all([response(), new Promise(resolve => setTimeout(resolve, 300))])

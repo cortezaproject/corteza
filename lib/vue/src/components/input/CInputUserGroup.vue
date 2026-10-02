@@ -8,6 +8,7 @@
     :placeholder="placeholder"
     :loading="processing"
     :filterable="false"
+    :clearable="false"
     v-bind="$attrs"
     @search="search"
     @input="onUserGroupUpdate"

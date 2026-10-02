@@ -50,7 +50,10 @@ func gvalFunc(name string, fn interface{}) gval.Language {
 	return gval.Function(name, func(params ...interface{}) (out interface{}) {
 		in := make([]reflect.Value, len(params))
 		for i, param := range params {
-			if reflect.TypeOf(param).Kind() == reflect.Float64 {
+			switch param.(type) {
+			case float32, float64,
+				int, int8, int16, int32, int64,
+				uint, uint8, uint16, uint32, uint64:
 				param = cast.ToInt(param)
 			}
 			in[i] = reflect.ValueOf(param)
@@ -170,16 +173,16 @@ func shorten(s, t string, count int) string {
 	var joined string
 
 	if t == "char" {
-		if count > len(s) {
-			return ""
+		if count >= len(s) {
+			return s
 		}
 
 		joined = s[:count]
 	} else {
 		fields := strings.Fields(s)
 
-		if len(fields) == 0 {
-			return ""
+		if count >= len(fields) {
+			return s
 		}
 
 		joined = strings.Join(fields[:count], " ")

@@ -608,6 +608,8 @@ func httpRequestTypedValueSelector(res *http.Request, k string) (TypedValue, err
 }
 
 // assignToHttpRequest is field value setter for *http.Request
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToHttpRequest(res *http.Request, k string, val interface{}) error {
 	switch k {
 	case "Method":

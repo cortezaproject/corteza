@@ -6,6 +6,7 @@ import (
 	"io"
 
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/spf13/cast"
@@ -24,7 +25,7 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
 
-		Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (io.ReadSeeker, error)
+		Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string, aux types.TemplateRenderAux) (io.ReadSeeker, error)
 	}
 
 	templatesHandler struct {
@@ -45,6 +46,9 @@ type (
 		// Item loader for additional chunks
 		filter types.TemplateFilter
 		loader func() error
+
+		// Total reported by the first page
+		resTotal uint
 	}
 
 	templateLookup interface {
@@ -87,8 +91,9 @@ func (h templatesHandler) search(ctx context.Context, args *templatesSearchArgs)
 		}
 	}
 
-	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
+	if args.hasPageCursor && args.PageCursor != "" {
+		f.PageCursor = &filter.PagingCursor{}
+		if err = f.PageCursor.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
 			return
 		}
 	}
@@ -101,7 +106,12 @@ func (h templatesHandler) search(ctx context.Context, args *templatesSearchArgs)
 		f.Limit = uint(args.Limit)
 	}
 
-	results.Templates, _, err = h.tSvc.Search(ctx, f)
+	// Total cannot be fetched together with a page cursor
+	f.IncTotal = args.IncTotal && f.PageCursor == nil
+
+	var auxf types.TemplateFilter
+	results.Templates, auxf, err = h.tSvc.Search(ctx, f)
+	results.Total = uint64(auxf.Total)
 	return
 }
 
@@ -123,8 +133,9 @@ func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (ou
 		}
 	}
 
-	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
+	if args.hasPageCursor && args.PageCursor != "" {
+		f.NextPage = &filter.PagingCursor{}
+		if err = f.NextPage.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
 			return
 		}
 	}
@@ -147,6 +158,8 @@ func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (ou
 		f.Limit = wfexec.MaxIteratorBufferSize
 	}
 
+	f.IncTotal = args.IncTotal
+
 	i.filter = f
 	i.loader = func() (err error) {
 		// Edgecase
@@ -159,7 +172,14 @@ func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (ou
 
 		i.filter.PageCursor = i.filter.NextPage
 		i.filter.NextPage = nil
+
+		// Total is fetched with the first page only; a paged query cannot carry it
+		i.filter.IncTotal = i.filter.IncTotal && i.filter.PageCursor == nil
+
 		i.buffer, i.filter, err = h.tSvc.Search(ctx, i.filter)
+		if i.filter.IncTotal {
+			i.resTotal = i.filter.Total
+		}
 
 		return
 	}
@@ -217,7 +237,19 @@ func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs)
 		vars = args.Variables.Dict()
 	}
 
-	doc, err := h.tSvc.Render(ctx, tplID, args.DocumentType, vars, opts)
+	aux := types.TemplateRenderAux{}
+
+	aux.HeaderTemplateID, err = resolveTemplateID(ctx, h.tSvc, args.hasHeaderTemplate, args.headerTemplateID, args.headerTemplateHandle, args.headerTemplateRes)
+	if err != nil {
+		return nil, err
+	}
+
+	aux.FooterTemplateID, err = resolveTemplateID(ctx, h.tSvc, args.hasFooterTemplate, args.footerTemplateID, args.footerTemplateHandle, args.footerTemplateRes)
+	if err != nil {
+		return nil, err
+	}
+
+	doc, err := h.tSvc.Render(ctx, tplID, args.DocumentType, vars, opts, aux)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +281,7 @@ func (i *templateSetIterator) Next(context.Context, *Vars) (out *Vars, err error
 	out = &Vars{}
 	out.Set("template", Must(NewTemplate(i.buffer[i.ptr])))
 	out.Set("index", Must(NewInteger(i.total+i.ptr)))
-	out.Set("total", Must(NewInteger(i.filter.Total)))
+	out.Set("total", Must(NewInteger(i.resTotal)))
 
 	i.ptr++
 	return out, nil
@@ -283,4 +315,27 @@ func getTemplateID(ctx context.Context, svc templateService, args templateLookup
 	}
 
 	return tpl.ID, nil
+}
+
+// resolveTemplateID resolves ID, handle or template argument into a template ID
+//
+// Unset argument resolves into zero ID
+func resolveTemplateID(ctx context.Context, svc templateService, has bool, ID uint64, handle string, tpl *types.Template) (uint64, error) {
+	switch {
+	case !has:
+		return 0, nil
+	case tpl != nil:
+		return tpl.ID, nil
+	case ID > 0:
+		return ID, nil
+	case len(handle) > 0:
+		tpl, err := svc.FindByHandle(ctx, handle)
+		if err != nil {
+			return 0, err
+		}
+
+		return tpl.ID, nil
+	}
+
+	return 0, nil
 }

@@ -763,6 +763,7 @@ export default {
       return {
         name,
         initials,
+        user,
         isCurrentUser: Boolean(this.$auth.user && this.$auth.user.userID === userID),
       }
     },
@@ -1210,7 +1211,7 @@ export default {
       this.replyModal.show = true
       this.replyModal.comment = null
 
-      let comment = this.findRecordByID(recordID)
+      let comment = this.findRecordByID(recordID, moduleID)
 
       if (!comment) {
         return
@@ -1254,7 +1255,7 @@ export default {
         return null
       }
 
-      let replyRecord = this.findRecordByID(comment.values[this.replyField.name])
+      let replyRecord = this.findRecordByID(comment.values[this.replyField.name], (this.roModule || {}).moduleID)
 
       if (!replyRecord) {
         return null

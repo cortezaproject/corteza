@@ -331,6 +331,10 @@ func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callSt
 		ses.FullStacktrace()
 	}
 
+	if trace {
+		ses.Traced()
+	}
+
 	svc.mux.Lock()
 	svc.pool[ses.ID] = ses
 	svc.mux.Unlock()
@@ -424,12 +428,12 @@ func (svc *session) logPending() {
 	)
 
 	for _, s := range svc.pool {
-		switch {
-		case s.CreatedAt.Sub(*now()) > time.Hour*24:
+		switch age := now().Sub(s.CreatedAt); {
+		case age > time.Hour*24:
 			pending1d++
-		case s.CreatedAt.Sub(*now()) > time.Hour:
+		case age > time.Hour:
 			pending1h++
-		case s.CreatedAt.Sub(*now()) > time.Minute:
+		case age > time.Minute:
 			pending1m++
 		default:
 			pending++
@@ -485,12 +489,17 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			frame *wfexec.Frame
 		)
 
-		if state != nil {
-			frame = state.MakeFrame()
-			// Stacktrace will be set to !nil if frame collection is needed
-			if len(ses.RuntimeStacktrace) > 0 {
-				// calculate how long it took to get to this step
-				frame.ElapsedTime = uint(frame.CreatedAt.Sub(ses.RuntimeStacktrace[0].CreatedAt) / time.Millisecond)
+		// Building a frame deep-copies the whole scope, so only do it when the
+		// variables are going to be read back: when the session is traced, or
+		// when it is settling on a status someone will want explained.
+		//
+		// ElapsedTime is calculated on append; the oldest frames can be
+		// dropped, so the session keeps track of when tracing started.
+		if state != nil && svc.opt.StackTraceEnabled {
+			if ses.KeepsFrameScope() || status != wfexec.SessionActive {
+				frame = state.MakeFrame()
+			} else {
+				frame = state.MakeLightFrame()
 			}
 
 			ses.AppendRuntimeStacktrace(frame)

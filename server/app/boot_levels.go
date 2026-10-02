@@ -674,8 +674,8 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 			usage := p.Usage
 
 			// By default, use as an identity provider
-			if len(p.Usage) == 0 {
-				p.Usage = []string{types.ExternalProviderUsageIdentity}
+			if len(usage) == 0 {
+				usage = []string{types.ExternalProviderUsageIdentity}
 			}
 
 			as.Providers = append(as.Providers, authSettings.Provider{
@@ -938,6 +938,7 @@ func applyApigwOptionsToSettings(ctx context.Context, log *zap.Logger, opt optio
 	optApigw.Profiler.Enabled = opt.ProfilerEnabled
 	optApigw.Profiler.Global = opt.ProfilerGlobal
 	optApigw.Proxy.FollowRedirects = opt.ProxyFollowRedirects
+	optApigw.Proxy.OutboundTimeout = opt.ProxyOutboundTimeout
 
 	if current.Apigw != *optApigw {
 		log.Warn(
@@ -964,6 +965,10 @@ func applyApigwOptionsToSettings(ctx context.Context, log *zap.Logger, opt optio
 	}
 
 	if updateSetting(ctx, "apigw.proxy.follow-redirects", optApigw.Proxy.FollowRedirects) != nil {
+		return
+	}
+
+	if updateSetting(ctx, "apigw.proxy.outbound-timeout", optApigw.Proxy.OutboundTimeout) != nil {
 		return
 	}
 

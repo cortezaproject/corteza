@@ -4,14 +4,14 @@ imports:
 
 snippets:
   filterParams: &filterParams
-    fromTimestamp:     { types: [ { wf: DateTime } ] }
-    toTimestamp:       { types: [ { wf: DateTime } ] }
-    beforeActionID:    { types: [ { wf: ID } ] }
-    actorID:           { types: [ { wf: ID } ] }
-    origin:            { types: [ { wf: String } ] }
-    resource:          { types: [ { wf: String } ] }
-    action:            { types: [ { wf: String } ] }
-    limit:             { types: [ { wf: UnsignedInteger } ] }
+    fromTimestamp:     { meta: { label: From timestamp }, types: [ { wf: DateTime } ] }
+    toTimestamp:       { meta: { label: To timestamp }, types: [ { wf: DateTime } ] }
+    beforeActionID:    { meta: { label: Before action ID }, types: [ { wf: ID } ] }
+    actorID:           { meta: { label: Actor ID }, types: [ { wf: ID } ] }
+    origin:            { meta: { label: Origin }, types: [ { wf: String } ] }
+    resource:          { meta: { label: Resource }, types: [ { wf: String } ] }
+    action:            { meta: { label: Action }, types: [ { wf: String } ] }
+    limit:             { meta: { label: Limit }, types: [ { wf: UnsignedInteger } ] }
 
   rvAction: &rvAction
     wf: Action
@@ -48,14 +48,18 @@ functions:
       <<: *labels
     params:
       action:
+        meta: { label: Action }
         types: [ { wf: String } ]
       resource:
+        meta: { label: Resource }
         types: [ { wf: String } ]
       error:
+        meta: { label: Error }
         types: [ { wf: String } ]
       severity:
         types: [ { wf: String } ]
         meta:
+          label: Severity
           visual:
             options:
               - "emergency"
@@ -67,6 +71,8 @@ functions:
               - "info"
               - "debug"
       description:
+        meta: { label: Description }
         types: [ { wf: String } ]
       meta:
+        meta: { label: Meta }
         types: [ { wf: Vars, go: '*expr.Vars' } ]

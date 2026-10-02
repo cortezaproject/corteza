@@ -60,6 +60,11 @@ type (
 		// Limit
 		Limit uint
 
+		// IncTotal GET parameter
+		//
+		// Include total counter
+		IncTotal bool
+
 		// PageCursor GET parameter
 		//
 		// Page cursor
@@ -158,6 +163,7 @@ func (r NotificationList) Auditable() map[string]interface{} {
 		"read":           r.Read,
 		"deleted":        r.Deleted,
 		"limit":          r.Limit,
+		"incTotal":       r.IncTotal,
 		"pageCursor":     r.PageCursor,
 		"sort":           r.Sort,
 	}
@@ -186,6 +192,11 @@ func (r NotificationList) GetDeleted() uint {
 // Auditable returns all auditable/loggable parameters
 func (r NotificationList) GetLimit() uint {
 	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NotificationList) GetIncTotal() bool {
+	return r.IncTotal
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -236,6 +247,12 @@ func (r *NotificationList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -630,6 +647,17 @@ func NewNotificationMarkAllAsRead() *NotificationMarkAllAsRead {
 	return &NotificationMarkAllAsRead{}
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r NotificationMarkAllAsRead) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
+// Fill processes request and fills internal variables
+func (r *NotificationMarkAllAsRead) Fill(req *http.Request) (err error) {
+
+	return err
+}
+
 // NewNotificationMarkAllAsUnread request
 func NewNotificationMarkAllAsUnread() *NotificationMarkAllAsUnread {
 	return &NotificationMarkAllAsUnread{}
@@ -642,17 +670,6 @@ func (r NotificationMarkAllAsUnread) Auditable() map[string]interface{} {
 
 // Fill processes request and fills internal variables
 func (r *NotificationMarkAllAsUnread) Fill(req *http.Request) (err error) {
-
-	return err
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r NotificationMarkAllAsRead) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
-}
-
-// Fill processes request and fills internal variables
-func (r *NotificationMarkAllAsRead) Fill(req *http.Request) (err error) {
 
 	return err
 }

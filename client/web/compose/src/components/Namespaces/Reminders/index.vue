@@ -75,9 +75,8 @@ export default {
       this.processingSave = true
       const endpoint = r.reminderID && r.reminderID !== NoID ? 'reminderUpdate' : 'reminderCreate'
 
-      this.$SystemAPI[endpoint](r).then(() => {
-        return this.fetchReminders()
-      }).then(() => {
+      this.$SystemAPI[endpoint](r).then(({ reminderID } = {}) => {
+        this.$root.$emit('reminder.updated', reminderID)
         this.onCancel()
       }).finally(() => {
         this.processingSave = false
@@ -91,13 +90,13 @@ export default {
     onDismiss ({ reminderID }, value) {
       const endpoint = value ? 'reminderDismiss' : 'reminderUndismiss'
       this.$SystemAPI[endpoint]({ reminderID }).then(() => {
-        this.fetchReminders()
+        this.$root.$emit('reminder.updated', reminderID)
       })
     },
 
     onDelete ({ reminderID }) {
       this.$SystemAPI.reminderDelete({ reminderID }).then(() => {
-        this.fetchReminders()
+        this.$root.$emit('reminder.updated', reminderID)
       })
     },
 

@@ -3,11 +3,12 @@ package renderer
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/cortezaproject/corteza/server/system/types"
 )
@@ -20,6 +21,16 @@ type (
 	gotenbergPDFDriver struct {
 		url string
 	}
+)
+
+// Gotenberg 7+ serves HTML conversion on the chromium module route, older (v6)
+// deployments only expose /convert/html; the working route is detected on
+// first render and cached per base URL
+var gotenbergEndpoints = sync.Map{}
+
+const (
+	gotenbergModernEndpoint = "/forms/chromium/convert/html"
+	gotenbergLegacyEndpoint = "/convert/html"
 )
 
 // @todo healthcheck, different input data formats
@@ -72,14 +83,38 @@ func (d *gotenbergPDFDriver) Render(ctx context.Context, pl *driverPayload) (io.
 	// HTTP request body stuff
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	// index.html is required by the rendering container
-	part, err := writer.CreateFormFile("file", "index.html")
+	// index.html is required by the rendering container; Gotenberg 7+ requires
+	// the "files" form field name, v6 accepts any name
+	part, err := writer.CreateFormFile("files", "index.html")
 	if err != nil {
 		return nil, err
 	}
 	err = d.prepareContent(part, pl)
 	if err != nil {
 		return nil, err
+	}
+
+	// Optional header/footer documents rendered with the same variables/partials
+	if pl.Header != nil {
+		hPart, err := writer.CreateFormFile("files", "header.html")
+		if err != nil {
+			return nil, err
+		}
+
+		if err = d.prepareAux(hPart, pl, pl.Header); err != nil {
+			return nil, err
+		}
+	}
+
+	if pl.Footer != nil {
+		fPart, err := writer.CreateFormFile("files", "footer.html")
+		if err != nil {
+			return nil, err
+		}
+
+		if err = d.prepareAux(fPart, pl, pl.Footer); err != nil {
+			return nil, err
+		}
 	}
 
 	// Document configurations
@@ -100,23 +135,51 @@ func (d *gotenbergPDFDriver) Render(ctx context.Context, pl *driverPayload) (io.
 	if n, has := pl.Options["url"]; has {
 		url = n
 	}
-	req, err := http.NewRequest("POST", url+"/convert/html", body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
+
+	endpoints := []string{gotenbergModernEndpoint, gotenbergLegacyEndpoint}
+	if e, has := gotenbergEndpoints.Load(url); has && e == gotenbergLegacyEndpoint {
+		endpoints = []string{gotenbergLegacyEndpoint, gotenbergModernEndpoint}
 	}
 
-	ss, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	var resp *http.Response
+	for _, e := range endpoints {
+		req, err := http.NewRequestWithContext(ctx, "POST", url+e, bytes.NewReader(body.Bytes()))
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+
+		resp, err = http.DefaultClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+
+		// 404 means the route doesn't exist on this Gotenberg version; try the other one
+		if resp.StatusCode == http.StatusNotFound {
+			resp.Body.Close()
+			resp = nil
+			continue
+		}
+
+		gotenbergEndpoints.Store(url, e)
+		break
 	}
+
+	if resp == nil {
+		return nil, fmt.Errorf("gotenberg render failed: no compatible endpoint found on %s", url)
+	}
+
 	defer resp.Body.Close()
+	ss, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
-	return bytes.NewReader(ss), err
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("gotenberg render failed: %s: %s", resp.Status, strings.TrimSpace(string(ss)))
+	}
+
+	return bytes.NewReader(ss), nil
 }
 
 func (d *gotenbergPDFDriver) prepareContent(w io.Writer, pl *driverPayload) error {
@@ -126,6 +189,13 @@ func (d *gotenbergPDFDriver) prepareContent(w io.Writer, pl *driverPayload) erro
 	}
 
 	return t.Execute(w, pl.Variables)
+}
+
+// prepareAux renders an auxiliary document (header/footer) with pl's variables
+func (d *gotenbergPDFDriver) prepareAux(w io.Writer, pl *driverPayload, src io.Reader) error {
+	aux := *pl
+	aux.Template = src
+	return d.prepareContent(w, &aux)
 }
 
 func (d *gotenbergPDFDriver) applyOptions(mw *multipart.Writer, opts map[string]string) (err error) {

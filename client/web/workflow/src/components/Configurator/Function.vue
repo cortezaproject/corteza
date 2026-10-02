@@ -80,7 +80,10 @@
           @row-clicked="item=>$set(item, '_showDetails', !item._showDetails)"
         >
           <template #cell(target)="{ item: a }">
-            <var>{{ `${a.target}${a.required ? '*' : ''}` }}</var>
+            <strong>{{ a.label || a.target }}<span
+              v-if="a.required"
+              class="text-danger"
+            >*</span></strong>
             <samp v-if="!isWhileIterator"> ({{ a.type }})</samp>
           </template>
 
@@ -154,6 +157,17 @@
                     :reduce="a => a.value"
                     :placeholder="$t('steps:function.configurator.option-select')"
                     :clearable="false"
+                    @input="$root.$emit('change-detected')"
+                  />
+
+                  <c-rich-text-input
+                    v-else-if="a.input.type === 'richtext'"
+                    v-model="a.value"
+                    :labels="{
+                      urlPlaceholder: $t('steps:function.configurator.urlPlaceholder'),
+                      ok: $t('steps:function.configurator.ok'),
+                    }"
+                    min-body-height="6rem"
                     @input="$root.$emit('change-detected')"
                   />
 
@@ -336,9 +350,12 @@ import ExpressionTable from '../ExpressionTable.vue'
 import ExpressionEditor from '../ExpressionEditor.vue'
 import { objectSearchMaker, stringSearchMaker } from '../../lib/filter'
 import { getDocumentationURL } from '../../lib/version'
+import { components } from '@cortezaproject/corteza-vue'
+const { CRichTextInput } = components
 
 export default {
   components: {
+    CRichTextInput,
     ExpressionEditor,
     ExpressionTable,
   },
@@ -540,6 +557,7 @@ export default {
           return {
             name: param.name,
             target: param.name,
+            label: (param.meta || {}).label,
             type: arg.type || this.paramTypes[func.ref][param.name][0],
             valueType: arg.expr !== undefined ? 'expr' : 'value',
             value: arg.value || input.default || null,

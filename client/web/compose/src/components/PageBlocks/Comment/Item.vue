@@ -18,7 +18,7 @@
         :class="authorIsCurrentUser ? 'text-primary' : 'text-muted'"
         class="text-nowrap font-weight-bold text-truncate"
       >
-        {{ authorName }}
+        <c-user-label :user="authorUser" />
       </span>
     </div>
 
@@ -227,7 +227,7 @@ import { components } from '@cortezaproject/corteza-vue'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import CommentReply from './Reply.vue'
 
-const { CRichTextInput, CEmojiPicker } = components
+const { CRichTextInput, CEmojiPicker, CUserLabel } = components
 
 let reactionPickerCounter = 0
 
@@ -243,6 +243,7 @@ export default {
     CommentReply,
     CRichTextInput,
     CEmojiPicker,
+    CUserLabel,
   },
 
   props: {
@@ -349,6 +350,10 @@ export default {
 
     authorName () {
       return ((this.comment || {}).author || {}).name || ''
+    },
+
+    authorUser () {
+      return ((this.comment || {}).author || {}).user || {}
     },
 
     authorInitials () {

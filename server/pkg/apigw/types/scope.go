@@ -36,17 +36,51 @@ func (s Scp) Writer() http.ResponseWriter {
 	return nil
 }
 
+// Opts returns gateway options from the scope
+//
+// Routes store a Config (built from settings), older callers may store the
+// options struct itself. Never returns nil; callers dereference the result
+// directly.
 func (s Scp) Opts() *options.ApigwOpt {
 	if ss, ok := s["opts"]; ok {
 		switch sss := ss.(type) {
 		case *options.ApigwOpt:
-			return sss
+			return withOptDefaults(sss)
 		case options.ApigwOpt:
-			return &sss
+			return withOptDefaults(&sss)
+		case *Config:
+			return withOptDefaults(sss.toOpt())
+		case Config:
+			return withOptDefaults(sss.toOpt())
 		}
 	}
 
-	return nil
+	return withOptDefaults(&options.ApigwOpt{})
+}
+
+// toOpt maps the gateway config onto the options struct
+//
+// ProxyEnableDebugLog has no counterpart in settings and stays off.
+func (c Config) toOpt() *options.ApigwOpt {
+	return &options.ApigwOpt{
+		Enabled:              c.Enabled,
+		ProfilerEnabled:      c.Profiler.Enabled,
+		ProfilerGlobal:       c.Profiler.Global,
+		ProxyFollowRedirects: c.Proxy.FollowRedirects,
+		ProxyOutboundTimeout: c.Proxy.OutboundTimeout,
+	}
+}
+
+// withOptDefaults fills in values that would otherwise break the caller
+//
+// An unset outbound timeout yields an already-expired context, so fall back
+// to the same default the options carry.
+func withOptDefaults(o *options.ApigwOpt) *options.ApigwOpt {
+	if o.ProxyOutboundTimeout <= 0 {
+		o.ProxyOutboundTimeout = options.Apigw().ProxyOutboundTimeout
+	}
+
+	return o
 }
 
 func (s Scp) Set(k string, v interface{}) {

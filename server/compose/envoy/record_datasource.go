@@ -11,10 +11,14 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/store"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/modern-go/reflect2"
 	"github.com/spf13/cast"
+	"go.uber.org/zap"
 )
 
 type (
@@ -24,7 +28,8 @@ type (
 		Mapping  envoyx.DatasourceMapping
 		Provider envoyx.Provider
 
-		multivalues map[string]bool
+		multivalues    map[string]bool
+		datetimeFields map[string]bool
 
 		CheckExisting func(ctx context.Context, ref ...[]string) ([]uint64, error)
 
@@ -44,9 +49,10 @@ type (
 
 		// Items related to ref resolution
 		// @todo can be removed when reworked
-		resolveRefs bool
-		relMods     map[string]refModWrap
-		dal         dal.FullService
+		resolveRefs  bool
+		includeRefID bool
+		relMods      map[string]refModWrap
+		dal          dal.FullService
 
 		// Access control for field-level permissions
 		ac             recordValueAccessController
@@ -56,6 +62,10 @@ type (
 		rows      []datasource.RawRecord
 		buffIndex int
 		done      bool
+
+		// User ref resolution
+		store      store.Storer
+		userFields map[string]bool
 	}
 
 	refModWrap struct {
@@ -76,11 +86,12 @@ const (
 	bufferPullChunkSize = int(100)
 )
 
-func mkIteratorProvider(ctx context.Context, ac recordValueAccessController, s store.Storer, dl dal.FullService, iter dal.Iterator, mod *types.Module, resolveRefs bool) (out *iteratorProvider, err error) {
+func mkIteratorProvider(ctx context.Context, ac recordValueAccessController, s store.Storer, dl dal.FullService, iter dal.Iterator, mod *types.Module, resolveRefs bool, includeRefID bool) (out *iteratorProvider, err error) {
 	out = &iteratorProvider{
-		iter:        iter,
-		dal:         dl,
-		resolveRefs: resolveRefs,
+		iter:         iter,
+		dal:          dl,
+		resolveRefs:  resolveRefs,
+		includeRefID: includeRefID,
 
 		ac:  ac,
 		mod: mod,
@@ -100,52 +111,56 @@ func mkIteratorProvider(ctx context.Context, ac recordValueAccessController, s s
 		}
 	}
 
-	// Get ref record fields and stuff
 	refMods := make(map[string]refModWrap)
+	userFields := make(map[string]bool)
+
+	for _, name := range []string{"createdBy", "updatedBy", "ownedBy", "deletedBy"} {
+		userFields[name] = true
+	}
 
 	for _, f := range mod.Fields {
-		if f.Kind != "Record" {
-			continue
-		}
-
-		relModID := f.Options.UInt64("moduleID")
-		if relModID == 0 {
-			continue
-		}
-
-		var relMod *types.Module
-		relMod, err = s.LookupComposeModuleByID(ctx, relModID)
-		if err != nil {
-			return
-		}
-
-		relMod.Fields, _, err = s.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{
-			ModuleID: []uint64{relMod.ID},
-		})
-
-		wrap := refModWrap{
-			modLvl1:   relMod,
-			labelLvl1: f.Options.String("labelField"),
-		}
-
-		if f.Options.String("recordLabelField") != "" {
-			nestedRef := wrap.modLvl1.Fields.FindByName(f.Options.String("labelField"))
-			nestedModID := nestedRef.Options.UInt64("moduleID")
-
-			relNestedMod, err := s.LookupComposeModuleByID(ctx, nestedModID)
+		switch f.Kind {
+		case "Record":
+			refMods[f.Name], err = mkRecordRefWrap(ctx, s, f)
 			if err != nil {
-				return nil, err
+				return
 			}
-
-			wrap.labelLvl2 = f.Options.String("recordLabelField")
-			wrap.modLvl2 = relNestedMod
+		case "User":
+			userFields[f.Name] = true
 		}
-
-		refMods[f.Name] = wrap
 	}
 
 	out.relMods = refMods
+	out.store = s
+	out.userFields = userFields
+
 	return
+}
+
+// ResolvedFields returns field names that will have a companion "X ID" column when includeRefID is enabled.
+func (ip *iteratorProvider) ResolvedFields() []string {
+	if !ip.resolveRefs || !ip.includeRefID {
+		return nil
+	}
+
+	out := make([]string, 0, len(ip.userFields)+len(ip.relMods))
+	for f := range ip.userFields {
+		out = append(out, f)
+	}
+
+	for f := range ip.relMods {
+		out = append(out, f)
+	}
+
+	return out
+}
+
+// ResolvedFields returns field names that will have a companion "X value" column.
+func (rd *RecordDatasource) ResolvedFields() []string {
+	if ip, ok := rd.Provider.(*iteratorProvider); ok {
+		return ip.ResolvedFields()
+	}
+	return nil
 }
 
 func (rd *RecordDatasource) SetProvider(s envoyx.Provider) bool {
@@ -307,6 +322,7 @@ func (ip *iteratorProvider) nextResolved(ctx context.Context, out datasource.Raw
 
 		// pull chunk
 		ip.rows = make([]datasource.RawRecord, 0)
+		ip.buffIndex = 0
 
 		for i := 0; i < bufferPullChunkSize; i++ {
 			rowCache := make(datasource.RawRecord)
@@ -329,8 +345,17 @@ func (ip *iteratorProvider) nextResolved(ctx context.Context, out datasource.Raw
 			ip.rows = append(ip.rows, rowCache)
 		}
 
+		if len(ip.rows) == 0 {
+			return false, nil
+		}
+
 		// resolve stuff
 		err = ip.resolveReferences(ctx, ip.dal)
+		if err != nil {
+			return
+		}
+
+		err = ip.resolveUsers(ctx, ip.store)
 		if err != nil {
 			return
 		}
@@ -405,17 +430,28 @@ func (ip *iteratorProvider) resolveReferences(ctx context.Context, ds dal.FullSe
 				}
 			}
 
-			for i, rec := range relRecords {
+			// Build a map from recordID to resolved label for ordered assignment
+			labelByID := make(map[string]string, len(relRecords))
+			for _, rec := range relRecords {
 				if rec.Values == nil {
 					continue
 				}
-
 				v := rec.Values.Get(resLab, 0)
 				if v == nil {
 					continue
 				}
+				labelByID[strconv.FormatUint(rec.ID, 10)] = v.Value
+			}
 
-				cacheRecord.SetValue(fmt.Sprintf("%s value", refField), uint(i), v.Value)
+			for j, origID := range value.Values {
+				label, ok := labelByID[origID]
+				if !ok {
+					continue
+				}
+				if ip.includeRefID {
+					cacheRecord.SetValue(fmt.Sprintf("%s ID", refField), uint(j), origID)
+				}
+				cacheRecord.SetValue(refField, uint(j), label)
 			}
 
 			ip.rows[i] = cacheRecord
@@ -437,6 +473,162 @@ func (ip *iteratorProvider) Ident() (out string) {
 
 // @todo consider omitting these from the interface since they're not always needed
 func (ip *iteratorProvider) SetIdent(string) {
+}
+
+func mkRecordRefWrap(ctx context.Context, s store.Storer, f *types.ModuleField) (wrap refModWrap, err error) {
+	relModID := f.Options.UInt64("moduleID")
+	if relModID == 0 {
+		return
+	}
+
+	var relMod *types.Module
+	relMod, err = s.LookupComposeModuleByID(ctx, relModID)
+	if err != nil {
+		// Referenced module may have been deleted or made inaccessible since the
+		// field was configured. Skip ref resolution for this field instead of
+		// failing the entire export — the column is still emitted, just unresolved.
+		if errors.IsNotFound(err) {
+			logger.Default().Warn(
+				"skipping record ref resolution: referenced module not found",
+				zap.String("field", f.Name),
+				zap.Uint64("moduleID", relModID),
+			)
+			err = nil
+		}
+		return
+	}
+
+	relMod.Fields, _, err = s.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{
+		ModuleID: []uint64{relMod.ID},
+	})
+	if err != nil {
+		return
+	}
+
+	wrap = refModWrap{
+		modLvl1:   relMod,
+		labelLvl1: f.Options.String("labelField"),
+	}
+
+	if f.Options.String("recordLabelField") != "" {
+		// Two-level label resolution: the labelField on the related module must
+		// itself be a Record field pointing to another module. If that chain is
+		// broken (labelField renamed/removed, target module missing), skip the
+		// nested resolution instead of aborting the export.
+		labelFieldName := f.Options.String("labelField")
+		nestedRef := wrap.modLvl1.Fields.FindByName(labelFieldName)
+		if nestedRef == nil {
+			logger.Default().Warn(
+				"skipping nested record ref resolution: labelField not found on related module",
+				zap.String("field", f.Name),
+				zap.String("labelField", labelFieldName),
+				zap.Uint64("relatedModuleID", relMod.ID),
+			)
+			return
+		}
+		nestedModID := nestedRef.Options.UInt64("moduleID")
+		if nestedModID == 0 {
+			logger.Default().Warn(
+				"skipping nested record ref resolution: labelField has no moduleID option",
+				zap.String("field", f.Name),
+				zap.String("labelField", labelFieldName),
+			)
+			return
+		}
+
+		wrap.modLvl2, err = s.LookupComposeModuleByID(ctx, nestedModID)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				logger.Default().Warn(
+					"skipping nested record ref resolution: nested module not found",
+					zap.String("field", f.Name),
+					zap.Uint64("nestedModuleID", nestedModID),
+				)
+				err = nil
+			}
+			return
+		}
+		wrap.labelLvl2 = f.Options.String("recordLabelField")
+	}
+
+	return
+}
+
+func (ip *iteratorProvider) resolveUsers(ctx context.Context, s store.Storer) (err error) {
+	if len(ip.userFields) == 0 || s == nil {
+		return
+	}
+
+	// Collect unique user IDs across the current chunk
+	seen := make(map[string]bool)
+	for _, row := range ip.rows {
+		for fieldName := range ip.userFields {
+			for _, val := range row[fieldName].Values {
+				if val != "" && val != "0" {
+					seen[val] = true
+				}
+			}
+		}
+	}
+	if len(seen) == 0 {
+		return
+	}
+
+	ids := make([]string, 0, len(seen))
+	for id := range seen {
+		ids = append(ids, id)
+	}
+
+	uu, _, err := store.SearchUsers(ctx, s, systemTypes.UserFilter{
+		UserID:    ids,
+		Paging:    filter.Paging{Limit: 0},
+		Deleted:   filter.StateInclusive,
+		Suspended: filter.StateInclusive,
+	})
+	if err != nil {
+		return
+	}
+
+	labels := make(map[string]string, len(uu))
+	for _, u := range uu {
+		labels[strconv.FormatUint(u.ID, 10)] = userLabel(u)
+	}
+
+	for i, row := range ip.rows {
+		for fieldName := range ip.userFields {
+			v := row[fieldName]
+			if len(v.Values) == 0 {
+				continue
+			}
+			for j, val := range v.Values {
+				if val == "0" || val == "" {
+					row.SetValue(fieldName, uint(j), "")
+					continue
+				}
+				if label, ok := labels[val]; ok {
+					if ip.includeRefID {
+						row.SetValue(fmt.Sprintf("%s ID", fieldName), uint(j), val)
+					}
+					row.SetValue(fieldName, uint(j), label)
+				}
+			}
+		}
+		ip.rows[i] = row
+	}
+	return
+}
+
+func userLabel(u *systemTypes.User) string {
+	if u.Name != "" {
+		return u.Name
+	}
+	if u.Email != "" {
+		return u.Email
+	}
+	if u.Handle != "" {
+		return u.Handle
+	}
+	return strconv.FormatUint(u.ID, 10)
 }
 
 // filterUnreadableFields removes values the given user does not have access to

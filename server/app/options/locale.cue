@@ -10,7 +10,7 @@ locale: schema.#optionsGroup & {
 		languages: {
 			defaultValue: "en"
 			description: """
-				List of compa delimited languages (language tags) to enable.
+				List of comma delimited languages (language tags) to enable.
 				In case when an enabled language can not be loaded, error is logged.
 
 				When loading language configurations (config.xml) from the configured path(s).

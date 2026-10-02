@@ -14,6 +14,7 @@ const types = {
   deleteNotification: 'deleteNotification',
   setPageCursor: 'setPageCursor',
   setMuted: 'setMuted',
+  setTotalUnreadCount: 'setTotalUnreadCount',
   updateReadNotification: 'updateReadNotification',
   updateUnreadNotification: 'updateUnreadNotification',
   updateAllReadNotifications: 'updateAllReadNotifications',
@@ -32,6 +33,7 @@ interface State {
   visible: boolean;
   pageCursor: string | null;
   muted: boolean;
+  totalUnreadCount: number;
 }
 
 interface KV {
@@ -47,6 +49,7 @@ export default function ({ api }: Options): StoreOptions<State> {
       visible: false,
       pageCursor: null,
       muted: localStorage.getItem('notificationsMuted') === 'true' || false,
+      totalUnreadCount: 0,
     },
 
     getters: {
@@ -56,9 +59,9 @@ export default function ({ api }: Options): StoreOptions<State> {
       hasMorePages: (state) => !!state.pageCursor,
       muted: (state) => state.muted,
 
-      hasUnread: (state) => state.notifications.some(notification => !notification.readAt),
+      hasUnread: (state) => state.totalUnreadCount > 0 || state.notifications.some(notification => !notification.readAt),
       hasRead: (state) => state.notifications.some(notification => !!notification.readAt),
-      unreadCount: (state) => state.notifications.filter(notification => !notification.readAt).length,
+      unreadCount: (state) => state.totalUnreadCount,
     },
 
     actions: {
@@ -66,12 +69,16 @@ export default function ({ api }: Options): StoreOptions<State> {
         commit(types.setVisible, !state.visible)
       },
 
-      fetchNotifications ({ commit, state }, { unreadOnly = true } = {}) {
+      fetchNotifications ({ commit, state, dispatch }, { unreadOnly = true } = {}) {
+        const isInitialPage = !state.pageCursor
+
         return api.notificationList({
           limit: 25,
           sort: state.pageCursor ? '' : 'createdAt DESC, readAt DESC',
           read: unreadOnly ? 0 : 1,
           pageCursor: state.pageCursor,
+          // total count can only be requested on the first page
+          incTotal: isInitialPage && unreadOnly,
         })
           .then((response: KV) => {
             const set = (response.set || []) as Array<system.Notification>
@@ -80,6 +87,7 @@ export default function ({ api }: Options): StoreOptions<State> {
               sort: string;
               read: number;
               nextPage?: string;
+              total?: number;
             }
 
             if (state.pageCursor) {
@@ -89,6 +97,23 @@ export default function ({ api }: Options): StoreOptions<State> {
             }
 
             commit(types.setPageCursor, filter.nextPage)
+
+            if (isInitialPage && unreadOnly && typeof filter.total === 'number') {
+              commit(types.setTotalUnreadCount, filter.total)
+            } else if (isInitialPage && !unreadOnly) {
+              // Refresh the total when loading "all" tab so the badge stays accurate
+              dispatch('refreshUnreadCount')
+            }
+          })
+      },
+
+      refreshUnreadCount ({ commit }) {
+        return api.notificationList({ limit: 1, read: 0, incTotal: true })
+          .then((response: KV) => {
+            const filter = (response.filter || {}) as { total?: number }
+            if (typeof filter.total === 'number') {
+              commit(types.setTotalUnreadCount, filter.total)
+            }
           })
       },
 
@@ -107,7 +132,7 @@ export default function ({ api }: Options): StoreOptions<State> {
       },
 
       markAllAsRead ({ commit, state }) {
-        if (!state.notifications.length) {
+        if (!state.notifications.length && state.totalUnreadCount === 0) {
           return Promise.resolve()
         }
 
@@ -191,8 +216,9 @@ export default function ({ api }: Options): StoreOptions<State> {
           String(n.notificationID) === String(notificationID),
         )
 
-        if (notification) {
+        if (notification && !notification.readAt) {
           notification.readAt = new Date()
+          state.totalUnreadCount = Math.max(0, state.totalUnreadCount - 1)
         }
       },
 
@@ -203,6 +229,7 @@ export default function ({ api }: Options): StoreOptions<State> {
             notification.readAt = now
           }
         })
+        state.totalUnreadCount = 0
       },
 
       [types.markAllAsUnread] (state) {
@@ -216,6 +243,9 @@ export default function ({ api }: Options): StoreOptions<State> {
       [types.addNotification] (state, notification) {
         // Add to the beginning of the array
         state.notifications.unshift(new system.Notification(notification))
+        if (!notification.readAt) {
+          state.totalUnreadCount += 1
+        }
       },
 
       [types.markAsUnread] (state, notificationID) {
@@ -223,15 +253,24 @@ export default function ({ api }: Options): StoreOptions<State> {
           String(n.notificationID) === String(notificationID),
         )
 
-        if (notification) {
+        if (notification && notification.readAt) {
           notification.readAt = undefined
+          state.totalUnreadCount += 1
         }
       },
 
       [types.deleteNotification] (state, notificationID) {
+        const removed = state.notifications.find(n =>
+          String(n.notificationID) === String(notificationID),
+        )
+
         state.notifications = state.notifications.filter(n =>
           String(n.notificationID) !== String(notificationID),
         )
+
+        if (removed && !removed.readAt) {
+          state.totalUnreadCount = Math.max(0, state.totalUnreadCount - 1)
+        }
       },
 
       [types.setMuted] (state, muted) {
@@ -239,18 +278,36 @@ export default function ({ api }: Options): StoreOptions<State> {
         localStorage.setItem('notificationsMuted', muted)
       },
 
+      [types.setTotalUnreadCount] (state, count) {
+        state.totalUnreadCount = Math.max(0, Number(count) || 0)
+      },
+
       [types.updateReadNotification] (state, notification) {
         const existingNotification = state.notifications.find(n =>
           String(n.notificationID) === String(notification.notificationID),
         )
 
+        const hasReadAt = Object.prototype.hasOwnProperty.call(notification, 'readAt')
+        const willBeUnread = hasReadAt ? !notification.readAt : false
+
+        // Determine prior state: prefer local truth, otherwise assume the event
+        // reflects a state change (i.e. the prior state was the opposite).
+        const wasUnread = existingNotification
+          ? !existingNotification.readAt
+          : !willBeUnread
+
         if (existingNotification) {
-          const hasReadAt = Object.prototype.hasOwnProperty.call(notification, 'readAt')
           if (hasReadAt) {
             existingNotification.readAt = notification.readAt ? new Date(notification.readAt) : undefined
           } else {
             existingNotification.readAt = new Date()
           }
+        }
+
+        if (wasUnread && !willBeUnread) {
+          state.totalUnreadCount = Math.max(0, state.totalUnreadCount - 1)
+        } else if (!wasUnread && willBeUnread) {
+          state.totalUnreadCount += 1
         }
       },
 
@@ -266,6 +323,8 @@ export default function ({ api }: Options): StoreOptions<State> {
               notification.readAt = now
             }
           })
+
+          state.totalUnreadCount = Math.max(0, state.totalUnreadCount - notifications.length)
         } else {
           // Otherwise mark all as read
           state.notifications.forEach(notification => {
@@ -273,6 +332,7 @@ export default function ({ api }: Options): StoreOptions<State> {
               notification.readAt = now
             }
           })
+          state.totalUnreadCount = 0
         }
       },
 
@@ -286,6 +346,8 @@ export default function ({ api }: Options): StoreOptions<State> {
               notification.readAt = undefined
             }
           })
+
+          state.totalUnreadCount += notifications.length
         } else {
           // Otherwise mark all as unread
           state.notifications.forEach(notification => {

@@ -47,6 +47,7 @@ export class Workflow {
   public canUpdateWorkflow = false
   public canDeleteWorkflow = false
   public canExecuteWorkflow = false
+  public canManageWorkflowSessions = false
 
   constructor (w?: PartialWorkflow) {
     this.apply(w)
@@ -62,7 +63,7 @@ export class Workflow {
     Apply(this, w, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, w, CortezaID, 'runAs', 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy')
 
-    Apply(this, w, Boolean, 'canGrant', 'canUpdateWorkflow', 'canDeleteWorkflow', 'canExecuteWorkflow')
+    Apply(this, w, Boolean, 'canGrant', 'canUpdateWorkflow', 'canDeleteWorkflow', 'canExecuteWorkflow', 'canManageWorkflowSessions')
 
     if (IsOf(w, 'meta')) {
       this.meta = { ...w.meta }

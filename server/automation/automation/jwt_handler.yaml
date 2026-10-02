@@ -7,20 +7,24 @@ functions:
       short: Generate JWT
     params:
       scope:
+        meta: { label: Scope }
         require: false
         types:
           - { wf: String }
       header:
+        meta: { label: Header }
         required: true
         types:
           - { wf: Vars,   suffix: Vars, go: 'map[string]expr.TypedValue' }
           - { wf: String, suffix: String }
       payload:
+        meta: { label: Payload }
         required: true
         types:
           - { wf: Vars,   suffix: Vars, go: 'map[string]expr.TypedValue' }
           - { wf: String, suffix: String }
       secret:
+        meta: { label: Secret }
         required: true
         types:
           - { wf: String, suffix: String }

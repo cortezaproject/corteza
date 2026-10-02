@@ -4,6 +4,7 @@ imports:
 
 params:
   roleLookup: &roleLookup
+    meta: { label: Role }
     required: true
     types:
       - { wf: ID,     }
@@ -12,6 +13,7 @@ params:
 
   manageParams: &manageParams
     resource:
+      meta: { label: Resource }
       required: true
       types:
         # Note that we can not accept string here because
@@ -19,6 +21,7 @@ params:
         - { wf: RbacResource }
     role: *roleLookup
     operation:
+      meta: { label: Operation }
       required: true
       types:
         - { wf: String }
@@ -55,12 +58,15 @@ functions:
       <<: *labels
     params:
       resource:
+        meta: { label: Resource }
         required: true
         types: [ { wf: RbacResource } ]
       operation:
+        meta: { label: Operation }
         required: true
         types: [ { wf: String } ]
       user:
+        meta: { label: User }
         types: [ { wf: User } ]
     results:
       can: { wf: Boolean }

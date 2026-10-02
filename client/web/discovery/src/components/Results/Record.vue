@@ -71,7 +71,13 @@
           class="mb-0"
           style="min-width: 20rem; max-width: 100%;"
         >
-          {{ item.value }}
+          <c-user-label
+            v-if="item.name === 'createdBy'"
+            :user="createdByUser"
+          />
+          <template v-else>
+            {{ item.value }}
+          </template>
         </b-form-group>
       </div>
     </b-card-body>
@@ -79,14 +85,30 @@
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
 import base from './base'
+
+const { CUserLabel } = components
+
+const userCache = new Map()
+const inflight = new Map()
 
 export default {
   i18nOptions: {
     namespaces: 'filters',
   },
 
+  components: {
+    CUserLabel,
+  },
+
   extends: base,
+
+  data () {
+    return {
+      enrichedUser: null,
+    }
+  },
 
   computed: {
     recordID () {
@@ -107,6 +129,10 @@ export default {
       })
     },
 
+    createdByUser () {
+      return this.enrichedUser || this.createdBy || {}
+    },
+
     systemValues () {
       return [
         { name: 'recordID', label: this.$t('general:recordID'), value: this.recordID },
@@ -114,6 +140,36 @@ export default {
         { name: 'createdAt', label: this.$t('general:createdAt'), value: this.createdAt },
         { name: 'updatedAt', label: this.$t('general:updatedAt'), value: this.updatedAt },
       ].filter(v => v.value)
+    },
+  },
+
+  watch: {
+    'createdBy.userID': {
+      immediate: true,
+      handler (userID) {
+        if (!userID) {
+          this.enrichedUser = null
+          return
+        }
+        if (userCache.has(userID)) {
+          this.enrichedUser = userCache.get(userID)
+          return
+        }
+        const pending = inflight.get(userID) || this.$SystemAPI.userRead({ userID })
+          .then(user => {
+            userCache.set(userID, user)
+            return user
+          })
+          .finally(() => {
+            inflight.delete(userID)
+          })
+        inflight.set(userID, pending)
+        pending.then(user => {
+          this.enrichedUser = user
+        }).catch(() => {
+          // keep snapshot fallback
+        })
+      },
     },
   },
 }

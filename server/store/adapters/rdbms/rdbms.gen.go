@@ -182,7 +182,7 @@ func (s *Store) TruncateActionlogs(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchActionlogs(ctx context.Context, f actionlogType.Filter) (set actionlogType.ActionSet, _ actionlogType.Filter, err error) {
 
-	set, _, err = s.QueryActionlogs(ctx, f)
+	set, _, _, err = s.QueryActionlogs(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -199,7 +199,7 @@ func (s *Store) SearchActionlogs(ctx context.Context, f actionlogType.Filter) (s
 func (s *Store) QueryActionlogs(
 	ctx context.Context,
 	f actionlogType.Filter,
-) (_ []*actionlogType.Action, more bool, err error) {
+) (_ []*actionlogType.Action, more bool, last *actionlogType.Action, err error) {
 	var (
 		set         = make([]*actionlogType.Action, 0, DefaultSliceCapacity)
 		res         *actionlogType.Action
@@ -279,10 +279,14 @@ func (s *Store) QueryActionlogs(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -563,15 +567,9 @@ func (s *Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilter
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ApigwFilterSet
-			if navSet, _, _, err = s.fetchFullPageOfApigwFilters(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfApigwFilters(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -617,6 +615,13 @@ func (s *Store) fetchFullPageOfApigwFilters(
 		hasNext bool
 
 		tryFilter systemType.ApigwFilterFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ApigwFilter
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ApigwFilter, 0, DefaultSliceCapacity)
@@ -625,6 +630,7 @@ func (s *Store) fetchFullPageOfApigwFilters(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -632,14 +638,19 @@ func (s *Store) fetchFullPageOfApigwFilters(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryApigwFilters(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryApigwFilters(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectApigwFilterCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -652,28 +663,33 @@ func (s *Store) fetchFullPageOfApigwFilters(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectApigwFilterCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -706,6 +722,100 @@ func (s *Store) fetchFullPageOfApigwFilters(
 	return set, prev, next, nil
 }
 
+// countOfApigwFilters counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfApigwFilters(ctx context.Context, f systemType.ApigwFilterFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ApigwFilter != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ApigwFilter(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ApigwFilterFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ApigwFilter: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxApigwFilter
+			res  *systemType.ApigwFilter
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, apigwFilterSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ApigwFilter: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ApigwFilter: %w", err)
+			}
+
+			aux = new(auxApigwFilter)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ApigwFilter: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ApigwFilter: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, apigwFilterSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ApigwFilter: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ApigwFilter: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryApigwFilters queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -715,7 +825,7 @@ func (s *Store) fetchFullPageOfApigwFilters(
 func (s *Store) QueryApigwFilters(
 	ctx context.Context,
 	f systemType.ApigwFilterFilter,
-) (_ []*systemType.ApigwFilter, more bool, err error) {
+) (_ []*systemType.ApigwFilter, more bool, last *systemType.ApigwFilter, err error) {
 	var (
 		ok bool
 
@@ -806,6 +916,10 @@ func (s *Store) QueryApigwFilters(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -819,7 +933,7 @@ func (s *Store) QueryApigwFilters(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -1161,15 +1275,9 @@ func (s *Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFi
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ApigwRouteSet
-			if navSet, _, _, err = s.fetchFullPageOfApigwRoutes(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfApigwRoutes(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -1215,6 +1323,13 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 		hasNext bool
 
 		tryFilter systemType.ApigwRouteFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ApigwRoute
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ApigwRoute, 0, DefaultSliceCapacity)
@@ -1223,6 +1338,7 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -1230,14 +1346,19 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryApigwRoutes(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryApigwRoutes(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectApigwRouteCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -1250,28 +1371,33 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectApigwRouteCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -1304,6 +1430,100 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 	return set, prev, next, nil
 }
 
+// countOfApigwRoutes counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfApigwRoutes(ctx context.Context, f systemType.ApigwRouteFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ApigwRoute != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ApigwRoute(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ApigwRouteFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ApigwRoute: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxApigwRoute
+			res  *systemType.ApigwRoute
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, apigwRouteSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ApigwRoute: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ApigwRoute: %w", err)
+			}
+
+			aux = new(auxApigwRoute)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ApigwRoute: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ApigwRoute: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, apigwRouteSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ApigwRoute: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ApigwRoute: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryApigwRoutes queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -1313,7 +1533,7 @@ func (s *Store) fetchFullPageOfApigwRoutes(
 func (s *Store) QueryApigwRoutes(
 	ctx context.Context,
 	f systemType.ApigwRouteFilter,
-) (_ []*systemType.ApigwRoute, more bool, err error) {
+) (_ []*systemType.ApigwRoute, more bool, last *systemType.ApigwRoute, err error) {
 	var (
 		ok bool
 
@@ -1404,6 +1624,10 @@ func (s *Store) QueryApigwRoutes(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -1417,7 +1641,7 @@ func (s *Store) QueryApigwRoutes(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -1763,15 +1987,9 @@ func (s *Store) SearchApplications(ctx context.Context, f systemType.Application
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ApplicationSet
-			if navSet, _, _, err = s.fetchFullPageOfApplications(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfApplications(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -1817,6 +2035,13 @@ func (s *Store) fetchFullPageOfApplications(
 		hasNext bool
 
 		tryFilter systemType.ApplicationFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Application
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Application, 0, DefaultSliceCapacity)
@@ -1825,6 +2050,7 @@ func (s *Store) fetchFullPageOfApplications(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -1832,14 +2058,19 @@ func (s *Store) fetchFullPageOfApplications(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryApplications(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryApplications(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectApplicationCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -1852,28 +2083,33 @@ func (s *Store) fetchFullPageOfApplications(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectApplicationCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -1906,6 +2142,100 @@ func (s *Store) fetchFullPageOfApplications(
 	return set, prev, next, nil
 }
 
+// countOfApplications counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfApplications(ctx context.Context, f systemType.ApplicationFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Application != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Application(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ApplicationFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Application: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxApplication
+			res  *systemType.Application
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, applicationSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Application: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Application: %w", err)
+			}
+
+			aux = new(auxApplication)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Application: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Application: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, applicationSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Application: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Application: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryApplications queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -1915,7 +2245,7 @@ func (s *Store) fetchFullPageOfApplications(
 func (s *Store) QueryApplications(
 	ctx context.Context,
 	f systemType.ApplicationFilter,
-) (_ []*systemType.Application, more bool, err error) {
+) (_ []*systemType.Application, more bool, last *systemType.Application, err error) {
 	var (
 		ok bool
 
@@ -2006,6 +2336,10 @@ func (s *Store) QueryApplications(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -2019,7 +2353,7 @@ func (s *Store) QueryApplications(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -2320,15 +2654,9 @@ func (s *Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFi
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.AttachmentSet
-			if navSet, _, _, err = s.fetchFullPageOfAttachments(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfAttachments(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -2374,6 +2702,13 @@ func (s *Store) fetchFullPageOfAttachments(
 		hasNext bool
 
 		tryFilter systemType.AttachmentFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Attachment
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Attachment, 0, DefaultSliceCapacity)
@@ -2382,6 +2717,7 @@ func (s *Store) fetchFullPageOfAttachments(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -2389,14 +2725,19 @@ func (s *Store) fetchFullPageOfAttachments(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAttachments(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAttachments(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAttachmentCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -2409,28 +2750,33 @@ func (s *Store) fetchFullPageOfAttachments(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAttachmentCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -2463,6 +2809,100 @@ func (s *Store) fetchFullPageOfAttachments(
 	return set, prev, next, nil
 }
 
+// countOfAttachments counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfAttachments(ctx context.Context, f systemType.AttachmentFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Attachment != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Attachment(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = AttachmentFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Attachment: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxAttachment
+			res  *systemType.Attachment
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, attachmentSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Attachment: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Attachment: %w", err)
+			}
+
+			aux = new(auxAttachment)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Attachment: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Attachment: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, attachmentSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Attachment: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Attachment: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryAttachments queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -2472,7 +2912,7 @@ func (s *Store) fetchFullPageOfAttachments(
 func (s *Store) QueryAttachments(
 	ctx context.Context,
 	f systemType.AttachmentFilter,
-) (_ []*systemType.Attachment, more bool, err error) {
+) (_ []*systemType.Attachment, more bool, last *systemType.Attachment, err error) {
 	var (
 		ok bool
 
@@ -2563,6 +3003,10 @@ func (s *Store) QueryAttachments(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -2576,7 +3020,7 @@ func (s *Store) QueryAttachments(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -2872,15 +3316,9 @@ func (s *Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFi
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.AuthClientSet
-			if navSet, _, _, err = s.fetchFullPageOfAuthClients(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfAuthClients(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -2926,6 +3364,13 @@ func (s *Store) fetchFullPageOfAuthClients(
 		hasNext bool
 
 		tryFilter systemType.AuthClientFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.AuthClient
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.AuthClient, 0, DefaultSliceCapacity)
@@ -2934,6 +3379,7 @@ func (s *Store) fetchFullPageOfAuthClients(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -2941,14 +3387,19 @@ func (s *Store) fetchFullPageOfAuthClients(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAuthClients(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAuthClients(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAuthClientCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -2961,28 +3412,33 @@ func (s *Store) fetchFullPageOfAuthClients(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAuthClientCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -3015,6 +3471,100 @@ func (s *Store) fetchFullPageOfAuthClients(
 	return set, prev, next, nil
 }
 
+// countOfAuthClients counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfAuthClients(ctx context.Context, f systemType.AuthClientFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.AuthClient != nil {
+		// extended filter set
+		expr, f, err = s.Filters.AuthClient(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = AuthClientFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for AuthClient: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxAuthClient
+			res  *systemType.AuthClient
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, authClientSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query AuthClient: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query AuthClient: %w", err)
+			}
+
+			aux = new(auxAuthClient)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for AuthClient: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode AuthClient: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, authClientSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count AuthClient: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for AuthClient: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryAuthClients queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -3024,7 +3574,7 @@ func (s *Store) fetchFullPageOfAuthClients(
 func (s *Store) QueryAuthClients(
 	ctx context.Context,
 	f systemType.AuthClientFilter,
-) (_ []*systemType.AuthClient, more bool, err error) {
+) (_ []*systemType.AuthClient, more bool, last *systemType.AuthClient, err error) {
 	var (
 		ok bool
 
@@ -3115,6 +3665,10 @@ func (s *Store) QueryAuthClients(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -3128,7 +3682,7 @@ func (s *Store) QueryAuthClients(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -3460,7 +4014,7 @@ func (s *Store) TruncateAuthConfirmedClients(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchAuthConfirmedClients(ctx context.Context, f systemType.AuthConfirmedClientFilter) (set systemType.AuthConfirmedClientSet, _ systemType.AuthConfirmedClientFilter, err error) {
 
-	set, _, err = s.QueryAuthConfirmedClients(ctx, f)
+	set, _, _, err = s.QueryAuthConfirmedClients(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -3477,7 +4031,7 @@ func (s *Store) SearchAuthConfirmedClients(ctx context.Context, f systemType.Aut
 func (s *Store) QueryAuthConfirmedClients(
 	ctx context.Context,
 	f systemType.AuthConfirmedClientFilter,
-) (_ []*systemType.AuthConfirmedClient, more bool, err error) {
+) (_ []*systemType.AuthConfirmedClient, more bool, last *systemType.AuthConfirmedClient, err error) {
 	var (
 		set         = make([]*systemType.AuthConfirmedClient, 0, DefaultSliceCapacity)
 		res         *systemType.AuthConfirmedClient
@@ -3545,10 +4099,14 @@ func (s *Store) QueryAuthConfirmedClients(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -3792,7 +4350,7 @@ func (s *Store) TruncateAuthOa2tokens(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchAuthOa2tokens(ctx context.Context, f systemType.AuthOa2tokenFilter) (set systemType.AuthOa2tokenSet, _ systemType.AuthOa2tokenFilter, err error) {
 
-	set, _, err = s.QueryAuthOa2tokens(ctx, f)
+	set, _, _, err = s.QueryAuthOa2tokens(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -3809,7 +4367,7 @@ func (s *Store) SearchAuthOa2tokens(ctx context.Context, f systemType.AuthOa2tok
 func (s *Store) QueryAuthOa2tokens(
 	ctx context.Context,
 	f systemType.AuthOa2tokenFilter,
-) (_ []*systemType.AuthOa2token, more bool, err error) {
+) (_ []*systemType.AuthOa2token, more bool, last *systemType.AuthOa2token, err error) {
 	var (
 		set         = make([]*systemType.AuthOa2token, 0, DefaultSliceCapacity)
 		res         *systemType.AuthOa2token
@@ -3877,10 +4435,14 @@ func (s *Store) QueryAuthOa2tokens(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -4237,7 +4799,7 @@ func (s *Store) TruncateAuthSessions(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchAuthSessions(ctx context.Context, f systemType.AuthSessionFilter) (set systemType.AuthSessionSet, _ systemType.AuthSessionFilter, err error) {
 
-	set, _, err = s.QueryAuthSessions(ctx, f)
+	set, _, _, err = s.QueryAuthSessions(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -4254,7 +4816,7 @@ func (s *Store) SearchAuthSessions(ctx context.Context, f systemType.AuthSession
 func (s *Store) QueryAuthSessions(
 	ctx context.Context,
 	f systemType.AuthSessionFilter,
-) (_ []*systemType.AuthSession, more bool, err error) {
+) (_ []*systemType.AuthSession, more bool, last *systemType.AuthSession, err error) {
 	var (
 		set         = make([]*systemType.AuthSession, 0, DefaultSliceCapacity)
 		res         *systemType.AuthSession
@@ -4322,10 +4884,14 @@ func (s *Store) QueryAuthSessions(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -4611,15 +5177,9 @@ func (s *Store) SearchAutomationSessions(ctx context.Context, f automationType.S
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet automationType.SessionSet
-			if navSet, _, _, err = s.fetchFullPageOfAutomationSessions(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfAutomationSessions(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -4665,6 +5225,13 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 		hasNext bool
 
 		tryFilter automationType.SessionFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *automationType.Session
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*automationType.Session, 0, DefaultSliceCapacity)
@@ -4673,6 +5240,7 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -4680,14 +5248,19 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAutomationSessions(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAutomationSessions(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAutomationSessionCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -4700,28 +5273,33 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAutomationSessionCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -4754,6 +5332,100 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 	return set, prev, next, nil
 }
 
+// countOfAutomationSessions counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfAutomationSessions(ctx context.Context, f automationType.SessionFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.AutomationSession != nil {
+		// extended filter set
+		expr, f, err = s.Filters.AutomationSession(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = AutomationSessionFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for AutomationSession: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxAutomationSession
+			res  *automationType.Session
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, automationSessionSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query AutomationSession: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query AutomationSession: %w", err)
+			}
+
+			aux = new(auxAutomationSession)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for AutomationSession: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode AutomationSession: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, automationSessionSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count AutomationSession: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for AutomationSession: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryAutomationSessions queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -4763,7 +5435,7 @@ func (s *Store) fetchFullPageOfAutomationSessions(
 func (s *Store) QueryAutomationSessions(
 	ctx context.Context,
 	f automationType.SessionFilter,
-) (_ []*automationType.Session, more bool, err error) {
+) (_ []*automationType.Session, more bool, last *automationType.Session, err error) {
 	var (
 		ok bool
 
@@ -4854,6 +5526,10 @@ func (s *Store) QueryAutomationSessions(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -4867,7 +5543,7 @@ func (s *Store) QueryAutomationSessions(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -5178,15 +5854,9 @@ func (s *Store) SearchAutomationTriggers(ctx context.Context, f automationType.T
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet automationType.TriggerSet
-			if navSet, _, _, err = s.fetchFullPageOfAutomationTriggers(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfAutomationTriggers(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -5232,6 +5902,13 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 		hasNext bool
 
 		tryFilter automationType.TriggerFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *automationType.Trigger
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*automationType.Trigger, 0, DefaultSliceCapacity)
@@ -5240,6 +5917,7 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -5247,14 +5925,19 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAutomationTriggers(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAutomationTriggers(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAutomationTriggerCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -5267,28 +5950,33 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAutomationTriggerCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -5321,6 +6009,100 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 	return set, prev, next, nil
 }
 
+// countOfAutomationTriggers counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfAutomationTriggers(ctx context.Context, f automationType.TriggerFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.AutomationTrigger != nil {
+		// extended filter set
+		expr, f, err = s.Filters.AutomationTrigger(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = AutomationTriggerFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for AutomationTrigger: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxAutomationTrigger
+			res  *automationType.Trigger
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, automationTriggerSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query AutomationTrigger: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query AutomationTrigger: %w", err)
+			}
+
+			aux = new(auxAutomationTrigger)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for AutomationTrigger: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode AutomationTrigger: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, automationTriggerSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count AutomationTrigger: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for AutomationTrigger: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryAutomationTriggers queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -5330,7 +6112,7 @@ func (s *Store) fetchFullPageOfAutomationTriggers(
 func (s *Store) QueryAutomationTriggers(
 	ctx context.Context,
 	f automationType.TriggerFilter,
-) (_ []*automationType.Trigger, more bool, err error) {
+) (_ []*automationType.Trigger, more bool, last *automationType.Trigger, err error) {
 	var (
 		ok bool
 
@@ -5421,6 +6203,10 @@ func (s *Store) QueryAutomationTriggers(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -5434,7 +6220,7 @@ func (s *Store) QueryAutomationTriggers(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -5741,15 +6527,9 @@ func (s *Store) SearchAutomationWorkflows(ctx context.Context, f automationType.
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet automationType.WorkflowSet
-			if navSet, _, _, err = s.fetchFullPageOfAutomationWorkflows(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfAutomationWorkflows(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -5795,6 +6575,13 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 		hasNext bool
 
 		tryFilter automationType.WorkflowFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *automationType.Workflow
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*automationType.Workflow, 0, DefaultSliceCapacity)
@@ -5803,6 +6590,7 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -5810,14 +6598,19 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryAutomationWorkflows(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryAutomationWorkflows(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectAutomationWorkflowCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -5830,28 +6623,33 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectAutomationWorkflowCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -5884,6 +6682,100 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 	return set, prev, next, nil
 }
 
+// countOfAutomationWorkflows counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfAutomationWorkflows(ctx context.Context, f automationType.WorkflowFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.AutomationWorkflow != nil {
+		// extended filter set
+		expr, f, err = s.Filters.AutomationWorkflow(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = AutomationWorkflowFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for AutomationWorkflow: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxAutomationWorkflow
+			res  *automationType.Workflow
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, automationWorkflowSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query AutomationWorkflow: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query AutomationWorkflow: %w", err)
+			}
+
+			aux = new(auxAutomationWorkflow)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for AutomationWorkflow: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode AutomationWorkflow: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, automationWorkflowSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count AutomationWorkflow: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for AutomationWorkflow: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryAutomationWorkflows queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -5893,7 +6785,7 @@ func (s *Store) fetchFullPageOfAutomationWorkflows(
 func (s *Store) QueryAutomationWorkflows(
 	ctx context.Context,
 	f automationType.WorkflowFilter,
-) (_ []*automationType.Workflow, more bool, err error) {
+) (_ []*automationType.Workflow, more bool, last *automationType.Workflow, err error) {
 	var (
 		ok bool
 
@@ -5984,6 +6876,10 @@ func (s *Store) QueryAutomationWorkflows(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -5997,7 +6893,7 @@ func (s *Store) QueryAutomationWorkflows(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -6366,15 +7262,9 @@ func (s *Store) SearchComposeAttachments(ctx context.Context, f composeType.Atta
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.AttachmentSet
-			if navSet, _, _, err = s.fetchFullPageOfComposeAttachments(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposeAttachments(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -6420,6 +7310,13 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 		hasNext bool
 
 		tryFilter composeType.AttachmentFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.Attachment
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.Attachment, 0, DefaultSliceCapacity)
@@ -6428,6 +7325,7 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -6435,14 +7333,19 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposeAttachments(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposeAttachments(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposeAttachmentCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -6455,28 +7358,33 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposeAttachmentCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -6509,6 +7417,100 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 	return set, prev, next, nil
 }
 
+// countOfComposeAttachments counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposeAttachments(ctx context.Context, f composeType.AttachmentFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposeAttachment != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposeAttachment(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposeAttachmentFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposeAttachment: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposeAttachment
+			res  *composeType.Attachment
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composeAttachmentSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposeAttachment: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposeAttachment: %w", err)
+			}
+
+			aux = new(auxComposeAttachment)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposeAttachment: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposeAttachment: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composeAttachmentSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposeAttachment: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposeAttachment: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryComposeAttachments queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -6518,7 +7520,7 @@ func (s *Store) fetchFullPageOfComposeAttachments(
 func (s *Store) QueryComposeAttachments(
 	ctx context.Context,
 	f composeType.AttachmentFilter,
-) (_ []*composeType.Attachment, more bool, err error) {
+) (_ []*composeType.Attachment, more bool, last *composeType.Attachment, err error) {
 	var (
 		ok bool
 
@@ -6609,6 +7611,10 @@ func (s *Store) QueryComposeAttachments(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -6622,7 +7628,7 @@ func (s *Store) QueryComposeAttachments(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -6922,15 +7928,9 @@ func (s *Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilt
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.ChartSet
-			if navSet, _, _, err = s.fetchFullPageOfComposeCharts(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposeCharts(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -6976,6 +7976,13 @@ func (s *Store) fetchFullPageOfComposeCharts(
 		hasNext bool
 
 		tryFilter composeType.ChartFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.Chart
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.Chart, 0, DefaultSliceCapacity)
@@ -6984,6 +7991,7 @@ func (s *Store) fetchFullPageOfComposeCharts(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -6991,14 +7999,19 @@ func (s *Store) fetchFullPageOfComposeCharts(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposeCharts(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposeCharts(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposeChartCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -7011,28 +8024,33 @@ func (s *Store) fetchFullPageOfComposeCharts(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposeChartCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -7065,6 +8083,100 @@ func (s *Store) fetchFullPageOfComposeCharts(
 	return set, prev, next, nil
 }
 
+// countOfComposeCharts counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposeCharts(ctx context.Context, f composeType.ChartFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposeChart != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposeChart(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposeChartFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposeChart: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposeChart
+			res  *composeType.Chart
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composeChartSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposeChart: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposeChart: %w", err)
+			}
+
+			aux = new(auxComposeChart)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposeChart: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposeChart: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composeChartSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposeChart: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposeChart: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryComposeCharts queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -7074,7 +8186,7 @@ func (s *Store) fetchFullPageOfComposeCharts(
 func (s *Store) QueryComposeCharts(
 	ctx context.Context,
 	f composeType.ChartFilter,
-) (_ []*composeType.Chart, more bool, err error) {
+) (_ []*composeType.Chart, more bool, last *composeType.Chart, err error) {
 	var (
 		ok bool
 
@@ -7165,6 +8277,10 @@ func (s *Store) QueryComposeCharts(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -7178,7 +8294,7 @@ func (s *Store) QueryComposeCharts(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -7519,15 +8635,9 @@ func (s *Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFi
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.ModuleSet
-			if navSet, _, _, err = s.fetchFullPageOfComposeModules(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposeModules(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -7573,6 +8683,13 @@ func (s *Store) fetchFullPageOfComposeModules(
 		hasNext bool
 
 		tryFilter composeType.ModuleFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.Module
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.Module, 0, DefaultSliceCapacity)
@@ -7581,6 +8698,7 @@ func (s *Store) fetchFullPageOfComposeModules(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -7588,14 +8706,19 @@ func (s *Store) fetchFullPageOfComposeModules(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposeModules(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposeModules(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposeModuleCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -7608,28 +8731,33 @@ func (s *Store) fetchFullPageOfComposeModules(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposeModuleCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -7662,6 +8790,100 @@ func (s *Store) fetchFullPageOfComposeModules(
 	return set, prev, next, nil
 }
 
+// countOfComposeModules counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposeModules(ctx context.Context, f composeType.ModuleFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposeModule != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposeModule(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposeModuleFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposeModule: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposeModule
+			res  *composeType.Module
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composeModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposeModule: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposeModule: %w", err)
+			}
+
+			aux = new(auxComposeModule)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposeModule: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposeModule: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composeModuleSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposeModule: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposeModule: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryComposeModules queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -7671,7 +8893,7 @@ func (s *Store) fetchFullPageOfComposeModules(
 func (s *Store) QueryComposeModules(
 	ctx context.Context,
 	f composeType.ModuleFilter,
-) (_ []*composeType.Module, more bool, err error) {
+) (_ []*composeType.Module, more bool, last *composeType.Module, err error) {
 	var (
 		ok bool
 
@@ -7762,6 +8984,10 @@ func (s *Store) QueryComposeModules(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -7775,7 +9001,7 @@ func (s *Store) QueryComposeModules(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -8141,7 +9367,7 @@ func (s *Store) TruncateComposeModuleFields(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchComposeModuleFields(ctx context.Context, f composeType.ModuleFieldFilter) (set composeType.ModuleFieldSet, _ composeType.ModuleFieldFilter, err error) {
 
-	set, _, err = s.QueryComposeModuleFields(ctx, f)
+	set, _, _, err = s.QueryComposeModuleFields(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -8158,7 +9384,7 @@ func (s *Store) SearchComposeModuleFields(ctx context.Context, f composeType.Mod
 func (s *Store) QueryComposeModuleFields(
 	ctx context.Context,
 	f composeType.ModuleFieldFilter,
-) (_ []*composeType.ModuleField, more bool, err error) {
+) (_ []*composeType.ModuleField, more bool, last *composeType.ModuleField, err error) {
 	var (
 		set         = make([]*composeType.ModuleField, 0, DefaultSliceCapacity)
 		res         *composeType.ModuleField
@@ -8226,10 +9452,14 @@ func (s *Store) QueryComposeModuleFields(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -8605,15 +9835,9 @@ func (s *Store) SearchComposeNamespaces(ctx context.Context, f composeType.Names
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.NamespaceSet
-			if navSet, _, _, err = s.fetchFullPageOfComposeNamespaces(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposeNamespaces(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -8659,6 +9883,13 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 		hasNext bool
 
 		tryFilter composeType.NamespaceFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.Namespace
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.Namespace, 0, DefaultSliceCapacity)
@@ -8667,6 +9898,7 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -8674,14 +9906,19 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposeNamespaces(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposeNamespaces(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposeNamespaceCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -8694,28 +9931,33 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposeNamespaceCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -8748,6 +9990,100 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 	return set, prev, next, nil
 }
 
+// countOfComposeNamespaces counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposeNamespaces(ctx context.Context, f composeType.NamespaceFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposeNamespace != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposeNamespace(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposeNamespaceFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposeNamespace: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposeNamespace
+			res  *composeType.Namespace
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposeNamespace: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposeNamespace: %w", err)
+			}
+
+			aux = new(auxComposeNamespace)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposeNamespace: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposeNamespace: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposeNamespace: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposeNamespace: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryComposeNamespaces queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -8757,7 +10093,7 @@ func (s *Store) fetchFullPageOfComposeNamespaces(
 func (s *Store) QueryComposeNamespaces(
 	ctx context.Context,
 	f composeType.NamespaceFilter,
-) (_ []*composeType.Namespace, more bool, err error) {
+) (_ []*composeType.Namespace, more bool, last *composeType.Namespace, err error) {
 	var (
 		ok bool
 
@@ -8848,6 +10184,10 @@ func (s *Store) QueryComposeNamespaces(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -8861,7 +10201,7 @@ func (s *Store) QueryComposeNamespaces(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -9227,15 +10567,9 @@ func (s *Store) SearchComposePages(ctx context.Context, f composeType.PageFilter
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.PageSet
-			if navSet, _, _, err = s.fetchFullPageOfComposePages(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposePages(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -9281,6 +10615,13 @@ func (s *Store) fetchFullPageOfComposePages(
 		hasNext bool
 
 		tryFilter composeType.PageFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.Page
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.Page, 0, DefaultSliceCapacity)
@@ -9289,6 +10630,7 @@ func (s *Store) fetchFullPageOfComposePages(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -9296,14 +10638,19 @@ func (s *Store) fetchFullPageOfComposePages(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposePages(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposePages(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposePageCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -9316,28 +10663,33 @@ func (s *Store) fetchFullPageOfComposePages(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposePageCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -9370,6 +10722,100 @@ func (s *Store) fetchFullPageOfComposePages(
 	return set, prev, next, nil
 }
 
+// countOfComposePages counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposePages(ctx context.Context, f composeType.PageFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposePage != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposePage(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposePageFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposePage: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposePage
+			res  *composeType.Page
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composePageSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposePage: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposePage: %w", err)
+			}
+
+			aux = new(auxComposePage)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposePage: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposePage: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composePageSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposePage: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposePage: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryComposePages queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -9379,7 +10825,7 @@ func (s *Store) fetchFullPageOfComposePages(
 func (s *Store) QueryComposePages(
 	ctx context.Context,
 	f composeType.PageFilter,
-) (_ []*composeType.Page, more bool, err error) {
+) (_ []*composeType.Page, more bool, last *composeType.Page, err error) {
 	var (
 		ok bool
 
@@ -9470,6 +10916,10 @@ func (s *Store) QueryComposePages(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -9483,7 +10933,7 @@ func (s *Store) QueryComposePages(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -9873,15 +11323,9 @@ func (s *Store) SearchComposePageLayouts(ctx context.Context, f composeType.Page
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet composeType.PageLayoutSet
-			if navSet, _, _, err = s.fetchFullPageOfComposePageLayouts(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfComposePageLayouts(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -9927,6 +11371,13 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 		hasNext bool
 
 		tryFilter composeType.PageLayoutFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *composeType.PageLayout
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*composeType.PageLayout, 0, DefaultSliceCapacity)
@@ -9935,6 +11386,7 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -9942,14 +11394,19 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryComposePageLayouts(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryComposePageLayouts(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectComposePageLayoutCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -9962,28 +11419,33 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectComposePageLayoutCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -10016,6 +11478,100 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 	return set, prev, next, nil
 }
 
+// countOfComposePageLayouts counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfComposePageLayouts(ctx context.Context, f composeType.PageLayoutFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ComposePageLayout != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ComposePageLayout(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ComposePageLayoutFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ComposePageLayout: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxComposePageLayout
+			res  *composeType.PageLayout
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, composePageLayoutSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query ComposePageLayout: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query ComposePageLayout: %w", err)
+			}
+
+			aux = new(auxComposePageLayout)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for ComposePageLayout: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode ComposePageLayout: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, composePageLayoutSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ComposePageLayout: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ComposePageLayout: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryComposePageLayouts queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -10025,7 +11581,7 @@ func (s *Store) fetchFullPageOfComposePageLayouts(
 func (s *Store) QueryComposePageLayouts(
 	ctx context.Context,
 	f composeType.PageLayoutFilter,
-) (_ []*composeType.PageLayout, more bool, err error) {
+) (_ []*composeType.PageLayout, more bool, last *composeType.PageLayout, err error) {
 	var (
 		ok bool
 
@@ -10116,6 +11672,10 @@ func (s *Store) QueryComposePageLayouts(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -10129,7 +11689,7 @@ func (s *Store) QueryComposePageLayouts(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -10472,7 +12032,7 @@ func (s *Store) TruncateCredentials(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchCredentials(ctx context.Context, f systemType.CredentialFilter) (set systemType.CredentialSet, _ systemType.CredentialFilter, err error) {
 
-	set, _, err = s.QueryCredentials(ctx, f)
+	set, _, _, err = s.QueryCredentials(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -10489,7 +12049,7 @@ func (s *Store) SearchCredentials(ctx context.Context, f systemType.CredentialFi
 func (s *Store) QueryCredentials(
 	ctx context.Context,
 	f systemType.CredentialFilter,
-) (_ []*systemType.Credential, more bool, err error) {
+) (_ []*systemType.Credential, more bool, last *systemType.Credential, err error) {
 	var (
 		set         = make([]*systemType.Credential, 0, DefaultSliceCapacity)
 		res         *systemType.Credential
@@ -10557,10 +12117,14 @@ func (s *Store) QueryCredentials(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -10860,15 +12424,9 @@ func (s *Store) SearchDalConnections(ctx context.Context, f systemType.DalConnec
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.DalConnectionSet
-			if navSet, _, _, err = s.fetchFullPageOfDalConnections(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfDalConnections(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -10914,6 +12472,13 @@ func (s *Store) fetchFullPageOfDalConnections(
 		hasNext bool
 
 		tryFilter systemType.DalConnectionFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DalConnection
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DalConnection, 0, DefaultSliceCapacity)
@@ -10922,6 +12487,7 @@ func (s *Store) fetchFullPageOfDalConnections(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -10929,14 +12495,19 @@ func (s *Store) fetchFullPageOfDalConnections(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDalConnections(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDalConnections(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDalConnectionCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -10949,28 +12520,33 @@ func (s *Store) fetchFullPageOfDalConnections(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDalConnectionCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -11003,6 +12579,100 @@ func (s *Store) fetchFullPageOfDalConnections(
 	return set, prev, next, nil
 }
 
+// countOfDalConnections counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfDalConnections(ctx context.Context, f systemType.DalConnectionFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.DalConnection != nil {
+		// extended filter set
+		expr, f, err = s.Filters.DalConnection(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = DalConnectionFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for DalConnection: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxDalConnection
+			res  *systemType.DalConnection
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, dalConnectionSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query DalConnection: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query DalConnection: %w", err)
+			}
+
+			aux = new(auxDalConnection)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for DalConnection: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode DalConnection: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, dalConnectionSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count DalConnection: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for DalConnection: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryDalConnections queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -11012,7 +12682,7 @@ func (s *Store) fetchFullPageOfDalConnections(
 func (s *Store) QueryDalConnections(
 	ctx context.Context,
 	f systemType.DalConnectionFilter,
-) (_ []*systemType.DalConnection, more bool, err error) {
+) (_ []*systemType.DalConnection, more bool, last *systemType.DalConnection, err error) {
 	var (
 		ok bool
 
@@ -11103,6 +12773,10 @@ func (s *Store) QueryDalConnections(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -11116,7 +12790,7 @@ func (s *Store) QueryDalConnections(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -11485,15 +13159,9 @@ func (s *Store) SearchDalSchemaAlterations(ctx context.Context, f systemType.Dal
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.DalSchemaAlterationSet
-			if navSet, _, _, err = s.fetchFullPageOfDalSchemaAlterations(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfDalSchemaAlterations(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -11539,6 +13207,13 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 		hasNext bool
 
 		tryFilter systemType.DalSchemaAlterationFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DalSchemaAlteration
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DalSchemaAlteration, 0, DefaultSliceCapacity)
@@ -11547,6 +13222,7 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -11554,14 +13230,19 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDalSchemaAlterations(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDalSchemaAlterations(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDalSchemaAlterationCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -11574,28 +13255,33 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDalSchemaAlterationCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -11628,6 +13314,56 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 	return set, prev, next, nil
 }
 
+// countOfDalSchemaAlterations counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfDalSchemaAlterations(ctx context.Context, f systemType.DalSchemaAlterationFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.DalSchemaAlteration != nil {
+		// extended filter set
+		expr, f, err = s.Filters.DalSchemaAlteration(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = DalSchemaAlterationFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for DalSchemaAlteration: %w", err)
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, dalSchemaAlterationSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count DalSchemaAlteration: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for DalSchemaAlteration: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryDalSchemaAlterations queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -11637,7 +13373,7 @@ func (s *Store) fetchFullPageOfDalSchemaAlterations(
 func (s *Store) QueryDalSchemaAlterations(
 	ctx context.Context,
 	f systemType.DalSchemaAlterationFilter,
-) (_ []*systemType.DalSchemaAlteration, more bool, err error) {
+) (_ []*systemType.DalSchemaAlteration, more bool, last *systemType.DalSchemaAlteration, err error) {
 	var (
 		set         = make([]*systemType.DalSchemaAlteration, 0, DefaultSliceCapacity)
 		res         *systemType.DalSchemaAlteration
@@ -11726,10 +13462,14 @@ func (s *Store) QueryDalSchemaAlterations(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -12028,15 +13768,9 @@ func (s *Store) SearchDalSensitivityLevels(ctx context.Context, f systemType.Dal
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.DalSensitivityLevelSet
-			if navSet, _, _, err = s.fetchFullPageOfDalSensitivityLevels(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfDalSensitivityLevels(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -12082,6 +13816,13 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 		hasNext bool
 
 		tryFilter systemType.DalSensitivityLevelFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DalSensitivityLevel
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DalSensitivityLevel, 0, DefaultSliceCapacity)
@@ -12090,6 +13831,7 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -12097,14 +13839,19 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDalSensitivityLevels(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDalSensitivityLevels(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDalSensitivityLevelCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -12117,28 +13864,33 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDalSensitivityLevelCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -12171,6 +13923,100 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 	return set, prev, next, nil
 }
 
+// countOfDalSensitivityLevels counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfDalSensitivityLevels(ctx context.Context, f systemType.DalSensitivityLevelFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.DalSensitivityLevel != nil {
+		// extended filter set
+		expr, f, err = s.Filters.DalSensitivityLevel(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = DalSensitivityLevelFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for DalSensitivityLevel: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxDalSensitivityLevel
+			res  *systemType.DalSensitivityLevel
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, dalSensitivityLevelSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query DalSensitivityLevel: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query DalSensitivityLevel: %w", err)
+			}
+
+			aux = new(auxDalSensitivityLevel)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for DalSensitivityLevel: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode DalSensitivityLevel: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, dalSensitivityLevelSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count DalSensitivityLevel: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for DalSensitivityLevel: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryDalSensitivityLevels queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -12180,7 +14026,7 @@ func (s *Store) fetchFullPageOfDalSensitivityLevels(
 func (s *Store) QueryDalSensitivityLevels(
 	ctx context.Context,
 	f systemType.DalSensitivityLevelFilter,
-) (_ []*systemType.DalSensitivityLevel, more bool, err error) {
+) (_ []*systemType.DalSensitivityLevel, more bool, last *systemType.DalSensitivityLevel, err error) {
 	var (
 		ok bool
 
@@ -12271,6 +14117,10 @@ func (s *Store) QueryDalSensitivityLevels(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -12284,7 +14134,7 @@ func (s *Store) QueryDalSensitivityLevels(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -12583,15 +14433,9 @@ func (s *Store) SearchDataPrivacyRequests(ctx context.Context, f systemType.Data
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.DataPrivacyRequestSet
-			if navSet, _, _, err = s.fetchFullPageOfDataPrivacyRequests(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfDataPrivacyRequests(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -12637,6 +14481,13 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 		hasNext bool
 
 		tryFilter systemType.DataPrivacyRequestFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DataPrivacyRequest
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DataPrivacyRequest, 0, DefaultSliceCapacity)
@@ -12645,6 +14496,7 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -12652,14 +14504,19 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDataPrivacyRequests(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDataPrivacyRequests(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDataPrivacyRequestCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -12672,28 +14529,33 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDataPrivacyRequestCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -12726,6 +14588,100 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 	return set, prev, next, nil
 }
 
+// countOfDataPrivacyRequests counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfDataPrivacyRequests(ctx context.Context, f systemType.DataPrivacyRequestFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.DataPrivacyRequest != nil {
+		// extended filter set
+		expr, f, err = s.Filters.DataPrivacyRequest(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = DataPrivacyRequestFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for DataPrivacyRequest: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxDataPrivacyRequest
+			res  *systemType.DataPrivacyRequest
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, dataPrivacyRequestSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query DataPrivacyRequest: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query DataPrivacyRequest: %w", err)
+			}
+
+			aux = new(auxDataPrivacyRequest)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for DataPrivacyRequest: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode DataPrivacyRequest: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, dataPrivacyRequestSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count DataPrivacyRequest: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for DataPrivacyRequest: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryDataPrivacyRequests queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -12735,7 +14691,7 @@ func (s *Store) fetchFullPageOfDataPrivacyRequests(
 func (s *Store) QueryDataPrivacyRequests(
 	ctx context.Context,
 	f systemType.DataPrivacyRequestFilter,
-) (_ []*systemType.DataPrivacyRequest, more bool, err error) {
+) (_ []*systemType.DataPrivacyRequest, more bool, last *systemType.DataPrivacyRequest, err error) {
 	var (
 		ok bool
 
@@ -12826,6 +14782,10 @@ func (s *Store) QueryDataPrivacyRequests(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -12839,7 +14799,7 @@ func (s *Store) QueryDataPrivacyRequests(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -13145,15 +15105,9 @@ func (s *Store) SearchDataPrivacyRequestComments(ctx context.Context, f systemTy
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.DataPrivacyRequestCommentSet
-			if navSet, _, _, err = s.fetchFullPageOfDataPrivacyRequestComments(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfDataPrivacyRequestComments(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -13199,6 +15153,13 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 		hasNext bool
 
 		tryFilter systemType.DataPrivacyRequestCommentFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.DataPrivacyRequestComment
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.DataPrivacyRequestComment, 0, DefaultSliceCapacity)
@@ -13207,6 +15168,7 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -13214,14 +15176,19 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryDataPrivacyRequestComments(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryDataPrivacyRequestComments(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectDataPrivacyRequestCommentCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -13234,28 +15201,33 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectDataPrivacyRequestCommentCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -13288,6 +15260,100 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 	return set, prev, next, nil
 }
 
+// countOfDataPrivacyRequestComments counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfDataPrivacyRequestComments(ctx context.Context, f systemType.DataPrivacyRequestCommentFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.DataPrivacyRequestComment != nil {
+		// extended filter set
+		expr, f, err = s.Filters.DataPrivacyRequestComment(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = DataPrivacyRequestCommentFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for DataPrivacyRequestComment: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxDataPrivacyRequestComment
+			res  *systemType.DataPrivacyRequestComment
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, dataPrivacyRequestCommentSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query DataPrivacyRequestComment: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query DataPrivacyRequestComment: %w", err)
+			}
+
+			aux = new(auxDataPrivacyRequestComment)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for DataPrivacyRequestComment: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode DataPrivacyRequestComment: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, dataPrivacyRequestCommentSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count DataPrivacyRequestComment: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for DataPrivacyRequestComment: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryDataPrivacyRequestComments queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -13297,7 +15363,7 @@ func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
 func (s *Store) QueryDataPrivacyRequestComments(
 	ctx context.Context,
 	f systemType.DataPrivacyRequestCommentFilter,
-) (_ []*systemType.DataPrivacyRequestComment, more bool, err error) {
+) (_ []*systemType.DataPrivacyRequestComment, more bool, last *systemType.DataPrivacyRequestComment, err error) {
 	var (
 		ok bool
 
@@ -13388,6 +15454,10 @@ func (s *Store) QueryDataPrivacyRequestComments(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -13401,7 +15471,7 @@ func (s *Store) QueryDataPrivacyRequestComments(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -13651,15 +15721,9 @@ func (s *Store) SearchFederationExposedModules(ctx context.Context, f federation
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet federationType.ExposedModuleSet
-			if navSet, _, _, err = s.fetchFullPageOfFederationExposedModules(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfFederationExposedModules(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -13705,6 +15769,13 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 		hasNext bool
 
 		tryFilter federationType.ExposedModuleFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *federationType.ExposedModule
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*federationType.ExposedModule, 0, DefaultSliceCapacity)
@@ -13713,6 +15784,7 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -13720,14 +15792,19 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryFederationExposedModules(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryFederationExposedModules(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectFederationExposedModuleCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -13740,28 +15817,33 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectFederationExposedModuleCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -13794,6 +15876,100 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 	return set, prev, next, nil
 }
 
+// countOfFederationExposedModules counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfFederationExposedModules(ctx context.Context, f federationType.ExposedModuleFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.FederationExposedModule != nil {
+		// extended filter set
+		expr, f, err = s.Filters.FederationExposedModule(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = FederationExposedModuleFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for FederationExposedModule: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxFederationExposedModule
+			res  *federationType.ExposedModule
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, federationExposedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query FederationExposedModule: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query FederationExposedModule: %w", err)
+			}
+
+			aux = new(auxFederationExposedModule)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for FederationExposedModule: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode FederationExposedModule: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, federationExposedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count FederationExposedModule: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for FederationExposedModule: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryFederationExposedModules queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -13803,7 +15979,7 @@ func (s *Store) fetchFullPageOfFederationExposedModules(
 func (s *Store) QueryFederationExposedModules(
 	ctx context.Context,
 	f federationType.ExposedModuleFilter,
-) (_ []*federationType.ExposedModule, more bool, err error) {
+) (_ []*federationType.ExposedModule, more bool, last *federationType.ExposedModule, err error) {
 	var (
 		ok bool
 
@@ -13894,6 +16070,10 @@ func (s *Store) QueryFederationExposedModules(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -13907,7 +16087,7 @@ func (s *Store) QueryFederationExposedModules(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -14201,15 +16381,9 @@ func (s *Store) SearchFederationModuleMappings(ctx context.Context, f federation
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet federationType.ModuleMappingSet
-			if navSet, _, _, err = s.fetchFullPageOfFederationModuleMappings(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfFederationModuleMappings(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -14255,6 +16429,13 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 		hasNext bool
 
 		tryFilter federationType.ModuleMappingFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *federationType.ModuleMapping
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*federationType.ModuleMapping, 0, DefaultSliceCapacity)
@@ -14263,6 +16444,7 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -14270,14 +16452,19 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryFederationModuleMappings(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryFederationModuleMappings(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectFederationModuleMappingCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -14290,28 +16477,33 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectFederationModuleMappingCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -14344,6 +16536,100 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 	return set, prev, next, nil
 }
 
+// countOfFederationModuleMappings counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfFederationModuleMappings(ctx context.Context, f federationType.ModuleMappingFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.FederationModuleMapping != nil {
+		// extended filter set
+		expr, f, err = s.Filters.FederationModuleMapping(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = FederationModuleMappingFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for FederationModuleMapping: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxFederationModuleMapping
+			res  *federationType.ModuleMapping
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, federationModuleMappingSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query FederationModuleMapping: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query FederationModuleMapping: %w", err)
+			}
+
+			aux = new(auxFederationModuleMapping)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for FederationModuleMapping: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode FederationModuleMapping: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, federationModuleMappingSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count FederationModuleMapping: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for FederationModuleMapping: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryFederationModuleMappings queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -14353,7 +16639,7 @@ func (s *Store) fetchFullPageOfFederationModuleMappings(
 func (s *Store) QueryFederationModuleMappings(
 	ctx context.Context,
 	f federationType.ModuleMappingFilter,
-) (_ []*federationType.ModuleMapping, more bool, err error) {
+) (_ []*federationType.ModuleMapping, more bool, last *federationType.ModuleMapping, err error) {
 	var (
 		ok bool
 
@@ -14444,6 +16730,10 @@ func (s *Store) QueryFederationModuleMappings(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -14457,7 +16747,7 @@ func (s *Store) QueryFederationModuleMappings(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -14789,15 +17079,9 @@ func (s *Store) SearchFederationNodes(ctx context.Context, f federationType.Node
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet federationType.NodeSet
-			if navSet, _, _, err = s.fetchFullPageOfFederationNodes(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfFederationNodes(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -14843,6 +17127,13 @@ func (s *Store) fetchFullPageOfFederationNodes(
 		hasNext bool
 
 		tryFilter federationType.NodeFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *federationType.Node
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*federationType.Node, 0, DefaultSliceCapacity)
@@ -14851,6 +17142,7 @@ func (s *Store) fetchFullPageOfFederationNodes(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -14858,14 +17150,19 @@ func (s *Store) fetchFullPageOfFederationNodes(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryFederationNodes(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryFederationNodes(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectFederationNodeCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -14878,28 +17175,33 @@ func (s *Store) fetchFullPageOfFederationNodes(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectFederationNodeCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -14932,6 +17234,100 @@ func (s *Store) fetchFullPageOfFederationNodes(
 	return set, prev, next, nil
 }
 
+// countOfFederationNodes counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfFederationNodes(ctx context.Context, f federationType.NodeFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.FederationNode != nil {
+		// extended filter set
+		expr, f, err = s.Filters.FederationNode(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = FederationNodeFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for FederationNode: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxFederationNode
+			res  *federationType.Node
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, federationNodeSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query FederationNode: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query FederationNode: %w", err)
+			}
+
+			aux = new(auxFederationNode)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for FederationNode: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode FederationNode: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, federationNodeSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count FederationNode: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for FederationNode: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryFederationNodes queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -14941,7 +17337,7 @@ func (s *Store) fetchFullPageOfFederationNodes(
 func (s *Store) QueryFederationNodes(
 	ctx context.Context,
 	f federationType.NodeFilter,
-) (_ []*federationType.Node, more bool, err error) {
+) (_ []*federationType.Node, more bool, last *federationType.Node, err error) {
 	var (
 		ok bool
 
@@ -15032,6 +17428,10 @@ func (s *Store) QueryFederationNodes(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -15045,7 +17445,7 @@ func (s *Store) QueryFederationNodes(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -15426,15 +17826,9 @@ func (s *Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet federationType.NodeSyncSet
-			if navSet, _, _, err = s.fetchFullPageOfFederationNodeSyncs(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfFederationNodeSyncs(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -15480,6 +17874,13 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 		hasNext bool
 
 		tryFilter federationType.NodeSyncFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *federationType.NodeSync
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*federationType.NodeSync, 0, DefaultSliceCapacity)
@@ -15488,6 +17889,7 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -15495,14 +17897,19 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryFederationNodeSyncs(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryFederationNodeSyncs(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectFederationNodeSyncCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -15515,28 +17922,33 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectFederationNodeSyncCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -15569,6 +17981,100 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 	return set, prev, next, nil
 }
 
+// countOfFederationNodeSyncs counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfFederationNodeSyncs(ctx context.Context, f federationType.NodeSyncFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.FederationNodeSync != nil {
+		// extended filter set
+		expr, f, err = s.Filters.FederationNodeSync(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = FederationNodeSyncFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for FederationNodeSync: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxFederationNodeSync
+			res  *federationType.NodeSync
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, federationNodeSyncSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query FederationNodeSync: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query FederationNodeSync: %w", err)
+			}
+
+			aux = new(auxFederationNodeSync)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for FederationNodeSync: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode FederationNodeSync: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, federationNodeSyncSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count FederationNodeSync: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for FederationNodeSync: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryFederationNodeSyncs queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -15578,7 +18084,7 @@ func (s *Store) fetchFullPageOfFederationNodeSyncs(
 func (s *Store) QueryFederationNodeSyncs(
 	ctx context.Context,
 	f federationType.NodeSyncFilter,
-) (_ []*federationType.NodeSync, more bool, err error) {
+) (_ []*federationType.NodeSync, more bool, last *federationType.NodeSync, err error) {
 	var (
 		ok bool
 
@@ -15669,6 +18175,10 @@ func (s *Store) QueryFederationNodeSyncs(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -15682,7 +18192,7 @@ func (s *Store) QueryFederationNodeSyncs(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -16018,15 +18528,9 @@ func (s *Store) SearchFederationSharedModules(ctx context.Context, f federationT
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet federationType.SharedModuleSet
-			if navSet, _, _, err = s.fetchFullPageOfFederationSharedModules(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfFederationSharedModules(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -16072,6 +18576,13 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 		hasNext bool
 
 		tryFilter federationType.SharedModuleFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *federationType.SharedModule
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*federationType.SharedModule, 0, DefaultSliceCapacity)
@@ -16080,6 +18591,7 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -16087,14 +18599,19 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryFederationSharedModules(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryFederationSharedModules(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectFederationSharedModuleCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -16107,28 +18624,33 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectFederationSharedModuleCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -16161,6 +18683,100 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 	return set, prev, next, nil
 }
 
+// countOfFederationSharedModules counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfFederationSharedModules(ctx context.Context, f federationType.SharedModuleFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.FederationSharedModule != nil {
+		// extended filter set
+		expr, f, err = s.Filters.FederationSharedModule(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = FederationSharedModuleFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for FederationSharedModule: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxFederationSharedModule
+			res  *federationType.SharedModule
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, federationSharedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query FederationSharedModule: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query FederationSharedModule: %w", err)
+			}
+
+			aux = new(auxFederationSharedModule)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for FederationSharedModule: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode FederationSharedModule: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, federationSharedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count FederationSharedModule: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for FederationSharedModule: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryFederationSharedModules queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -16170,7 +18786,7 @@ func (s *Store) fetchFullPageOfFederationSharedModules(
 func (s *Store) QueryFederationSharedModules(
 	ctx context.Context,
 	f federationType.SharedModuleFilter,
-) (_ []*federationType.SharedModule, more bool, err error) {
+) (_ []*federationType.SharedModule, more bool, last *federationType.SharedModule, err error) {
 	var (
 		ok bool
 
@@ -16261,6 +18877,10 @@ func (s *Store) QueryFederationSharedModules(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -16274,7 +18894,7 @@ func (s *Store) QueryFederationSharedModules(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -16535,7 +19155,7 @@ func (s *Store) TruncateFlags(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchFlags(ctx context.Context, f flagType.FlagFilter) (set flagType.FlagSet, _ flagType.FlagFilter, err error) {
 
-	set, _, err = s.QueryFlags(ctx, f)
+	set, _, _, err = s.QueryFlags(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -16552,7 +19172,7 @@ func (s *Store) SearchFlags(ctx context.Context, f flagType.FlagFilter) (set fla
 func (s *Store) QueryFlags(
 	ctx context.Context,
 	f flagType.FlagFilter,
-) (_ []*flagType.Flag, more bool, err error) {
+) (_ []*flagType.Flag, more bool, last *flagType.Flag, err error) {
 	var (
 		set         = make([]*flagType.Flag, 0, DefaultSliceCapacity)
 		res         *flagType.Flag
@@ -16620,10 +19240,14 @@ func (s *Store) QueryFlags(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -16883,7 +19507,7 @@ func (s *Store) TruncateLabels(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchLabels(ctx context.Context, f labelsType.LabelFilter) (set labelsType.LabelSet, _ labelsType.LabelFilter, err error) {
 
-	set, _, err = s.QueryLabels(ctx, f)
+	set, _, _, err = s.QueryLabels(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -16900,7 +19524,7 @@ func (s *Store) SearchLabels(ctx context.Context, f labelsType.LabelFilter) (set
 func (s *Store) QueryLabels(
 	ctx context.Context,
 	f labelsType.LabelFilter,
-) (_ []*labelsType.Label, more bool, err error) {
+) (_ []*labelsType.Label, more bool, last *labelsType.Label, err error) {
 	var (
 		set         = make([]*labelsType.Label, 0, DefaultSliceCapacity)
 		res         *labelsType.Label
@@ -16968,10 +19592,14 @@ func (s *Store) QueryLabels(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -17268,15 +19896,9 @@ func (s *Store) SearchNotifications(ctx context.Context, f systemType.Notificati
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.NotificationSet
-			if navSet, _, _, err = s.fetchFullPageOfNotifications(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfNotifications(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -17322,6 +19944,13 @@ func (s *Store) fetchFullPageOfNotifications(
 		hasNext bool
 
 		tryFilter systemType.NotificationFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Notification
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Notification, 0, DefaultSliceCapacity)
@@ -17330,6 +19959,7 @@ func (s *Store) fetchFullPageOfNotifications(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -17337,14 +19967,19 @@ func (s *Store) fetchFullPageOfNotifications(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryNotifications(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryNotifications(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectNotificationCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -17357,28 +19992,33 @@ func (s *Store) fetchFullPageOfNotifications(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectNotificationCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -17411,6 +20051,100 @@ func (s *Store) fetchFullPageOfNotifications(
 	return set, prev, next, nil
 }
 
+// countOfNotifications counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfNotifications(ctx context.Context, f systemType.NotificationFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Notification != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Notification(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = NotificationFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Notification: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxNotification
+			res  *systemType.Notification
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, notificationSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Notification: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Notification: %w", err)
+			}
+
+			aux = new(auxNotification)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Notification: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Notification: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, notificationSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Notification: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Notification: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryNotifications queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -17420,7 +20154,7 @@ func (s *Store) fetchFullPageOfNotifications(
 func (s *Store) QueryNotifications(
 	ctx context.Context,
 	f systemType.NotificationFilter,
-) (_ []*systemType.Notification, more bool, err error) {
+) (_ []*systemType.Notification, more bool, last *systemType.Notification, err error) {
 	var (
 		ok bool
 
@@ -17511,6 +20245,10 @@ func (s *Store) QueryNotifications(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -17524,7 +20262,7 @@ func (s *Store) QueryNotifications(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -17821,15 +20559,9 @@ func (s *Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.QueueSet
-			if navSet, _, _, err = s.fetchFullPageOfQueues(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfQueues(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -17875,6 +20607,13 @@ func (s *Store) fetchFullPageOfQueues(
 		hasNext bool
 
 		tryFilter systemType.QueueFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Queue
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Queue, 0, DefaultSliceCapacity)
@@ -17883,6 +20622,7 @@ func (s *Store) fetchFullPageOfQueues(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -17890,14 +20630,19 @@ func (s *Store) fetchFullPageOfQueues(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryQueues(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryQueues(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectQueueCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -17910,28 +20655,33 @@ func (s *Store) fetchFullPageOfQueues(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectQueueCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -17964,6 +20714,100 @@ func (s *Store) fetchFullPageOfQueues(
 	return set, prev, next, nil
 }
 
+// countOfQueues counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfQueues(ctx context.Context, f systemType.QueueFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Queue != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Queue(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = QueueFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Queue: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxQueue
+			res  *systemType.Queue
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, queueSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Queue: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Queue: %w", err)
+			}
+
+			aux = new(auxQueue)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Queue: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Queue: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, queueSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Queue: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Queue: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryQueues queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -17973,7 +20817,7 @@ func (s *Store) fetchFullPageOfQueues(
 func (s *Store) QueryQueues(
 	ctx context.Context,
 	f systemType.QueueFilter,
-) (_ []*systemType.Queue, more bool, err error) {
+) (_ []*systemType.Queue, more bool, last *systemType.Queue, err error) {
 	var (
 		ok bool
 
@@ -18064,6 +20908,10 @@ func (s *Store) QueryQueues(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -18077,7 +20925,7 @@ func (s *Store) QueryQueues(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -18413,15 +21261,9 @@ func (s *Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessa
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.QueueMessageSet
-			if navSet, _, _, err = s.fetchFullPageOfQueueMessages(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfQueueMessages(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -18467,6 +21309,13 @@ func (s *Store) fetchFullPageOfQueueMessages(
 		hasNext bool
 
 		tryFilter systemType.QueueMessageFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.QueueMessage
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.QueueMessage, 0, DefaultSliceCapacity)
@@ -18475,6 +21324,7 @@ func (s *Store) fetchFullPageOfQueueMessages(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -18482,14 +21332,19 @@ func (s *Store) fetchFullPageOfQueueMessages(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryQueueMessages(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryQueueMessages(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectQueueMessageCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -18502,28 +21357,33 @@ func (s *Store) fetchFullPageOfQueueMessages(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectQueueMessageCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -18556,6 +21416,56 @@ func (s *Store) fetchFullPageOfQueueMessages(
 	return set, prev, next, nil
 }
 
+// countOfQueueMessages counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfQueueMessages(ctx context.Context, f systemType.QueueMessageFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.QueueMessage != nil {
+		// extended filter set
+		expr, f, err = s.Filters.QueueMessage(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = QueueMessageFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for QueueMessage: %w", err)
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, queueMessageSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count QueueMessage: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for QueueMessage: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryQueueMessages queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -18565,7 +21475,7 @@ func (s *Store) fetchFullPageOfQueueMessages(
 func (s *Store) QueryQueueMessages(
 	ctx context.Context,
 	f systemType.QueueMessageFilter,
-) (_ []*systemType.QueueMessage, more bool, err error) {
+) (_ []*systemType.QueueMessage, more bool, last *systemType.QueueMessage, err error) {
 	var (
 		set         = make([]*systemType.QueueMessage, 0, DefaultSliceCapacity)
 		res         *systemType.QueueMessage
@@ -18654,10 +21564,14 @@ func (s *Store) QueryQueueMessages(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -18857,7 +21771,7 @@ func (s *Store) TruncateRbacRules(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchRbacRules(ctx context.Context, f rbacType.RuleFilter) (set rbacType.RuleSet, _ rbacType.RuleFilter, err error) {
 
-	set, _, err = s.QueryRbacRules(ctx, f)
+	set, _, _, err = s.QueryRbacRules(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -18874,7 +21788,7 @@ func (s *Store) SearchRbacRules(ctx context.Context, f rbacType.RuleFilter) (set
 func (s *Store) QueryRbacRules(
 	ctx context.Context,
 	f rbacType.RuleFilter,
-) (_ []*rbacType.Rule, more bool, err error) {
+) (_ []*rbacType.Rule, more bool, last *rbacType.Rule, err error) {
 	var (
 		set         = make([]*rbacType.Rule, 0, DefaultSliceCapacity)
 		res         *rbacType.Rule
@@ -18942,10 +21856,14 @@ func (s *Store) QueryRbacRules(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -19200,15 +22118,9 @@ func (s *Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ReminderSet
-			if navSet, _, _, err = s.fetchFullPageOfReminders(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfReminders(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -19254,6 +22166,13 @@ func (s *Store) fetchFullPageOfReminders(
 		hasNext bool
 
 		tryFilter systemType.ReminderFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Reminder
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Reminder, 0, DefaultSliceCapacity)
@@ -19262,6 +22181,7 @@ func (s *Store) fetchFullPageOfReminders(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -19269,14 +22189,19 @@ func (s *Store) fetchFullPageOfReminders(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryReminders(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryReminders(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectReminderCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -19289,28 +22214,33 @@ func (s *Store) fetchFullPageOfReminders(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectReminderCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -19343,6 +22273,100 @@ func (s *Store) fetchFullPageOfReminders(
 	return set, prev, next, nil
 }
 
+// countOfReminders counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfReminders(ctx context.Context, f systemType.ReminderFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Reminder != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Reminder(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ReminderFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Reminder: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxReminder
+			res  *systemType.Reminder
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, reminderSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Reminder: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Reminder: %w", err)
+			}
+
+			aux = new(auxReminder)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Reminder: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Reminder: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, reminderSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Reminder: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Reminder: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryReminders queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -19352,7 +22376,7 @@ func (s *Store) fetchFullPageOfReminders(
 func (s *Store) QueryReminders(
 	ctx context.Context,
 	f systemType.ReminderFilter,
-) (_ []*systemType.Reminder, more bool, err error) {
+) (_ []*systemType.Reminder, more bool, last *systemType.Reminder, err error) {
 	var (
 		ok bool
 
@@ -19443,6 +22467,10 @@ func (s *Store) QueryReminders(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -19456,7 +22484,7 @@ func (s *Store) QueryReminders(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -19761,15 +22789,9 @@ func (s *Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (s
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ReportSet
-			if navSet, _, _, err = s.fetchFullPageOfReports(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfReports(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -19815,6 +22837,13 @@ func (s *Store) fetchFullPageOfReports(
 		hasNext bool
 
 		tryFilter systemType.ReportFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Report
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Report, 0, DefaultSliceCapacity)
@@ -19823,6 +22852,7 @@ func (s *Store) fetchFullPageOfReports(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -19830,14 +22860,19 @@ func (s *Store) fetchFullPageOfReports(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryReports(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryReports(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectReportCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -19850,28 +22885,33 @@ func (s *Store) fetchFullPageOfReports(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectReportCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -19904,6 +22944,100 @@ func (s *Store) fetchFullPageOfReports(
 	return set, prev, next, nil
 }
 
+// countOfReports counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfReports(ctx context.Context, f systemType.ReportFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Report != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Report(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ReportFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Report: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxReport
+			res  *systemType.Report
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, reportSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Report: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Report: %w", err)
+			}
+
+			aux = new(auxReport)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Report: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Report: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, reportSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Report: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Report: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryReports queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -19913,7 +23047,7 @@ func (s *Store) fetchFullPageOfReports(
 func (s *Store) QueryReports(
 	ctx context.Context,
 	f systemType.ReportFilter,
-) (_ []*systemType.Report, more bool, err error) {
+) (_ []*systemType.Report, more bool, last *systemType.Report, err error) {
 	var (
 		ok bool
 
@@ -20004,6 +23138,10 @@ func (s *Store) QueryReports(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -20017,7 +23155,7 @@ func (s *Store) QueryReports(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -20334,7 +23472,7 @@ func (s *Store) TruncateResourceActivitys(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchResourceActivitys(ctx context.Context, f discoveryType.ResourceActivityFilter) (set discoveryType.ResourceActivitySet, _ discoveryType.ResourceActivityFilter, err error) {
 
-	set, _, err = s.QueryResourceActivitys(ctx, f)
+	set, _, _, err = s.QueryResourceActivitys(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -20351,7 +23489,7 @@ func (s *Store) SearchResourceActivitys(ctx context.Context, f discoveryType.Res
 func (s *Store) QueryResourceActivitys(
 	ctx context.Context,
 	f discoveryType.ResourceActivityFilter,
-) (_ []*discoveryType.ResourceActivity, more bool, err error) {
+) (_ []*discoveryType.ResourceActivity, more bool, last *discoveryType.ResourceActivity, err error) {
 	var (
 		set         = make([]*discoveryType.ResourceActivity, 0, DefaultSliceCapacity)
 		res         *discoveryType.ResourceActivity
@@ -20419,10 +23557,14 @@ func (s *Store) QueryResourceActivitys(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -20663,15 +23805,9 @@ func (s *Store) SearchResourceTranslations(ctx context.Context, f systemType.Res
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.ResourceTranslationSet
-			if navSet, _, _, err = s.fetchFullPageOfResourceTranslations(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfResourceTranslations(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -20717,6 +23853,13 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 		hasNext bool
 
 		tryFilter systemType.ResourceTranslationFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.ResourceTranslation
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.ResourceTranslation, 0, DefaultSliceCapacity)
@@ -20725,6 +23868,7 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -20732,14 +23876,19 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryResourceTranslations(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryResourceTranslations(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectResourceTranslationCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -20752,28 +23901,33 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectResourceTranslationCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -20806,6 +23960,56 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 	return set, prev, next, nil
 }
 
+// countOfResourceTranslations counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfResourceTranslations(ctx context.Context, f systemType.ResourceTranslationFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.ResourceTranslation != nil {
+		// extended filter set
+		expr, f, err = s.Filters.ResourceTranslation(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = ResourceTranslationFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for ResourceTranslation: %w", err)
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, resourceTranslationSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count ResourceTranslation: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for ResourceTranslation: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryResourceTranslations queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -20815,7 +24019,7 @@ func (s *Store) fetchFullPageOfResourceTranslations(
 func (s *Store) QueryResourceTranslations(
 	ctx context.Context,
 	f systemType.ResourceTranslationFilter,
-) (_ []*systemType.ResourceTranslation, more bool, err error) {
+) (_ []*systemType.ResourceTranslation, more bool, last *systemType.ResourceTranslation, err error) {
 	var (
 		set         = make([]*systemType.ResourceTranslation, 0, DefaultSliceCapacity)
 		res         *systemType.ResourceTranslation
@@ -20904,10 +24108,14 @@ func (s *Store) QueryResourceTranslations(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -21198,15 +24406,9 @@ func (s *Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set s
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.RoleSet
-			if navSet, _, _, err = s.fetchFullPageOfRoles(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfRoles(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -21252,6 +24454,13 @@ func (s *Store) fetchFullPageOfRoles(
 		hasNext bool
 
 		tryFilter systemType.RoleFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Role
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Role, 0, DefaultSliceCapacity)
@@ -21260,6 +24469,7 @@ func (s *Store) fetchFullPageOfRoles(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -21267,14 +24477,19 @@ func (s *Store) fetchFullPageOfRoles(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryRoles(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryRoles(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectRoleCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -21287,28 +24502,33 @@ func (s *Store) fetchFullPageOfRoles(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectRoleCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -21341,6 +24561,100 @@ func (s *Store) fetchFullPageOfRoles(
 	return set, prev, next, nil
 }
 
+// countOfRoles counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfRoles(ctx context.Context, f systemType.RoleFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Role != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Role(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = RoleFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Role: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxRole
+			res  *systemType.Role
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, roleSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Role: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Role: %w", err)
+			}
+
+			aux = new(auxRole)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Role: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Role: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, roleSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Role: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Role: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryRoles queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -21350,7 +24664,7 @@ func (s *Store) fetchFullPageOfRoles(
 func (s *Store) QueryRoles(
 	ctx context.Context,
 	f systemType.RoleFilter,
-) (_ []*systemType.Role, more bool, err error) {
+) (_ []*systemType.Role, more bool, last *systemType.Role, err error) {
 	var (
 		ok bool
 
@@ -21441,6 +24755,10 @@ func (s *Store) QueryRoles(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -21454,7 +24772,7 @@ func (s *Store) QueryRoles(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -21849,7 +25167,7 @@ func (s *Store) TruncateRoleMembers(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchRoleMembers(ctx context.Context, f systemType.RoleMemberFilter) (set systemType.RoleMemberSet, _ systemType.RoleMemberFilter, err error) {
 
-	set, _, err = s.QueryRoleMembers(ctx, f)
+	set, _, _, err = s.QueryRoleMembers(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -21866,7 +25184,7 @@ func (s *Store) SearchRoleMembers(ctx context.Context, f systemType.RoleMemberFi
 func (s *Store) QueryRoleMembers(
 	ctx context.Context,
 	f systemType.RoleMemberFilter,
-) (_ []*systemType.RoleMember, more bool, err error) {
+) (_ []*systemType.RoleMember, more bool, last *systemType.RoleMember, err error) {
 	var (
 		set         = make([]*systemType.RoleMember, 0, DefaultSliceCapacity)
 		res         *systemType.RoleMember
@@ -21934,10 +25252,14 @@ func (s *Store) QueryRoleMembers(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -22136,7 +25458,7 @@ func (s *Store) TruncateSettingValues(ctx context.Context) error {
 // This function is auto-generated
 func (s *Store) SearchSettingValues(ctx context.Context, f systemType.SettingsFilter) (set systemType.SettingValueSet, _ systemType.SettingsFilter, err error) {
 
-	set, _, err = s.QuerySettingValues(ctx, f)
+	set, _, _, err = s.QuerySettingValues(ctx, f)
 	if err != nil {
 		return nil, f, err
 	}
@@ -22153,7 +25475,7 @@ func (s *Store) SearchSettingValues(ctx context.Context, f systemType.SettingsFi
 func (s *Store) QuerySettingValues(
 	ctx context.Context,
 	f systemType.SettingsFilter,
-) (_ []*systemType.SettingValue, more bool, err error) {
+) (_ []*systemType.SettingValue, more bool, last *systemType.SettingValue, err error) {
 	var (
 		set         = make([]*systemType.SettingValue, 0, DefaultSliceCapacity)
 		res         *systemType.SettingValue
@@ -22221,10 +25543,14 @@ func (s *Store) QuerySettingValues(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		set = append(set, res)
 	}
 
-	return set, false, err
+	return set, false, last, err
 
 }
 
@@ -22516,15 +25842,9 @@ func (s *Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.TemplateSet
-			if navSet, _, _, err = s.fetchFullPageOfTemplates(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfTemplates(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -22570,6 +25890,13 @@ func (s *Store) fetchFullPageOfTemplates(
 		hasNext bool
 
 		tryFilter systemType.TemplateFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.Template
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.Template, 0, DefaultSliceCapacity)
@@ -22578,6 +25905,7 @@ func (s *Store) fetchFullPageOfTemplates(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -22585,14 +25913,19 @@ func (s *Store) fetchFullPageOfTemplates(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryTemplates(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryTemplates(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectTemplateCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -22605,28 +25938,33 @@ func (s *Store) fetchFullPageOfTemplates(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectTemplateCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -22659,6 +25997,100 @@ func (s *Store) fetchFullPageOfTemplates(
 	return set, prev, next, nil
 }
 
+// countOfTemplates counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfTemplates(ctx context.Context, f systemType.TemplateFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.Template != nil {
+		// extended filter set
+		expr, f, err = s.Filters.Template(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = TemplateFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for Template: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxTemplate
+			res  *systemType.Template
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, templateSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query Template: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query Template: %w", err)
+			}
+
+			aux = new(auxTemplate)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for Template: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode Template: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, templateSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count Template: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for Template: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryTemplates queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -22668,7 +26100,7 @@ func (s *Store) fetchFullPageOfTemplates(
 func (s *Store) QueryTemplates(
 	ctx context.Context,
 	f systemType.TemplateFilter,
-) (_ []*systemType.Template, more bool, err error) {
+) (_ []*systemType.Template, more bool, last *systemType.Template, err error) {
 	var (
 		ok bool
 
@@ -22759,6 +26191,10 @@ func (s *Store) QueryTemplates(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -22772,7 +26208,7 @@ func (s *Store) QueryTemplates(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -23151,15 +26587,9 @@ func (s *Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set s
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.UserSet
-			if navSet, _, _, err = s.fetchFullPageOfUsers(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfUsers(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -23205,6 +26635,13 @@ func (s *Store) fetchFullPageOfUsers(
 		hasNext bool
 
 		tryFilter systemType.UserFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.User
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.User, 0, DefaultSliceCapacity)
@@ -23213,6 +26650,7 @@ func (s *Store) fetchFullPageOfUsers(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -23220,14 +26658,19 @@ func (s *Store) fetchFullPageOfUsers(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryUsers(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryUsers(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectUserCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -23240,28 +26683,33 @@ func (s *Store) fetchFullPageOfUsers(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectUserCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -23294,6 +26742,100 @@ func (s *Store) fetchFullPageOfUsers(
 	return set, prev, next, nil
 }
 
+// countOfUsers counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfUsers(ctx context.Context, f systemType.UserFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.User != nil {
+		// extended filter set
+		expr, f, err = s.Filters.User(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = UserFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for User: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxUser
+			res  *systemType.User
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, userSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query User: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query User: %w", err)
+			}
+
+			aux = new(auxUser)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for User: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode User: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, userSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count User: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for User: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryUsers queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -23303,7 +26845,7 @@ func (s *Store) fetchFullPageOfUsers(
 func (s *Store) QueryUsers(
 	ctx context.Context,
 	f systemType.UserFilter,
-) (_ []*systemType.User, more bool, err error) {
+) (_ []*systemType.User, more bool, last *systemType.User, err error) {
 	var (
 		ok bool
 
@@ -23394,6 +26936,10 @@ func (s *Store) QueryUsers(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -23407,7 +26953,7 @@ func (s *Store) QueryUsers(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 
@@ -23931,15 +27477,9 @@ func (s *Store) SearchUserGroups(ctx context.Context, f systemType.UserGroupFilt
 		f.Total = uint(len(set))
 
 		if f.Limit > 0 && uint(len(set)) == f.Limit {
-			// there are fewer items fetched then requested limit
-			limit := f.Limit
-			f.Limit = 0
-			var navSet systemType.UserGroupSet
-			if navSet, _, _, err = s.fetchFullPageOfUserGroups(ctx, f, sort); err != nil {
-				return
-			} else {
-				f.Total = uint(len(navSet))
-				f.Limit = limit
+			// page is full, so there may be more; count the rest
+			if f.Total, err = s.countOfUserGroups(ctx, f); err != nil {
+				return nil, f, err
 			}
 		}
 	}
@@ -23985,6 +27525,13 @@ func (s *Store) fetchFullPageOfUserGroups(
 		hasNext bool
 
 		tryFilter systemType.UserGroupFilter
+
+		// last row the query reached, whether or not the check fn kept it;
+		// survives the per-try filter reset so retries continue where the previous one stopped
+		lastScanned *systemType.UserGroup
+
+		// cursor the next try starts from
+		cursor = filter.PageCursor
 	)
 
 	set = make([]*systemType.UserGroup, 0, DefaultSliceCapacity)
@@ -23993,6 +27540,7 @@ func (s *Store) fetchFullPageOfUserGroups(
 		// Copy filter & apply custom sorting that might be affected by cursor
 		tryFilter = filter
 		tryFilter.Sort = sort
+		tryFilter.PageCursor = cursor
 
 		if limit > 0 {
 			// fetching + 1 to peak ahead if there are more items
@@ -24000,14 +27548,19 @@ func (s *Store) fetchFullPageOfUserGroups(
 			tryFilter.Limit = limit + 1
 		}
 
-		if aux, hasNext, err = s.QueryUserGroups(ctx, tryFilter); err != nil {
+		if aux, hasNext, lastScanned, err = s.QueryUserGroups(ctx, tryFilter); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if len(aux) == 0 {
-			// nothing fetched
+		if lastScanned == nil {
+			// source exhausted
 			break
 		}
+
+		// advance past everything this try reached, kept or not;
+		// built from the effective sort, which is flipped when paging backwards
+		cursor = s.collectUserGroupCursorValues(lastScanned, sort...)
+		cursor.LThen = sort.Reversed()
 
 		// append fetched items
 		set = append(set, aux...)
@@ -24020,28 +27573,33 @@ func (s *Store) fetchFullPageOfUserGroups(
 		collected := uint(len(set))
 
 		if reqItems > collected {
-			// not enough items fetched, try again with adjusted limit
-			limit = reqItems - collected
+			if len(aux) == 0 {
+				// the check fn rejected the whole batch; widen the window so a long
+				// run of rejected rows is crossed in a few queries, not MaxRefetches
+				if limit < MaxEnsureFetchLimit {
+					limit *= 2
+				}
+			} else {
+				// not enough items fetched, try again with adjusted limit
+				limit = reqItems - collected
 
-			if limit < MinEnsureFetchLimit {
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				limit = MinEnsureFetchLimit
+				if limit < MinEnsureFetchLimit {
+					// In case limit is set very low and we've missed records in the first fetch,
+					// make sure next fetch limit is a bit higher
+					limit = MinEnsureFetchLimit
+				}
 			}
 
-			// Update cursor so that it points to the last item fetched
-			tryFilter.PageCursor = s.collectUserGroupCursorValues(set[collected-1], filter.Sort...)
-
-			// Copy reverse flag from sorting
-			tryFilter.PageCursor.LThen = filter.Sort.Reversed()
 			continue
 		}
 
-		if reqItems < collected {
-			set = set[:reqItems]
-		}
-
 		break
+	}
+
+	// never hand back more than was asked for; anything trimmed means there is another page
+	if reqItems > 0 && uint(len(set)) > reqItems {
+		set = set[:reqItems]
+		hasNext = true
 	}
 
 	collected := len(set)
@@ -24074,6 +27632,100 @@ func (s *Store) fetchFullPageOfUserGroups(
 	return set, prev, next, nil
 }
 
+// countOfUserGroups counts all rows matching the filter
+//
+// Rows are counted, not collected, so the cost does not grow with the size of
+// the result set. When a check fn is set it has to see every row, so rows are
+// scanned and decoded one at a time; without one the database does the counting.
+//
+// This function is auto-generated
+func (s *Store) countOfUserGroups(ctx context.Context, f systemType.UserGroupFilter) (total uint, err error) {
+	var (
+		expr []goqu.Expression
+	)
+
+	if s.Filters.UserGroup != nil {
+		// extended filter set
+		expr, f, err = s.Filters.UserGroup(s, f)
+	} else {
+		// using generated filter
+		expr, f, err = UserGroupFilter(s.Dialect, f)
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("could not generate filter expression for UserGroup: %w", err)
+	}
+
+	if f.Check != nil {
+		var (
+			rows *sql.Rows
+			aux  *auxUserGroup
+			res  *systemType.UserGroup
+			ok   bool
+		)
+
+		if rows, err = s.Query(ctx, userGroupSelectQuery(s.Dialect.GOQU()).Where(expr...)); err != nil {
+			return 0, fmt.Errorf("could not query UserGroup: %w", err)
+		}
+
+		defer func() {
+			closeError := rows.Close()
+			if err == nil {
+				// return error from close
+				err = closeError
+			}
+		}()
+
+		for rows.Next() {
+			if err = rows.Err(); err != nil {
+				return 0, fmt.Errorf("could not query UserGroup: %w", err)
+			}
+
+			aux = new(auxUserGroup)
+			if err = aux.scan(rows); err != nil {
+				return 0, fmt.Errorf("could not scan rows for UserGroup: %w", err)
+			}
+
+			if res, err = aux.decode(); err != nil {
+				return 0, fmt.Errorf("could not decode UserGroup: %w", err)
+			}
+
+			if ok, err = f.Check(res); err != nil {
+				return 0, err
+			} else if ok {
+				total++
+			}
+		}
+
+		return total, rows.Err()
+	}
+
+	var (
+		counted   int64
+		countRows *sql.Rows
+	)
+
+	if countRows, err = s.Query(ctx, userGroupSelectQuery(s.Dialect.GOQU()).Where(expr...).Select(goqu.COUNT(goqu.Star()))); err != nil {
+		return 0, fmt.Errorf("could not count UserGroup: %w", err)
+	}
+
+	defer func() {
+		closeError := countRows.Close()
+		if err == nil {
+			// return error from close
+			err = closeError
+		}
+	}()
+
+	if countRows.Next() {
+		if err = countRows.Scan(&counted); err != nil {
+			return 0, fmt.Errorf("could not scan count for UserGroup: %w", err)
+		}
+	}
+
+	return uint(counted), countRows.Err()
+}
+
 // QueryUserGroups queries the database, converts and checks each row and returns collected set
 //
 // With generics, we can remove this per-resource-generated function
@@ -24083,7 +27735,7 @@ func (s *Store) fetchFullPageOfUserGroups(
 func (s *Store) QueryUserGroups(
 	ctx context.Context,
 	f systemType.UserGroupFilter,
-) (_ []*systemType.UserGroup, more bool, err error) {
+) (_ []*systemType.UserGroup, more bool, last *systemType.UserGroup, err error) {
 	var (
 		ok bool
 
@@ -24174,6 +27826,10 @@ func (s *Store) QueryUserGroups(
 			return
 		}
 
+		// last scanned row, before the check fn gets a say;
+		// paging uses it to advance past rows the check rejects
+		last = res
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if f.Check != nil {
@@ -24187,7 +27843,7 @@ func (s *Store) QueryUserGroups(
 		set = append(set, res)
 	}
 
-	return set, f.Limit > 0 && count >= f.Limit, err
+	return set, f.Limit > 0 && count >= f.Limit, last, err
 
 }
 

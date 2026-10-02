@@ -7,7 +7,7 @@
       progress
       :animated="!progress.finishedAt"
       :relative="false"
-      variant="success"
+      :variant="progress.startupError ? 'danger' : 'success'"
       text-style="font-size: 1.5rem;"
       style="height: 4rem;"
       class="mb-4"
@@ -35,7 +35,24 @@
     </div>
 
     <div
-      v-if="progress.finishedAt && !progress.failed"
+      v-else-if="progress.startupError"
+      class="d-flex"
+    >
+      <span class="text-danger">
+        {{ progress.startupError }}
+      </span>
+
+      <b-button
+        variant="light"
+        class="ml-auto"
+        @click="$emit('close')"
+      >
+        {{ $t('general:label.close') }}
+      </b-button>
+    </div>
+
+    <div
+      v-else-if="!progress.failed"
       class="d-flex"
     >
       <span class="text-success">
@@ -81,28 +98,42 @@ export default {
     },
   },
 
-  data () {
-    return {
-      progress: this.session.progress || {},
-    }
+  computed: {
+    progress () {
+      return this.session.progress || {}
+    },
   },
 
   watch: {
     progress: {
-      handler ({ finishedAt, failed }) {
-        if (finishedAt && failed) {
+      handler ({ finishedAt, failed, startupError }) {
+        if (!finishedAt) return
+
+        // Initial run failed; we already render an error state in the
+        // template. Routing to ErrorReport here would crash since there's
+        // no failLog to display.
+        if (startupError) {
+          this.clearTimeout()
+          return
+        }
+
+        if (failed) {
           this.clearTimeout()
           this.$emit('importFailed', this.progress)
-        } else if (finishedAt) {
-          this.clearTimeout()
-          this.$root.$emit('recordList.refresh', this.session)
-          this.$emit('importSuccessful')
+          return
         }
+
+        this.clearTimeout()
+        this.$root.$emit('recordList.refresh', this.session)
+        this.$emit('importSuccessful')
       },
     },
   },
 
   mounted () {
+    // If the initial run already failed before we mounted, don't start polling.
+    if (this.progress.startupError) return
+
     if (!this.noPool) {
       this.pool()
     }
@@ -123,8 +154,20 @@ export default {
     pool () {
       this.$ComposeAPI.recordImportProgress(this.session)
         .then(({ progress }) => {
-          this.progress = progress
-          toHandle = window.setTimeout(this.pool, 2000)
+          this.$set(this.session, 'progress', progress)
+          if (!progress || !progress.finishedAt) {
+            toHandle = window.setTimeout(this.pool, 2000)
+          }
+        })
+        .catch((err) => {
+          // Progress endpoint blew up (session expired, server down, …).
+          // Surface it as a startup error so the spinner stops.
+          const message = (err && err.message) || this.$t('recordList.import.startFailed')
+          this.$set(this.session, 'progress', {
+            ...this.progress,
+            finishedAt: new Date().toISOString(),
+            startupError: message,
+          })
         })
     },
   },

@@ -6,10 +6,7 @@ editor:
   info:
     confirmEmail: Confirm email address
     id: ID
-    createdAt: Created at
-    createdBy: Created by
     delete: Delete
-    deletedAt: Deleted at
     email: Email *
     handle: Handle
     placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
@@ -17,11 +14,9 @@ editor:
     name: Full name
     revokeAllSession: Revoke all active sessions
     suspend: Suspend
-    suspendedAt: Suspended at
     title: Basic information
     undelete: Undelete
     unsuspend: Unsuspend
-    updatedAt: Updated at
     userGroup:
       label: User group
       placeholder: User group

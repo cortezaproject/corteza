@@ -553,6 +553,8 @@ func CastToUnsignedInteger(val interface{}) (out uint64, err error) {
 	return cast.ToUint64E(emptyStringFailsafe(val))
 }
 
+func (t *KV) isFlatStore() {}
+
 func (t *KV) Has(k string) bool {
 	_, has := t.value[k]
 	return has
@@ -876,6 +878,8 @@ func CastToUrl(val interface{}) (out *url.URL, err error) {
 		return &url.URL{}, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
 }
+
+func (t *KVV) isFlatStore() {}
 
 func (t *KVV) Select(k string) (TypedValue, error) {
 	if v, is := t.value[k]; is {

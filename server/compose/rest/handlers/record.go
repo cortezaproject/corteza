@@ -24,6 +24,8 @@ type (
 		ImportInit(context.Context, *request.RecordImportInit) (interface{}, error)
 		ImportRun(context.Context, *request.RecordImportRun) (interface{}, error)
 		ImportProgress(context.Context, *request.RecordImportProgress) (interface{}, error)
+		ExportInit(context.Context, *request.RecordExportInit) (interface{}, error)
+		ExportPull(context.Context, *request.RecordExportPull) (interface{}, error)
 		Export(context.Context, *request.RecordExport) (interface{}, error)
 		Exec(context.Context, *request.RecordExec) (interface{}, error)
 		Create(context.Context, *request.RecordCreate) (interface{}, error)
@@ -47,6 +49,8 @@ type (
 		ImportInit          func(http.ResponseWriter, *http.Request)
 		ImportRun           func(http.ResponseWriter, *http.Request)
 		ImportProgress      func(http.ResponseWriter, *http.Request)
+		ExportInit          func(http.ResponseWriter, *http.Request)
+		ExportPull          func(http.ResponseWriter, *http.Request)
 		Export              func(http.ResponseWriter, *http.Request)
 		Exec                func(http.ResponseWriter, *http.Request)
 		Create              func(http.ResponseWriter, *http.Request)
@@ -139,6 +143,38 @@ func NewRecord(h RecordAPI) *Record {
 			}
 
 			value, err := h.ImportProgress(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		ExportInit: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordExportInit()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ExportInit(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		ExportPull: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordExportPull()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ExportPull(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -381,6 +417,8 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/import", h.ImportInit)
 		r.Patch("/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}", h.ImportRun)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}", h.ImportProgress)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/export", h.ExportInit)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/export/{sessionID}/{filename}.{ext}", h.ExportPull)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/export{filename}.{ext}", h.Export)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/exec/{procedure}", h.Exec)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/", h.Create)

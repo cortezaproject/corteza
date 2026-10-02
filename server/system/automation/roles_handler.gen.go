@@ -83,6 +83,9 @@ func (h rolesHandler) Lookup() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -183,6 +186,9 @@ func (h rolesHandler) SearchMembers() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -308,6 +314,9 @@ func (h rolesHandler) EachMember() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -398,10 +407,16 @@ func (h rolesHandler) AddMember() *atypes.Function {
 			{
 				Name:  "role",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Role",
+				},
 			},
 			{
 				Name:  "user",
 				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "User",
+				},
 			},
 		},
 
@@ -495,10 +510,16 @@ func (h rolesHandler) RemoveMember() *atypes.Function {
 			{
 				Name:  "role",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Role",
+				},
 			},
 			{
 				Name:  "user",
 				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "User",
+				},
 			},
 		},
 
@@ -612,50 +633,86 @@ func (h rolesHandler) Search() *atypes.Function {
 			{
 				Name:  "query",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Query",
+				},
 			},
 			{
 				Name:  "memberID",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Member ID",
+				},
 			},
 			{
 				Name:  "handle",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Handle",
+				},
 			},
 			{
 				Name:  "name",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Name",
+				},
 			},
 			{
 				Name:  "labels",
 				Types: []string{"LabelValue"},
+				Meta: &atypes.ParamMeta{
+					Label: "Labels",
+				},
 			},
 			{
 				Name:  "deleted",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Deleted",
+				},
 			},
 			{
 				Name:  "archived",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Archived",
+				},
 			},
 			{
 				Name:  "sort",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Sort",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
 			},
 			{
 				Name:  "incTotal",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
 			},
 			{
 				Name:  "incPageNavigation",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include page navigation",
+				},
 			},
 			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Page cursor",
+				},
 			},
 		},
 
@@ -805,50 +862,86 @@ func (h rolesHandler) Each() *atypes.Function {
 			{
 				Name:  "query",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Query",
+				},
 			},
 			{
 				Name:  "memberID",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Member ID",
+				},
 			},
 			{
 				Name:  "handle",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Handle",
+				},
 			},
 			{
 				Name:  "name",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Name",
+				},
 			},
 			{
 				Name:  "labels",
 				Types: []string{"LabelValue"},
+				Meta: &atypes.ParamMeta{
+					Label: "Labels",
+				},
 			},
 			{
 				Name:  "deleted",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Deleted",
+				},
 			},
 			{
 				Name:  "archived",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Archived",
+				},
 			},
 			{
 				Name:  "sort",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Sort",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
 			},
 			{
 				Name:  "incTotal",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include total",
+				},
 			},
 			{
 				Name:  "incPageNavigation",
 				Types: []string{"Boolean"},
+				Meta: &atypes.ParamMeta{
+					Label: "Include page navigation",
+				},
 			},
 			{
 				Name:  "pageCursor",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Page cursor",
+				},
 			},
 		},
 
@@ -923,6 +1016,9 @@ func (h rolesHandler) Create() *atypes.Function {
 			{
 				Name:  "role",
 				Types: []string{"Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Role",
+				},
 			},
 		},
 
@@ -1001,6 +1097,9 @@ func (h rolesHandler) Update() *atypes.Function {
 			{
 				Name:  "role",
 				Types: []string{"Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Role",
+				},
 			},
 		},
 
@@ -1082,6 +1181,9 @@ func (h rolesHandler) Delete() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -1148,6 +1250,9 @@ func (h rolesHandler) Recover() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -1214,6 +1319,9 @@ func (h rolesHandler) Archive() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 
@@ -1280,6 +1388,9 @@ func (h rolesHandler) Unarchive() *atypes.Function {
 			{
 				Name:  "lookup",
 				Types: []string{"ID", "Handle", "Role"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Lookup",
+				},
 			},
 		},
 

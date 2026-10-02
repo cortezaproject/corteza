@@ -116,6 +116,93 @@ func TestParseComplexCSVCell(t *testing.T) {
 		out := d.parseComplexCSVCell("[{};{}]")
 		require.Equal(t, []string{"{}", "{}"}, out)
 	})
+
+	t.Run("single value geometry json", func(t *testing.T) {
+		d := &decoder{
+			multiValueDelimiter: ";",
+		}
+
+		out := d.parseComplexCSVCell(`{"coordinates":[47.754098,1.9335938]}`)
+		require.Equal(t, []string{`{"coordinates":[47.754098,1.9335938]}`}, out)
+	})
+
+	t.Run("multi value geometry json without brackets", func(t *testing.T) {
+		d := &decoder{
+			multiValueDelimiter: ";",
+		}
+
+		out := d.parseComplexCSVCell(`{"coordinates":[47.754098,1.9335938]};{"coordinates":[9.7956776,23.3789063]}`)
+		require.Equal(t, []string{
+			`{"coordinates":[47.754098,1.9335938]}`,
+			`{"coordinates":[9.7956776,23.3789063]}`,
+		}, out)
+	})
+
+	t.Run("multi value geometry json with brackets", func(t *testing.T) {
+		d := &decoder{
+			multiValueDelimiter: ";",
+			multiValueBrackets:  true,
+		}
+
+		out := d.parseComplexCSVCell(`[{"coordinates":[47.754098,1.9335938]};{"coordinates":[9.7956776,23.3789063]}]`)
+		require.Equal(t, []string{
+			`{"coordinates":[47.754098,1.9335938]}`,
+			`{"coordinates":[9.7956776,23.3789063]}`,
+		}, out)
+	})
+
+	t.Run("single value geometry json with comma delimiter", func(t *testing.T) {
+		d := &decoder{
+			multiValueDelimiter: ",",
+		}
+
+		// commas inside the JSON must not split the value
+		out := d.parseComplexCSVCell(`{"coordinates":[47.754098,1.9335938]}`)
+		require.Equal(t, []string{`{"coordinates":[47.754098,1.9335938]}`}, out)
+	})
+
+	t.Run("single value json with nested objects", func(t *testing.T) {
+		d := &decoder{
+			multiValueDelimiter: ",",
+		}
+
+		// "},{" inside the JSON must not split the value
+		out := d.parseComplexCSVCell(`{"points":[{"x":1},{"y":2}]}`)
+		require.Equal(t, []string{`{"points":[{"x":1},{"y":2}]}`}, out)
+	})
+
+	t.Run("multi value json with nested objects and braces in strings", func(t *testing.T) {
+		d := &decoder{
+			multiValueDelimiter: ";",
+		}
+
+		out := d.parseComplexCSVCell(`{"a":[{"x":1},{"y":2}],"s":"};{"};{"b":2}`)
+		require.Equal(t, []string{
+			`{"a":[{"x":1},{"y":2}],"s":"};{"}`,
+			`{"b":2}`,
+		}, out)
+	})
+
+	t.Run("multi value json split is delimiter agnostic", func(t *testing.T) {
+		// exports default to ";" while an unconfigured decoder falls back to
+		// ","; complete-object splitting covers both
+		d := &decoder{}
+
+		out := d.parseComplexCSVCell(`{"a":1};{"b":2}`)
+		require.Equal(t, []string{`{"a":1}`, `{"b":2}`}, out)
+
+		out = d.parseComplexCSVCell(`{"a":1},{"b":2}`)
+		require.Equal(t, []string{`{"a":1}`, `{"b":2}`}, out)
+	})
+
+	t.Run("malformed json cell returned whole", func(t *testing.T) {
+		d := &decoder{
+			multiValueDelimiter: ";",
+		}
+
+		out := d.parseComplexCSVCell(`{"a":{1};{"b"}`)
+		require.Equal(t, []string{`{"a":{1};{"b"}`}, out)
+	})
 }
 
 func testReader() io.Reader {

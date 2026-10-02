@@ -2,6 +2,7 @@ package renderer
 
 import (
 	"encoding/base64"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -49,6 +50,16 @@ func preprocHTMLTemplate(pl *driverPayload) (*template.Template, error) {
 
 				raw := base64.RawStdEncoding.EncodeToString(bb)
 				return template.URL("data:" + rsp.Header.Get("Content-Type") + ";base64," + raw), nil
+			},
+			// emits the value as-is, without the contextual escaping
+			// html/template applies to every other interpolated value;
+			// unset values render empty, the same as plain interpolation
+			"safeHTML": func(v any) template.HTML {
+				if v == nil {
+					return ""
+				}
+
+				return template.HTML(fmt.Sprintf("%v", v))
 			},
 			"env": envGetter(),
 		})

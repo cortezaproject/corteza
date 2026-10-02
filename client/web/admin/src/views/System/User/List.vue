@@ -247,7 +247,11 @@ export default {
     },
 
     rowClass (item) {
-      return { 'text-secondary': item && (!!item.deletedAt || !!item.suspendedAt) }
+      if (!item) return {}
+      return {
+        'text-danger': !!item.deletedAt,
+        'text-muted': !item.deletedAt && !!item.suspendedAt,
+      }
     },
 
     handleDelete (user) {

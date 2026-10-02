@@ -139,13 +139,13 @@ export default {
 
   methods: {
     initializeFromProps () {
-      // Set namespace values directly from labels
-      this.namespace.values = this.namespaceLabels || []
+      // Set namespace values directly from labels, filtering out malformed entries
+      this.namespace.values = (this.namespaceLabels || []).filter(label => this.isValidLabel(label, 2))
 
       // Set module values directly from labels
       if (this.namespace.values.length > 0) {
         this.fetchModules().then(() => {
-          this.module.values = this.moduleLabels || []
+          this.module.values = (this.moduleLabels || []).filter(label => this.isValidLabel(label, 3))
         })
       }
     },
@@ -165,7 +165,7 @@ export default {
               namespacePromises.push(
                 this.$ComposeAPI.namespaceRead({ namespaceID })
                   .then(n => [n])
-                  .catch(() => []),
+                  .catch(() => [{ namespaceID }]),
               )
             }
           })
@@ -202,7 +202,28 @@ export default {
       )
 
       return Promise.all(promises).then(results => {
-        this.module.options = results.flat()
+        const set = results.flat()
+
+        // Fetch any selected modules missing from the listed page (e.g. when there are more modules in a namespace than the page limit).
+        const missingPromises = []
+        if (this.moduleLabels && this.moduleLabels.length > 0 && !this.module.filter.query) {
+          this.moduleLabels.forEach(label => {
+            const parts = label.split('/')
+            const namespaceID = parts[1]
+            const moduleID = parts[2]
+            if (!namespaceID || !moduleID) return
+            if (set.some(m => m.moduleID === moduleID)) return
+            missingPromises.push(
+              this.$ComposeAPI.moduleRead({ namespaceID, moduleID })
+                .then(m => [m])
+                .catch(() => [{ namespaceID, moduleID }]),
+            )
+          })
+        }
+
+        return Promise.all(missingPromises).then(extra => {
+          this.module.options = [...set, ...extra.flat()]
+        })
       }).catch(() => {
         this.module.options = []
       }).finally(() => {
@@ -225,12 +246,14 @@ export default {
     }, 300),
 
     updateNamespaces (namespaceLabels) {
-      this.namespace.values = namespaceLabels || []
+      this.namespace.values = (namespaceLabels || []).filter(label => this.isValidLabel(label, 2))
 
       if (this.namespace.values.length > 0) {
-        // Filter out modules from namespaces that are no longer selected
+        // Filter out modules from namespaces that are no longer selected,
+        // and drop any malformed module labels at the same time.
         const selectedNsIDs = new Set(this.namespace.values.map(label => label.split('/')[1]))
         this.module.values = this.module.values.filter(moduleLabel => {
+          if (!this.isValidLabel(moduleLabel, 3)) return false
           const nsID = moduleLabel.split('/')[1]
           return selectedNsIDs.has(nsID)
         })
@@ -253,10 +276,21 @@ export default {
 
       // Add new module labels for this namespace
       if (moduleLabels && moduleLabels.length > 0) {
-        this.module.values = [...this.module.values, ...moduleLabels]
+        const valid = moduleLabels.filter(label => this.isValidLabel(label, 3))
+        this.module.values = [...this.module.values, ...valid]
       }
 
       this.emitChange()
+    },
+
+    isValidLabel (label, expectedParts) {
+      if (typeof label !== 'string' || !label) return false
+      const parts = label.split('/')
+      if (parts.length < expectedParts) return false
+      for (let i = 1; i < expectedParts; i++) {
+        if (!parts[i] || parts[i] === 'undefined') return false
+      }
+      return true
     },
 
     emitChange () {
@@ -267,12 +301,12 @@ export default {
       })
     },
 
-    getNamespaceOptionLabel ({ name, handle } = {}) {
-      return name || handle || 'Unnamed Namespace'
+    getNamespaceOptionLabel ({ name, slug, namespaceID } = {}) {
+      return name || slug || namespaceID
     },
 
-    getModuleOptionLabel (module) {
-      return module.name || module.handle || 'Unnamed Module'
+    getModuleOptionLabel ({ name, handle, moduleID } = {}) {
+      return name || handle || moduleID
     },
 
     getModuleLabel (namespaceLabel) {
@@ -312,6 +346,10 @@ export default {
 ::v-deep .namespace-selector .vs__selected {
   background-color: var(--primary) !important;
   color: white !important;
+}
+
+::v-deep .namespace-selector .vs__deselect {
+  fill: white !important;
 }
 
 /* Style module select tags (extra-light with dark text) */

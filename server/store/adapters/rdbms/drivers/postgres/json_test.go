@@ -66,6 +66,11 @@ func Test_DeepIdentJSON(t *testing.T) {
 				sql:    `"one"->'two'->3`,
 				args:   []interface{}{},
 			},
+			{
+				input: []interface{}{"one", "tw'o"},
+				sql:   `"one"->>'tw''o'`,
+				args:  []interface{}{},
+			},
 		}
 
 		conv = func(asJSON bool, pp ...any) exp.SQLExpression {

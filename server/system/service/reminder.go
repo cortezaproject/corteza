@@ -66,8 +66,12 @@ func (svc reminder) Find(ctx context.Context, filter types.ReminderFilter) (rr t
 		raProps = &reminderActionProps{filter: &filter}
 	)
 
-	filter.Check = func(r *types.Reminder) (bool, error) {
-		return !svc.checkAssignTo(ctx, r), nil
+	// Users that are allowed to assign reminders to others can also
+	// search through reminders of other users
+	if !svc.ac.CanAssignReminder(ctx) {
+		filter.Check = func(r *types.Reminder) (bool, error) {
+			return !svc.checkAssignTo(ctx, r), nil
+		}
 	}
 
 	err = func() (err error) {
@@ -97,7 +101,7 @@ func (svc reminder) FindByID(ctx context.Context, ID uint64) (r *types.Reminder,
 			return err
 		}
 
-		if svc.checkAssignTo(ctx, r) {
+		if !svc.canAccess(ctx, r) {
 			return ReminderErrNotAllowedToRead()
 		}
 
@@ -133,6 +137,12 @@ func (svc reminder) checkAssignee(ctx context.Context, rm *types.Reminder) (err 
 // checkAssignTo compares current user with reminder.AssignedTo and return bool
 func (svc reminder) checkAssignTo(ctx context.Context, rm *types.Reminder) (valid bool) {
 	return rm.AssignedTo != svc.currentUser(ctx)
+}
+
+// canAccess returns true when reminder is assigned to the current user or when
+// the user is allowed to assign reminders to others
+func (svc reminder) canAccess(ctx context.Context, rm *types.Reminder) bool {
+	return !svc.checkAssignTo(ctx, rm) || svc.ac.CanAssignReminder(ctx)
 }
 
 func (svc reminder) currentUser(ctx context.Context) uint64 {
@@ -236,7 +246,7 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 			return ReminderErrNotFound()
 		}
 
-		if svc.checkAssignTo(ctx, r) {
+		if !svc.canAccess(ctx, r) {
 			return ReminderErrNotAllowedToDismiss()
 		}
 
@@ -275,7 +285,7 @@ func (svc reminder) Undismiss(ctx context.Context, ID uint64) (err error) {
 			return ReminderErrNotFound()
 		}
 
-		if svc.checkAssignTo(ctx, r) {
+		if !svc.canAccess(ctx, r) {
 			return ReminderErrNotAllowedToUndismiss()
 		}
 
@@ -309,6 +319,10 @@ func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time) 
 
 		if r, err = store.LookupReminderByID(ctx, svc.store, ID); err != nil {
 			return ReminderErrNotFound()
+		}
+
+		if !svc.canAccess(ctx, r) {
+			return ReminderErrNotAllowedToSnooze()
 		}
 
 		raProps.setReminder(r)

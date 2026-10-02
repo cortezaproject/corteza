@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
@@ -48,6 +49,13 @@ func (e JsonlEncoder) encodeRecordDatasources(ctx context.Context, writer *json.
 
 func (e JsonlEncoder) encodeRecordDatasource(ctx context.Context, writer *json.Encoder, p envoyx.EncodeParams, node *envoyx.Node, tt envoyx.Traverser) (_ any, err error) {
 	rds := node.Datasource.(*RecordDatasource)
+
+	var loc *time.Location
+	loc, err = resolveTimezone(p)
+	if err != nil {
+		return
+	}
+
 	header := make([]string, 0, 4)
 
 	hasID := false
@@ -83,14 +91,26 @@ func (e JsonlEncoder) encodeRecordDatasource(ctx context.Context, writer *json.E
 					return
 				}
 
+				srcKey := strings.TrimSuffix(h, " value")
+				isDt := rds.datetimeFields[h] || rds.datetimeFields[srcKey]
+
 				if !rds.multivalues[h] {
-					row, err = j7s.AddMap(row, h, v.Values[0])
+					vv := v.Values[0]
+					if isDt {
+						vv = formatInTimezone(vv, loc)
+					}
+
+					row, err = j7s.AddMap(row, h, vv)
 					if err != nil {
 						return
 					}
 				} else {
 					auxv, _ := j7s.MakeSeq()
 					for _, vv := range v.Values {
+						if isDt {
+							vv = formatInTimezone(vv, loc)
+						}
+
 						auxv, err = j7s.AddSeq(auxv, vv)
 						if err != nil {
 							return

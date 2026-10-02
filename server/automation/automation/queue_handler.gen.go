@@ -67,10 +67,16 @@ func (h queueHandler) Write() *atypes.Function {
 			{
 				Name:  "payload",
 				Types: []string{"String", "Reader"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Payload",
+				},
 			},
 			{
 				Name:  "queue",
 				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Queue",
+				},
 			},
 		},
 

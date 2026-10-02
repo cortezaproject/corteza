@@ -236,6 +236,8 @@ func queueMessageTypedValueSelector(res *types.QueueMessage, k string) (TypedVal
 }
 
 // assignToQueueMessage is field value setter for *types.QueueMessage
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToQueueMessage(res *types.QueueMessage, k string, val interface{}) error {
 	switch k {
 	case "Queue":
@@ -491,6 +493,8 @@ func reminderTypedValueSelector(res *types.Reminder, k string) (TypedValue, erro
 }
 
 // assignToReminder is field value setter for *types.Reminder
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToReminder(res *types.Reminder, k string, val interface{}) error {
 	switch k {
 	case "ID", "reminderID":
@@ -720,6 +724,8 @@ func renderedDocumentTypedValueSelector(res *renderedDocument, k string) (TypedV
 }
 
 // assignToRenderedDocument is field value setter for *renderedDocument
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToRenderedDocument(res *renderedDocument, k string, val interface{}) error {
 	switch k {
 	case "document":
@@ -904,6 +910,8 @@ func roleTypedValueSelector(res *types.Role, k string) (TypedValue, error) {
 }
 
 // assignToRole is field value setter for *types.Role
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToRole(res *types.Role, k string, val interface{}) error {
 	switch k {
 	case "ID", "roleID":
@@ -992,12 +1000,6 @@ func (t *Template) Assign(val interface{}) error {
 		t.value = c
 		return nil
 	}
-}
-
-func (t *Template) AssignFieldValue(key string, val TypedValue) error {
-	t.mux.Lock()
-	defer t.mux.Unlock()
-	return assignToTemplate(t.value, key, val)
 }
 
 // SelectGVal implements gval.Selector requirements
@@ -1128,6 +1130,8 @@ func templateTypedValueSelector(res *types.Template, k string) (TypedValue, erro
 }
 
 // assignToTemplate is field value setter for *types.Template
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToTemplate(res *types.Template, k string, val interface{}) error {
 	switch k {
 	case "ID", "templateID":
@@ -1255,7 +1259,7 @@ func (t *TemplateMeta) Assign(val interface{}) error {
 func (t *TemplateMeta) AssignFieldValue(key string, val TypedValue) error {
 	t.mux.Lock()
 	defer t.mux.Unlock()
-	return assignToTemplateMeta(t.value, key, val)
+	return assignToTemplateMeta(&t.value, key, val)
 }
 
 // SelectGVal implements gval.Selector requirements
@@ -1285,6 +1289,10 @@ func (t *TemplateMeta) Has(k string) bool {
 		return true
 	case "description":
 		return true
+	case "headerTemplateID":
+		return true
+	case "footerTemplateID":
+		return true
 	}
 	return false
 }
@@ -1296,6 +1304,10 @@ func templateMetaGValSelector(res types.TemplateMeta, k string) (interface{}, er
 		return res.Short, nil
 	case "description":
 		return res.Description, nil
+	case "headerTemplateID":
+		return res.HeaderTemplateID, nil
+	case "footerTemplateID":
+		return res.FooterTemplateID, nil
 	}
 
 	return nil, fmt.Errorf("unknown field '%s'", k)
@@ -1308,13 +1320,19 @@ func templateMetaTypedValueSelector(res types.TemplateMeta, k string) (TypedValu
 		return NewString(res.Short)
 	case "description":
 		return NewString(res.Description)
+	case "headerTemplateID":
+		return NewID(res.HeaderTemplateID)
+	case "footerTemplateID":
+		return NewID(res.FooterTemplateID)
 	}
 
 	return nil, fmt.Errorf("unknown field '%s'", k)
 }
 
 // assignToTemplateMeta is field value setter for types.TemplateMeta
-func assignToTemplateMeta(res types.TemplateMeta, k string, val interface{}) error {
+//
+// Value types are passed by pointer, otherwise assigned values are lost
+func assignToTemplateMeta(res *types.TemplateMeta, k string, val interface{}) error {
 	switch k {
 	case "short":
 		aux, err := CastToString(val)
@@ -1331,6 +1349,22 @@ func assignToTemplateMeta(res types.TemplateMeta, k string, val interface{}) err
 		}
 
 		res.Description = aux
+		return nil
+	case "headerTemplateID":
+		aux, err := CastToID(val)
+		if err != nil {
+			return err
+		}
+
+		res.HeaderTemplateID = aux
+		return nil
+	case "footerTemplateID":
+		aux, err := CastToID(val)
+		if err != nil {
+			return err
+		}
+
+		res.FooterTemplateID = aux
 		return nil
 	}
 
@@ -1508,6 +1542,8 @@ func userTypedValueSelector(res *types.User, k string) (TypedValue, error) {
 }
 
 // assignToUser is field value setter for *types.User
+//
+// Value types are passed by pointer, otherwise assigned values are lost
 func assignToUser(res *types.User, k string, val interface{}) error {
 	switch k {
 	case "ID", "userID":

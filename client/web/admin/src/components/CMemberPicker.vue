@@ -30,7 +30,7 @@
           data-test-id="selected-row-list"
         >
           <td class="align-middle">
-            {{ getUserLabel(user) }}
+            <c-user-label :user="user" />
           </td>
           <td
             v-if="!noRemove"
@@ -50,11 +50,12 @@
 
 <script>
 import { components } from '@cortezaproject/corteza-vue'
-const { CInputUser } = components
+const { CInputUser, CUserLabel } = components
 
 export default {
   components: {
     CInputUser,
+    CUserLabel,
   },
 
   props: {
@@ -120,10 +121,6 @@ export default {
           this.preloading = false
         })
         .catch(this.toastErrorHandler(this.$t('notification:user.fetch.error')))
-    },
-
-    getUserLabel ({ name, handle, userID, email }) {
-      return name || handle || email || userID
     },
   },
 }

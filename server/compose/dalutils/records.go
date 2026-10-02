@@ -338,9 +338,8 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 				return true, err
 			}
 
-			rc := &types.Record{}
+			rc := prepareRecordTarget(mod)
 			err = i.Scan(rc)
-			rc.SetModule(mod)
 
 			if err != nil {
 				return

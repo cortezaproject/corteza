@@ -4481,6 +4481,7 @@ export default class System {
       read,
       deleted,
       limit,
+      incTotal,
       pageCursor,
       sort,
     } = (a as KV) || {}
@@ -4495,6 +4496,7 @@ export default class System {
       read,
       deleted,
       limit,
+      incTotal,
       pageCursor,
       sort,
     }

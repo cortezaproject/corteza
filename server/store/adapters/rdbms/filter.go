@@ -265,11 +265,18 @@ func DefaultFilters() (f *extendedFilters) {
 		}
 
 		if len(f.RoleID) > 0 {
+			const userResourcePrefix = "corteza::system:user/"
 			members := roleMemberSelectQuery(s.Dialect.GOQU()).
-				Select("rel_user").
-				Where(goqu.C("rel_role").In(f.RoleID))
+				Select("rel_resource").
+				Where(
+					goqu.C("rel_role").In(f.RoleID),
+					goqu.C("rel_resource").Like(userResourcePrefix+"%"),
+				)
 
-			ee = append(ee, goqu.C("id").In(members))
+			ee = append(ee, goqu.Func("concat",
+				goqu.L("'"+userResourcePrefix+"'"),
+				goqu.Cast(goqu.C("id"), "TEXT"),
+			).In(members))
 		}
 
 		if f.UserGroupID > 0 {

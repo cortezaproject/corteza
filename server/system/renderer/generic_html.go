@@ -57,13 +57,52 @@ func (d *genericHTML) Driver() driver {
 }
 
 func (d *genericHTMLDriver) Render(ctx context.Context, pl *driverPayload) (io.ReadSeeker, error) {
-	t, err := preprocHTMLTemplate(pl)
-	if err != nil {
-		return nil, err
+	if pl.Header == nil && pl.Footer == nil {
+		t, err := preprocHTMLTemplate(pl)
+		if err != nil {
+			return nil, err
+		}
+
+		dd := &bytes.Buffer{}
+		err = t.Execute(dd, pl.Variables)
+
+		return bytes.NewReader(dd.Bytes()), err
+	}
+
+	// Header and footer are rendered with the same variables and joined with
+	// the content into a single document; partials are one-shot readers, so
+	// they are buffered to let each of the three templates parse its own copy
+	partials := make(map[string][]byte, len(pl.Partials))
+	for h, r := range pl.Partials {
+		bb, err := io.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
+		partials[h] = bb
 	}
 
 	dd := &bytes.Buffer{}
-	err = t.Execute(dd, pl.Variables)
+	for _, src := range []io.Reader{pl.Header, pl.Template, pl.Footer} {
+		if src == nil {
+			continue
+		}
 
-	return bytes.NewReader(dd.Bytes()), err
+		aux := *pl
+		aux.Template = src
+		aux.Partials = make(map[string]io.Reader, len(partials))
+		for h, bb := range partials {
+			aux.Partials[h] = bytes.NewReader(bb)
+		}
+
+		t, err := preprocHTMLTemplate(&aux)
+		if err != nil {
+			return nil, err
+		}
+
+		if err = t.Execute(dd, aux.Variables); err != nil {
+			return nil, err
+		}
+	}
+
+	return bytes.NewReader(dd.Bytes()), nil
 }

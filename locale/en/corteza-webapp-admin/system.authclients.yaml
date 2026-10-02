@@ -3,10 +3,7 @@ editor:
     add: Add
     api: Allow client access to Corteza API on behalf of user
     choose-date: Choose a date
-    createdAt: Created at
-    createdBy: Created by
     delete: Delete
-    deletedAt: Deleted at
     enabled:
       disabledFootnote: Unable to disable the default client
       label: Enabled
@@ -57,7 +54,6 @@ editor:
       label: Trusted
     undelete: Undelete
     unnamed: Unnamed role
-    updatedAt: Updated at
     uri: URI
     validFrom:
       description: If not defined the client is valid until expiration

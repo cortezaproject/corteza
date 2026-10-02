@@ -364,15 +364,19 @@ func TestKVV_Assign(t *testing.T) {
 	req.Contains(kvv.value, "foo")
 	req.Equal([]string{"bar"}, kvv.value["foo"])
 
+	// KVV is a flat store: keys with dots or brackets are treated as literal keys,
+	// not as indexed paths. set()/Assign() always replaces the entire value.
 	kvv = KVV{}
 	req.NoError(Assign(&kvv, "deep", Must(NewString("bar"))))
-	req.NoError(Assign(&kvv, "deep[0]", Must(NewString("bar"))))
-	req.NoError(Assign(&kvv, "deep[]", Must(NewString("baz"))))
-	req.NoError(Assign(&kvv, "deep[]", Must(NewString("bar"))))
-	req.NoError(Assign(&kvv, "deep[3]", Must(NewString("baz"))))
-	req.NoError(Assign(&kvv, "deep[3]", Must(NewString("b4z"))))
 	req.Contains(kvv.value, "deep")
-	req.Equal([]string{"bar", "baz", "bar", "b4z"}, kvv.value["deep"])
+	req.Equal([]string{"bar"}, kvv.value["deep"])
+
+	req.NoError(Assign(&kvv, "deep", Must(NewString("baz"))))
+	req.Equal([]string{"baz"}, kvv.value["deep"])
+
+	req.NoError(Assign(&kvv, "key.with.dots", Must(NewString("v"))))
+	req.Contains(kvv.value, "key.with.dots")
+	req.Equal([]string{"v"}, kvv.value["key.with.dots"])
 }
 
 func TestKVV_Set(t *testing.T) {

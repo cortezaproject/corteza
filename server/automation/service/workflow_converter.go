@@ -44,10 +44,9 @@ func Convert(wfService *workflow, wf *types.Workflow) (*wfexec.Graph, types.Work
 // Converts workflow definition to wf execution graph
 func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, types.WorkflowIssueSet) {
 	var (
-		g           = wfexec.NewGraph()
-		wfii        = types.WorkflowIssueSet{}
-		IDs         = make(map[uint64]int)
-		lastResStep *types.WorkflowStep
+		g    = wfexec.NewGraph()
+		wfii = types.WorkflowIssueSet{}
+		IDs  = make(map[uint64]int)
 	)
 
 	// Basic step verification
@@ -80,10 +79,8 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 
 	for g.Len() < len(ss) {
 		progress := false
-		lastResStep = nil
 
 		for _, step := range ss {
-			lastResStep = step
 			if g.StepByID(step.ID) != nil {
 				// resolved
 				continue
@@ -118,14 +115,73 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 		}
 
 		if !progress {
-			var culprit = make(map[string]int)
-			if lastResStep != nil {
-				culprit = map[string]int{"step": IDs[lastResStep.ID]}
+			// nothing resolved for 1 cycle;
+			// report every step that is still waiting on a neighbour
+			//
+			// steps that are unresolved for their own reasons (unknown
+			// function, missing argument, ...) already have their issues
+			// collected above
+			for _, step := range ss {
+				if g.StepByID(step.ID) != nil {
+					continue
+				}
+
+				var (
+					children []uint64
+					parents  []uint64
+				)
+
+				for _, path := range def.Paths {
+					if path.ParentID == step.ID && g.StepByID(path.ChildID) == nil {
+						children = append(children, path.ChildID)
+					}
+
+					if path.ChildID == step.ID && g.StepByID(path.ParentID) == nil {
+						parents = append(parents, path.ParentID)
+					}
+				}
+
+				if len(children) == 0 && len(parents) == 0 {
+					continue
+				}
+
+				wfii = wfii.Append(fmt.Errorf(
+					"failed to resolve dependencies for %s step %d, waiting for unresolved parent steps %v and child steps %v",
+					step.Kind,
+					step.ID,
+					parents,
+					children,
+				), map[string]int{"step": IDs[step.ID]})
 			}
 
-			// nothing resolved for 1 cycle
-			wfii = wfii.Append(fmt.Errorf("failed to resolve workflow step dependencies"), culprit)
+			if len(wfii) == 0 {
+				// resolving stalled but nothing explains why
+				wfii = wfii.Append(fmt.Errorf("failed to resolve workflow step dependencies"), map[string]int{})
+			}
+
 			break
+		}
+	}
+
+	// add parents that were still unresolved when a join gateway was created
+	for _, step := range ss {
+		if step.Kind != types.WorkflowStepKindGateway || step.Ref != "join" {
+			continue
+		}
+
+		resolved, is := g.StepByID(step.ID).(interface{ AddPath(wfexec.Step) })
+		if !is {
+			continue
+		}
+
+		for _, path := range def.Paths {
+			if path.ChildID != step.ID {
+				continue
+			}
+
+			if parent := g.StepByID(path.ParentID); parent != nil {
+				resolved.AddPath(parent)
+			}
 		}
 	}
 
@@ -238,12 +294,15 @@ func (svc workflowConverter) convGateway(g *wfexec.Graph, s *types.WorkflowStep,
 		var (
 			ss []wfexec.Step
 		)
+		// Collect parents that are already in the graph; the rest are added
+		// once the whole graph is resolved.
+		//
+		// Waiting for all of them here deadlocks on an iterator with its exit
+		// path leading to this gateway: the iterator can not be resolved
+		// before the gateway is in the graph.
 		for _, p := range in {
 			if parent := g.StepByID(p.ParentID); parent != nil {
 				ss = append(ss, parent)
-			} else {
-				// unresolved parent, come back later.
-				return nil, nil
 			}
 		}
 

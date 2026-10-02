@@ -49,6 +49,13 @@
         </b-form-group>
       </div>
 
+      <div
+        v-if="rule.constraints && rule.constraints.length > 1"
+        class="text-muted small mb-2"
+      >
+        {{ $t('allFieldsMustMatch') }}
+      </div>
+
       <c-form-table-wrapper
         v-if="rule.constraints && rule.constraints.length > 0"
         hide-add-button

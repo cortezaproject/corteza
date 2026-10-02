@@ -2611,6 +2611,129 @@ export default class Compose {
     return `/namespace/${namespaceID}/module/${moduleID}/record/import/${sessionID}`
   }
 
+  // Initiate record export session
+  async recordExportInit (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      moduleID,
+      filename,
+      ext,
+      filter,
+      fields,
+      timezone,
+      multiValueDelimiter,
+      wrapMultiValue,
+      resolveRefs,
+      includeRefID,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!moduleID) {
+      throw Error('field moduleID is empty')
+    }
+    if (!ext) {
+      throw Error('field ext is empty')
+    }
+    if (!fields) {
+      throw Error('field fields is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.recordExportInitEndpoint({
+        namespaceID, moduleID,
+      }),
+    }
+    cfg.data = {
+      filename,
+      ext,
+      filter,
+      fields,
+      timezone,
+      multiValueDelimiter,
+      wrapMultiValue,
+      resolveRefs,
+      includeRefID,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordExportInitCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.recordExportInit(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  recordExportInitEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
+    return `/namespace/${namespaceID}/module/${moduleID}/record/export`
+  }
+
+  // Download record export by session
+  async recordExportPull (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      moduleID,
+      sessionID,
+      filename,
+      ext,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!moduleID) {
+      throw Error('field moduleID is empty')
+    }
+    if (!sessionID) {
+      throw Error('field sessionID is empty')
+    }
+    if (!ext) {
+      throw Error('field ext is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.recordExportPullEndpoint({
+        namespaceID, moduleID, sessionID, filename, ext,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordExportPullCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.recordExportPull(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  recordExportPullEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      moduleID,
+      sessionID,
+      filename,
+      ext,
+    } = a || {}
+    return `/namespace/${namespaceID}/module/${moduleID}/record/export/${sessionID}/${filename}.${ext}`
+  }
+
   // Exports records that match
   async recordExport (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
@@ -2624,6 +2747,7 @@ export default class Compose {
       multiValueDelimiter,
       wrapMultiValue,
       resolveRefs,
+      includeRefID,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -2651,6 +2775,7 @@ export default class Compose {
       multiValueDelimiter,
       wrapMultiValue,
       resolveRefs,
+      includeRefID,
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))

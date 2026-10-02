@@ -53,6 +53,12 @@
           @search="search"
           @input="updateValue($event)"
         >
+          <template #option="option">
+            <c-user-label :user="option" />
+          </template>
+          <template #selected-option="option">
+            <c-user-label :user="option" />
+          </template>
           <pagination
             v-if="showPagination"
             slot="list-footer"
@@ -76,6 +82,12 @@
           multiple
           @search="search"
         >
+          <template #option="option">
+            <c-user-label :user="option" />
+          </template>
+          <template #selected-option="option">
+            <c-user-label :user="option" />
+          </template>
           <pagination
             v-if="showPagination"
             slot="list-footer"
@@ -94,7 +106,7 @@
           :options="options"
           :get-option-label="getOptionLabel"
           :get-option-key="getOptionKey"
-          :value="getUserIDByIndex(ctx.index)"
+          :value="resolveUserByID(getUserIDByIndex(ctx.index))"
           :filterable="false"
           :selectable="isSelectable"
           :loading="processing"
@@ -102,6 +114,12 @@
           @search="search"
           @input="updateValue($event, ctx.index)"
         >
+          <template #option="option">
+            <c-user-label :user="option" />
+          </template>
+          <template #selected-option="option">
+            <c-user-label :user="option" />
+          </template>
           <pagination
             v-if="showPagination"
             slot="list-footer"
@@ -111,7 +129,10 @@
             @next="goToPage(true)"
           />
         </c-input-select>
-        <span v-else>{{ getOptionLabel(getUserIDByIndex(ctx.index)) }}</span>
+        <c-user-label
+          v-else
+          :user="resolveUserByID(getUserIDByIndex(ctx.index))"
+        />
       </template>
     </multi>
 
@@ -121,7 +142,7 @@
         :options="options"
         :get-option-label="getOptionLabel"
         :get-option-key="getOptionKey"
-        :value="getUserIDByIndex()"
+        :value="resolveUserByID(getUserIDByIndex())"
         :clearable="field.name !== 'ownedBy'"
         :filterable="false"
         :selectable="isSelectable"
@@ -129,6 +150,12 @@
         @input="updateValue($event)"
         @search="search"
       >
+        <template #option="option">
+          <c-user-label :user="option" />
+        </template>
+        <template #selected-option="option">
+          <c-user-label :user="option" />
+        </template>
         <pagination
           v-if="showPagination"
           slot="list-footer"
@@ -148,8 +175,11 @@ import { debounce } from 'lodash'
 import axios from 'axios'
 import { mapActions, mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
+import { components } from '@cortezaproject/corteza-vue'
 import base from './base'
 import Pagination from '../Common/Pagination.vue'
+
+const { CUserLabel } = components
 
 export default {
   i18nOptions: {
@@ -158,6 +188,7 @@ export default {
 
   components: {
     Pagination,
+    CUserLabel,
   },
 
   extends: base,
@@ -187,7 +218,17 @@ export default {
     }),
 
     options () {
-      return this.users
+      const out = [...this.users]
+      const selectedIDs = this.field.isMulti ? (this.value || []) : [this.value]
+
+      selectedIDs.forEach(id => {
+        if (!id || id === NoID) return
+        if (out.find(u => u.userID === id)) return
+        const resolved = this.findByID(id)
+        if (resolved) out.push(resolved)
+      })
+
+      return out
     },
 
     // This is used in the case of using the multiple select option
@@ -278,6 +319,11 @@ export default {
       return name || username || email || `<@${userID}>`
     },
 
+    resolveUserByID (userID) {
+      if (!userID || userID === NoID) return undefined
+      return this.findByID(userID) || { userID }
+    },
+
     isSelectable ({ userID } = {}) {
       if (!userID) {
         return false
@@ -356,7 +402,13 @@ export default {
         this.cancelRequest = null
       }
 
-      const { response, cancel } = this.$SystemAPI.userListCancellable({ ...this.filter, roleID })
+      const params = { ...this.filter, roleID }
+      if (params.query) {
+        params.suspended = 1
+        params.deleted = 1
+      }
+
+      const { response, cancel } = this.$SystemAPI.userListCancellable(params)
       this.cancelRequest = cancel
 
       return Promise.all([response(), new Promise(resolve => setTimeout(resolve, 300))])

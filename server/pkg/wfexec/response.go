@@ -50,5 +50,12 @@ type (
 	loopContinue struct{}
 )
 
+// joined is returned by the join gateway; it carries the merged scope and the
+// names of variables the joined paths changed
+type joined struct {
+	scope   *expr.Vars
+	changed []string
+}
+
 func LoopBreak() *loopBreak       { return &loopBreak{} }
 func LoopContinue() *loopContinue { return &loopContinue{} }

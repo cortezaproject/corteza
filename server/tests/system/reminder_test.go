@@ -166,6 +166,98 @@ func TestReminderListIncludeDeleted(t *testing.T) {
 		End()
 }
 
+// TestReminderListForbidden checks reminders of other users are not listed
+func TestReminderListForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	h.makeReminder()
+	h.makeReminderByUserID(id.Next())
+
+	h.apiInit().
+		Get("/reminder/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len("$.response.set", 1)).
+		End()
+}
+
+// TestReminderListAssignable checks users that can assign reminders can also
+// list reminders of other users
+func TestReminderListAssignable(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "reminder.assign")
+
+	h.makeReminder()
+	h.makeReminderByUserID(id.Next())
+
+	h.apiInit().
+		Get("/reminder/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len("$.response.set", 2)).
+		End()
+}
+
+// TestReminderReadAssignable checks users that can assign reminders can also
+// read reminders of other users
+func TestReminderReadAssignable(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "reminder.assign")
+
+	rm := h.makeReminderByUserID(id.Next())
+
+	h.apiInit().
+		Get(fmt.Sprintf("/reminder/%d", rm.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.resource`, rm.Resource)).
+		End()
+}
+
+// TestReminderDismissAssignable checks users that can assign reminders can also
+// dismiss reminders of other users
+func TestReminderDismissAssignable(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "reminder.assign")
+
+	rm := h.makeReminderByUserID(id.Next())
+
+	h.apiInit().
+		Patch(fmt.Sprintf("/reminder/%d/dismiss", rm.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+// TestReminderSnoozeForbidden checks only user themself can snooze reminder
+// assigned to them
+func TestReminderSnoozeForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	rm := h.makeReminderByUserID(id.Next())
+
+	h.apiInit().
+		Patch(fmt.Sprintf("/reminder/%d/snooze", rm.ID)).
+		Header("Accept", "application/json").
+		FormData("remindAt", time.Now().Add(time.Hour).Format(time.RFC3339)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("reminder.errors.notAllowedToSnooze")).
+		End()
+}
+
 func TestReminderUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearReminders()

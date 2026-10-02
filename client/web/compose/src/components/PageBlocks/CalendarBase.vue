@@ -278,6 +278,7 @@ export default {
       this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
       this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
       this.$root.$on('refetch-records', this.refresh)
+      this.$root.$on('reminder.updated', this.refreshOnReminderUpdate)
     },
 
     refetchOnPrefilterValueChange ({ fieldName }) {
@@ -302,6 +303,14 @@ export default {
           this.refresh()
         }
       })
+    },
+
+    refreshOnReminderUpdate () {
+      const { reminder } = compose.PageBlockCalendar.feedResources
+
+      if (this.options.feeds.some(({ resource }) => resource === reminder)) {
+        this.refresh()
+      }
     },
 
     /**
@@ -463,6 +472,7 @@ export default {
     destroyEvents () {
       this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
       this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
+      this.$root.$off('reminder.updated', this.refreshOnReminderUpdate)
 
       this.$root.$off('refetch-records', this.refresh)
     },

@@ -44,6 +44,17 @@ type (
 	TemplateMeta struct {
 		Short       string `json:"short"`
 		Description string `json:"description,omitempty"`
+
+		// Templates rendered as header/footer documents (eg. PDF header on Gotenberg)
+		HeaderTemplateID uint64 `json:"headerTemplateID,string,omitempty"`
+		FooterTemplateID uint64 `json:"footerTemplateID,string,omitempty"`
+	}
+
+	// TemplateRenderAux holds per-render overrides of the header/footer
+	// templates configured on the rendered template
+	TemplateRenderAux struct {
+		HeaderTemplateID uint64
+		FooterTemplateID uint64
 	}
 
 	TemplateFilter struct {

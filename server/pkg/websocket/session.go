@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
@@ -39,9 +40,10 @@ type (
 	session struct {
 		l sync.RWMutex
 
-		id   uint64
-		once sync.Once
-		conn conection
+		id     uint64
+		once   sync.Once
+		conn   conection
+		closed atomic.Bool
 
 		ctx       context.Context
 		ctxCancel context.CancelFunc
@@ -92,7 +94,11 @@ func (s *session) disconnect() {
 	s.l.Lock()
 	defer s.l.Unlock()
 
-	// Cancel context
+	// Mark session as closed before tearing it down
+	s.closed.Store(true)
+
+	// Cancel context; this is what stops the write loop and unblocks
+	// anyone waiting to queue a message
 	s.ctxCancel()
 
 	s.logger.Info("disconnected")
@@ -100,8 +106,9 @@ func (s *session) disconnect() {
 	// Close connection
 	_ = s.conn.Close()
 
-	close(s.send)
-	close(s.stop)
+	// send & stop are deliberately left open. Closing them races with
+	// Write() and panics on "send on closed channel"; they are garbage
+	// collected with the session instead.
 	s.conn = nil
 }
 
@@ -190,6 +197,11 @@ func (s *session) read() (raw []byte, err error) {
 	s.l.RLock()
 	defer s.l.RUnlock()
 
+	// Check if connection was closed by disconnect()
+	if s.conn == nil {
+		return nil, net.ErrClosed
+	}
+
 	if _, raw, err = s.conn.ReadMessage(); err != nil {
 		return nil, errHandler("websocket read failed", err)
 	}
@@ -243,6 +255,10 @@ func (s *session) writeLoop() error {
 
 	for {
 		select {
+		case <-s.ctx.Done():
+			// session disconnected
+			return nil
+
 		case msg, ok := <-s.send:
 			if !ok {
 				// channel closed
@@ -291,6 +307,11 @@ func (s *session) write(t int, msg []byte) (err error) {
 		}
 	}()
 
+	// Check if connection was closed by disconnect()
+	if s.conn == nil {
+		return net.ErrClosed
+	}
+
 	if err = s.conn.SetWriteDeadline(time.Now().Add(s.config.Timeout)); err != nil {
 		return fmt.Errorf("deadline error: %w", err)
 	}
@@ -324,6 +345,11 @@ func (s *session) authenticate(p *payloadAuth) error {
 
 // sendBytes sends byte to channel or timeout
 func (s *session) Write(p []byte) (int, error) {
+	// Check if session is closed before attempting to send
+	if s.closed.Load() {
+		return 0, net.ErrClosed
+	}
+
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			s.logger.Debug("recovering from websocket write panic", zap.Any("recovered-error", recovered))
@@ -331,6 +357,9 @@ func (s *session) Write(p []byte) (int, error) {
 	}()
 
 	select {
+	case <-s.ctx.Done():
+		// Session is disconnecting, channel may be closed
+		return 0, net.ErrClosed
 	case s.send <- p:
 		return len(p), nil
 	case <-time.After(2 * time.Millisecond):
@@ -343,14 +372,23 @@ func errHandler(prefix string, err error) error {
 		return nil
 	}
 
-	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-		// normal closing
-		return nil
+	// Handle websocket close errors - these are expected during disconnection
+	if websocket.IsCloseError(err,
+		websocket.CloseNormalClosure,
+		websocket.CloseGoingAway,
+		websocket.CloseAbnormalClosure,
+		websocket.CloseNoStatusReceived,
+	) {
+		return net.ErrClosed
 	}
 
 	if errors.Is(err, net.ErrClosed) {
-		// suppress errors when reading/writing from/to a closed connection
-		return nil
+		return net.ErrClosed
+	}
+
+	// close sent occurs when writing to a connection that's closing
+	if errors.Is(err, websocket.ErrCloseSent) {
+		return net.ErrClosed
 	}
 
 	return fmt.Errorf(prefix+": %w", err)

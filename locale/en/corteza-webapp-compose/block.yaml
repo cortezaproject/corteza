@@ -421,8 +421,7 @@ recordList:
     selection: Selected records
     specifyTimezone: Export to timezone
     timezonePlaceholder: Select timezone
-    resolveRefs: Include record selector values
-    resolveRefsNote: When include record selector values is checked, all record fields include the record label next to the identifier.
+    includeRefID: Include reference ID in a separate column
     datePresetUndefined: Unknown date preset
   federated: Federated
   fields: Module fields
@@ -503,6 +502,7 @@ recordList:
     onErrorSkip: Skip record
     pickModuleField: Pick a module field
     importing: Importing records
+    startFailed: Failed to start import
     success: Import successful
     to: Import to {{modulename}}
     uploadFile: Upload the file you want to import (.csv or JSON format)
@@ -606,6 +606,9 @@ recordList:
     searchableFields: Searchable fields
     searchableFieldsFootnote: If no fields are selected, the search will be performed on all available visible fields
     configureSearchableFields: Select fields that will be used for search
+    searchSubmitMode: Search submit
+    searchOnSubmit: On submit (Enter or button click)
+    searchOnType: After typing
     openInSameTab: Open record in the same tab
     openInNewTab: Open record in a new tab
     openInModal: Open record in a modal

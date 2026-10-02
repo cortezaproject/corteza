@@ -59,6 +59,7 @@ export interface Options {
   addRecordDisplayOption: string;
   magnifyOption: string;
   searchableFields: string[];
+  searchSubmitMode: string;
 
   fullPageNavigation: boolean;
   showTotalCount: boolean;
@@ -131,6 +132,7 @@ const defaults: Readonly<Options> = Object.freeze({
   addRecordDisplayOption: 'sameTab',
   magnifyOption: '',
   searchableFields: [],
+  searchSubmitMode: 'submit',
 
   fullPageNavigation: false,
   showTotalCount: true,
@@ -195,6 +197,7 @@ export class PageBlockRecordList extends PageBlock {
       'magnifyOption',
       'recordSelectorDisplayOption',
       'addRecordDisplayOption',
+      'searchSubmitMode',
     )
 
     Apply(this.options, o, Number, 'perPage', 'refreshRate')

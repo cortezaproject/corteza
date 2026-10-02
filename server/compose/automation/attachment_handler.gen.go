@@ -68,6 +68,9 @@ func (h attachmentHandler) Lookup() *atypes.Function {
 			{
 				Name:  "attachment",
 				Types: []string{"ID"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Attachment",
+				},
 			},
 		},
 
@@ -162,18 +165,30 @@ func (h attachmentHandler) Create() *atypes.Function {
 			{
 				Name:  "name",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Name",
+				},
 			},
 			{
 				Name:  "resource",
 				Types: []string{"ComposeRecord"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "fieldName",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Field name",
+				},
 			},
 			{
 				Name:  "content",
 				Types: []string{"String", "Reader", "Bytes"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Content",
+				},
 			},
 		},
 
@@ -264,6 +279,9 @@ func (h attachmentHandler) Delete() *atypes.Function {
 			{
 				Name:  "attachment",
 				Types: []string{"ID"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Attachment",
+				},
 			},
 		},
 
@@ -320,6 +338,9 @@ func (h attachmentHandler) OpenOriginal() *atypes.Function {
 			{
 				Name:  "attachment",
 				Types: []string{"ID", "Attachment"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Attachment",
+				},
 			},
 		},
 
@@ -415,6 +436,9 @@ func (h attachmentHandler) OpenPreview() *atypes.Function {
 			{
 				Name:  "attachment",
 				Types: []string{"ID", "Attachment"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Attachment",
+				},
 			},
 		},
 

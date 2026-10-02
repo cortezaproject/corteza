@@ -10,10 +10,7 @@ editor:
     subject: 'Subject:'
   generateUri: Generate Federation Link
   info:
-    createdAt: Created at
-    createdBy: Created by
     delete: Delete
-    deletedAt: Deleted at
     email: Admin Email
     enabled: Enabled
     name: Server name *
@@ -23,7 +20,6 @@ editor:
       placeholder: +Add
     title: Basic information
     undelete: Undelete
-    updatedAt: Updated at
     url: Server URL *
   title:
     create: Create Federated Node

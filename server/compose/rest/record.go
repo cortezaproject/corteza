@@ -61,6 +61,7 @@ type (
 
 	Record struct {
 		importSession service.ImportSessionService
+		exportSession service.ExportSessionService
 		record        service.RecordService
 		module        service.ModuleService
 		namespace     service.NamespaceService
@@ -88,6 +89,7 @@ const (
 func (Record) New() *Record {
 	return &Record{
 		importSession: service.DefaultImportSession,
+		exportSession: service.DefaultExportSession,
 		record:        service.DefaultRecord,
 		module:        service.DefaultModule,
 		namespace:     service.DefaultNamespace,
@@ -694,38 +696,101 @@ func (ctrl *Record) ImportProgress(ctx context.Context, r *request.RecordImportP
 }
 
 func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interface{}, error) {
+	fields := r.Fields
+	if len(fields) == 1 {
+		fields = strings.Split(fields[0], ",")
+	}
+	return ctrl.exportRecords(ctx, &service.RecordExportSession{
+		NamespaceID:         r.NamespaceID,
+		ModuleID:            r.ModuleID,
+		Filename:            r.Filename,
+		Ext:                 r.Ext,
+		Filter:              r.Filter,
+		Fields:              fields,
+		Timezone:            r.Timezone,
+		MultiValueDelimiter: r.MultiValueDelimiter,
+		WrapMultiValue:      r.WrapMultiValue,
+		ResolveRefs:         r.GetResolveRefs(),
+		IncludeRefID:        r.GetIncludeRefID(),
+	}, nil)
+}
+
+func (ctrl *Record) ExportInit(ctx context.Context, r *request.RecordExportInit) (interface{}, error) {
+	if _, err := ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
+		return nil, err
+	}
+
+	fields := r.Fields
+	if len(fields) == 1 {
+		fields = strings.Split(fields[0], ",")
+	}
+	if len(fields) == 0 {
+		return nil, fmt.Errorf("no record value fields provided")
+	}
+
+	return ctrl.exportSession.Create(ctx, &service.RecordExportSession{
+		NamespaceID:         r.NamespaceID,
+		ModuleID:            r.ModuleID,
+		Filename:            r.Filename,
+		Ext:                 r.Ext,
+		Filter:              r.Filter,
+		Fields:              fields,
+		Timezone:            r.Timezone,
+		MultiValueDelimiter: r.MultiValueDelimiter,
+		WrapMultiValue:      r.WrapMultiValue,
+		ResolveRefs:         r.ResolveRefs,
+		IncludeRefID:        r.IncludeRefID,
+	})
+}
+
+func (ctrl *Record) ExportPull(ctx context.Context, r *request.RecordExportPull) (interface{}, error) {
+	ses, err := ctrl.exportSession.FindByID(ctx, r.SessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	if ses.NamespaceID != r.NamespaceID || ses.ModuleID != r.ModuleID {
+		return nil, fmt.Errorf("compose.service.RecordExportSessionNotFound")
+	}
+
+	// Honor filename/ext from the URL so the browser saves with the expected name.
+	pull := *ses
+	if r.Filename != "" {
+		pull.Filename = r.Filename
+	}
+	if r.Ext != "" {
+		pull.Ext = r.Ext
+	}
+
+	return ctrl.exportRecords(ctx, &pull, func() {
+		_ = ctrl.exportSession.DeleteByID(ctx, ses.SessionID)
+	})
+}
+
+func (ctrl *Record) exportRecords(ctx context.Context, s *service.RecordExportSession, onSuccess func()) (interface{}, error) {
 	var (
 		err error
 
-		filename = fmt.Sprintf("; filename=%s.%s", r.Filename, r.Ext)
+		filename = fmt.Sprintf("; filename=%s.%s", s.Filename, s.Ext)
 
 		rf = &types.RecordFilter{
-			Query:       r.Filter,
-			NamespaceID: r.NamespaceID,
-			ModuleID:    r.ModuleID,
+			Query:       s.Filter,
+			NamespaceID: s.NamespaceID,
+			ModuleID:    s.ModuleID,
 		}
 
 		contentType string
 	)
 
 	// Access control
-	if _, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
+	if _, err = ctrl.module.FindByID(ctx, s.NamespaceID, s.ModuleID); err != nil {
 		return nil, err
 	}
 
-	if len(r.Fields) == 1 {
-		r.Fields = strings.Split(r.Fields[0], ",")
-	}
-
 	return func(w http.ResponseWriter, req *http.Request) {
-		if len(r.Fields) == 0 {
+		if len(s.Fields) == 0 {
 			http.Error(w, "no record value fields provided", http.StatusBadRequest)
 			return
-		}
-
-		fx := make(map[string]bool)
-		for _, f := range r.Fields {
-			fx[f] = true
 		}
 
 		envoySvc := envoyx.New()
@@ -735,7 +800,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			automationEnvoy.StoreDecoder{},
 		)
 
-		switch strings.ToLower(r.Ext) {
+		switch strings.ToLower(s.Ext) {
 		case "json", "jsonl", "ldjson", "ndjson":
 			contentType = "application/jsonl"
 			envoySvc.AddEncoder(
@@ -751,7 +816,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			)
 
 		default:
-			http.Error(w, "unsupported format ("+r.Ext+")", http.StatusBadRequest)
+			http.Error(w, "unsupported format ("+s.Ext+")", http.StatusBadRequest)
 			return
 		}
 
@@ -759,9 +824,10 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		nodes, _, err = envoySvc.Decode(ctx, envoyx.DecodeParams{
 			Type: envoyx.DecodeTypeStore,
 			Params: map[string]any{
-				"storer":      service.DefaultStore,
-				"dal":         dal.Service(),
-				"resolveRefs": r.GetResolveRefs(),
+				"storer":       service.DefaultStore,
+				"dal":          dal.Service(),
+				"resolveRefs":  s.ResolveRefs,
+				"includeRefID": s.IncludeRefID,
 			},
 			Filter: map[string]envoyx.ResourceFilter{
 				composeEnvoy.ComposeRecordDatasourceAuxType: {
@@ -769,23 +835,23 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 					Refs: map[string]envoyx.Ref{
 						"NamespaceID": {
 							ResourceType: types.NamespaceResourceType,
-							Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID),
+							Identifiers:  envoyx.MakeIdentifiers(s.NamespaceID),
 							Scope: envoyx.Scope{
 								ResourceType: types.NamespaceResourceType,
-								Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID)},
+								Identifiers:  envoyx.MakeIdentifiers(s.NamespaceID)},
 						},
 						"ModuleID": {
 							ResourceType: types.ModuleResourceType,
-							Identifiers:  envoyx.MakeIdentifiers(r.ModuleID),
+							Identifiers:  envoyx.MakeIdentifiers(s.ModuleID),
 							Scope: envoyx.Scope{
 								ResourceType: types.NamespaceResourceType,
-								Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID),
+								Identifiers:  envoyx.MakeIdentifiers(s.NamespaceID),
 							},
 						},
 					},
 					Scope: envoyx.Scope{
 						ResourceType: types.NamespaceResourceType,
-						Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID),
+						Identifiers:  envoyx.MakeIdentifiers(s.NamespaceID),
 					},
 				},
 			},
@@ -811,8 +877,8 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		w.Header().Add("Content-Type", contentType)
 		w.Header().Add("Content-Disposition", "attachment"+filename)
 
-		mapping := make([]envoyx.MapEntry, 0, len(r.Fields))
-		for _, f := range r.Fields {
+		mapping := make([]envoyx.MapEntry, 0, len(s.Fields))
+		for _, f := range s.Fields {
 			mapping = append(mapping, envoyx.MapEntry{
 				Column: f,
 				Field:  f,
@@ -823,8 +889,9 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			Type: envoyx.EncodeTypeIo,
 			Params: map[string]any{
 				"writer":              w,
-				"multiValueDelimiter": r.MultiValueDelimiter,
-				"wrapMultiValue":      r.WrapMultiValue,
+				"multiValueDelimiter": s.MultiValueDelimiter,
+				"wrapMultiValue":      s.WrapMultiValue,
+				"timezone":            s.Timezone,
 			},
 			FieldMapping: mapping,
 		}, gg)
@@ -835,6 +902,11 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 
 		if err = ctrl.record.RecordExport(ctx, *rf); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if onSuccess != nil {
+			onSuccess()
 		}
 	}, err
 }

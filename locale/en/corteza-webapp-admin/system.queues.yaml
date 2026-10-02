@@ -1,10 +1,7 @@
 editor:
   info:
     consumer: Consumer
-    createdAt: Created at
-    createdBy: Created by
     delete: Delete
-    deletedAt: Deleted at
     dispatch_events: Dispatch events
     dispatch_events_desc: Dispatch events notifies the eventbus of queue message changes (new, processed, ...)
     name: Queue name *
@@ -14,7 +11,6 @@ editor:
     poll_delay_set: Poll delay will be used; if empty, it will not be used.
     title: Basic information
     undelete: Undelete
-    updatedAt: Updated at
   new: New Queue
   title:
     edit: Edit queue

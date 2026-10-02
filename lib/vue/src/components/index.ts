@@ -31,6 +31,7 @@ export {
   CInputRole,
   CInputUser,
   CInputUserGroup,
+  CUserLabel,
 } from './input'
 
 export {

@@ -7,9 +7,14 @@ const types = {
 }
 
 export default function (ComposeAPI) {
+  // Records are keyed by moduleID + recordID, not recordID alone: modules backed
+  // by external databases can reuse the same (int) recordID across different
+  // modules, so a bare recordID is not a unique key across the shared set.
+  const recordKey = (moduleID, recordID) => `${moduleID}/${recordID}`
+
   // Batching state for resolveRecords (shared across all dispatches)
   const pendingBatches = new Map() // key: `${namespaceID}/${moduleID}` -> { ids, resolvers, namespaceID, moduleID }
-  const inflightIDs = new Set()
+  const inflightKeys = new Set() // moduleID/recordID keys currently being fetched
   let flushTimer = null
 
   function flushResolves (commit) {
@@ -24,7 +29,7 @@ export default function (ComposeAPI) {
         continue
       }
 
-      recordIDs.forEach(id => inflightIDs.add(id))
+      recordIDs.forEach(id => inflightKeys.add(recordKey(moduleID, id)))
       commit(types.pending)
 
       const query = recordIDs.map(id => `recordID = ${id}`).join(' OR ')
@@ -34,7 +39,7 @@ export default function (ComposeAPI) {
           commit(types.updateSet, set)
         })
         .finally(() => {
-          recordIDs.forEach(id => inflightIDs.delete(id))
+          recordIDs.forEach(id => inflightKeys.delete(recordKey(moduleID, id)))
           commit(types.completed)
           resolvers.forEach(r => r())
         })
@@ -53,13 +58,19 @@ export default function (ComposeAPI) {
       pending: (state) => state.pending,
 
       findByID (state) {
-        return (ID) => state.set.find(({ recordID }) => ID === recordID)
+        // moduleID is optional for backwards compatibility, but should be passed
+        // whenever known to disambiguate records that share a recordID across modules
+        return (ID, moduleID = undefined) => state.set.find(
+          (r) => ID === r.recordID && (moduleID === undefined || r.moduleID === moduleID),
+        )
       },
 
       findByIDs (state) {
-        return (IDs) => {
+        return (IDs, moduleID = undefined) => {
           const idSet = new Set(IDs.flat())
-          return state.set.filter(({ recordID }) => idSet.has(recordID))
+          return state.set.filter(
+            (r) => idSet.has(r.recordID) && (moduleID === undefined || r.moduleID === moduleID),
+          )
         }
       },
 
@@ -82,9 +93,13 @@ export default function (ComposeAPI) {
           return Promise.resolve()
         }
 
-        // Filter out records already in the store or currently being fetched
-        const knownIDs = new Set(getters.set.map(({ recordID }) => recordID))
-        recordIDs = recordIDs.filter(id => !knownIDs.has(id) && !inflightIDs.has(id))
+        // Filter out records already in the store or currently being fetched.
+        // Scope "known" to this module so a matching recordID in another module
+        // doesn't mask a record we still need to fetch here.
+        const knownIDs = new Set(
+          getters.set.filter(({ moduleID: mID }) => mID === moduleID).map(({ recordID }) => recordID),
+        )
+        recordIDs = recordIDs.filter(id => !knownIDs.has(id) && !inflightKeys.has(recordKey(moduleID, id)))
 
         if (recordIDs.length === 0) {
           return Promise.resolve()
@@ -142,17 +157,19 @@ export default function (ComposeAPI) {
           return
         }
 
-        // Build index map for O(1) lookups
-        const indexByID = new Map(state.set.map(({ recordID }, i) => [recordID, i]))
+        // Build index map for O(1) lookups, keyed by moduleID+recordID so records
+        // from different modules that share a recordID don't overwrite each other
+        const indexByKey = new Map(state.set.map((r, i) => [recordKey(r.moduleID, r.recordID), i]))
 
         set.forEach(newItem => {
           newItem = JSON.parse(JSON.stringify(newItem))
 
-          const oldIndex = indexByID.get(newItem.recordID)
+          const key = recordKey(newItem.moduleID, newItem.recordID)
+          const oldIndex = indexByKey.get(key)
           if (oldIndex !== undefined) {
             state.set.splice(oldIndex, 1, newItem)
           } else {
-            indexByID.set(newItem.recordID, state.set.length)
+            indexByKey.set(key, state.set.length)
             state.set.push(newItem)
           }
         })
@@ -163,7 +180,7 @@ export default function (ComposeAPI) {
         state.set.splice(0)
 
         // Clean up batching state
-        inflightIDs.clear()
+        inflightKeys.clear()
         clearTimeout(flushTimer)
         pendingBatches.clear()
       },

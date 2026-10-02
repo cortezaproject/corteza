@@ -244,17 +244,24 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 	}
 
 	mv := make(map[string]bool)
+	dt := make(map[string]bool)
 	for _, f := range module.Fields {
-		if !f.Multi {
-			continue
+		if f.Multi {
+			mv[f.Name] = true
 		}
+		if f.Kind == "DateTime" {
+			dt[f.Name] = true
+		}
+	}
 
-		mv[f.Name] = true
+	for _, n := range []string{"createdAt", "updatedAt", "deletedAt"} {
+		dt[n] = true
 	}
 
 	rds := &RecordDatasource{
-		Provider:    &iteratorProvider{iter: iter},
-		multivalues: mv,
+		Provider:       &iteratorProvider{iter: iter},
+		multivalues:    mv,
+		datetimeFields: dt,
 
 		refToID:     make(map[string]uint64),
 		existingIDs: make(map[uint64]bool),
@@ -271,7 +278,7 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 		ac = nil
 	}
 
-	rds.Provider, err = mkIteratorProvider(ctx, ac, s, dl, iter, module, cast.ToBool(p.Params["resolveRefs"]))
+	rds.Provider, err = mkIteratorProvider(ctx, ac, s, dl, iter, module, cast.ToBool(p.Params["resolveRefs"]), cast.ToBool(p.Params["includeRefID"]))
 	if err != nil {
 		return
 	}

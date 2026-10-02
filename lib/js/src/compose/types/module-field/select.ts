@@ -66,7 +66,7 @@ export class ModuleFieldSelect extends ModuleField {
     const { textColor = '', backgroundColor = '' } = style || {}
     return {
       value,
-      text,
+      text: text || value,
       style: {
         textColor,
         backgroundColor,

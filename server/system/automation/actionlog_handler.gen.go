@@ -86,34 +86,58 @@ func (h actionlogHandler) Search() *atypes.Function {
 			{
 				Name:  "fromTimestamp",
 				Types: []string{"DateTime"},
+				Meta: &atypes.ParamMeta{
+					Label: "From timestamp",
+				},
 			},
 			{
 				Name:  "toTimestamp",
 				Types: []string{"DateTime"},
+				Meta: &atypes.ParamMeta{
+					Label: "To timestamp",
+				},
 			},
 			{
 				Name:  "beforeActionID",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Before action ID",
+				},
 			},
 			{
 				Name:  "actorID",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Actor ID",
+				},
 			},
 			{
 				Name:  "origin",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Origin",
+				},
 			},
 			{
 				Name:  "resource",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "action",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Action",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
 			},
 		},
 
@@ -228,34 +252,58 @@ func (h actionlogHandler) Each() *atypes.Function {
 			{
 				Name:  "fromTimestamp",
 				Types: []string{"DateTime"},
+				Meta: &atypes.ParamMeta{
+					Label: "From timestamp",
+				},
 			},
 			{
 				Name:  "toTimestamp",
 				Types: []string{"DateTime"},
+				Meta: &atypes.ParamMeta{
+					Label: "To timestamp",
+				},
 			},
 			{
 				Name:  "beforeActionID",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Before action ID",
+				},
 			},
 			{
 				Name:  "actorID",
 				Types: []string{"ID"},
+				Meta: &atypes.ParamMeta{
+					Label: "Actor ID",
+				},
 			},
 			{
 				Name:  "origin",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Origin",
+				},
 			},
 			{
 				Name:  "resource",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "action",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Action",
+				},
 			},
 			{
 				Name:  "limit",
 				Types: []string{"UnsignedInteger"},
+				Meta: &atypes.ParamMeta{
+					Label: "Limit",
+				},
 			},
 		},
 
@@ -332,29 +380,45 @@ func (h actionlogHandler) Record() *atypes.Function {
 			{
 				Name:  "action",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Action",
+				},
 			},
 			{
 				Name:  "resource",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Resource",
+				},
 			},
 			{
 				Name:  "error",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Error",
+				},
 			},
 			{
 				Name:  "severity",
 				Types: []string{"String"},
 				Meta: &atypes.ParamMeta{
+					Label:  "Severity",
 					Visual: map[string]interface{}{"options": []interface{}{"emergency", "alert", "critical", "err", "warning", "notice", "info", "debug"}},
 				},
 			},
 			{
 				Name:  "description",
 				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Description",
+				},
 			},
 			{
 				Name:  "meta",
 				Types: []string{"Vars"},
+				Meta: &atypes.ParamMeta{
+					Label: "Meta",
+				},
 			},
 		},
 

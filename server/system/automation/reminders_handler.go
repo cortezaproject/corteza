@@ -6,6 +6,7 @@ import (
 	"time"
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -42,6 +43,9 @@ type(
 		// Item loader for additional chunks
 		filter types.ReminderFilter
 		loader func() error
+
+		// Total reported by the first page
+		resTotal uint
 	}
 	reminderLookup interface {
 		GetLookup() (bool, uint64, *types.Reminder)
@@ -81,8 +85,9 @@ func (h remindersHandler) search(ctx context.Context,args *remindersSearchArgs) 
 		}
 	}
 
-	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
+	if args.hasPageCursor && args.PageCursor != "" {
+		f.PageCursor = &filter.PagingCursor{}
+		if err = f.PageCursor.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
 			return
 		}
 	}
@@ -90,6 +95,10 @@ func (h remindersHandler) search(ctx context.Context,args *remindersSearchArgs) 
 	if args.hasLimit {
 		f.Limit = uint(args.Limit)
 	}
+
+	// Total cannot be fetched together with a page cursor
+	f.IncTotal = args.IncTotal && f.PageCursor == nil
+
 	var auxf types.ReminderFilter
 	results.Reminders, auxf, err = h.rSvc.Find(ctx, f)
 	results.Total=uint64(auxf.Total)
@@ -110,11 +119,14 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 			return
 		}
 	}
-	if args.hasPageCursor {
-		if err = f.PageCursor.Decode(args.PageCursor); err != nil {
+	if args.hasPageCursor && args.PageCursor != "" {
+		f.NextPage = &filter.PagingCursor{}
+		if err = f.NextPage.UnmarshalJSON([]byte(args.PageCursor)); err != nil {
 			return
 		}
 	}   
+	f.IncTotal = args.IncTotal
+
 	if args.hasLimit {
 		i.useIterLimit = true
 		i.iterLimit = uint(args.Limit)
@@ -135,7 +147,15 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 		i.ptr = 0
 		i.filter.PageCursor = i.filter.NextPage
 		i.filter.NextPage = nil
+
+		// Total is fetched with the first page only; a paged query cannot carry it
+		i.filter.IncTotal = i.filter.IncTotal && i.filter.PageCursor == nil
+
 		i.buffer, i.filter, err = h.rSvc.Find(ctx, i.filter)
+		if i.filter.IncTotal {
+			i.resTotal = i.filter.Total
+		}
+
 		return
 	}
 	return i, i.loader()
@@ -261,6 +281,7 @@ func (i *reminderSetIterator) Next(context.Context, *expr.Vars) (out *expr.Vars,
 	reminder := *i.buffer[i.ptr]  // Make a copy
   	reminder.Payload = sqlxtypes.JSONText(string(i.buffer[i.ptr].Payload))
   	out.Set("reminder", Must(NewReminder(&reminder)))
+	out.Set("total", Must(NewInteger(i.resTotal)))
 
 	i.ptr++
 	return out, nil

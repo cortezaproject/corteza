@@ -22,11 +22,10 @@ func Test0015_step_issue(t *testing.T) {
 
 		issues, is := err.(types.WorkflowIssueSet)
 		req.True(is)
-		// It should return only 3 issues
+		// It should return only 2 issues
 		// 1. gateway step expects at least 1 outbound path(s)
 		// 2. expecting at least two paths for exclusive gateway
-		// 3. failed to resolve workflow step dependencies
-		req.Len(issues, 3)
+		req.Len(issues, 2)
 	})
 
 	t.Run("inclusive gateway step issue", func(t *testing.T) {
@@ -34,11 +33,10 @@ func Test0015_step_issue(t *testing.T) {
 
 		issues, is := err.(types.WorkflowIssueSet)
 		req.True(is)
-		// It should return only 3 issues
+		// It should return only 2 issues
 		// 1. gateway step expects at least 1 outbound path(s)
 		// 2. expecting at least two paths for inclusive gateway
-		// 3. failed to resolve workflow step dependencies
-		req.Len(issues, 3)
+		req.Len(issues, 2)
 	})
 
 	t.Run("function step issue", func(t *testing.T) {
@@ -46,10 +44,9 @@ func Test0015_step_issue(t *testing.T) {
 
 		issues, is := err.(types.WorkflowIssueSet)
 		req.True(is)
-		// It should return only 2 issues
+		// It should return only 1 issue
 		// 1. failed to verify argument expressions for function logInfo: parameter message is required
-		// 2. failed to resolve workflow step dependencies
-		req.Len(issues, 2)
+		req.Len(issues, 1)
 	})
 
 	t.Run("iterator step issue", func(t *testing.T) {
@@ -57,12 +54,11 @@ func Test0015_step_issue(t *testing.T) {
 
 		issues, is := err.(types.WorkflowIssueSet)
 		req.True(is)
-		// It should return only 4 issues
+		// It should return only 3 issues
 		// 1. iterator step expects reference
 		// 2. iterator step expects exactly 2 outbound path(s)
 		// 3. unknown function ""
-		// 4. failed to resolve workflow step dependencies
-		req.Len(issues, 4)
+		req.Len(issues, 3)
 	})
 
 }

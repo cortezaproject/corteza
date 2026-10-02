@@ -886,7 +886,9 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		log.Debug(
 			"could not decode results",
 			zap.Error(err),
-			zap.Any("results", encodedResults),
+			// Logging rsp.Result and not encodedResults; the latter is a
+			// map of []byte, which the encoder renders as base64
+			zap.Any("results", rsp.Result),
 		)
 		return
 	}
