@@ -461,7 +461,7 @@ func (h *pageHandler) removeBlocks(ctx context.Context, req mcp.CallToolRequest)
 
 	rawIDs, ok := args["blockIDs"]
 	if !ok || rawIDs == nil {
-		return nil, fmt.Errorf("blockIDs is required")
+		return nil, toolkit.Requiredf("blockIDs is required")
 	}
 
 	idStrs, err := parseStringArray(rawIDs)
@@ -543,7 +543,7 @@ func (h *pageHandler) reorder(ctx context.Context, req mcp.CallToolRequest) (*mc
 
 	rawIDs, ok := args["pageIDs"]
 	if !ok || rawIDs == nil {
-		return nil, fmt.Errorf("pageIDs is required")
+		return nil, toolkit.Requiredf("pageIDs is required")
 	}
 
 	// parseStringArray refuses a JSON array of numbers, which is the point: an ID
@@ -669,7 +669,7 @@ func findPageByAny(ctx context.Context, namespaceID uint64, ref string) (*cmpTyp
 		}
 	}
 
-	return nil, fmt.Errorf("page %q not found", ref)
+	return nil, toolkit.NotFoundf("page %q not found", ref)
 }
 
 // resolvePlacementLayout picks the layout a page update's new blocks are placed
@@ -698,7 +698,7 @@ func pickPlacementLayout(set cmpTypes.PageLayoutSet, ref string) (*cmpTypes.Page
 				return l, nil
 			}
 		}
-		return nil, fmt.Errorf("page layout %q not found on this page", ref)
+		return nil, toolkit.NotFoundf("page layout %q not found on this page", ref)
 	}
 
 	switch len(set) {
@@ -1014,7 +1014,7 @@ func resolveRefsIn(ctx context.Context, nsID uint64, title string, options map[s
 		case "moduleID":
 			mod, err := cmpService.DefaultModule.FindByAny(ctx, nsID, ref)
 			if err != nil {
-				return fmt.Errorf("block %q: moduleID %q not found: %w", title, ref, err)
+				return toolkit.NotFoundf("block %q: moduleID %q not found: %w", title, ref, err)
 			}
 			options[key] = strconv.FormatUint(mod.ID, 10)
 
@@ -1022,7 +1022,7 @@ func resolveRefsIn(ctx context.Context, nsID uint64, title string, options map[s
 		case "chartID":
 			ch, err := findChartByAny(ctx, nsID, ref)
 			if err != nil {
-				return fmt.Errorf("block %q: chart %q not found: %w", title, ref, err)
+				return toolkit.NotFoundf("block %q: chart %q not found: %w", title, ref, err)
 			}
 			options[key] = strconv.FormatUint(ch.ID, 10)
 		}

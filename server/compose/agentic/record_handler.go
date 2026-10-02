@@ -617,10 +617,10 @@ func parseValues(raw any) (cmpTypes.RecordValueSet, []string, error) {
 
 	switch v := raw.(type) {
 	case nil:
-		return nil, nil, fmt.Errorf("values is required")
+		return nil, nil, toolkit.Requiredf("values is required")
 	case string:
 		if v == "" {
-			return nil, nil, fmt.Errorf("values is required")
+			return nil, nil, toolkit.Requiredf("values is required")
 		}
 		if err := json.Unmarshal([]byte(v), &m); err != nil {
 			return nil, nil, fmt.Errorf("invalid values JSON: %w", err)

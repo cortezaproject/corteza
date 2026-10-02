@@ -31,6 +31,7 @@ type (
 		tools        map[string]registeredTool
 		resources    map[string]registeredResource
 		instructions []string
+		classify     Classifier
 	}
 
 	// RegisterOption adjusts how a tool is registered. These are

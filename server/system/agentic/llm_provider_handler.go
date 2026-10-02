@@ -130,7 +130,7 @@ func (h *llmProviderHandler) resolve(ctx context.Context, ref string) (*sysTypes
 
 	switch len(set) {
 	case 0:
-		return nil, fmt.Errorf("llm provider %q not found", ref)
+		return nil, toolkit.NotFoundf("llm provider %q not found", ref)
 	case 1:
 		return set[0], nil
 	default:

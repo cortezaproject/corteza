@@ -77,7 +77,7 @@ func findLayout(ctx context.Context, nsID, pageID uint64, ref string) (*cmpTypes
 		}
 	}
 
-	return nil, fmt.Errorf("page layout %q not found on this page", ref)
+	return nil, toolkit.NotFoundf("page layout %q not found on this page", ref)
 }
 
 func (h *pageLayoutHandler) lookup(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

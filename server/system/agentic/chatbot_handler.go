@@ -41,7 +41,7 @@ type chatbotItem struct {
 // ChatbotFilter carries no name field, so the name is not resolvable.
 func findChatbot(ctx context.Context, ref string) (*sysTypes.Chatbot, error) {
 	if ref == "" {
-		return nil, fmt.Errorf("chatbot is required")
+		return nil, toolkit.Requiredf("chatbot is required")
 	}
 
 	if id, err := strconv.ParseUint(ref, 10, 64); err == nil && id > 0 {

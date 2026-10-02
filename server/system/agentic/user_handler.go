@@ -296,7 +296,7 @@ func (h *userHandler) setEmailConfirmed(ctx context.Context, req mcp.CallToolReq
 	// False is a meaningful value here, so an absent argument must not be read
 	// as one — the caller has to say which way round they mean it.
 	if _, ok := args["confirmed"]; !ok {
-		return nil, fmt.Errorf("confirmed is required: pass true to mark the address confirmed or false to mark it unconfirmed")
+		return nil, toolkit.Requiredf("confirmed is required: pass true to mark the address confirmed or false to mark it unconfirmed")
 	}
 	confirmed := toolkit.Bool(args, "confirmed")
 

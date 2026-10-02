@@ -563,6 +563,18 @@ out for the separate reason that it takes over an existing person's account.
 `fmt.Errorf("<subject> <verb> failed: %w", err)` via `toolkit.Errf` — lowercase,
 wrapped, no punctuation. Errors are read by a model deciding what to do next.
 
+Over HTTP the error never leaves as a JSON-RPC error. `pkg/mcpkit/errors.go`
+turns it into an `isError` result whose text and `structuredContent` are
+`{"error": {"code", "message", "next"}}`. The code is one of
+`toolkit/codes.go` (`not_found`, `forbidden`, `invalid`, `conflict`,
+`invalid_argument`, `unknown_argument`, `risk_capped`, `too_large`,
+`unauthenticated`, else `failed`), named by the error itself when it is a
+`toolkit.Coded`, otherwise by `mcp.ClassifyError`, which reads the `type` meta
+of a generated action error and the error kinds. A handler reaches for
+`toolkit.WithCode` only when the next step is something the classifier cannot
+know; the message stays the thing the model reads. `tests/mcp/errors_test.go`
+pins the mapping.
+
 ---
 
 ## 9. Registration and tagging

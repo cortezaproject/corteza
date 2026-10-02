@@ -21,8 +21,8 @@ The transport-level machinery of an MCP server, with no knowledge of Human.
 Two servers are built on it: the configurator MCP (`server/system/agentic/mcp`),
 which is product code exposing Human to agents, and the developer MCP
 (`dev/mcp`), a separate Go module that operates on this repository. They share
-the registry, the tagging vocabulary, scope, progressive disclosure and both
-transports; they share nothing about what a tool does.
+the registry, the tagging vocabulary, scope, the slim listing, the error shape
+and both transports; they share nothing about what a tool does.
 
 ## Locked contracts
 
@@ -54,8 +54,15 @@ transports; they share nothing about what a tool does.
 - `Scope` (`scope.go`) — per-request narrowing parsed from the URL. There is no
   URL on stdio, and the zero Scope permits everything, which is deliberate: a
   server the developer launched in their own checkout has no caller to narrow.
-- `disclosure` (`disclosure.go`) — per-session set of pulled-in tools, keyed by
-  MCP session ID and dropped on teardown.
+- `listing.go` — `slimTool` and `searchTools`: the listing every client gets,
+  and the search that returns full definitions.
+- `errors.go` — `errorsAsResults`, the outermost tool middleware: a handler
+  error becomes an `isError` result `{"error": {code, message, next}}` instead
+  of a JSON-RPC error. Codes live in `toolkit/codes.go`; a `toolkit.Coded`
+  error names its own, the registry's `Classifier` (set by the domain at boot)
+  names the rest, and `defaultNext` supplies the move for a code that has one.
+  `Registry.ExecuteTool`, the in-process path, is not behind it and keeps the
+  Go error.
 - `MCPServer` (`server.go`) — wraps mcp-go. `MountRoutes` for HTTP,
   `ServeStdio` for a client that launches the server as a child process. It also
   sets the initialize-time instructions string: load a tool's documentation
@@ -67,19 +74,22 @@ transports; they share nothing about what a tool does.
   `JSONResult` is the only sanctioned path from a Go value to a tool result, so
   the size ceiling lives in one place.
 
-## Progressive disclosure
+## Slim listing
 
-A session sees five tools until it searches. That is the difference between
-~1,400 tokens and ~39,000 per request, and it stays flat as the surface grows.
+Every tool is listed and callable from the first request, summarised to its
+first sentence with the per-parameter prose dropped; `human_tool_load` and
+`human_tool_search` return the full text. This replaced progressive disclosure
+(five tools until a search), which depended on the client honouring
+`list_changed` and failed on the claude.ai connector — `listing.go` holds the
+account and the measured token costs. A tool whose dropped prose carries rules
+a caller cannot infer declares `NeedsFullDocs()`, which appends a load-first
+instruction to its summary.
 
 `searchTools` ranks by how many of the caller's terms matched, and requires at
 least one. It used to require **all** of them, which made a natural multi-word
 question the worst possible input — "workflow create tool" returned nothing
 while "workflow" returned the family — and a model reading "no tool matches"
 concludes the capability does not exist.
-
-Search returns full definitions inline **and** fires `list_changed`, so a client
-that ignores the notification still works.
 
 ## Store / DAL usage
 

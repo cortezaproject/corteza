@@ -97,7 +97,7 @@ func (h *themeHandler) update(ctx context.Context, req mcp.CallToolRequest) (*mc
 		return nil, err
 	}
 	if !present || len(changes) == 0 {
-		return nil, fmt.Errorf("colors is required: a JSON object of colour name to hex value")
+		return nil, toolkit.Requiredf("colors is required: a JSON object of colour name to hex value")
 	}
 
 	for name, value := range changes {

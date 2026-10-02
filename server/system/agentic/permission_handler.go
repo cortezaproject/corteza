@@ -397,7 +397,7 @@ func (h *permissionHandler) write(ctx context.Context, req mcp.CallToolRequest, 
 		return nil, err
 	}
 	if !present || len(in) == 0 {
-		return nil, fmt.Errorf("%s failed: 'rules' is required and must hold at least one rule", subject)
+		return nil, toolkit.Requiredf("%s failed: 'rules' is required and must hold at least one rule", subject)
 	}
 
 	byComponent, acs, err := buildRules(role.ID, in, revoking, subject, components(), func(resource, operation string) bool {

@@ -23,12 +23,12 @@ tests:
 The single registry of tools Human exposes to LLM agents, and the HTTP
 (streamable MCP) transport in front of it.
 
-Everything an agent can do to Human passes through here. Tool *implementations*
+Everything an agent can do to Human passes through here. Tool _implementations_
 live beside the services they call — `compose/agentic`, `automation/agentic`,
 `system/agentic` — and register at boot.
 
 The machinery those registrations use — the registry, the tagging vocabulary,
-scope, progressive disclosure and the HTTP server — lives in `server/pkg/mcpkit`,
+scope, the slim listing and the HTTP server — lives in `server/pkg/mcpkit`,
 shared with the developer MCP under `dev/`. **`mcpkit` may not import anything
 from Human's domain**, and `pkg/mcpkit/boundary_test.go` enforces that. What
 stays in this package is what does know about Human: the tool families, the
@@ -56,16 +56,22 @@ In `server/pkg/mcpkit`:
   `InGroup`/`WithRisk`. `WithRisk` is the **sole** writer of the protocol's four
   annotation hints; authors never set them by hand.
 - `Scope` (`scope.go`) — per-request narrowing resolved from the URL.
-- `disclosure` (`disclosure.go`) — per-session set of pulled-in tools.
-- `MCPServer` (`server.go`) — wraps mcp-go, applies the filter, the risk ceiling
-  and the two meta-tools.
+- `listing.go` — the slim listing: every tool listed and callable, summarised
+  to its first sentence; `human_tool_search` and `human_tool_load` return the
+  full text.
+- `MCPServer` (`server.go`) — wraps mcp-go, applies the filter, the error
+  middleware, the risk ceiling and the two meta-tools.
+- `errors.go` — every handler error leaves as an `isError` result
+  `{"error": {code, message, next}}`. The code comes from the error itself
+  (`toolkit.Coded`), else from `ClassifyError` here, which reads the `type`
+  meta of Human's generated action errors and the error kinds; else `failed`.
 
 ## Two consumers, one set of handlers
 
-| Surface | Entry | Consumer |
-|---|---|---|
-| In-process | `Registry.GetTools` / `ExecuteTool` | Human's own agentic runtime |
-| HTTP | `/api/mcp` | External MCP clients, primarily Claude Code |
+| Surface    | Entry                               | Consumer                                    |
+| ---------- | ----------------------------------- | ------------------------------------------- |
+| In-process | `Registry.GetTools` / `ExecuteTool` | Human's own agentic runtime                 |
+| HTTP       | `/api/mcp`                          | External MCP clients, primarily Claude Code |
 
 They share handler functions. Where they legitimately differ is recorded in
 `CONVENTIONS.md` §2.3; where they differed by accident, that was a defect.
@@ -79,7 +85,7 @@ that are easy to get wrong:
 - **Group is presentation, not a boundary.** It shrinks what `tools/list`
   returns. A caller naming a tool outside its group has done nothing RBAC would
   not already permit.
-- **Risk is a ceiling and *is* enforced** at dispatch, but it is self-selected
+- **Risk is a ceiling and _is_ enforced** at dispatch, but it is self-selected
   via the URL — a seatbelt against accidents, not a lock against a hostile
   caller.
 
@@ -102,8 +108,13 @@ reach the store.
 - Adding a handler: wire it in `app/boot_levels.go` **and** in `buildRegistry`
   in the structural test, or its tools are invisible to every assertion.
 - Changing what a session sees: `pkg/mcpkit/scope.go` for group and risk,
-  `pkg/mcpkit/disclosure.go` for progressive disclosure. The default listing is
-  five tools; a session searches for the rest.
+  `pkg/mcpkit/listing.go` for what the summary keeps. Every tool is listed;
+  a tool whose dropped prose carries rules declares `NeedsFullDocs()`.
+- Adding an error kind a model should branch on: a code in
+  `toolkit/codes.go`, its mapping in `ClassifyError` (`registry.go`), and a
+  case in `tests/mcp/errors_test.go`. Handlers keep returning plain errors;
+  `toolkit.WithCode` is for the rare error whose next step only the handler
+  knows.
 - Needing something from Human inside `mcpkit`: invert it. Expose a neutral seam
   there and project onto it here, as `GetTools` does over `Select`. Reaching for
   a domain import fails `TestNoDomainImports`, and would drag the server's whole

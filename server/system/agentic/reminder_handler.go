@@ -225,7 +225,7 @@ func (h *reminderHandler) snooze(ctx context.Context, req mcp.CallToolRequest) (
 		return nil, err
 	}
 	if remindAt == nil {
-		return nil, fmt.Errorf("remindAt is required")
+		return nil, toolkit.Requiredf("remindAt is required")
 	}
 
 	if err := sysService.DefaultReminder.Snooze(ctx, id, remindAt); err != nil {

@@ -3,6 +3,7 @@ package agentic
 import (
 	"context"
 	"fmt"
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	"slices"
 	"sort"
 	"strings"
@@ -45,7 +46,7 @@ func (h *agentHandler) validateAgentAccess(ctx context.Context, a *sysTypes.Agen
 func validateAgentAutomations(ctx context.Context, a *sysTypes.Agent) error {
 	for i, t := range a.Access.TAQs {
 		if t.ID == 0 {
-			return fmt.Errorf(`access.taqs[%d]: "id" is required — the TAQ this entry lets the agent run`, i)
+			return toolkit.WithCode(fmt.Errorf(`access.taqs[%d]: "id" is required — the TAQ this entry lets the agent run`, i), toolkit.CodeInvalid, "")
 		}
 		if svc := autoService.DefaultNgAutomation; svc != nil {
 			if _, err := svc.FindByID(ctx, t.ID); err != nil {
@@ -59,7 +60,7 @@ func validateAgentAutomations(ctx context.Context, a *sysTypes.Agent) error {
 
 	for i, w := range a.Access.Workflows {
 		if w.ID == 0 {
-			return fmt.Errorf(`access.workflows[%d]: "id" is required — the workflow this entry lets the agent run`, i)
+			return toolkit.WithCode(fmt.Errorf(`access.workflows[%d]: "id" is required — the workflow this entry lets the agent run`, i), toolkit.CodeInvalid, "")
 		}
 		if svc := autoService.DefaultWorkflow; svc != nil {
 			if _, err := svc.FindByID(ctx, w.ID); err != nil {

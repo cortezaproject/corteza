@@ -10,7 +10,7 @@ import (
 // Slim listing: every tool is listed and callable from the first request, but
 // summarised to its first sentence, with the per-parameter prose left out.
 //
-// The numbers are measured, not assumed. The full surface is 96 tools and
+// The numbers are measured, not assumed. At 96 tools the full surface was
 // ~40,000 tokens, of which ~28,000 is prose: 15,700 in tool descriptions and
 // 12,200 in per-parameter descriptions. What a client needs to *register and
 // call* a tool — names, types, required fields — is only ~12,400, and slimming

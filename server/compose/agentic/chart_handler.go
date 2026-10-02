@@ -248,7 +248,7 @@ func (h *chartHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*
 // within a namespace.
 func findChartByAny(ctx context.Context, namespaceID uint64, ref string) (*cmpTypes.Chart, error) {
 	if ref == "" {
-		return nil, fmt.Errorf("chart reference is required")
+		return nil, toolkit.Requiredf("chart reference is required")
 	}
 
 	if id, err := strconv.ParseUint(ref, 10, 64); err == nil {
@@ -271,7 +271,7 @@ func findChartByAny(ctx context.Context, namespaceID uint64, ref string) (*cmpTy
 		}
 	}
 
-	return nil, fmt.Errorf("chart %q not found", ref)
+	return nil, toolkit.NotFoundf("chart %q not found", ref)
 }
 
 // parseChartConfig unmarshals a JSON string or object into ChartConfig, because
@@ -281,7 +281,7 @@ func parseChartConfig(raw any) (cmpTypes.ChartConfig, error) {
 
 	switch v := raw.(type) {
 	case nil:
-		return cmpTypes.ChartConfig{}, fmt.Errorf("config is required")
+		return cmpTypes.ChartConfig{}, toolkit.Requiredf("config is required")
 	case string:
 		data = []byte(v)
 	default:
@@ -352,14 +352,14 @@ func checkChartReports(reports []*cmpTypes.ChartConfigReport) error {
 		// The renderer needs a module to query and only ever looks at the ID; a
 		// handle here reads as "module not found" and the chart draws nothing.
 		if r.ModuleID == 0 {
-			return fmt.Errorf(
+			return toolkit.Requiredf(
 				"report %d: moduleID is required — pass the numeric ID from compose_module_lookup as a string, not a module handle",
 				i+1,
 			)
 		}
 
 		if len(r.Metrics) == 0 {
-			return fmt.Errorf("report %d: at least one metric is required — what the chart plots", i+1)
+			return toolkit.Requiredf("report %d: at least one metric is required — what the chart plots", i+1)
 		}
 
 		gauge := false

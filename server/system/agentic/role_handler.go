@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
-	"github.com/crusttech/human/server/pkg/rbac"
 	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
+	"github.com/crusttech/human/server/pkg/rbac"
 	sysService "github.com/crusttech/human/server/system/service"
 	sysTypes "github.com/crusttech/human/server/system/types"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -459,7 +459,7 @@ func roleMemberArgs(ctx context.Context, req mcp.CallToolRequest) (roleID, userI
 		return 0, 0, 0, fmt.Errorf("pass either user or userGroup, not both: adding or removing a user and a group are separate changes")
 
 	case userRef == "" && groupRef == "":
-		return 0, 0, 0, fmt.Errorf("one of user or userGroup is required")
+		return 0, 0, 0, toolkit.Requiredf("one of user or userGroup is required")
 
 	case userRef != "":
 		u, err := sysService.DefaultUser.FindByAny(ctx, userRef)

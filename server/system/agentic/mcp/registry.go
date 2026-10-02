@@ -9,8 +9,11 @@ package mcp
 
 import (
 	"context"
+	"strings"
 
+	herrors "github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/mcpkit"
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	rt "github.com/crusttech/human/server/system/agentic/runtime"
 )
 
@@ -27,7 +30,47 @@ type Registry struct {
 
 // NewRegistry builds the Human registry.
 func NewRegistry() *Registry {
-	return &Registry{Registry: mcpkit.NewRegistry()}
+	r := &Registry{Registry: mcpkit.NewRegistry()}
+	r.SetErrorClassifier(ClassifyError)
+	return r
+}
+
+// ClassifyError names the code a Human error carries on the wire.
+//
+// Generated action errors (NamespaceErrNotFound, ModuleErrNotAllowedToUpdate…)
+// are all KindInternal and tell their kind through the "type" meta, so that is
+// read first; the error kinds cover what the store and auth layers raise
+// directly. "" means mcpkit falls back to "failed".
+func ClassifyError(err error) (code, next string) {
+	var e *herrors.Error
+	if herrors.As(err, &e) {
+		if t, ok := e.MetaValue("type"); ok {
+			switch s, _ := t.(string); {
+			case s == "notFound":
+				return toolkit.CodeNotFound, ""
+			case strings.HasPrefix(s, "notAllowedTo"):
+				return toolkit.CodeForbidden, ""
+			case s == "invalidID" || s == "invalidHandle":
+				return toolkit.CodeInvalid, "the identifier is malformed; IDs are numeric strings and handles are letters, digits and underscores"
+			case s == "staleData":
+				return toolkit.CodeConflict, ""
+			}
+		}
+	}
+
+	switch {
+	case herrors.IsNotFound(err):
+		return toolkit.CodeNotFound, ""
+	case herrors.IsUnauthorized(err):
+		return toolkit.CodeForbidden, ""
+	case herrors.IsUnauthenticated(err):
+		return toolkit.CodeUnauthenticated, ""
+	case herrors.IsDuplicateData(err), herrors.IsStaleData(err):
+		return toolkit.CodeConflict, ""
+	case herrors.IsInvalidData(err):
+		return toolkit.CodeInvalid, ""
+	}
+	return "", ""
 }
 
 // GetTools projects the registry down to the agentic runtime's own Tool type,

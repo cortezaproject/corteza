@@ -81,7 +81,10 @@ func TestJSONResult(t *testing.T) {
 		_, err := JSONResult(strings.Repeat("x", MaxResultBytes+1))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "result too large")
-		assert.Contains(t, err.Error(), "pageCursor")
+		var coded Coded
+		require.ErrorAs(t, err, &coded)
+		assert.Equal(t, CodeTooLarge, coded.ToolErrorCode())
+		assert.Contains(t, coded.ToolErrorNext(), "pageCursor")
 	})
 }
 

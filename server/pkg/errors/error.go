@@ -98,6 +98,12 @@ func (e *Error) Apply(ffn ...mfn) *Error {
 }
 
 // Is provided Is() method for equality checking with errors.Is
+// MetaValue returns what Meta stored under key, and whether anything was.
+func (e *Error) MetaValue(key interface{}) (interface{}, bool) {
+	v, ok := e.meta[key]
+	return v, ok
+}
+
 func (e *Error) Is(target error) bool {
 	t, ok := target.(*Error)
 	if !ok {

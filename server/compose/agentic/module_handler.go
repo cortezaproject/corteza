@@ -452,10 +452,10 @@ func parseModuleFields(raw interface{}) (cmpTypes.ModuleFieldSet, error) {
 
 	for i, f := range fields {
 		if f.Name == "" {
-			return nil, fmt.Errorf("field[%d]: name is required", i)
+			return nil, toolkit.Requiredf("field[%d]: name is required", i)
 		}
 		if f.Kind == "" {
-			return nil, fmt.Errorf("field[%d] %q: kind is required", i, f.Name)
+			return nil, toolkit.Requiredf("field[%d] %q: kind is required", i, f.Name)
 		}
 		f.Place = i
 		if f.Options == nil {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	"github.com/go-chi/chi/v5"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -67,6 +68,9 @@ func NewMCPServer(reg *Registry, name, version string) *MCPServer {
 		server.WithToolCapabilities(true),
 		server.WithResourceCapabilities(true, false),
 		server.WithToolFilter(m.listFilter()),
+		// First registered is outermost: mcp-go wraps in reverse, so this one
+		// sees every error the two below produce.
+		server.WithToolHandlerMiddleware(m.errorsAsResults()),
 		server.WithToolHandlerMiddleware(m.riskCeiling()),
 		server.WithToolHandlerMiddleware(m.rejectUnknownArguments()),
 		server.WithToolHandlerMiddleware(m.structuredForUI()),
@@ -144,10 +148,10 @@ func (m *MCPServer) riskCeiling() server.ToolHandlerMiddleware {
 			}
 
 			if risk := RiskOf(t.Tool); !risk.AtOrBelow(scope.MaxRisk) {
-				return nil, fmt.Errorf(
-					"tool %q is %s but this session is capped at %s; reconnect without maxRisk to use it",
+				return nil, toolkit.WithCode(fmt.Errorf(
+					"tool %q is %s but this session is capped at %s",
 					req.Params.Name, risk, scope.MaxRisk,
-				)
+				), toolkit.CodeRiskCapped, "reconnect without maxRisk, or with a higher one, to use it")
 			}
 
 			return next(ctx, req)

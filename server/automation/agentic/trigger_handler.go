@@ -364,7 +364,7 @@ func (h *triggerHandler) resolveWorkflow(ctx context.Context, ref string) (*auto
 		return nil, toolkit.Errf("workflow lookup", err)
 	}
 	if len(set) == 0 {
-		return nil, fmt.Errorf("workflow %q not found", ref)
+		return nil, toolkit.NotFoundf("workflow %q not found", ref)
 	}
 	return set[0], nil
 }

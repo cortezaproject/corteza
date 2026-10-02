@@ -684,7 +684,7 @@ func (h *taqHandler) resolve(ctx context.Context, refStr string) (*autoTypes.NgA
 		return nil, toolkit.Errf("TAQ lookup", err)
 	}
 	if len(set) == 0 {
-		return nil, fmt.Errorf("TAQ %q not found", refStr)
+		return nil, toolkit.NotFoundf("TAQ %q not found", refStr)
 	}
 	return set[0], nil
 }

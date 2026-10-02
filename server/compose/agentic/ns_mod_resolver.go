@@ -70,9 +70,9 @@ func resolveNamespaceRef(ctx context.Context, ref string) (*cmpTypes.Namespace, 
 	case 0:
 		all, err := findNamespaces(ctx, "")
 		if err != nil || len(all) == 0 {
-			return nil, fmt.Errorf("namespace %q not found", ref)
+			return nil, toolkit.NotFoundf("namespace %q not found", ref)
 		}
-		return nil, fmt.Errorf("namespace %q not found. These exist: %s", ref, namespaceNames(all))
+		return nil, toolkit.NotFoundf("namespace %q not found. These exist: %s", ref, namespaceNames(all))
 
 	default:
 		return nil, fmt.Errorf("namespace %q matches %d of them: %s. Name one exactly", ref, len(set), namespaceNames(set))
@@ -99,9 +99,9 @@ func resolveModuleRef(ctx context.Context, ns *cmpTypes.Namespace, ref string) (
 	case 0:
 		all, err := findModules(ctx, ns.ID, "")
 		if err != nil || len(all) == 0 {
-			return nil, fmt.Errorf("module %q not found in %s", ref, ns.Slug)
+			return nil, toolkit.NotFoundf("module %q not found in %s", ref, ns.Slug)
 		}
-		return nil, fmt.Errorf("module %q not found in %s. These exist: %s", ref, ns.Slug, moduleNames(all))
+		return nil, toolkit.NotFoundf("module %q not found in %s. These exist: %s", ref, ns.Slug, moduleNames(all))
 
 	default:
 		return nil, fmt.Errorf("module %q matches %d modules in %s: %s. Name one exactly", ref, len(set), ns.Slug, moduleNames(set))
@@ -210,7 +210,7 @@ func (r *nsModResolver) LookupModule(ctx context.Context, nsID, modID uint64) (a
 // namespace it forgot.
 func lookupNamespaceArg(ctx context.Context, args map[string]any) (*cmpTypes.Namespace, error) {
 	if v, ok := args["namespace"]; !ok || v == nil || v == "" {
-		return nil, fmt.Errorf("namespace is required — its handle, slug, name, or ID as a string")
+		return nil, toolkit.Requiredf("namespace is required — its handle, slug, name, or ID as a string")
 	}
 
 	ref, ok := args["namespace"].(string)

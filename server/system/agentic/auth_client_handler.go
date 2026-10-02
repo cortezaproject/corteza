@@ -321,7 +321,7 @@ func (h *authClientHandler) resolve(ctx context.Context, ref string, includeDele
 
 	switch len(set) {
 	case 0:
-		return nil, fmt.Errorf("auth client %q not found", ref)
+		return nil, toolkit.NotFoundf("auth client %q not found", ref)
 	case 1:
 		return set[0], nil
 	default:

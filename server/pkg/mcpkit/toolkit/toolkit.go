@@ -38,7 +38,7 @@ const (
 func Args(req mcp.CallToolRequest) (map[string]any, error) {
 	args, ok := req.Params.Arguments.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid request: arguments must be an object")
+		return nil, WithCode(fmt.Errorf("invalid request: arguments must be an object"), CodeInvalidArgument, "")
 	}
 	return args, nil
 }
@@ -60,7 +60,7 @@ func Str(args map[string]any, key string) string {
 func ReqStr(args map[string]any, key string) (string, error) {
 	s, _ := args[key].(string)
 	if strings.TrimSpace(s) == "" {
-		return "", fmt.Errorf("%s is required", key)
+		return "", WithCode(fmt.Errorf("%s is required", key), CodeInvalidArgument, "")
 	}
 	return s, nil
 }
@@ -101,7 +101,7 @@ func Ref(args map[string]any, key string) (string, error) {
 
 	s, ok := raw.(string)
 	if !ok {
-		return "", fmt.Errorf("%s must be a string to avoid precision loss, got %T", key, raw)
+		return "", WithCode(fmt.Errorf("%s must be a string to avoid precision loss, got %T", key, raw), CodeInvalidArgument, "")
 	}
 	return s, nil
 }
@@ -113,7 +113,7 @@ func ReqRef(args map[string]any, key string) (string, error) {
 		return "", err
 	}
 	if s == "" {
-		return "", fmt.Errorf("%s is required", key)
+		return "", WithCode(fmt.Errorf("%s is required", key), CodeInvalidArgument, "")
 	}
 	return s, nil
 }
@@ -132,7 +132,7 @@ func ID(args map[string]any, key string) (uint64, error) {
 
 	s, ok := raw.(string)
 	if !ok {
-		return 0, fmt.Errorf("%s must be a string to avoid precision loss, got %T", key, raw)
+		return 0, WithCode(fmt.Errorf("%s must be a string to avoid precision loss, got %T", key, raw), CodeInvalidArgument, "")
 	}
 	if s == "" {
 		return 0, nil
@@ -140,7 +140,7 @@ func ID(args map[string]any, key string) (uint64, error) {
 
 	id, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("invalid %s: %w", key, err)
+		return 0, WithCode(fmt.Errorf("invalid %s: %w", key, err), CodeInvalidArgument, "")
 	}
 	return id, nil
 }
@@ -152,7 +152,7 @@ func ReqID(args map[string]any, key string) (uint64, error) {
 		return 0, err
 	}
 	if id == 0 {
-		return 0, fmt.Errorf("%s is required", key)
+		return 0, WithCode(fmt.Errorf("%s is required", key), CodeInvalidArgument, "")
 	}
 	return id, nil
 }
@@ -266,10 +266,10 @@ func JSONResult(v any) (*mcp.CallToolResult, error) {
 	}
 
 	if len(out) > MaxResultBytes {
-		return nil, fmt.Errorf(
-			"result too large: %d bytes exceeds the %d byte limit — narrow the query, or use limit and pageCursor",
+		return nil, WithCode(fmt.Errorf(
+			"result too large: %d bytes exceeds the %d byte limit",
 			len(out), MaxResultBytes,
-		)
+		), CodeTooLarge, "narrow the query, or use limit and pageCursor")
 	}
 
 	return mcp.NewToolResultText(string(out)), nil

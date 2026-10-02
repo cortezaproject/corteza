@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/crusttech/human/server/pkg/mcpkit/toolkit"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -84,7 +85,7 @@ func unknownArgumentError(tool string, unknown []string, declared map[string]any
 	}
 
 	fmt.Fprintf(&b, ". It takes: %s", strings.Join(names, ", "))
-	return fmt.Errorf("%s", b.String())
+	return toolkit.WithCode(fmt.Errorf("%s", b.String()), toolkit.CodeUnknownArgument, "")
 }
 
 // nearestArgument picks the declared name a misspelling most likely meant.

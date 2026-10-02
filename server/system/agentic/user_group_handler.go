@@ -318,7 +318,7 @@ func (h *userGroupHandler) refArg(ctx context.Context, req mcp.CallToolRequest) 
 // job to fix.
 func (h *userGroupHandler) resolve(ctx context.Context, ref string, deleted, archived filter.State) (*sysTypes.UserGroup, error) {
 	if ref == "" {
-		return nil, fmt.Errorf("userGroup is required")
+		return nil, toolkit.Requiredf("userGroup is required")
 	}
 
 	f := sysTypes.UserGroupFilter{Deleted: deleted, Archived: archived}
@@ -333,7 +333,7 @@ func (h *userGroupHandler) resolve(ctx context.Context, ref string, deleted, arc
 		return nil, toolkit.Errf("user group lookup", err)
 	}
 	if len(set) == 0 {
-		return nil, fmt.Errorf("user group %q not found", ref)
+		return nil, toolkit.NotFoundf("user group %q not found", ref)
 	}
 
 	return set[0], nil

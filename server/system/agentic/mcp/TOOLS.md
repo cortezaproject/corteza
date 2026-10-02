@@ -15,7 +15,7 @@ rather than to Human, and are added to the MCP server directly
 (`pkg/mcpkit/server.go`, `registerMetaTools`). A `tools/list` returns them
 too, so a live listing is two longer than this table.
 
-## Registered tools (124)
+## Registered tools (125)
 
 | Tool | Group | Risk | Surface |
 |---|---|---|---|
@@ -54,6 +54,7 @@ too, so a live listing is two longer than this table.
 | `compose_namespace_create` | configuring | write | both |
 | `compose_namespace_delete` | configuring | destructive | both |
 | `compose_namespace_lookup` | configuring, usage | read | both |
+| `compose_namespace_undelete` | configuring | write | both |
 | `compose_namespace_update` | configuring | write | both |
 | `compose_page_block_schema` | configuring | read | both |
 | `compose_page_create` | configuring | write | both |
@@ -156,9 +157,9 @@ Present in the table above, but not on every instance.
 
 | Dimension | Value | Tools |
 |---|---|---|
-| group | configuring | 100 |
+| group | configuring | 101 |
 | group | configuring, usage | 4 |
 | group | usage | 20 |
 | risk | destructive | 19 |
 | risk | read | 34 |
-| risk | write | 71 |
+| risk | write | 72 |

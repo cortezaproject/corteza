@@ -376,7 +376,7 @@ func (h *applicationHandler) reorder(ctx context.Context, req mcp.CallToolReques
 
 	raw, ok := args["order"]
 	if !ok || raw == nil {
-		return nil, fmt.Errorf("order is required")
+		return nil, toolkit.Requiredf("order is required")
 	}
 
 	// applicationStringList refuses a JSON array of numbers, which is the point:
@@ -435,7 +435,7 @@ func (h *applicationHandler) unflag(ctx context.Context, req mcp.CallToolRequest
 // without the caller ever learning that a different application was touched.
 func resolveApplication(ctx context.Context, ref string, deleted filter.State) (*sysTypes.Application, error) {
 	if ref == "" {
-		return nil, fmt.Errorf("application is required")
+		return nil, toolkit.Requiredf("application is required")
 	}
 
 	if id, err := strconv.ParseUint(ref, 10, 64); err == nil {

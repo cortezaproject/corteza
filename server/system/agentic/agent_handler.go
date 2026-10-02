@@ -45,7 +45,7 @@ type agentItem struct {
 // resolving by it would pick an arbitrary agent.
 func findAgent(ctx context.Context, ref string) (*sysTypes.Agent, error) {
 	if ref == "" {
-		return nil, fmt.Errorf("agent is required")
+		return nil, toolkit.Requiredf("agent is required")
 	}
 
 	if id, err := strconv.ParseUint(ref, 10, 64); err == nil && id > 0 {
