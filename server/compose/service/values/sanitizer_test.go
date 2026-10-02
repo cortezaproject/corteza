@@ -28,6 +28,12 @@ func Test_sanitizer_Run(t *testing.T) {
 			output: "42",
 		},
 		{
+			name:   "empty number stays empty instead of becoming zero",
+			kind:   "Number",
+			input:  "  ",
+			output: "",
+		},
+		{
 			name:   "object reference should be processed",
 			kind:   "Record",
 			input:  " 133569629112020995 ",
