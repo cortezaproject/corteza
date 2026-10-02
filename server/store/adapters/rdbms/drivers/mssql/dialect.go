@@ -203,7 +203,14 @@ func (mssqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 
 	case *dal.TypeNumber:
 		col.Type.Name = "DECIMAL"
-		// @todo precision, scale?
+
+		switch {
+		case t.Precision > 0 && t.Scale > 0:
+			col.Type.Name += fmt.Sprintf("(%d,%d)", t.Precision, t.Scale)
+		case t.Precision > 0:
+			col.Type.Name += fmt.Sprintf("(%d)", t.Precision)
+		}
+
 		col.Default = ddl.DefaultNumber(t.HasDefault, t.Precision, t.DefaultValue)
 
 	case *dal.TypeText:
