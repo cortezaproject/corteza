@@ -12,8 +12,11 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
 - To call the local dev API (verify implementations, inspect data): use
   `dev/agent/` — `smoke.sh` first, `shape.sh compose/record update` for a
   call's method, path, params and traps, then `api.sh METHOD PATH`. Setup:
-  `bootstrap.sh` (idempotent). Skills: `/dev-api`, `/dev-seed`. Reference +
-  gotchas: `dev/agent/README.md`.
+  `bootstrap.sh` (idempotent). Skills: `/dev-api`, `/dev-seed`. Reference:
+  `dev/agent/README.md`.
+- **Non-obvious behaviour by area lives in `docs/gotchas/`** (server, compose,
+  TAQ, agentic, project, frontend, dev-toolkit, intent). Read the area file
+  before working in it; add an entry when something cost a turn.
 - Test data: versioned fixtures in `dev/fixtures/`; `dev/agent/seed.sh` /
   `cleanup.sh`. Pages/charts are built via `dev/agent/pagebuild.py` (never
   via envoy YAML — block refs don't resolve).
