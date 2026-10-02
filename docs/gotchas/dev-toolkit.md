@@ -54,6 +54,22 @@ The unify vite server resolves `@planetcrust/human-js` and `@planetcrust/human-v
 
 **How to apply:** a `/@fs` curl cannot tell fresh from frozen, and the served transform strips comments; probe by behaviour through `window.__human`. Only a vite restart clears a frozen module, and that is the human's call; verify lib behaviour with the package's own suite meanwhile.
 
+### A nested Claude Code session is the toolkit's end-to-end test
+
+`claude mcp list` from a checkout reports whether `human-dev` actually connects
+(`✔ Connected` vs `CONNECTION_CLOSED`), which a stdio probe of `run.sh` cannot
+show. `claude -p "<task>" --output-format json --max-turns 25 --model sonnet
+--mcp-config .mcp.json --strict-mcp-config` runs one task and returns
+`num_turns`, `duration_ms`, `usage` and `total_cost_usd`, so the same prompt in
+two checkouts is an A/B of the toolkit. Inside a Claude Code session the CLI
+refuses to nest until `CLAUDECODE` is unset (`env -u CLAUDECODE claude …`).
+`--strict-mcp-config` matters: without it the nested session also gets every
+account-level connector, remote Human instances included.
+
+**How to apply:** export `HUMAN_API` (and `HUMAN_DEV_LOG`) so a worktree's
+scripts reach a running server; compare turns, input tokens and cost, and read
+the answers, since a cheaper wrong answer is not an improvement.
+
 ## Dev MCP tools
 
 ### `files` arguments are whitespace-separated
