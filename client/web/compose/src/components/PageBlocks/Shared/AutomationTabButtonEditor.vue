@@ -64,6 +64,63 @@
       </b-select>
     </b-form-group>
 
+    <b-form-group
+      label-class="text-primary"
+    >
+      <template #label>
+        <div class="d-flex align-items-center">
+          {{ $t('buttonVisibility.label') }}
+
+          <c-hint
+            :tooltip="$t('buttonVisibility.tooltip')"
+            icon-class="text-warning"
+          />
+        </div>
+      </template>
+
+      <b-input-group>
+        <b-input-group-prepend>
+          <b-input-group-text variant="extra-light">
+            ƒ
+          </b-input-group-text>
+        </b-input-group-prepend>
+
+        <c-input-expression
+          v-model="visibilityExpression"
+          auto-complete
+          :placeholder="$t('buttonVisibility.placeholder')"
+          :suggestion-params="visibilityAutoCompleteParams"
+          class="flex-grow-1"
+        />
+      </b-input-group>
+
+      <i18next
+        v-if="isRecordPage"
+        path="block:general.visibility.condition.description.record-page"
+        tag="small"
+        class="text-muted"
+      >
+        <code>record.values.fieldName</code>
+        <code>user.(userID/email...)</code>
+        <code>screen.(width/height/userAgent/breakpoint)</code>
+        <code>user.userID == record.createdBy</code>
+        <code>record.values.fieldName == "value"</code>
+        <code>screen.width &lt; 1024</code>
+      </i18next>
+
+      <i18next
+        v-else
+        path="block:general.visibility.condition.description.non-record-page"
+        tag="small"
+        class="text-muted"
+      >
+        <code>user.(userID/email...)</code>
+        <code>screen.(width/height/userAgent/breakpoint)</code>
+        <code>user.userID == "123456789"</code>
+        <code>screen.width &lt; 1024</code>
+      </i18next>
+    </b-form-group>
+
     <template #footer>
       <c-input-confirm
         show-icon
@@ -133,6 +190,16 @@ export default {
   },
 
   computed: {
+    visibilityExpression: {
+      get () {
+        return (this.button.visibility || {}).expression || ''
+      },
+
+      set (expression) {
+        this.$set(this.button, 'visibility', { ...(this.button.visibility || {}), expression })
+      },
+    },
+
     variants () {
       return [
         'primary',

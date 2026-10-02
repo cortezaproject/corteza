@@ -13,6 +13,10 @@ automation:
     workflow: workflow
   buttonLabel: Label
   buttonVariant: Variant
+  buttonVisibility:
+    label: Visibility condition
+    placeholder: When will the button be shown
+    tooltip: Using visibility conditions will impact performance. Hiding a button does not prevent the script or workflow from being run by other means
   configuredButtons: Configured buttons
   dummyButtonLabel: Dummy
   editButton: Edit

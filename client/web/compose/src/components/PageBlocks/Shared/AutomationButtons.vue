@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex gap-2">
     <b-button
-      v-for="(b, i) in buttons"
+      v-for="{ b, i } in visibleButtons"
       :key="i"
       :variant="variant(b)"
       :disabled="!isValid(b) || processingIDs.includes(i)"
@@ -14,6 +14,7 @@
 </template>
 <script>
 import { compose, automation, NoID } from '@cortezaproject/corteza-js'
+import { debounce } from 'lodash'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import base from '../base'
 
@@ -46,10 +47,89 @@ export default {
   data () {
     return {
       processingIDs: [],
+
+      // Results of button visibility expressions, keyed by button index
+      visibility: {},
     }
   },
 
+  computed: {
+    hasVisibilityExpressions () {
+      return this.buttons.some(b => this.buttonExpression(b))
+    },
+
+    visibleButtons () {
+      return this.buttons
+        .map((b, i) => ({ b, i }))
+        .filter(({ b, i }) => !this.buttonExpression(b) || this.visibility[i])
+    },
+  },
+
+  watch: {
+    buttons: {
+      immediate: true,
+      handler () {
+        this.evaluateVisibility()
+      },
+    },
+
+    record () {
+      this.evaluateVisibilityDebounced()
+    },
+  },
+
+  created () {
+    this.$root.$on('record-field-change', this.evaluateVisibilityDebounced)
+  },
+
+  beforeDestroy () {
+    this.$root.$off('record-field-change', this.evaluateVisibilityDebounced)
+  },
+
   methods: {
+    buttonExpression (b) {
+      return ((b || {}).visibility || {}).expression || ''
+    },
+
+    evaluateVisibilityDebounced: debounce(function () {
+      this.evaluateVisibility()
+    }, 300),
+
+    async evaluateVisibility () {
+      if (!this.hasVisibilityExpressions || this.$route.name === 'admin.pages.builder') {
+        this.visibility = {}
+        return
+      }
+
+      const expressions = {}
+      this.buttons.forEach((b, i) => {
+        const expression = this.buttonExpression(b)
+        if (expression) {
+          expressions[i] = expression
+        }
+      })
+
+      const variables = {
+        user: this.$auth.user,
+        record: this.record ? this.record.serialize() : {},
+        screen: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          userAgent: navigator.userAgent,
+          breakpoint: this.getBreakpoint(),
+        },
+      }
+
+      return this.$SystemAPI.expressionEvaluate({ variables, expressions })
+        .then(res => {
+          this.visibility = res || {}
+        })
+        .catch(e => {
+          this.toastErrorHandler(this.$t('notification:evaluate.failed'))(e)
+          this.visibility = {}
+        })
+    },
+
     /**
      *
      */

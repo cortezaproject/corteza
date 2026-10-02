@@ -1,5 +1,10 @@
 import { Apply, CortezaID } from '../../../cast'
 
+interface ButtonVisibility {
+  // Expression evaluated on the server; button is shown only when it is truthy
+  expression: string;
+}
+
 export class Button {
   // Used when referring to Corredor automation script
   public script?: string = undefined
@@ -21,10 +26,17 @@ export class Button {
 
   public enabled = true;
 
+  // Controls when the button is shown
+  public visibility?: ButtonVisibility = { expression: '' };
+
   constructor (b: Partial<Button>) {
     Apply(this, b, Boolean, 'enabled')
     Apply(this, b, String, 'label', 'variant', 'script', 'resourceType')
     Apply(this, b, CortezaID, 'workflowID', 'stepID')
+
+    if (b.visibility) {
+      this.visibility = { expression: String(b.visibility.expression || '') }
+    }
   }
 }
 
