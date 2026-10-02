@@ -1,0 +1,4 @@
+node_modules/
+.auth/
+.results/
+.env.e2e

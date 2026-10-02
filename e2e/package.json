@@ -1,0 +1,13 @@
+{
+  "name": "corteza-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Playwright end-to-end tests that attach to a running Corteza stack",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
+  }
+}

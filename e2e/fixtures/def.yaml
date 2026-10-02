@@ -1,0 +1,61 @@
+namespace:
+  e2e_ns:
+    name: E2E
+    enabled: true
+    modules:
+      e2e_empty:
+        name: E2E Empty
+        fields:
+          amount:
+            title: Amount
+            kind: Number
+      e2e_items:
+        name: E2E Items
+        fields:
+          title:
+            title: Title
+          amount:
+            title: Amount
+            kind: Number
+        source:
+          - from: items.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: title
+                field: title
+              - column: amount
+                field: amount
+    pages:
+      e2e_dashboard:
+        title: E2E Dashboard
+        visible: true
+        blocks:
+          - title: Empty progress
+            kind: Progress
+            xywh: [0, 0, 6, 4]
+            options:
+              value:
+                module: e2e_empty
+                field: count
+                operation: ''
+              display:
+                showValue: true
+                showRelative: true
+          - title: Items
+            kind: RecordList
+            xywh: [0, 4, 12, 10]
+            options:
+              module: e2e_items
+              fields:
+                - name: title
+                - name: amount
+              selectable: true
+              bulkRecordEditEnabled: true
+              editFields:
+                - name: title
+                - name: amount
+      e2e_items_record:
+        title: E2E Item
+        module: e2e_items
