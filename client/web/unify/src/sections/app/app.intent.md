@@ -224,11 +224,11 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
 A custom app that breaks in Human is sorted by what broke, and each kind has
 one home. A gotcha with no test in that home is not written down anywhere else.
 
-| Kind                                                                     | Fixed in                                                                         | Pinned by                                                                               |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| API shape — what the store returns (a false Bool as nothing, `"12.5"`)   | the bridge (`host.js`); a change to an existing shape is a new contract version  | a probe in `e2e/sections/app/gotchas.spec.ts`                                           |
-| Sandbox — what the frame blocks (network, storage, dialogs, new windows) | the deploy guard (`checkApplicationSource`), refusing with what to write instead | a case in `application_handler_test.go`                                                 |
-| Data — what a namespace holds (empty modules, invented Select values)    | a rule in the `custom_app` skill, read before the page is written                | `dev/agent/skill_eval.py` — fixed prompts run in fresh sessions, scored on what deploys |
+| Kind                                                                     | Fixed in                                                                         | Pinned by                                                                                                                                                                   |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API shape — what the store returns (a false Bool as nothing, `"12.5"`)   | the bridge (`host.js`); a change to an existing shape is a new contract version  | a probe in `e2e/sections/app/gotchas.spec.ts`                                                                                                                               |
+| Sandbox — what the frame blocks (network, storage, dialogs, new windows) | the deploy guard (`checkApplicationSource`), refusing with what to write instead | a case in `application_handler_test.go`                                                                                                                                     |
+| Data — what a namespace holds (empty modules, invented Select values)    | a rule in the `custom_app` skill, read before the page is written                | the skill shape test (`server/system/agentic/skills`) and `server/tests/mcp/skills_test.go`, plus a hand review of the skill against the tools it names — never a model run |
 
 The skill carries only what neither the bridge nor the guard can absorb; when
 one of them takes a gotcha over, its line leaves the skill.

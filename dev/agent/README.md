@@ -447,47 +447,16 @@ What catches people out:
 - **`rm` hands the checkout's open todo to the global pool**, so the queue is
   the one thing it does not take with it.
 
-## Does a skill still work? `skill_eval.py`
+## Does a skill still work?
 
-A skill is text a model reads, so the only proof it still works is a model
-following it. `skill_eval.py` runs each prompt in `evals/<skill>.json` in a
-fresh `claude -p` session that sees only this checkout's MCP server — no
-CLAUDE.md, nothing pasted — and scores what the session produced.
-
-    dev/agent/seed.sh contacts_crm agent-sandbox   # the fixtures the prompts use
-    dev/agent/skill_eval.py                        # every prompt
-    dev/agent/skill_eval.py --only tempting-extras # one
-
-For `custom_app` a prompt passes when the session read the skill before
-writing, and the page is plain HTML with the bridge snippet unchanged, carries
-`window.SAMPLE` and a sample/live badge, and is accepted by the real deploy
-guard (on a scratch app the script deletes again). Transcripts and pages land in
-`.state/evals/<timestamp>/`. Sessions run on Sonnet unless `--model` says
-otherwise, never on Fable.
-
-Run it after any change to a skill, to the MCP instructions, or to a tool a
-skill names. The server embeds skills at build time and the watcher rebuilds on
-`.go` writes only, so rebuild before an eval that follows a skill edit.
-
-What the custom app rounds taught, worth keeping when the probe changes:
-
-- **A check must be able to fail.** Write briefs once passed without writing
-  anything, because the probe only pressed buttons. The `saves` check now asks
-  the store whether anything changed, and a brief the probe cannot drive fails
-  as unproven rather than passing quietly.
-- **Drive a page the way a person does**: press what opens something, fill
-  what is now on screen, then press what commits. Never press `close`,
-  `cancel`, `dismiss` or `×`, and click a switch's label, not its hidden input.
-- **Where the bridge names something, the name is the API's, or it takes
-  both.** Every product bug the rounds found was a bridge name differing from
-  the tool the skill sends authors to (`label`/`text`, `dimensions`/`dimension`,
-  a six-key theme against the tool's twelve). Check a new operation against its
-  tool's parameters before it ships.
-- **The score is what must be true, not craft.** Two models scoring the same
-  can still differ in quality, so judging a page still means opening its
-  screenshot.
-- **Reseed between models.** They share a database, and a second session that
-  finds the first one's module is right to refuse to duplicate it.
+A skill is text under `server/system/agentic/skills/library/`, embedded into the
+server and handed to an assistant by `system_skill_lookup`. It is held to the
+code by tests, never by running a model: `server/system/agentic/skills` checks
+the frontmatter and body shape, and `server/tests/mcp` checks that every
+trigger is a registered tool and that every block option a skill shows exists.
+After changing a skill, run both and read the skill against the tool
+descriptions it names; the server embeds skills at build time and the watcher
+rebuilds on `.go` writes only, so rebuild before checking it live.
 
 ## Deferred work: `backlog.sh`
 
