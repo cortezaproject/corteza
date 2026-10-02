@@ -279,3 +279,25 @@ func Test_validator_emptyValueDoesNotSkipOthers(t *testing.T) {
 	}
 	require.False(t, vldtr.Run(context.Background(), nil, m, r).IsValid())
 }
+
+func Test_validator_requiredBoolAcceptsFalse(t *testing.T) {
+	var (
+		vldtr = validator{localeSvc: makeLocaleService()}
+		m     = &types.Module{Fields: types.ModuleFieldSet{
+			{Name: "flag", Kind: "Bool", Required: true},
+		}}
+		r = &types.Record{}
+	)
+
+	// false is sanitized to an empty string; that is a value, not a missing one
+	r.Values = r.Values.Set(&types.RecordValue{Name: "flag", Value: "", Updated: true})
+	require.True(t, vldtr.Run(context.Background(), nil, m, r).IsValid())
+
+	// a required bool that is not sent at all is false as well
+	r.Values = types.RecordValueSet{}
+	require.True(t, vldtr.Run(context.Background(), nil, m, r).IsValid())
+
+	// true still passes
+	r.Values = types.RecordValueSet{{Name: "flag", Value: "1", Updated: true}}
+	require.True(t, vldtr.Run(context.Background(), nil, m, r).IsValid())
+}
