@@ -90,6 +90,7 @@ func (ctrl *ApigwRoute) Create(ctx context.Context, r *request.ApigwRouteCreate)
 			Endpoint: r.Endpoint,
 			Method:   r.Method,
 			Enabled:  r.Enabled,
+			Meta:     r.Meta,
 		}
 	)
 

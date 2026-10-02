@@ -205,6 +205,36 @@ func TestApigwRouteCreate(t *testing.T) {
 		End()
 }
 
+func TestApigwRouteCreate_meta(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoutes()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "apigw-route.create")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/apigw/route")).
+		Header("Accept", "application/json").
+		JSON(helpers.JSON(map[string]interface{}{
+			"endpoint": "/test-meta",
+			"method":   "POST",
+			"enabled":  false,
+			"meta": map[string]interface{}{
+				"debug":       true,
+				"async":       true,
+				"description": "This is a description.",
+			},
+		})).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response.routeID`)).
+		Assert(jsonpath.Equal(`$.response.endpoint`, "/test-meta")).
+		Assert(jsonpath.Equal(`$.response.meta.debug`, true)).
+		Assert(jsonpath.Equal(`$.response.meta.async`, true)).
+		Assert(jsonpath.Equal(`$.response.meta.description`, "This is a description.")).
+		End()
+}
+
 func TestApigwRouteCreate_forbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoutes()
