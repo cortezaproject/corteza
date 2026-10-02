@@ -32,7 +32,7 @@ var (
 	nuances = drivers.Nuances{
 		HavingClauseMustUseAlias: true,
 		TwoStepUpsert:            true,
-		TextCastType:             "VARCHAR(MAX)",
+		TextCastType:             "NVARCHAR(MAX)",
 	}
 )
 
@@ -159,7 +159,7 @@ func (mssqlDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (expr
 	switch attr.Type.(type) {
 
 	case *dal.TypeText:
-		expr = exp.NewCastExpression(val, "VARCHAR(MAX)")
+		expr = exp.NewCastExpression(val, "NVARCHAR(MAX)")
 
 	default:
 		return attributeCast(attr, val)
@@ -215,10 +215,12 @@ func (mssqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 		col.Default = ddl.DefaultNumber(t.HasDefault, t.Precision, t.DefaultValue)
 
 	case *dal.TypeText:
+		// NVARCHAR: VARCHAR is not Unicode and turns text outside of the
+		// database collation (Arabic, Persian, Chinese, ...) into "?"
 		if t.Length > 0 {
-			col.Type.Name = fmt.Sprintf("VARCHAR(%d)", t.Length)
+			col.Type.Name = fmt.Sprintf("NVARCHAR(%d)", t.Length)
 		} else {
-			col.Type.Name = "VARCHAR(MAX)"
+			col.Type.Name = "NVARCHAR(MAX)"
 		}
 
 		if t.HasDefault {
@@ -226,13 +228,13 @@ func (mssqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 		}
 
 	case *dal.TypeEnum:
-		col.Type.Name = "VARCHAR(MAX)"
+		col.Type.Name = "NVARCHAR(MAX)"
 
 	case *dal.TypeJSON:
-		col.Type.Name = "VARCHAR(MAX)"
+		col.Type.Name = "NVARCHAR(MAX)"
 
 	case *dal.TypeGeometry:
-		col.Type.Name = "VARCHAR(MAX)"
+		col.Type.Name = "NVARCHAR(MAX)"
 
 	case *dal.TypeBlob:
 		col.Type.Name = "VARBINARY(MAX)"
