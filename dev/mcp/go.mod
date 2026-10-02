@@ -1,6 +1,8 @@
 module github.com/crusttech/human/dev/mcp
 
-go 1.24.1
+go 1.25.0
+
+toolchain go1.25.14
 
 require (
 	github.com/crusttech/human/server v0.0.0-00010101000000-000000000000
@@ -9,7 +11,7 @@ require (
 
 require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
-	github.com/buger/jsonparser v1.1.1 // indirect
+	github.com/buger/jsonparser v1.1.2 // indirect
 	github.com/go-chi/chi/v5 v5.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/invopop/jsonschema v0.13.0 // indirect
