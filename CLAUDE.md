@@ -17,9 +17,11 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
 - **Never start, stop or restart a dev server** (vite, `make watch`) yourself,
   even one that is stale or misbehaving: it may be another session's. Say what
   is wrong and let the human relaunch it.
-- **Non-obvious behaviour by area lives in `docs/gotchas/`** (server, compose,
+- **Non-obvious behaviour by area lives in `dev/gotchas/`** (server, compose,
   TAQ, agentic, project, frontend, dev-toolkit, intent). Read the area file
-  before working in it; add an entry when something cost a turn.
+  before working in it; add an entry when something cost a turn. `docs/` is the
+  product documentation for people who use, deploy or configure Human; nothing
+  developer-facing goes there.
 - Test data: versioned fixtures in `dev/fixtures/`; `dev/agent/seed.sh` /
   `cleanup.sh`. Pages/charts are built via `dev/agent/pagebuild.py` (never
   via envoy YAML — block refs don't resolve).
