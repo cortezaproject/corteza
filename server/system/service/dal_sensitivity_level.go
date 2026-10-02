@@ -7,6 +7,7 @@ import (
 
 	a "github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/dal"
+	"github.com/crusttech/human/server/pkg/filter"
 
 	"github.com/crusttech/human/server/store"
 	"github.com/crusttech/human/server/system/types"
@@ -120,6 +121,11 @@ func (svc *dalSensitivityLevel) onUpdate(ctx context.Context, s store.Storer, up
 }
 
 func (svc *dalSensitivityLevel) afterUpdate(ctx context.Context, res *types.DalSensitivityLevel) error {
+	// Deleted levels are not registered with the DAL
+	if res.DeletedAt != nil {
+		return nil
+	}
+
 	return dalSensitivityLevelReplace(ctx, svc.services.dal, res)
 }
 
@@ -170,9 +176,18 @@ func (svc *dalSensitivityLevel) onUndelete(ctx context.Context, s store.Storer, 
 	}
 
 	res.DeletedAt = nil
+	res.DeletedBy = 0
+	res.UpdatedAt = now()
 	res.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-	if err := store.UpdateDalSensitivityLevel(ctx, s, res); err != nil {
+	// Validate against the active levels so that undeleting
+	// can not produce two levels with the same level value
+	ups, err := svc.prepare(ctx, s, res)
+	if err != nil {
+		return err
+	}
+
+	if err = store.UpsertDalSensitivityLevel(ctx, s, ups...); err != nil {
 		return err
 	}
 
@@ -184,7 +199,11 @@ func (svc *dalSensitivityLevel) onReloadSensitivityLevels(ctx context.Context, a
 }
 
 func (svc *dalSensitivityLevel) prepare(ctx context.Context, s store.Storer, sl *types.DalSensitivityLevel) (_ types.DalSensitivityLevelSet, err error) {
-	set, _, err := store.SearchDalSensitivityLevels(ctx, s, types.DalSensitivityLevelFilter{})
+	// Deleted levels are included so that they can still be updated
+	// and so that undeleting one can be validated against the active ones
+	set, _, err := store.SearchDalSensitivityLevels(ctx, s, types.DalSensitivityLevelFilter{
+		Deleted: filter.StateInclusive,
+	})
 	if err != nil {
 		return
 	}
@@ -194,9 +213,17 @@ func (svc *dalSensitivityLevel) prepare(ctx context.Context, s store.Storer, sl 
 
 	// Validation
 	{
-		for _, crt := range set {
-			if crt.Level == sl.Level && crt.ID != sl.ID {
-				return nil, fmt.Errorf("invalid sensitivity level: duplicated level value %d", sl.Level)
+		// Assure unique level among active levels; a deleted level
+		// may share its level value with an active one
+		if !deleting {
+			for _, crt := range set {
+				if crt.DeletedAt != nil {
+					continue
+				}
+
+				if crt.Level == sl.Level && crt.ID != sl.ID {
+					return nil, fmt.Errorf("invalid sensitivity level: duplicated level value %d", sl.Level)
+				}
 			}
 		}
 
