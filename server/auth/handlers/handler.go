@@ -507,6 +507,32 @@ func translator(req *request.AuthReq, ns string) func(key string, rr ...string) 
 	return req.Locale.NS(req.Context(), ns)
 }
 
+// errorText returns the error message for the auth pages, translated for
+// the request's language when the error carries a translation key (service
+// errors do) and the language has it; otherwise the message as it is
+func errorText(req *request.AuthReq, err error) string {
+	if err == nil {
+		return ""
+	}
+
+	tr, is := err.(interface {
+		Translate(func(string, string, ...string) string) error
+	})
+
+	if !is || req.Locale == nil {
+		return err.Error()
+	}
+
+	return tr.Translate(func(ns, key string, pairs ...string) string {
+		if msg := req.Locale.NS(req.Context(), ns)(key, pairs...); msg != key {
+			return msg
+		}
+
+		// no translation for this key; keep the original message
+		return ""
+	}).Error()
+}
+
 // parseRequestForm parses query, form and multipart data of the request
 // and reports whether the posted form exceeds what auth forms may carry
 func parseRequestForm(r *http.Request) (tooLarge bool, err error) {

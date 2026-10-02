@@ -149,7 +149,7 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 		service.AttachmentErrInvalidAvatarFileSize().Is(err),
 		service.AttachmentErrInvalidAvatarGenerateFontFile().Is(err):
 		req.SetKV(map[string]string{
-			"error":            err.Error(),
+			"error":            errorText(req, err),
 			"email":            u.Email,
 			"handle":           u.Handle,
 			"name":             u.Name,

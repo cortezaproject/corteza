@@ -77,7 +77,7 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 
 	fallback := func(req *request.AuthReq) {
 		req.SetKV(map[string]string{
-			"error":  err.Error(),
+			"error":  errorText(req, err),
 			"email":  payload.Email,
 			"handle": payload.Handle,
 			"name":   payload.Name,
