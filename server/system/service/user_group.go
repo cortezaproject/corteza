@@ -377,8 +377,8 @@ func (svc *userGroup) Update(ctx context.Context, upd *types.UserGroup) (r *type
 			return UserGroupErrMissingSelfID()
 		}
 
-		if !svc.checkSelfID(ctx, upd) {
-			return UserGroupErrInvalidSelfID()
+		if err = svc.checkParents(ctx, upd); err != nil {
+			return err
 		}
 
 		if !svc.isValidStructure(ctx, upd) {
@@ -470,6 +470,13 @@ func (svc *userGroup) Delete(ctx context.Context, userGroupID uint64) (err error
 		}
 
 		if err = svc.referencedByAuthClient(ctx, r.ID); err != nil {
+			return err
+		}
+
+		// Refuse before anything is written; a group with members or child
+		// groups can not be removed from the org tree and would otherwise be
+		// left soft-deleted while still referenced
+		if err = svc.checkEmpty(ctx, r.ID); err != nil {
 			return err
 		}
 
@@ -684,21 +691,106 @@ func (svc *userGroup) isValidStructure(ctx context.Context, g *types.UserGroup) 
 	return true
 }
 
-func (svc *userGroup) checkSelfID(ctx context.Context, g *types.UserGroup) bool {
+// checkParents refuses parent links to groups that do not exist or are deleted,
+// and links that would place the group below itself.
+func (svc *userGroup) checkParents(ctx context.Context, g *types.UserGroup) error {
+	if g.Config == nil {
+		return nil
+	}
+
 	for _, p := range g.Config.Paths {
-		// Can't point to itself
 		if p.SelfID == g.ID {
-			return false
+			return UserGroupErrCyclicPath()
 		}
 
-		// The pointed to selfID exists
-		_, err := svc.FindByID(ctx, p.SelfID)
+		parent, err := store.LookupUserGroupByID(ctx, svc.store, p.SelfID)
+		if errors.IsNotFound(err) || (err == nil && parent.DeletedAt != nil) {
+			return UserGroupErrParentNotFound()
+		}
+
 		if err != nil {
-			return false
+			return err
 		}
 	}
 
-	return true
+	if g.ID == 0 {
+		return nil
+	}
+
+	// walk up from every parent; reaching the group itself means it would sit below itself
+	var (
+		seen  = map[uint64]bool{}
+		queue = make([]uint64, 0, len(g.Config.Paths))
+	)
+
+	for _, p := range g.Config.Paths {
+		queue = append(queue, p.SelfID)
+	}
+
+	for len(queue) > 0 {
+		cur := queue[0]
+		queue = queue[1:]
+
+		if cur == g.ID {
+			return UserGroupErrCyclicPath()
+		}
+
+		if seen[cur] {
+			continue
+		}
+		seen[cur] = true
+
+		ancestor, err := store.LookupUserGroupByID(ctx, svc.store, cur)
+		if errors.IsNotFound(err) {
+			continue
+		}
+
+		if err != nil {
+			return err
+		}
+
+		if ancestor.Config == nil {
+			continue
+		}
+
+		for _, p := range ancestor.Config.Paths {
+			queue = append(queue, p.SelfID)
+		}
+	}
+
+	return nil
+}
+
+// checkEmpty refuses a group that still has members who are not deleted, or
+// groups that report to it.
+func (svc *userGroup) checkEmpty(ctx context.Context, userGroupID uint64) error {
+	members, _, err := store.SearchUsers(ctx, svc.store, types.UserFilter{UserGroupID: userGroupID})
+	if err != nil {
+		return err
+	}
+
+	if len(members) > 0 {
+		return UserGroupErrHasMembers()
+	}
+
+	groups, _, err := store.SearchUserGroups(ctx, svc.store, types.UserGroupFilter{})
+	if err != nil {
+		return err
+	}
+
+	for _, g := range groups {
+		if g.Config == nil {
+			continue
+		}
+
+		for _, p := range g.Config.Paths {
+			if p.SelfID == userGroupID {
+				return UserGroupErrHasChildGroups()
+			}
+		}
+	}
+
+	return nil
 }
 
 func (svc *userGroup) checkPaths(g *types.UserGroup) (ok bool) {

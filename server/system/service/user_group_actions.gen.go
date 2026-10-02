@@ -689,6 +689,170 @@ func UserGroupErrInvalidUpdateStructure(mm ...*userGroupActionProps) *errors.Err
 	return e
 }
 
+// UserGroupErrParentNotFound returns "system:user-group.parentNotFound" as *errors.Error
+//
+// This function is auto-generated.
+func UserGroupErrParentNotFound(mm ...*userGroupActionProps) *errors.Error {
+	var p = &userGroupActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("parent user group does not exist or is deleted", nil),
+
+		errors.Meta("type", "parentNotFound"),
+		errors.Meta("resource", "system:user-group"),
+
+		errors.Meta(userGroupPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user-group.errors.parentNotFound"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// UserGroupErrCyclicPath returns "system:user-group.cyclicPath" as *errors.Error
+//
+// This function is auto-generated.
+func UserGroupErrCyclicPath(mm ...*userGroupActionProps) *errors.Error {
+	var p = &userGroupActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("user group cannot report to itself or to a group below it", nil),
+
+		errors.Meta("type", "cyclicPath"),
+		errors.Meta("resource", "system:user-group"),
+
+		errors.Meta(userGroupPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user-group.errors.cyclicPath"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// UserGroupErrDuplicatePathName returns "system:user-group.duplicatePathName" as *errors.Error
+//
+// This function is auto-generated.
+func UserGroupErrDuplicatePathName(mm ...*userGroupActionProps) *errors.Error {
+	var p = &userGroupActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("parent links of a user group need different relationship names", nil),
+
+		errors.Meta("type", "duplicatePathName"),
+		errors.Meta("resource", "system:user-group"),
+
+		errors.Meta(userGroupPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user-group.errors.duplicatePathName"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// UserGroupErrHasMembers returns "system:user-group.hasMembers" as *errors.Error
+//
+// This function is auto-generated.
+func UserGroupErrHasMembers(mm ...*userGroupActionProps) *errors.Error {
+	var p = &userGroupActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("user group still has members", nil),
+
+		errors.Meta("type", "hasMembers"),
+		errors.Meta("resource", "system:user-group"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userGroupLogMetaKey{}, "failed to delete {{userGroup.handle}}; it still has members"),
+		errors.Meta(userGroupPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user-group.errors.hasMembers"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// UserGroupErrHasChildGroups returns "system:user-group.hasChildGroups" as *errors.Error
+//
+// This function is auto-generated.
+func UserGroupErrHasChildGroups(mm ...*userGroupActionProps) *errors.Error {
+	var p = &userGroupActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("user group still has child groups", nil),
+
+		errors.Meta("type", "hasChildGroups"),
+		errors.Meta("resource", "system:user-group"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userGroupLogMetaKey{}, "failed to delete {{userGroup.handle}}; other groups still report to it"),
+		errors.Meta(userGroupPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user-group.errors.hasChildGroups"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // UserGroupErrStaleData returns "system:user-group.staleData" as *errors.Error
 //
 // This function is auto-generated.

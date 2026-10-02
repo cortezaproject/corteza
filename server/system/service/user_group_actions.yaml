@@ -84,6 +84,28 @@ errors:
   - error: invalidUpdateStructure
     message: "invalid structure after update"
 
+  - error: parentNotFound
+    message: "parent user group does not exist or is deleted"
+    severity: warning
+
+  - error: cyclicPath
+    message: "user group cannot report to itself or to a group below it"
+    severity: warning
+
+  - error: duplicatePathName
+    message: "parent links of a user group need different relationship names"
+    severity: warning
+
+  - error: hasMembers
+    message: "user group still has members"
+    log: "failed to delete {{userGroup.handle}}; it still has members"
+    severity: warning
+
+  - error: hasChildGroups
+    message: "user group still has child groups"
+    log: "failed to delete {{userGroup.handle}}; other groups still report to it"
+    severity: warning
+
   - error: staleData
     message: "user group was modified by someone else or by a workflow after you've opened it. Please refresh to see the latest updated version"
     severity: warning
