@@ -89,6 +89,24 @@ they are is in their `type` meta (`notFound`, `notAllowedToRead`, `invalidID`,
 first and by kind second; `mcp.ClassifyError` in `server/system/agentic/mcp` is
 the one place that does it for the MCP surface.
 
+### The OpenAPI page is served under the API prefix
+
+`server/docs/*.yaml` and its Swagger UI are mounted at `/api/docs/`
+(`server/app/servers.go`, `options.CleanBase(baseUrl, apiBaseUrl, "docs")`), not
+at `/docs/`, where the webapp's SPA fallback answers with HTML and HTTP 200. The
+files are generated from `server/*/rest.yaml` by `make codegen` and embedded, so
+a new document reaches the server only after a rebuild.
+
+### The construct library is empty in a unit test
+
+TAQ step refs and trigger events are registered by the automation handlers'
+constructors (`h.reg.AddFunctions` in `compose/automation`, `system/automation`
+and the rest) when services boot. `service.ConstructLibrary()` in a plain `go
+test` answers nothing; `tests/automation` sees it filled only because its
+`TestMain` boots the app against a database. A reference that needs the
+catalogue is generated there (`docs/reference/taq/*.gen.md`), never from a unit
+test.
+
 ## RBAC and auth
 
 ### Auth sessions cache the user

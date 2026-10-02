@@ -70,6 +70,16 @@ account-level connector, remote Human instances included.
 scripts reach a running server; compare turns, input tokens and cost, and read
 the answers, since a cheaper wrong answer is not an improvement.
 
+### docs/ is the product site and renders Vue
+
+`docs/` is VitePress: every `.md` under it becomes a public page and the llms
+plugin folds it into `docs/llms-full.txt`, and `{{ … }}` in prose is a Vue
+expression (a literal `{{ $t('k') }}` broke the build). Developer notes live in
+`dev/gotchas/`, not under `docs/`. Files other than `.md` are served only from
+`docs/public/` (the schemas live there, at `/schemas/*.json`); `make docs-llms`
+refreshes the committed `llms*.txt` and `dev/agent/docs-llms.test.mjs` fails
+when they are stale.
+
 ## Dev MCP tools
 
 ### `files` arguments are whitespace-separated
