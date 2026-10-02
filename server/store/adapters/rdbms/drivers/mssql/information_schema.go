@@ -55,7 +55,7 @@ func (i *informationSchema) columnSelect(dbname string) *goqu.SelectDataset {
 		"DATETIME_PRECISION",
 	).
 		// @note this goqu.I is a cheat; try to figure out if we have something nicer available (same applies to lower code)
-		From(goqu.I(fmt.Sprintf("%s.INFORMATION_SCHEMA.COLUMNS", dbname))).
+		From(goqu.I(dbObject(dbname, "INFORMATION_SCHEMA.COLUMNS"))).
 		Order(
 			exp.NewOrderedExpression(exp.ParseIdentifier("TABLE_SCHEMA"), exp.AscDir, exp.NoNullsSortType),
 			exp.NewOrderedExpression(exp.ParseIdentifier("ORDINAL_POSITION"), exp.AscDir, exp.NoNullsSortType),
@@ -166,14 +166,14 @@ func (i *informationSchema) indexSelect(dbname string) *goqu.SelectDataset {
 		exp.NewAliasExpression(exp.NewLiteralExpression("''"), "INDEX_COMMENT"),
 	).
 		From(
-			goqu.From(goqu.I(fmt.Sprintf("%s.sys.indexes", dbname))).As("si"),
+			goqu.From(goqu.I(dbObject(dbname, "sys.indexes"))).As("si"),
 		).
 		Join(
-			goqu.I(fmt.Sprintf("%s.sys.index_columns", dbname)).As("ic"),
+			goqu.I(dbObject(dbname, "sys.index_columns")).As("ic"),
 			goqu.On(exp.NewLiteralExpression("si.object_id = ic.object_id and si.index_id = ic.index_id")),
 		).
 		Join(
-			goqu.I(fmt.Sprintf("%s.sys.columns", dbname)).As("col"),
+			goqu.I(dbObject(dbname, "sys.columns")).As("col"),
 			goqu.On(exp.NewLiteralExpression("ic.object_id = col.object_id and ic.column_id = col.column_id")),
 		).
 		Join(
@@ -265,4 +265,14 @@ func (i *informationSchema) scanIndexes(ctx context.Context, sd *goqu.SelectData
 	}
 
 	return
+}
+
+// dbObject qualifies a system object with the database name when one is
+// known; without it the object is looked up in the current database
+func dbObject(dbname, object string) string {
+	if dbname == "" {
+		return object
+	}
+
+	return dbname + "." + object
 }

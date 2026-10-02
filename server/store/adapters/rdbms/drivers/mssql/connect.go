@@ -78,7 +78,6 @@ func connectBase(ctx context.Context, cfg *rdbms.ConnConfig) (db *sqlx.DB, err e
 // error in case of incorrect param value
 //
 // See https://github.com/go-sql-driver/mysql for available dsn params
-//
 func NewConfig(dsn string) (c *rdbms.ConnConfig, err error) {
 	const (
 		validScheme = "sqlserver"
@@ -101,7 +100,7 @@ func NewConfig(dsn string) (c *rdbms.ConnConfig, err error) {
 	c = &rdbms.ConnConfig{
 		DriverName:     scheme,
 		DataSourceName: u.String(),
-		DBName:         strings.Trim(u.Path, "/"),
+		DBName:         dbNameFromURL(u),
 		MaskedDSN:      u.Redacted(),
 	}
 
@@ -113,6 +112,19 @@ func NewConfig(dsn string) (c *rdbms.ConnConfig, err error) {
 	c.SetDefaults()
 
 	return c, nil
+}
+
+// dbNameFromURL finds the database name in the sqlserver:// URL
+//
+// The driver's URL format keeps the database in the "database" query param;
+// the path, when present, names the server instance (host/instance). The path
+// is used as a fallback only when no database param is given.
+func dbNameFromURL(u *url.URL) string {
+	if db := u.Query().Get("database"); db != "" {
+		return db
+	}
+
+	return strings.Trim(u.Path, "/")
 }
 
 func errorHandler(err error) error {
