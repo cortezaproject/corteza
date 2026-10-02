@@ -50,9 +50,20 @@ pages, page blocks, filters and the TAQ builder.
 
 - Sub-editors are rendered with `field`, `namespace`, `model-value`, `disabled`
   and must emit `update:modelValue`. Nothing else is guaranteed to be passed.
+- `namespace` is required outside compose. `CFieldRecordEditor` resolves
+  `props.namespace?.namespaceID || $namespace?.value?.namespaceID`, and
+  `$namespace` is provided only by compose's `Namespace/View.vue`; a
+  `CFieldEditor` mounted elsewhere without `:namespace="{ namespaceID }"`
+  renders the Record and User sub-editors disabled ("Select a namespace first")
+  and logs nothing. A Record field's options carry no namespaceID.
 - Viewers are rendered with `field`, `record`, `namespace`, `valueOnly`,
   `extraOptions`, `disableClick`. Viewers read their own value from the record:
   `record[field.name]` for system fields, else `record.values[field.name]`.
+  That is all a viewer needs, so `CFieldViewer` also renders values that are
+  not a live record: a synthetic `{ isSystem: true, name, kind }` field over a
+  plain object, or a `compose.Record` built from `{ ownedBy, values }`.
+  `CFieldRecordViewer` still needs `field.options.moduleID` and a `namespace`
+  prop, or it falls back to the bare ID.
 - Multi-value logic lives ONLY in CFieldEditor: one sub-editor per entry with
   add/remove and stable entry ids (`allowEmpty` decides whether an emptied list
   keeps one blank entry). Exception ("multi-absorbing"): File always, and

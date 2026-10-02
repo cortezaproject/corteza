@@ -33,4 +33,5 @@ codec maps to legacy mxGraph anchor coordinates.
 
 - Handle IDs (`source-bottom`, `target-top-left`, …) are the codec's anchor vocabulary (`HANDLE_TO_MX` in `lib/codec.js`) — renaming or moving one breaks edge-anchor round-trips with server-stored workflows.
 - Handle availability is driven from outside: WorkflowEditor passes used-source/target-handle sets and in/out counts from its `nodeConnections` map; a used handle is rendered non-connectable but kept in the DOM so its edge still anchors.
-- Run `WorkflowNode.test.js`; keep the handle sets of workflow/termination nodes consistent with each other.
+- Run `WorkflowNode.test.js`. The handle sets differ on purpose: `WorkflowNode` renders 5 of the 8 target and 5 of the 8 source positions the codec can persist, `TerminationNode` all 8 targets, `TriggerNode` all 8 sources. Do not align them.
+- `ConnectionMode.Loose` lets an edge end on another node's source handle; `handlesToMxStyle` then persists `entryX=0.5;entryY=0`, which decodes to `target-top`, so the edge relocates on reload. Accepted as is — a cosmetic relocation, not corruption.

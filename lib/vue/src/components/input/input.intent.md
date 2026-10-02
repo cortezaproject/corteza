@@ -26,8 +26,12 @@ tests:
 
 App-agnostic form controls shared by every section: entity selectors that own
 their own fetching, and generic primitives. All are v-model components
-(`modelValue` in, `update:modelValue` out) unless noted. `index.ts` is the
-public surface; the CForm\*/CEditorActions scaffolding is imported by path.
+(`modelValue` in, `update:modelValue` out) unless noted. None declares a
+`value` prop or an `input` emit, so `:value` + `@input` compiles and renders but
+is inert both ways: the value never displays and the handler never fires. Only a
+round-trip (set, save, reload, read back) proves a picker is wired. `index.ts`
+is the public surface; the CForm\*/CEditorActions scaffolding is imported by
+path.
 
 ## Map
 
@@ -38,18 +42,18 @@ public surface; the CForm\*/CEditorActions scaffolding is imported by path.
 - `CCodeEditor` — CodeMirror over whatever a view keeps as code: `language` is `html`, `json` or plain text, and `read-only` both refuses the change and stops the element taking the keystroke, so what is shown is what the document holds. Language and read-only are fixed when the editor is built, so changing either rebuilds it. Used by the template editor and by the application editor's custom app page.
 - `CInputTAQ`, `CInputWorkflow` — AutomationAPI-backed selectors.
 - `CInputCorredorScript` — manual `system` Corredor server scripts the caller may run (SystemAPI automation list); the value is the script name, and the Select is editable so a name that is not listed (a script deployed later, or one the caller cannot list) can still be typed. It declares no `options` prop: step forms pass `options=[]` to every input, which would otherwise replace the fetched list.
-- `CInputNamespace`, `CInputModule`, `CInputChart` — store-backed compose selectors (module/chart scoped by `namespaceID` prop).
+- `CInputNamespace`, `CInputModule`, `CInputChart` — store-backed compose selectors (module/chart scoped by `namespaceID` prop). `CInputModule` treats `NoID` (`'0'`) as unselected, so a fresh block never fetches module `'0'`.
 - `CInputRecord` — record selector; needs `namespaceID` + `moduleID`, label via `labelField`/`recordLabelField`, narrows with `prefilter`/`queryFields` (ComposeAPI + record/module stores).
 - `CInputSelect` — thin PrimeVue Select wrapper: `options`, `optionLabel`, `loading`, `showClear`, `hideSearch`.
 - `CInputSearch` — search text box used by CResourceList; plain v-model.
 - `CInputSwitch` / `CInputToggleCard` — boolean toggles (inline label vs. card with description/warning).
-- `CInputDateTime` — date/time picker (`showTime`, `timeOnly`, `onlyDate`, min/max).
+- `CInputDateTime` — date/time picker (`showTime`, `timeOnly`, `onlyDate`, min/max), and the only place a PrimeVue `DatePicker` is bound. The picker understands `Date` values only: a string shows no time until the first pick and, with `show-time`, throws `Invalid arguments` on mount. So this component converts once, and `value-type="string"|"date"` sets what it emits. A compose DateTime field's `options.format` is display-only (viewers honour it, the editor keeps PrimeVue's one format).
 - `CInputCron` — cron/interval expression editor.
 - `CInputColorPicker`, `CInputLocation` (map dialog geometry), `CInputFile` + `CFileDropZone` (attachment upload; `previewStyle` sets the surface the preview sits on, e.g. the theme's sidebar colour), `CRichTextInput` (tiptap editor + emoji, `submitOnEnter`).
 - `CInputDelete` — confirm-guarded delete button (emits confirmation, no v-model).
 - `CFieldPicker` — dual-list picker of module fields (`allFields` ⇄ v-model selection).
 - `CInputModuleField` — single/`multiple` select of one module's fields; takes `module` or a store-resolved `moduleID`, narrows with `kinds`/`excludeMulti`/`queryableOnly` plus a `filter` predicate for anything those cannot express, appends the record's system fields under `includeSystem`, and offers `extraOptions` (an aggregate like `count`, which is picked here but is not a field) above them. v-model holds `valueKey` (`name`, or `fieldID` for the record block). Labels fall back to the field name, system labels come from `field.system.<name>`, `showName` appends the technical name, and system fields sort last — a caller that builds its own option list drifts from all of it.
-- `CFormGroup`, `CFormItemContent`, `CFormItemList`, `CFormList`, `CEditorActions` — form/list layout scaffolding for editor screens. `CEditorActions` carries `data-testid` `editor-actions` and `editor-back`: its Back button is the same control on every editor, so it is addressable as one rather than by each screen's label.
+- `CFormGroup`, `CFormItemContent`, `CFormItemList`, `CFormList`, `CEditorActions` — form/list layout scaffolding for editor screens. A stacked label over a control is a `CFormGroup` (label, `#actions` slot beside it, the control, `description` below; globally registered, no import), and its `name` opts into the PrimeVue resolver and renders the error `Message`. A hand-written `<label>` is right only beside a checkbox, radio or toggle, as a repeated row's column header, as a horizontal label-beside-control pair, or as a floating label. `CEditorActions` carries `data-testid` `editor-actions` and `editor-back`: its Back button is the same control on every editor, so it is addressable as one rather than by each screen's label.
 
 ## Cross-cutting
 

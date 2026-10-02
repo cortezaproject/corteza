@@ -22,7 +22,10 @@ array in memory; reach for resource-list when the API pages.
 ## Contracts
 
 - Renders all `items` directly (no pagination, no search, no lazy loading);
-  `primaryKey` defaults to `_dataKey`.
+  `primaryKey` defaults to `_dataKey` and becomes the DataTable `data-key`,
+  which keys the rows: a key computed from a field the row edits remounts the
+  row on every keystroke and loses focus after one character. Key on identity
+  (index, ID), never on editable content.
 - `fields` drives columns ({ key, header, sortable, style, frozen, pt, `hint`
   for an info-tooltip header, ... }); cell content via `body-<key>` slots with
   DataTable slotProps. Extra hand-written `<Column>`s pass through the default

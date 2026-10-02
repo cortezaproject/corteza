@@ -23,7 +23,8 @@ restructure it: reorder siblings and re-parent pages by drag and drop.
 - A node is two lines when the page has a description: the title, then the
   description muted beneath. Filtering still matches on the title alone.
 - Client-side lenient filtering by title; clicking a node opens the page editor.
-- Drag and drop persists the full new structure: re-parented pages get their `selfID` updated first, then each level is reordered, recursively; afterwards both the tree and the flat page list are re-fetched so the sidebar reflects the change.
+- Drag and drop is an indicator model, not SortableJS: `pageTreeDrop.js` (`projectDrop`, `dropPlan`, unit-tested) decides the target and `List.vue` drives the pointer. Rows stay put, the carried subtree fades in place, a card follows the pointer and one drop line shows — a row's middle band means into that row, first; between rows the depth comes from the card's left edge. One save on release, Escape cancels. Any page may be a parent, record pages included; the server has no rule against it.
+- A drop persists the full new structure: re-parented pages get their `selfID` updated first, then each level is reordered, recursively; afterwards both the tree and the flat page list are re-fetched so the sidebar reflects the change.
 - Create button gated by `canCreatePage`.
 
 ## Routes

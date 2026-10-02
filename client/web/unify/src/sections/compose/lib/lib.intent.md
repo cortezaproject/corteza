@@ -101,6 +101,13 @@ test in isolation.
   `${recordID}`, `${ownerID}`, `${userID}`, `${user.name}`) lives in
   `lib/js/src/compose/helpers/interpolate.ts`, not here — change semantics
   there, not by re-wrapping `eval`/`Function` locally.
+- A block's `blockID` counts from 1 within its page (the server assures them per
+  page), so it is unique only inside that page and the first block of every
+  page is `1`. Per-block client state keys on `pageID` + `blockID` through
+  `recordListFilterStorageKey` / `recordListPresetsStorageKey`; keyed on
+  `blockID` alone, the first record list of every page shares one filter and
+  silently hides another module's records. The page builder passes
+  `pageID: '0'` for its synthetic page.
 - Translation resource-ID/key formats must match what the server's resource
   translation endpoints emit; they are shared with the Translator components.
 - A custom colour scheme is recognised by `custom` appearing in its id, and the

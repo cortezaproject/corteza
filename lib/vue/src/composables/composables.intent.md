@@ -39,7 +39,7 @@ Sections use these instead of re-implementing per-app variants.
 - usePermissions.ts — provide/inject context for the app-level permission dialog (`providePermissions` once in App).
 - useRBAC.ts — `useRBACStore`: effective permission rules from all APIs; `can(resource, op)` defaults to deny.
 - useChangedAt.ts — the one "last change" column every resource list ends with: `changedAtField(header)` for the field, `changedAt`/`changedAtText` for the cell, `resourceState` for the row's lifecycle tag (deleted, then suspended, then archived). The value is the most recent of deletedAt/updatedAt/createdAt, read from either a wire row (strings) or a lib/js model (Dates), and Go's zero time counts as no timestamp.
-- useResourceList.ts — full list-view state machine: filter/sort/cursor pagination synced to route query, abortable requests; exposes `filterDefaults`.
+- useResourceList.ts — full list-view state machine: filter/sort/cursor pagination synced to route query, abortable requests; exposes `filterDefaults`. Sorting is `name` ascending when `sorting` is omitted; `sorting: {}` means unsorted, for a resource the server cannot sort; a resource with no sortable `name` must pass its own sort or the server rejects the whole request with `invalid column name: name`. A `{ ...options.sorting }` spread would break the `{}` opt-out. `handleSort` toggles the active field and otherwise selects ascending; `CHANGED_AT_KEY` is the one column a fresh selection starts descending.
 - useResourceStatus.ts — a list's one-at-a-time status: `statusOf(filter, states)` reads it, `statusFilter(status, states)` writes the per-state filters (Deleted keeps rows that also carry another state).
 - useRightSidebarResize.ts — mouse-drag resize state for the right sidebar (280–800px clamp).
 - useTheme.ts — PrimeVue preset construction from theme variables, light/dark handling; exports `currentTheme`, the reactive theme the preset was last built for (the one source for "is the app dark", in place of sniffing `html.dark`).
@@ -53,7 +53,9 @@ Sections use these instead of re-implementing per-app variants.
 - `useRBAC.ts` defines a Pinia store despite living here — the shell preloads
   it; `can()` must stay deny-by-default.
 - `useResourceList` owns the URL query contract of list views (limit, cursor,
-  sort, filters); changing serialization breaks bookmarked lists.
+  sort, filters); changing serialization breaks bookmarked lists. Every query
+  param it does not own is assigned into `filter`, declared or not, so any list
+  filter is reachable and testable by URL (`?status=archived`).
 - `changedAt` is the one column key `useResourceList` rewrites: it sends
   `coalesce(deletedAt, updatedAt, createdAt)` so the column orders by the value
   it displays. Sorting such a column on `updatedAt` alone gives every

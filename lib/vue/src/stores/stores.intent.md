@@ -50,3 +50,11 @@ re-create their own copies; per-store contracts live in the sidecar docs.
   mocks via Pinia).
 - Cache-guarded loads (`loadFor`, preloads) are a contract: pickers rely on not
   refetching per open. Section-local state stays in section store folders.
+- The compose stores (page, pageLayout, module, chart, namespace) load once,
+  from `Namespace/View.vue`'s `prepareNamespace()`. Three read shapes:
+  `getByID` / `getByPageID` are cache-only and answer `undefined` for anything
+  created since; `findByID` / `findByPageID` are cache-first; `{ force: true }`
+  always fetches. `load()` and `updateSet()` only add — `load({ clear: true })`
+  or a forced fetch is what removes a deleted resource. An option a store does
+  not declare is dropped in silence, so grep the store before believing a call
+  site. Editors fetch their own resource and nothing else.

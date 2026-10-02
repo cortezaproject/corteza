@@ -25,7 +25,7 @@ so branding/visibility changes need no code.
 - `CTopbar.vue` — header: title/tools teleport targets, page buttons, home /
   app-selector / agent / notifications / profile menus. The build version is
   a disabled last entry of the profile menu — the only place the UI states it.
-- `CSidebar.vue` — collapsible sidebar shell (v-model expanded, theme-aware logo via `useBrandLogo('main')`, scaled down to the header slot whatever the uploaded image measures). `CTopbar` shows the icon the same way (`useBrandLogo('icon')`) where the sidebar is disabled.
+- `CSidebar.vue` — collapsible sidebar shell (v-model expanded, theme-aware logo via `useBrandLogo('main')`, scaled down to the header slot whatever the uploaded image measures). `CTopbar` shows the icon the same way (`useBrandLogo('icon')`) where the sidebar is disabled. The `#body` slot sits inside the shell's own `flex-1 overflow-auto`, so a section sidebar owns no scroller, only a column that must fit: keep the body root `h-full`, size children `flex-1 min-h-0`, and let one child own the single `overflow-auto`. A child that is also `h-full` beside a fixed-height sibling overflows the shell's scroller and shows two scrollbars, visible only at a short viewport. To bottom-align a block when content is short, wrap the scroller's contents in `flex flex-col min-h-full` and give the part above `flex-1`.
 - `CSidebarNav.vue` / `CSidebarNavItem.vue` — generic nav tree; item id/parent/
   label/icon/weight fields are configurable via `*Key` props (defaults are the
   compose-page shape: `pageID`/`selfID`/`title`/`weight`); emits `select`.
