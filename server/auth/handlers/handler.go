@@ -205,18 +205,15 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 		)
 
 		err := func() (err error) {
-			if err = r.ParseForm(); err != nil {
+			var tooLarge bool
+			if tooLarge, err = parseRequestForm(r); err != nil {
 				return
 			}
 
-			// Caching 32MB to memory, the rest to disk
-			err = r.ParseMultipartForm(32 << 20)
-			if err != nil && err != http.ErrNotMultipart {
-				return
-			}
-
-			if !validFormPost(r) {
+			if tooLarge {
 				req.Status = http.StatusRequestEntityTooLarge
+				req.Template = TmplInternalError
+				req.Data["error"] = fmt.Errorf("submitted form is too large")
 				return
 			}
 
@@ -515,20 +512,44 @@ func translator(req *request.AuthReq, ns string) func(key string, rr ...string) 
 // quite primitive for now but should be effective against out-of-bounds attacks
 //
 // in the future, more sophisticated validation might be needed
+// parseRequestForm parses query, form and multipart data of the request
+// and reports whether the posted form exceeds what auth forms may carry
+func parseRequestForm(r *http.Request) (tooLarge bool, err error) {
+	if err = r.ParseForm(); err != nil {
+		return
+	}
+
+	// Caching 32MB to memory, the rest to disk
+	err = r.ParseMultipartForm(32 << 20)
+	if err == http.ErrNotMultipart {
+		// not every form is multipart; that is not an error
+		err = nil
+	}
+
+	if err != nil {
+		return
+	}
+
+	return !validFormPost(r), nil
+}
+
+// validFormPost checks the posted fields only; query parameters are not
+// limited since identity providers send long values (authorization codes)
+// to the callback URL
 func validFormPost(r *http.Request) bool {
-	if len(r.Form) > maxPostFields {
+	if len(r.PostForm) > maxPostFields {
 		// auth does not have any large forms
 		return false
 	}
 
 	// None of the values from the post fields should be longer than max length
-	for k, _ := range r.Form {
-		if len(r.Form[k]) > 1 {
+	for k := range r.PostForm {
+		if len(r.PostForm[k]) > 1 {
 			// assuming only one value per field!
 			return false
 		}
 
-		if len(r.Form[k][0]) > maxPostValueLength {
+		if len(r.PostForm[k][0]) > maxPostValueLength {
 			return false
 		}
 	}
