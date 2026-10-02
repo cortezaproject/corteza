@@ -3,6 +3,8 @@
     <AutomationButtonsEditor
       :buttons="buttons"
       :scope="scope"
+      :expr-scope="exprScope"
+      :is-record-page="isRecordPage"
       :namespace="namespace"
       :page="page"
       :module="pageModule"
@@ -23,7 +25,9 @@ const props = defineProps({
   page: { type: Object, default: () => ({}) },
 })
 
-const { scope } = useExpressionScope({ page: computed(() => props.page) })
+const { scope, exprScope, isRecordPage } = useExpressionScope({
+  page: computed(() => props.page),
+})
 
 const moduleStore = useModuleStore()
 

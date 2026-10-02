@@ -42,6 +42,11 @@ automation:
   buttonResourceType: Resource type
   buttonStep: Step
   buttonVariant: Variant
+  buttonVisibility:
+    label: Visibility condition
+    placeholder: When will the button be shown
+    tooltip: Using visibility conditions will impact performance. A hidden button does not
+      stop the automation from being run another way
   buttonWorkflow: Workflow
   configuredButtons: Configured buttons
   dummyButtonLabel: Dummy

@@ -308,3 +308,19 @@ describe('AutomationButtonsEditor scripts tab', () => {
     expect(scriptsTab(wrapper).props('items')).toEqual([])
   })
 })
+
+describe('AutomationButtonsEditor visibility condition', () => {
+  it('stores the condition on the button and drops it once cleared', async () => {
+    const wrapper = mountEditor([{ label: 'Go', workflowID: 'W1', scriptType: 'workflow' }])
+    await flushPromises()
+
+    wrapper.vm.updateVisibility(0, 'record.values.status == "draft"')
+    expect(wrapper.emitted('update:buttons')[0][0][0].visibility).toEqual({
+      expression: 'record.values.status == "draft"',
+    })
+
+    await wrapper.setProps({ buttons: wrapper.emitted('update:buttons')[0][0] })
+    wrapper.vm.updateVisibility(0, '')
+    expect(wrapper.emitted('update:buttons')[1][0][0]).not.toHaveProperty('visibility')
+  })
+})

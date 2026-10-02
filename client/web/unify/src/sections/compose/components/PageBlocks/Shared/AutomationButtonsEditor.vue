@@ -79,6 +79,26 @@
                 </template>
               </Select>
             </CFormGroup>
+
+            <CFormGroup :description="visibilityDescription">
+              <template #label>
+                <span class="flex items-center gap-1">
+                  {{ $t('block.automation.buttonVisibility.label') }}
+                  <i
+                    class="pi pi-exclamation-triangle text-orange-500 text-xs"
+                    v-tooltip="$t('block.automation.buttonVisibility.tooltip')"
+                  />
+                </span>
+              </template>
+              <CInputExpression
+                :model-value="item.visibility?.expression || ''"
+                dialect="expr"
+                :scope="exprScope"
+                :min-lines="1"
+                :placeholder="$t('block.automation.buttonVisibility.placeholder')"
+                @update:model-value="updateVisibility(index, $event)"
+              />
+            </CFormGroup>
           </div>
         </template>
       </CFormList>
@@ -201,6 +221,13 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  // ScopeEntry[] for the server-evaluated visibility condition.
+  exprScope: {
+    type: Array,
+    default: () => [],
+  },
+  // Whether the block renders beside a record the condition may read.
+  isRecordPage: { type: Boolean, default: false },
   // The page the block sits on and the resources it can hand a script. Left out,
   // no script is held back: a caller that names no page states no context.
   page: { type: Object, default: null },
@@ -244,6 +271,24 @@ const variantSeverityMap = {
 }
 
 const mapVariantSeverity = key => variantSeverityMap[key]
+
+const visibilityDescription = computed(() =>
+  props.isRecordPage
+    ? t('block.general.visibility.condition.description.record-page', [
+        'record.values.fieldName',
+        'user.(userID/email...)',
+        'screen.(width/height)',
+        'isView/isCreate/isEdit',
+        'record.values.status == "draft"',
+        'user.userID == record.ownedBy',
+      ])
+    : t('block.general.visibility.condition.description.non-record-page', [
+        'user.(userID/email...)',
+        'screen.(width/height)',
+        'user.email == "test@mail.com"',
+        'screen.width < 1024',
+      ]),
+)
 
 const scriptTypeOf = b => {
   if (b.automationID) return 'taq'
@@ -320,6 +365,14 @@ function emitButtons(next) {
 function updateField(index, key, value) {
   const next = [...normalizedButtons.value]
   next[index] = { ...next[index], [key]: value }
+  emitButtons(next)
+}
+
+// An empty condition drops the key, so a button never carries a blank rule.
+function updateVisibility(index, expression) {
+  const next = [...normalizedButtons.value]
+  const { visibility: _, ...rest } = next[index]
+  next[index] = expression ? { ...rest, visibility: { expression } } : rest
   emitButtons(next)
 }
 

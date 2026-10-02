@@ -1,5 +1,10 @@
 import { Apply, HumanID } from '../../../cast'
 
+interface ButtonVisibility {
+  // Server-evaluated expression; the button is shown only while it holds
+  expression: string
+}
+
 export class Button {
   // Used when referring to Corredor automation script
   public script?: string = undefined
@@ -30,6 +35,9 @@ export class Button {
 
   public enabled = true
 
+  // When the button is shown; absent or empty means always
+  public visibility?: ButtonVisibility = undefined
+
   constructor(b: Partial<Button>) {
     Apply(this, b, Boolean, 'enabled')
     Apply(
@@ -44,6 +52,10 @@ export class Button {
       'scriptType',
     )
     Apply(this, b, HumanID, 'workflowID', 'stepID', 'automationID')
+
+    if (b.visibility?.expression) {
+      this.visibility = { expression: String(b.visibility.expression) }
+    }
   }
 }
 

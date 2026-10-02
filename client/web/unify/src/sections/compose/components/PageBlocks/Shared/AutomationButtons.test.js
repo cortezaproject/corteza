@@ -19,20 +19,23 @@ const RECORD = { recordID: 'R1', ownedBy: '3' }
 let ngExec
 let wfExec
 let dispatch
+let evaluate
 
-function mountButtons(props) {
+function mountButtons(props, { conditions } = {}) {
   ngExec = vi.fn(() => Promise.resolve({}))
   wfExec = vi.fn(() => Promise.resolve({}))
   dispatch = vi.fn(() => Promise.resolve(null))
+  evaluate = vi.fn(() => Promise.resolve(conditions || {}))
 
   return mount(AutomationButtons, {
     props: { namespace: NAMESPACE, page: PAGE, ...props },
     global: {
-      stubs: { Button: { props: ['label'], template: '<button />' } },
+      stubs: { Button: { props: ['label'], template: '<button>{{ label }}</button>' } },
       directives: { tooltip: {} },
       provide: {
         $AutomationAPI: { ngAutomationExec: ngExec, workflowExec: wfExec },
         $ScriptBus: { Dispatch: dispatch },
+        $SystemAPI: { expressionEvaluate: evaluate },
         $Auth: { user: { userID: '42' } },
         $toast: null,
       },
@@ -318,5 +321,78 @@ describe('AutomationButtons unrunnable script', () => {
 
     expect(wrapper.find('button').attributes('data-severity')).toBeUndefined()
     expect(wrapper.find('button').attributes('data-tooltip')).toBeUndefined()
+  })
+})
+
+// A button's condition is judged by the server with the same variables a
+// block's visibility gets, and the button is kept out of the row until it holds.
+describe('AutomationButtons visibility', () => {
+  const labels = wrapper => wrapper.findAll('button').map(b => b.text())
+
+  it('shows only the buttons whose condition holds', async () => {
+    const wrapper = mountButtons(
+      {
+        buttons: [
+          { label: 'Always', workflowID: 'W1' },
+          { label: 'Hidden', workflowID: 'W2', visibility: { expression: 'false' } },
+          { label: 'Shown', workflowID: 'W3', visibility: { expression: 'true' } },
+        ],
+        record: RECORD,
+      },
+      { conditions: { 1: false, 2: true } },
+    )
+    await flushPromises()
+
+    expect(evaluate).toHaveBeenCalledTimes(1)
+    expect(evaluate.mock.calls[0][0].expressions).toEqual({ 1: 'false', 2: 'true' })
+    expect(evaluate.mock.calls[0][0].variables.user).toEqual({ userID: '42' })
+    expect(labels(wrapper)).toEqual(['Always', 'Shown'])
+  })
+
+  it('keeps a conditioned button hidden until the server has answered', async () => {
+    let answer
+    const wrapper = mountButtons({
+      buttons: [
+        { label: 'Always', workflowID: 'W1' },
+        { label: 'Later', workflowID: 'W2', visibility: { expression: 'true' } },
+      ],
+    })
+    evaluate.mockImplementation(() => new Promise(resolve => (answer = resolve)))
+    await wrapper.setProps({ buttons: [...wrapper.props('buttons')] })
+
+    expect(labels(wrapper)).toEqual(['Always'])
+
+    answer({ 1: true })
+    await flushPromises()
+    expect(labels(wrapper)).toEqual(['Always', 'Later'])
+  })
+
+  it('asks the server nothing when no button carries a condition', async () => {
+    const wrapper = mountButtons({
+      buttons: [
+        { label: 'A', workflowID: 'W1' },
+        { label: 'B', workflowID: 'W2' },
+      ],
+    })
+    await flushPromises()
+
+    expect(evaluate).not.toHaveBeenCalled()
+    expect(labels(wrapper)).toEqual(['A', 'B'])
+  })
+
+  it('runs the button the pressed index names, not its place in the row', async () => {
+    const wrapper = mountButtons(
+      {
+        buttons: [
+          { label: 'Hidden', workflowID: 'W1', visibility: { expression: 'false' } },
+          { label: 'Shown', workflowID: 'W2' },
+        ],
+      },
+      { conditions: { 0: false } },
+    )
+    await flushPromises()
+    await press(wrapper)
+
+    expect(wfExec.mock.calls[0][0].workflowID).toBe('W2')
   })
 })

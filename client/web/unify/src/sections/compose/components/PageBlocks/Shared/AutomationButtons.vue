@@ -1,7 +1,7 @@
 <template>
   <div :class="containerClass">
     <Button
-      v-for="(btn, i) in buttons"
+      v-for="{ btn, i } in visibleButtons"
       :key="i"
       v-tooltip.bottom="problemMessage(btn)"
       :label="evaluatedLabel(btn) || '-'"
@@ -17,11 +17,12 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref, computed, inject, watch, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { compose } from '@planetcrust/human-js'
 import { evaluatePrefilter } from '../../../lib/record-filter'
 import { scriptConstraintMatcher } from '../../../lib/script-events'
+import { usePageVisibility } from '../../../composables/usePageVisibility'
 
 const { t } = useI18n()
 
@@ -45,8 +46,79 @@ const $Auth = inject('$Auth', {})
 const $AutomationAPI = inject('$AutomationAPI', null)
 const $ScriptBus = inject('$ScriptBus', null)
 const $UIHooks = inject('$UIHooks', null)
+const $SystemAPI = inject('$SystemAPI', null)
+const ctx = inject('recordViewContext', null)
 
 const processingIDs = ref([])
+
+const { buildExpressionVariables } = usePageVisibility($SystemAPI, $Auth)
+
+// Outcome of each button's visibility condition, by button index.
+const conditionResults = ref({})
+
+const conditionOf = btn => btn?.visibility?.expression || ''
+
+// A button with a condition stays hidden until the server has said it holds.
+const visibleButtons = computed(() =>
+  props.buttons
+    .map((btn, i) => ({ btn, i }))
+    .filter(({ btn, i }) => !conditionOf(btn) || !!conditionResults.value[i]),
+)
+
+function currentMode() {
+  if (!ctx) return undefined
+  if (ctx.isNew?.value) return 'create'
+  return ctx.mode?.value
+}
+
+let _conditionSeq = 0
+
+async function evaluateConditions() {
+  const expressions = {}
+  props.buttons.forEach((btn, i) => {
+    const expression = conditionOf(btn)
+    if (expression) expressions[i] = expression
+  })
+
+  const seq = ++_conditionSeq
+  if (!Object.keys(expressions).length || !$SystemAPI) {
+    conditionResults.value = {}
+    return
+  }
+
+  const mode = currentMode()
+  const variables = buildExpressionVariables({
+    record: props.record,
+    isRecordPage: !!mode,
+    mode,
+  })
+
+  let results = {}
+  try {
+    results = (await $SystemAPI.expressionEvaluate({ variables, expressions })) || {}
+  } catch (e) {
+    console.error('Failed to evaluate automation button conditions:', e)
+    $toast?.toastErrorHandler?.(t('notification.evaluate.failed'))(e)
+  }
+
+  // A slower earlier response must not overwrite a newer one
+  if (seq !== _conditionSeq) return
+  conditionResults.value = results
+}
+
+let _conditionTimer = null
+
+function scheduleEvaluation() {
+  clearTimeout(_conditionTimer)
+  _conditionTimer = setTimeout(evaluateConditions, 300)
+}
+
+watch(() => props.buttons, evaluateConditions, { immediate: true })
+// Conditions follow the record as it is edited, like block visibility does.
+watch(() => props.record?.values, scheduleEvaluation, { deep: true })
+watch(() => currentMode(), scheduleEvaluation)
+
+onBeforeUnmount(() => clearTimeout(_conditionTimer))
 
 const variantSeverityMap = {
   primary: undefined,

@@ -44,3 +44,26 @@ describe('automation button round trip', () => {
     expect(button.scriptType).to.equal(undefined)
   })
 })
+
+describe('automation button visibility', () => {
+  it('keeps the condition through the block and its JSON', () => {
+    const block = new PageBlockAutomation({
+      options: { buttons: [{ label: 'Send', visibility: { expression: 'record.values.ok' } }] },
+    })
+    const [button] = JSON.parse(JSON.stringify(block)).options.buttons
+
+    expect(button.visibility).to.deep.equal({ expression: 'record.values.ok' })
+  })
+
+  it('carries no condition when none or an empty one is given', () => {
+    const block = new PageBlockAutomation({
+      options: {
+        buttons: [{ label: 'Plain' }, { label: 'Blank', visibility: { expression: '' } }],
+      },
+    })
+    const [plain, blank] = JSON.parse(JSON.stringify(block)).options.buttons
+
+    expect(plain).to.not.have.property('visibility')
+    expect(blank).to.not.have.property('visibility')
+  })
+})
