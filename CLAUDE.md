@@ -32,10 +32,11 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
 - Several independent issues at once: `/orchestrate` — parallel lanes, one per
   worktree. Invoking it is what authorises spawning subagents; nothing else
   does.
-- Everything an agent creates on the dev server is recorded in
+- `api.sh` and `mcp.py` record the **namespaces** a session creates in
   `dev/agent/.state/created.jsonl`, and `cleanup.sh` deletes only what that
-  ledger holds for the current session. No name prefix is needed or wanted;
-  data the session did not create is off-limits, whatever it is called.
+  ledger holds for the current session. Anything else you create (a user, a
+  role, a workflow) is yours to delete by hand. No name prefix is needed or
+  wanted; data the session did not create is off-limits, whatever it is called.
 
 ## Conventions
 

@@ -297,16 +297,14 @@ DOM as it is; use a visibility assertion when visibility is the question.
   with `wait` blocks until the running process's start time beats your edit; a
   timeout means the build failed, and `dev_server_logs` has the compiler
   output.
-- **Vite does not pick up edits under `lib/`.** The webapp resolves
-  `@planetcrust/human-js` / `human-vue` to their TypeScript sources, but the
-  running dev server keeps serving the transform it made at startup — a
-  `touch` does not invalidate it, and the file on disk and the module the
-  browser gets disagree indefinitely. A UI check then reports the old
-  behaviour against a fix that is genuinely there, which reads as the fix not
-  working. Confirm what is actually served before believing a UI result about
-  a lib change:
+- **A lib edit the browser does not see is a barrel, not the watcher.**
+  `vite.config.js` watches `lib/js` and `lib/vue` sources (the
+  `human:watch-lib-sources` plugin), so a file edit reaches the running webapp.
+  What does not is a new export that has to pass through a barrel `index.ts`
+  the server already transformed. Confirm what is actually served before
+  believing a UI result about a lib change:
   `curl -s "$(dev/agent/stack.sh | sed -n 's/^HUMAN_WEBAPP=//p')/@fs<abs-path-to-file>" | head`.
-  Only a vite restart clears it — ask the human, never restart it yourself.
+  If it is stale, say so — never restart vite yourself.
 - **A same-origin `/api/…` fetch from inside a drive check hits the SPA, not
   the API.** Vite proxies exactly two paths (`/custom.css`,
   `/code-snippets.js`, `client/web/unify/vite.config.js`); everything else
