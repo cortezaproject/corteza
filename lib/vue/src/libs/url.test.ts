@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { Make } from './url'
+import { Make, MakeAppURL } from './url'
 
 const pr = 'https'
 const hs = 'www.test.tld'
@@ -69,5 +69,32 @@ describe(__filename, () => {
   it('add hash', () => {
     const test = Make({ hash, ref })
     expect(test).to.eq(`${ref}/#${hash}`)
+  })
+
+  describe('make app url', () => {
+    it('uses the configured webapp base', () => {
+      expect(MakeAppURL({ app: 'workflow', path: '42/edit', webapp: 'https://host.tld/process', base: 'https://host.tld/process/admin/' }))
+        .to.eq('https://host.tld/process/workflow/42/edit')
+    })
+
+    it('resolves a relative webapp base against the current location', () => {
+      expect(MakeAppURL({ app: 'workflow', path: '42/edit', webapp: '/process/', base: 'https://host.tld/process/admin/' }))
+        .to.eq('https://host.tld/process/workflow/42/edit')
+    })
+
+    it('falls back to the base tag of the current app under a path prefix', () => {
+      expect(MakeAppURL({ app: 'workflow', path: '42/edit', webapp: '', base: 'https://host.tld/process/admin/' }))
+        .to.eq('https://host.tld/process/workflow/42/edit')
+    })
+
+    it('falls back to the base tag of the current app at the root', () => {
+      expect(MakeAppURL({ app: 'workflow', path: '42/edit', webapp: '', base: 'https://host.tld/admin/' }))
+        .to.eq('https://host.tld/workflow/42/edit')
+    })
+
+    it('links to the app root without a path', () => {
+      expect(MakeAppURL({ app: 'compose', webapp: '', base: 'https://host.tld/process/admin/' }))
+        .to.eq('https://host.tld/process/compose')
+    })
   })
 })

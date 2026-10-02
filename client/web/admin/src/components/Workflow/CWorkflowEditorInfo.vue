@@ -115,7 +115,7 @@
 </template>
 
 <script>
-import { handle } from '@cortezaproject/corteza-vue'
+import { handle, url } from '@cortezaproject/corteza-vue'
 import { NoID } from '@cortezaproject/corteza-js'
 
 export default {
@@ -185,7 +185,8 @@ export default {
 
   methods: {
     openWorkflowBuilder () {
-      window.open(`/workflow/${this.workflow.workflowID}/edit`, '_blank')
+      // resolve against the webapp base so a path prefix (HTTP_BASE_URL) is kept
+      window.open(url.MakeAppURL({ app: 'workflow', path: `${this.workflow.workflowID}/edit` }), '_blank')
     },
   },
 }
