@@ -928,7 +928,8 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	}
 
 	var (
-		rve *types.RecordValueErrorSet
+		rve           *types.RecordValueErrorSet
+		invokerFields map[string]bool
 	)
 
 	// ensure module ref is set before running through records workflows and scripts
@@ -947,7 +948,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		dd, err = svc.DupDetection(ctx, m, new)
 
 		// handle input payload errors
-		if rve = svc.procCreate(ctx, invokerID, agentID, m, new); !rve.IsValid() {
+		if rve = svc.procCreate(ctx, invokerID, agentID, m, new, nil); !rve.IsValid() {
 			return nil, dd, RecordErrValueInput().Wrap(rve)
 		}
 
@@ -955,6 +956,12 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		if err != nil {
 			return
 		}
+
+		// fields the invoker is changing are checked against the invoker's
+		// permissions; what before-handlers (workflows, scripts) change on
+		// top of that is their own action and is not re-checked as the
+		// invoker's
+		invokerFields = updatedFieldNames(new.Values)
 
 		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve, nil, nil, "")); err != nil {
 			return
@@ -966,7 +973,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	new.Values = RecordValueDefaults(m, new.Values)
 
 	// Handle payload from automation scripts
-	if rve = svc.procCreate(ctx, invokerID, agentID, m, new); !rve.IsValid() {
+	if rve = svc.procCreate(ctx, invokerID, agentID, m, new, invokerFields); !rve.IsValid() {
 		return nil, dd, RecordErrValueInput().Wrap(rve)
 	}
 
@@ -1279,7 +1286,8 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	}
 
 	var (
-		rve *types.RecordValueErrorSet
+		rve           *types.RecordValueErrorSet
+		invokerFields map[string]bool
 	)
 
 	// ensure module ref is set before running through records workflows and scripts
@@ -1291,7 +1299,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		dd, err = svc.DupDetection(ctx, m, upd)
 
 		// handle input payload errors
-		if rve = svc.procUpdate(ctx, invokerID, m, upd, old); !rve.IsValid() {
+		if rve = svc.procUpdate(ctx, invokerID, m, upd, old, nil); !rve.IsValid() {
 			return nil, nil, nil, dd, RecordErrValueInput().Wrap(rve)
 		}
 
@@ -1299,6 +1307,12 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		if err != nil {
 			return
 		}
+
+		// fields the invoker is changing are checked against the invoker's
+		// permissions; what before-handlers (workflows, scripts) change on
+		// top of that is their own action and is not re-checked as the
+		// invoker's
+		invokerFields = updatedFieldNames(upd.Values)
 
 		// Scripts can (besides simple error value) return complex record value error set
 		// that is passed back to the UI or any other API consumer
@@ -1313,7 +1327,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	}
 
 	// Handle payload from automation scripts
-	if rve = svc.procUpdate(ctx, invokerID, m, upd, old); !rve.IsValid() {
+	if rve = svc.procUpdate(ctx, invokerID, m, upd, old, invokerFields); !rve.IsValid() {
 		return nil, nil, nil, dd, RecordErrValueInput().Wrap(rve)
 	}
 
@@ -1442,7 +1456,11 @@ func (svc record) Create(ctx context.Context, new *types.Record) (rec *types.Rec
 // of the creation procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procCreate(ctx context.Context, invokerID, agentID uint64, m *types.Module, new *types.Record) (rve *types.RecordValueErrorSet) {
+// procCreate prepares the new record for storing
+//
+// checkFields limits the field permission check to the given fields; nil
+// checks every updated value
+func (svc record) procCreate(ctx context.Context, invokerID, agentID uint64, m *types.Module, new *types.Record, checkFields map[string]bool) (rve *types.RecordValueErrorSet) {
 	new.Values.SetUpdatedFlag(true)
 
 	new.Values.Walk(func(v *types.RecordValue) error {
@@ -1481,7 +1499,7 @@ func (svc record) procCreate(ctx context.Context, invokerID, agentID uint64, m *
 		return err
 	}
 
-	if rve = RecordValueUpdateOpCheck(ctx, svc.ac, m, new.Values); !rve.IsValid() {
+	if rve = RecordValueUpdateOpCheck(ctx, svc.ac, m, checkedValues(new.Values, checkFields)); !rve.IsValid() {
 		return
 	}
 
@@ -1511,7 +1529,34 @@ func (svc record) Update(ctx context.Context, upd *types.Record) (rec *types.Rec
 // of the update procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) (rve *types.RecordValueErrorSet) {
+// updatedFieldNames collects names of the fields with updated values
+func updatedFieldNames(vv types.RecordValueSet) map[string]bool {
+	out := make(map[string]bool)
+	for _, v := range vv.GetUpdated() {
+		out[v.Name] = true
+	}
+
+	return out
+}
+
+// checkedValues narrows the value set to the given fields; nil keeps all
+func checkedValues(vv types.RecordValueSet, fields map[string]bool) types.RecordValueSet {
+	if fields == nil {
+		return vv
+	}
+
+	out, _ := vv.Filter(func(v *types.RecordValue) (bool, error) {
+		return fields[v.Name], nil
+	})
+
+	return out
+}
+
+// procUpdate prepares the updated record for storing
+//
+// checkFields limits the field permission check to the given fields; nil
+// checks every updated value
+func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Module, upd *types.Record, old *types.Record, checkFields map[string]bool) (rve *types.RecordValueErrorSet) {
 	upd.Revision = old.Revision + 1
 
 	// Mark all values as updated (new)
@@ -1546,7 +1591,7 @@ func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Mod
 		return svc.ac.CanUpdateRecordValueOnModuleField(ctx, m.Fields.FindByName(f.Name))
 	})
 
-	if rve = RecordValueUpdateOpCheck(ctx, svc.ac, m, upd.Values); !rve.IsValid() {
+	if rve = RecordValueUpdateOpCheck(ctx, svc.ac, m, checkedValues(upd.Values, checkFields)); !rve.IsValid() {
 		return
 	}
 
@@ -2186,7 +2231,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 					rec.Values = RecordValueDefaults(m, rec.Values)
 
 					// Handle payload from automation scripts
-					if rve := svc.procCreate(ctx, invokerID, agentID, m, rec); !rve.IsValid() {
+					if rve := svc.procCreate(ctx, invokerID, agentID, m, rec, nil); !rve.IsValid() {
 						return RecordErrValueInput().Wrap(rve)
 					}
 
@@ -2199,7 +2244,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 					recordableAction = RecordActionIteratorUpdate
 
 					// Handle input payload
-					if rve := svc.procUpdate(ctx, invokerID, m, rec, rec); !rve.IsValid() {
+					if rve := svc.procUpdate(ctx, invokerID, m, rec, rec, nil); !rve.IsValid() {
 						return RecordErrValueInput().Wrap(rve)
 					}
 
