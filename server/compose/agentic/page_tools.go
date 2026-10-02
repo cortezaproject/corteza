@@ -55,7 +55,7 @@ func (h *pageHandler) register() {
 
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_create",
-			mcp.WithDescription(`Create a new page in a namespace — the page holds what its blocks ARE (kind, options, title) and a LAYOUT holds where they go, so create seeds the page's primary layout from the blocks you send. A page is a screen in the namespace's navigation; it holds blocks that render records, charts and content. There are two distinct page types:
+			mcp.WithDescription(`Create a new page in a namespace (resolve it with compose_namespace_lookup first) — the page holds what its blocks ARE (kind, options, title) and a LAYOUT holds where they go, so create seeds the page's primary layout from the blocks you send. A page is a screen in the namespace's navigation; it holds blocks that render records, charts and content. There are two distinct page types:
 
 1. Record list page — shows all records in a table. Do NOT set the module parameter at page level. Add a RecordList block with moduleID in its options.
 2. Record detail page — the form for viewing or editing a single record. Set the module parameter at page level. Add a Record block with the fields to display. Only one record detail page can exist per module, and creating a second one for the same module is rejected.
@@ -138,7 +138,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("page", mcp.Required(), mcp.Description("Page title, handle, or ID (as string to prevent precision loss)")),
-			mcp.WithString("strategy", mcp.Description(`How to handle child pages: "abort" (default — fail if the page has any undeleted children), "cascade" (delete the whole subtree), "rebase" (move the children up to this page's parent, then delete it), "force" (delete only this page and leave the children pointing at it — they then show up as root-level pages)`)),
+			mcp.WithString("strategy", mcp.Enum("abort", "cascade", "rebase", "force"), mcp.Description(`How to handle child pages: "abort" (default — fail if the page has any undeleted children), "cascade" (delete the whole subtree), "rebase" (move the children up to this page's parent, then delete it), "force" (delete only this page and leave the children pointing at it — they then show up as root-level pages)`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskDestructive),
@@ -233,7 +233,7 @@ Call compose_page_block_schema with the block kind to get its options before cre
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_block_schema",
 			mcp.WithDescription(`Get the options structure for a page block kind — field names and types as a zero-value skeleton (not examples from live pages), under "options", plus "required": the options the block cannot render without. Leaving a required one out is not an error; the block is created and draws an empty panel, and compose_page_create says so in its note. Call this before creating blocks of an unfamiliar kind, and pass the result's field names into the block's "options" object in compose_page_create or compose_page_update. Semantics the skeleton cannot express: Metric items use metricField "count" with empty operation for record counts, or a numeric field with operation sum/avg/min/max; Chart blocks reference an existing chart resource by chartID, created with compose_chart_create; RecordList/Record moduleID/fields take IDs and field names from compose_module_lookup. This reads a static schema — it touches no namespace and no data.`),
-			mcp.WithString("kind", mcp.Description("Block kind: Record, RecordList, Chart, Automation, Content, Metric, Progress, Comment, Calendar, RecordOrganizer, SocialFeed, ChatbotInbox. Omit it to list the kinds this server supports.")),
+			mcp.WithString("kind", mcp.Enum(blockKinds()...), mcp.Description("Block kind. Omit it to list the kinds this server supports with their required options.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			pageKeywords,
 			hmcp.WithRisk(hmcp.RiskRead),

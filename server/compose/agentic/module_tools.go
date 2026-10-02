@@ -112,7 +112,7 @@ func (h *moduleHandler) register() {
 			// Reading a definition is what a data agent does before it can read the
 			// data: a "usage" grant that cannot see a module has no way to name one
 			// or to interpret the values it gets back. Writing one stays configuring.
-			mcp.WithString("detail", mcp.Description(
+			mcp.WithString("detail", mcp.Enum("summary", "full"), mcp.Description(
 				"How much of each field to return. \"summary\" (the default) gives name, kind, label, required/multi, "+
 					"select options and any value expression — what you need to read or filter data. \"full\" adds "+
 					"field IDs, timestamps and storage config, which you only need when editing the module itself. "+
@@ -127,13 +127,13 @@ func (h *moduleHandler) register() {
 
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_module_create",
-			mcp.WithDescription("Create a new module in a namespace. A module defines a data structure (like a table) with typed fields. As a developer acting on behalf of the user, proactively add config where appropriate: enable duplicate detection for modules storing contacts/leads/customers (match on email or phone), enable recordRevisions for important transactional data, and set privacy disclosure for modules holding personal information."),
+			mcp.WithDescription("Create a new module in a namespace (resolve it with compose_namespace_lookup first). A module defines a data structure (like a table) with typed fields. As a developer acting on behalf of the user, proactively add config where appropriate: enable duplicate detection for modules storing contacts/leads/customers (match on email or phone), enable recordRevisions for important transactional data, and set privacy disclosure for modules holding personal information."),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Display name for the module")),
 			mcp.WithString("handle", mcp.Required(), mcp.Description("URL-friendly identifier (lowercase letters, digits, and underscores only)")),
 			mcp.WithString("fields", mcp.Description(fieldsParamDoc)),
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. Supports: recordDeDup (duplicate detection), recordRevisions (audit trail), privacy (data sensitivity). Rules live under a "rules" array — a bare rule object is accepted and silently stored as {}. Example: {"recordDeDup":{"rules":[{"name":"unique-email","strict":true,"constraints":[{"attribute":"email","modifier":"ignore-case|case-sensitive|fuzzy-match|sounds-like","multiValue":"one-of|equal"}]}]},"recordRevisions":{"enabled":true},"privacy":{"usageDisclosure":"text","sensitivityLevelID":"123"}}`)),
-			mcp.WithString("detail", mcp.Description(writeDetailDoc)),
+			mcp.WithString("detail", mcp.Enum("summary", "full"), mcp.Description(writeDetailDoc)),
 			moduleKeywords,
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),
@@ -160,7 +160,7 @@ func (h *moduleHandler) register() {
 			mcp.WithString("fields", mcp.Description("JSON array of fields to add or update. Same format as compose_module_create. Existing fields not listed are preserved. "+expressionsDoc)),
 			mcp.WithString("removeFields", mcp.Description("JSON array of field names to remove, e.g. [\"fieldA\",\"fieldB\"]")),
 			mcp.WithString("config", mcp.Description(`JSON object for module-level configuration. Replaces the existing config. Supports: recordDeDup (duplicate detection), recordRevisions (audit trail), privacy (data sensitivity). Example: {"recordDeDup":{"rules":[{"name":"unique-email","strict":true,"constraints":[{"attribute":"email","modifier":"ignore-case"}]}]},"recordRevisions":{"enabled":true},"privacy":{"usageDisclosure":"Used for customer contact only"}}`)),
-			mcp.WithString("detail", mcp.Description(writeDetailDoc)),
+			mcp.WithString("detail", mcp.Enum("summary", "full"), mcp.Description(writeDetailDoc)),
 			moduleKeywords,
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),

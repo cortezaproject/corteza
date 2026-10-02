@@ -38,7 +38,7 @@ func (h *pageLayoutHandler) register() {
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_page_layout_create",
 			mcp.WithDescription(
-				"Add a layout to a page. "+layoutModelDoc+" "+
+				"Add a layout to a page (resolve it with compose_page_lookup first). "+layoutModelDoc+" "+
 					"A second layout is an alternative arrangement of the same page — a different "+
 					"subset of blocks, or a different record toolbar — shown when its visibility "+
 					"expression passes. Layouts are evaluated in weight order and the first whose "+

@@ -53,7 +53,13 @@ func (h *chartHandler) register() {
 
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_chart_create",
-			mcp.WithDescription("Create a chart in a namespace. After creating, place it on a page with a Chart block: {\"kind\":\"Chart\",\"options\":{\"chartID\":\"<created ID>\"}}."),
+			mcp.WithDescription(
+				"Create a chart in a namespace. The config names the module it reports on and the fields it "+
+					"groups and measures by, so call compose_module_lookup first for their names and kinds; a "+
+					"chart over a field that does not exist stores cleanly and draws nothing. After creating, "+
+					"place it on a page with a Chart block: {\"kind\":\"Chart\",\"options\":{\"chartID\":\"<created ID>\"}} "+
+					"via compose_page_create or compose_page_update.",
+			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Chart name")),
 			mcp.WithString("handle", mcp.Description("URL-friendly identifier. Use snake_case (lowercase letters, digits, underscores); a hyphen is the subtraction operator wherever an identifier is parsed.")),

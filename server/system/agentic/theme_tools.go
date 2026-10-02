@@ -24,7 +24,7 @@ func (h *themeHandler) register() {
 					"the current palette is how you avoid changing a colour you did not mean to. "+
 					themeColorDoc,
 			),
-			mcp.WithString("theme", mcp.Description(`Which theme to read: "light", "dark", or "general". Omit for all of them.`)),
+			mcp.WithString("theme", mcp.Enum("light", "dark", "general"), mcp.Description(`Which theme to read: "light", "dark", or "general". Omit for all of them.`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskRead),
 		),
@@ -45,7 +45,7 @@ func (h *themeHandler) register() {
 					"using dark mode seeing the old palette. "+
 					themeColorDoc,
 			),
-			mcp.WithString("theme", mcp.Required(), mcp.Description(`Which theme to change: "light", "dark", or "general".`)),
+			mcp.WithString("theme", mcp.Required(), mcp.Enum("light", "dark", "general"), mcp.Description(`Which theme to change: "light", "dark", or "general".`)),
 			mcp.WithString("colors", mcp.Required(), mcp.Description(`JSON object of colour name to hex value, e.g. {"primary":"#09344E","body-bg":"#F4F4F5"}. Only the names given are changed.`)),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskWrite),

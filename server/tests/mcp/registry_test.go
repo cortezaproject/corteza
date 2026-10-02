@@ -210,7 +210,7 @@ func TestRiskDrivesAnnotations(t *testing.T) {
 // minDescription is a floor, not a standard. It catches "Execute a TAQ" — the
 // kind of description that is useless to a caller without the source. Quality
 // is a review criterion; see CONVENTIONS.md §8.5.
-const minDescription = 60
+const minDescription = 200
 
 func TestDescriptionsAreSubstantial(t *testing.T) {
 	for _, tool := range buildRegistry(t).Tools() {
@@ -219,6 +219,34 @@ func TestDescriptionsAreSubstantial(t *testing.T) {
 			tool.Name, len(tool.Description))
 		assert.NotContains(t, tool.Description, "Corteza",
 			"tool %q says Corteza; the product is Human", tool.Name)
+	}
+}
+
+// referenceParams are the parameters that name another resource. A create
+// tool taking one has a prerequisite the caller must resolve, and its
+// description has to say which lookup does that: without the repo, the
+// description is the only place the dependency is written down.
+var referenceParams = []string{
+	"namespace", "module", "page", "chart", "layout", "agent", "agentID", "role", "user",
+	"userGroup", "llmProvider", "workflow", "taq", "chatbot", "application", "impersonateUser",
+}
+
+func TestCreatesNameTheirLookup(t *testing.T) {
+	for _, tool := range buildRegistry(t).Tools() {
+		if !strings.HasSuffix(tool.Name, "_create") {
+			continue
+		}
+		refs := []string{}
+		for _, p := range referenceParams {
+			if _, ok := tool.InputSchema.Properties[p]; ok {
+				refs = append(refs, p)
+			}
+		}
+		if len(refs) == 0 {
+			continue
+		}
+		assert.Containsf(t, tool.Description, "_lookup",
+			"tool %q takes %v but its description names no *_lookup tool to resolve them with", tool.Name, refs)
 	}
 }
 

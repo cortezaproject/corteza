@@ -52,6 +52,7 @@ func TestSlimToolDoesNotMutateTheOriginal(t *testing.T) {
 	full := mcp.NewTool("compose_page_create",
 		mcp.WithDescription("Create a page. The grid is 48 columns wide."),
 		mcp.WithString("namespace", mcp.Description("Namespace name, handle, slug, or ID.")),
+		mcp.WithString("title", mcp.Required(), mcp.Description("Page title.")),
 		InGroup(GroupConfiguring), WithRisk(RiskWrite),
 	)
 
@@ -60,9 +61,11 @@ func TestSlimToolDoesNotMutateTheOriginal(t *testing.T) {
 	assert.Equal(t, "Create a page.", slim.Description)
 	require.Contains(t, slim.InputSchema.Properties, "namespace")
 	assert.NotContains(t, slim.InputSchema.Properties["namespace"], "description",
-		"parameter prose is what the listing drops")
+		"optional parameter prose is what the listing drops")
 	assert.Contains(t, slim.InputSchema.Properties["namespace"], "type",
 		"the shape a caller needs to build the call must survive")
+	assert.Equal(t, "Page title.", slim.InputSchema.Properties["title"].(map[string]any)["description"],
+		"a required parameter keeps its description: the caller cannot leave it out")
 
 	assert.Equal(t, "Create a page. The grid is 48 columns wide.", full.Description)
 	assert.Equal(t, "Namespace name, handle, slug, or ID.",

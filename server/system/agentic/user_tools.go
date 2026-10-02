@@ -41,7 +41,7 @@ func (h *userHandler) register() {
 			mcp.WithString("username", mcp.Description("Exact username. A legacy field that is empty on most accounts; prefer 'handle' or 'email'.")),
 			mcp.WithString("role", mcp.Description("Only users who are members of this role. Accepts a role ID as a string, a handle, or a role name.")),
 			mcp.WithString("userGroup", mcp.Description("Only users belonging to this user group. Accepts a group ID as a string, a handle, or a group name.")),
-			mcp.WithString("kind", mcp.Description("User kind. Empty (the default) means ordinary user accounts; \"sys\" means built-in system accounts. Those are the only two values.")),
+			mcp.WithString("kind", mcp.Enum("", "sys"), mcp.Description("User kind. Empty (the default) means ordinary user accounts; \"sys\" means built-in system accounts. Those are the only two values.")),
 			mcp.WithBoolean("allKinds", mcp.Description("Return ordinary and system accounts together, ignoring 'kind'.")),
 			mcp.WithBoolean("includeDeleted", mcp.Description("Also return soft-deleted users. Off by default. Set this to find the numeric userID that system_user_undelete needs.")),
 			mcp.WithBoolean("includeSuspended", mcp.Description("Also return suspended users. Off by default, so a suspended account is invisible to a plain list.")),

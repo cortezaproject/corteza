@@ -1,6 +1,7 @@
 package mcpkit
 
 import (
+	"slices"
 	"sort"
 	"strings"
 
@@ -57,8 +58,12 @@ const loadHint = " IMPORTANT: call " + toolLoadName + " for this tool before usi
 	"documentation carries rules that are not visible in the parameter list, and guessing them " +
 	"produces a call that succeeds and is wrong."
 
-// slimTool returns t summarised for the listing: first sentence only, and no
-// per-parameter prose.
+// slimTool returns t summarised for the listing: first sentence only, and
+// per-parameter prose only on the required parameters.
+//
+// Required parameters keep their description because they are the ones a
+// caller cannot leave out, so a wrong guess there is a wrong call rather than
+// a missing option; the optional ones are what human_tool_load is for.
 //
 // The copying is not incidental. mcp.Tool is a value, but InputSchema.Properties
 // is a map shared with the Registry, and so is every property inside it.
@@ -90,7 +95,7 @@ func slimTool(t mcp.Tool) mcp.Tool {
 
 		cp := make(map[string]any, len(prop))
 		for k, v := range prop {
-			if k == "description" {
+			if k == "description" && !slices.Contains(t.InputSchema.Required, name) {
 				continue
 			}
 			cp[k] = v

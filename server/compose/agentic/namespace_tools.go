@@ -33,7 +33,14 @@ func (h *namespaceHandler) register() {
 
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_namespace_create",
-			mcp.WithDescription("Create a new namespace. A namespace is a top-level container for modules and records in Human Compose."),
+			mcp.WithDescription(
+				"Create a namespace: the top-level container an app is built in, holding its modules, "+
+					"records, pages and charts. Call compose_namespace_lookup first — a slug must be unique, "+
+					"and the app you are asked to build may already exist. The slug is what filters and "+
+					"expressions refer to, so pick it as an identifier, not a label. A namespace starts "+
+					"enabled unless told otherwise; create its modules next (compose_module_create), then "+
+					"its pages.",
+			),
 			mcp.WithString("name", mcp.Required(), mcp.Description("Display name for the namespace")),
 			mcp.WithString("slug", mcp.Required(), mcp.Description("URL-friendly identifier (lowercase letters, digits, and underscores only). Use snake_case: a hyphen is the subtraction operator wherever an identifier is parsed, so underscores keep the slug safe to reuse in filters and expressions.")),
 			mcp.WithBoolean("enabled", mcp.Description("Whether the namespace is enabled (default: true)")),
@@ -49,7 +56,9 @@ func (h *namespaceHandler) register() {
 			mcp.WithDescription(
 				"Update an existing namespace's name, slug, or enabled state. Only the fields you send are "+
 					"written; fields you omit keep their current value, and a field sent as an empty string "+
-					"is cleared.",
+					"is cleared. Renaming the slug changes every URL and filter that names it, so do it only "+
+					"when asked. Disabling hides the namespace from users without deleting anything; "+
+					"compose_namespace_delete is the one that removes it.",
 			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("name", mcp.Description("New display name")),

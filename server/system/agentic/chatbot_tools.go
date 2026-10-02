@@ -61,7 +61,7 @@ func (h *chatbotHandler) register() {
 			mcp.WithDescription(
 				"Create a chatbot. "+chatbotSectionDoc+" "+
 					"Two things decide whether it does anything. It needs a 'conversation' scenario "+
-					"naming an agentID, or it has nothing to answer with. And it needs "+
+					"naming an agentID (from system_agent_lookup), or it has nothing to answer with. And it needs "+
 					"'allowedOrigins', because that list is what actually restricts where the widget may "+
 					"run — a chatbot with none is usable from any site that has its widget key. "+
 					"The widget key is generated here and returned; you cannot choose it.",

@@ -77,8 +77,8 @@ and both transports; they share nothing about what a tool does.
 ## Slim listing
 
 Every tool is listed and callable from the first request, summarised to its
-first sentence with the per-parameter prose dropped; `human_tool_load` and
-`human_tool_search` return the full text. This replaced progressive disclosure
+first sentence with the optional parameters' prose dropped (required ones keep
+their line); `human_tool_load` and `human_tool_search` return the full text. This replaced progressive disclosure
 (five tools until a search), which depended on the client honouring
 `list_changed` and failed on the claude.ai connector — `listing.go` holds the
 account and the measured token costs. A tool whose dropped prose carries rules

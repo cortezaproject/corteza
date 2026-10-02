@@ -171,11 +171,15 @@ choose means putting it in the token; see §14.
 ### 2.6 Slim listing
 
 Every tool is listed and callable from the first request. What the listing
-omits is prose: each description is cut to its first sentence, and per-parameter
-descriptions are dropped. `human_tool_load` and `human_tool_search` return the
-full text on demand.
+omits is prose: each description is cut to its first sentence, and the
+descriptions of **optional** parameters are dropped. A required parameter keeps
+its one-line description, because the caller cannot leave it out and a guess
+there is a wrong call rather than a missing option. `human_tool_load` and
+`human_tool_search` return the full text on demand.
 
-Measured on the running server: **~13,118 tokens instead of ~40,482**. The
+Measured on the running server at 126 tools: **~23,200 tokens instead of
+~63,900** (it was ~17,700 before required-parameter descriptions were kept; that
+is the price of them). The
 remainder is not compressible without breaking clients — `inputSchema` structure
 is 4,067 and `annotations` 2,304, and both are read by the client rather than by
 the model.
@@ -484,6 +488,13 @@ the agentic runtime only. The handlers all resolve inline.
 
 Descriptions are the entire interface for a caller without the repository. A
 configurator using Claude Code against a hosted instance has no source to read.
+
+Two rules the structural test enforces: every description is at least 200
+characters, and a `*_create` that takes a reference parameter (namespace,
+module, page, agent, user, …) names the `*_lookup` tool that resolves it. A
+parameter whose values are a closed set declares them with `mcp.Enum` — block
+kinds, the page delete strategy, themes, catalogues, the module write detail —
+so the schema says what the prose would otherwise have to.
 
 Every description states: what the tool does; when to use it and, where there
 is a common mistake, when _not_ to; how it relates to adjacent tools; the shape

@@ -63,7 +63,7 @@ Namespaces, modules, records, pages, page layouts and charts.
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
 
-Create a chart in a namespace. After creating, place it on a page with a Chart block: {"kind":"Chart","options":{"chartID":"&lt;created ID>"}}.
+Create a chart in a namespace. The config names the module it reports on and the fields it groups and measures by, so call compose_module_lookup first for their names and kinds; a chart over a field that does not exist stores cleanly and draws nothing. After creating, place it on a page with a Chart block: {"kind":"Chart","options":{"chartID":"&lt;created ID>"}} via compose_page_create or compose_page_update.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -125,7 +125,7 @@ Update an existing chart. A field you omit is left unchanged; passing an empty s
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
 
-Create a new module in a namespace. A module defines a data structure (like a table) with typed fields. As a developer acting on behalf of the user, proactively add config where appropriate: enable duplicate detection for modules storing contacts/leads/customers (match on email or phone), enable recordRevisions for important transactional data, and set privacy disclosure for modules holding personal information.
+Create a new module in a namespace (resolve it with compose_namespace_lookup first). A module defines a data structure (like a table) with typed fields. As a developer acting on behalf of the user, proactively add config where appropriate: enable duplicate detection for modules storing contacts/leads/customers (match on email or phone), enable recordRevisions for important transactional data, and set privacy disclosure for modules holding personal information.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -193,7 +193,7 @@ Update an existing module's name, handle, fields, or configuration. Arguments yo
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
 
-Create a new namespace. A namespace is a top-level container for modules and records in Human Compose.
+Create a namespace: the top-level container an app is built in, holding its modules, records, pages and charts. Call compose_namespace_lookup first — a slug must be unique, and the app you are asked to build may already exist. The slug is what filters and expressions refer to, so pick it as an identifier, not a label. A namespace starts enabled unless told otherwise; create its modules next (compose_module_create), then its pages.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -237,7 +237,7 @@ Restore a soft-deleted namespace, reversing compose_namespace_delete. The delete
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
 
-Update an existing namespace's name, slug, or enabled state. Only the fields you send are written; fields you omit keep their current value, and a field sent as an empty string is cleared.
+Update an existing namespace's name, slug, or enabled state. Only the fields you send are written; fields you omit keep their current value, and a field sent as an empty string is cleared. Renaming the slug changes every URL and filter that names it, so do it only when asked. Disabling hides the namespace from users without deleting anything; compose_namespace_delete is the one that removes it.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -254,13 +254,13 @@ Get the options structure for a page block kind — field names and types as a z
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `kind` | string |  | Block kind: Record, RecordList, Chart, Automation, Content, Metric, Progress, Comment, Calendar, RecordOrganizer, SocialFeed, ChatbotInbox. Omit it to list the kinds this server supports. |
+| `kind` | string |  | Block kind. Omit it to list the kinds this server supports with their required options. |
 
 ### `compose_page_create` {#compose_page_create}
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
 
-Create a new page in a namespace — the page holds what its blocks ARE (kind, options, title) and a LAYOUT holds where they go, so create seeds the page's primary layout from the blocks you send. A page is a screen in the namespace's navigation; it holds blocks that render records, charts and content. There are two distinct page types:
+Create a new page in a namespace (resolve it with compose_namespace_lookup first) — the page holds what its blocks ARE (kind, options, title) and a LAYOUT holds where they go, so create seeds the page's primary layout from the blocks you send. A page is a screen in the namespace's navigation; it holds blocks that render records, charts and content. There are two distinct page types:
 
 1. Record list page — shows all records in a table. Do NOT set the module parameter at page level. Add a RecordList block with moduleID in its options.
 2. Record detail page — the form for viewing or editing a single record. Set the module parameter at page level. Add a Record block with the fields to display. Only one record detail page can exist per module, and creating a second one for the same module is rejected.
@@ -304,7 +304,7 @@ Delete a page by title, handle, or ID. The delete is soft: nothing is erased —
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
 
-Add a layout to a page. A page holds what its blocks ARE — kind, options, title. A LAYOUT holds where they go, as {blockID, xywh}, and it is the layout the page renders and the builder draws. Every page is created with a primary layout seeded from its blocks, so these tools are for rearranging that layout, changing its record toolbar, or adding further layouts — not for giving a page its first one. A second layout is an alternative arrangement of the same page — a different subset of blocks, or a different record toolbar — shown when its visibility expression passes. Layouts are evaluated in weight order and the first whose expression passes is the one rendered, so an unconditional layout should sort last or it will always win.
+Add a layout to a page (resolve it with compose_page_lookup first). A page holds what its blocks ARE — kind, options, title. A LAYOUT holds where they go, as {blockID, xywh}, and it is the layout the page renders and the builder draws. Every page is created with a primary layout seeded from its blocks, so these tools are for rearranging that layout, changing its record toolbar, or adding further layouts — not for giving a page its first one. A second layout is an alternative arrangement of the same page — a different subset of blocks, or a different record toolbar — shown when its visibility expression passes. Layouts are evaluated in weight order and the first whose expression passes is the one rendered, so an unconditional layout should sort last or it will always win.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -435,7 +435,7 @@ Update an existing page — the page holds what its blocks ARE and a LAYOUT is w
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/usage`.
 
-Create a new record. If you do not know the field names, call compose_module_lookup first to get them.
+Create one record in a module. Call compose_module_lookup first for the field names, kinds and which are required or multi-value; a value under a name the module does not have is rejected. Values are keyed by field name; a multi-value field takes an array; Record and User fields take IDs as strings. Do NOT call compose_record_lookup before creating to check for duplicates unless asked — the module's own unique constraints decide, and a refused create says which value clashed.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -737,7 +737,7 @@ Update an application. Omit a field to leave it unchanged. 'unify' is merged key
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
 
-Create an OAuth2 auth client — the identity an external application, integration or script uses to obtain tokens from this instance. THIS IS THE ONE TOOL THAT HANDS BACK A CREDENTIAL. The server generates the client secret during creation and this returns it, once. Nothing reads it back afterwards: there is no tool that exposes or regenerates a secret, so a secret that is lost means creating a new client. Put it where it is going before you go on, and do not repeat it anywhere it does not need to be. Which grant to use decides what else you must supply. "authorization_code" is the flow where a person signs in and is sent back to 'redirectURI', which is then required. "client_credentials" has no person in it: the client authenticates as itself and acts as one nominated user, so 'impersonateUser' is required and everything the client does is done with that user's permissions. Choosing a user with more access than you have is how a client ends up more powerful than the person who made it — pick the narrowest account that can do the job. 'scope' is what the token may be used for and is almost always "profile api": the API middleware requires the 'api' scope, so a client without it authenticates and is then refused by every endpoint. The client is enabled on creation unless you say otherwise. 'validFrom' and 'expiresAt' bound when it works at all and are the clean way to issue a credential that stops working on its own. Nothing here sets the client's permitted, prohibited or forced roles; those are a person's job in the admin UI, and system_auth_client_update does not touch them either.
+Create an OAuth2 auth client — the identity an external application, integration or script uses to obtain tokens from this instance. THIS IS THE ONE TOOL THAT HANDS BACK A CREDENTIAL. The server generates the client secret during creation and this returns it, once. Nothing reads it back afterwards: there is no tool that exposes or regenerates a secret, so a secret that is lost means creating a new client. Put it where it is going before you go on, and do not repeat it anywhere it does not need to be. Which grant to use decides what else you must supply. "authorization_code" is the flow where a person signs in and is sent back to 'redirectURI', which is then required. "client_credentials" has no person in it: the client authenticates as itself and acts as one nominated user, so 'impersonateUser' (from system_user_lookup) is required and everything the client does is done with that user's permissions. Choosing a user with more access than you have is how a client ends up more powerful than the person who made it — pick the narrowest account that can do the job. 'scope' is what the token may be used for and is almost always "profile api": the API middleware requires the 'api' scope, so a client without it authenticates and is then refused by every endpoint. The client is enabled on creation unless you say otherwise. 'validFrom' and 'expiresAt' bound when it works at all and are the clean way to issue a credential that stops working on its own. Nothing here sets the client's permitted, prohibited or forced roles; those are a person's job in the admin UI, and system_auth_client_update does not touch them either.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -811,7 +811,7 @@ Update an auth client's configuration: its handle, name and description, whether
 
 <Badge type="warning" text="Writes" /> Listed under `/api/mcp/configuring`.
 
-Create a chatbot. A chatbot's configuration is three objects — handoff, styling and scenarios. Send only the ones you are changing; each REPLACES that whole section, so read the chatbot first and send an edited copy rather than a fragment. Two things decide whether it does anything. It needs a 'conversation' scenario naming an agentID, or it has nothing to answer with. And it needs 'allowedOrigins', because that list is what actually restricts where the widget may run — a chatbot with none is usable from any site that has its widget key. The widget key is generated here and returned; you cannot choose it.
+Create a chatbot. A chatbot's configuration is three objects — handoff, styling and scenarios. Send only the ones you are changing; each REPLACES that whole section, so read the chatbot first and send an edited copy rather than a fragment. Two things decide whether it does anything. It needs a 'conversation' scenario naming an agentID (from system_agent_lookup), or it has nothing to answer with. And it needs 'allowedOrigins', because that list is what actually restricts where the widget may run — a chatbot with none is usable from any site that has its widget key. The widget key is generated here and returned; you cannot choose it.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -944,7 +944,7 @@ List every permission that can be granted: each resource type, the shape of its 
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `component` | string |  | Narrow to one component: "system", "compose" or "automation". Accepts the full form ("corteza::compose") too. Omit for all three. |
+| `component` | string |  | Narrow to one component. Omit for all three. |
 | `resourceType` | string |  | Narrow to one resource type. Either the full form ("corteza::compose:module") or the bare tail ("module"). Case-insensitive. A value matching nothing answers with every known type rather than an empty result. |
 
 ### `system_reminder_create` {#system_reminder_create}

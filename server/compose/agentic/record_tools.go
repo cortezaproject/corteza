@@ -129,7 +129,14 @@ func (h *recordHandler) register() {
 
 	h.reg.RegisterTool(
 		mcp.NewTool("compose_record_create",
-			mcp.WithDescription("Create a new record. If you do not know the field names, call compose_module_lookup first to get them."),
+			mcp.WithDescription(
+				"Create one record in a module. Call compose_module_lookup first for the field names, "+
+					"kinds and which are required or multi-value; a value under a name the module does not "+
+					"have is rejected. Values are keyed by field name; a multi-value field takes an array; "+
+					"Record and User fields take IDs as strings. Do NOT call compose_record_lookup before "+
+					"creating to check for duplicates unless asked — the module's own unique constraints "+
+					"decide, and a refused create says which value clashed.",
+			),
 			mcp.WithString("namespace", mcp.Required(), mcp.Description("Namespace name, handle, slug, or ID (as string to prevent precision loss)")),
 			mcp.WithString("module", mcp.Required(), mcp.Description("Module name, handle, or ID (as string to prevent precision loss)")),
 			mcp.WithString("values", mcp.Required(), mcp.Description(recordValuesDoc)),

@@ -56,7 +56,7 @@ func (h *constructHandler) register() {
 					"The webapp's form layout for each entry ('segments') is omitted; nothing an author "+
 					"needs is in it and it is four fifths of the payload.",
 			),
-			mcp.WithString("catalogue", mcp.Description("Return one catalogue only: \"functions\" for step refs, \"triggers\" for resourceType/eventType pairs. Omit for both.")),
+			mcp.WithString("catalogue", mcp.Enum("functions", "triggers"), mcp.Description("Return one catalogue only: \"functions\" for step refs, \"triggers\" for resourceType/eventType pairs. Omit for both.")),
 			mcp.WithString("ref", mcp.Description("Narrow the functions to one. An exact ref is matched first, then any ref containing it, case-insensitively. A ref that matches nothing answers with the full list of refs rather than an empty result. Ignored when catalogue is \"triggers\".")),
 			mcp.WithString("resourceType", mcp.Description("Narrow the triggers to one resource, e.g. \"compose:record\" for exactly that or \"compose\" for it and every sub-resource. Case-insensitive. Ignored when catalogue is \"functions\".")),
 			hmcp.InGroup(hmcp.GroupConfiguring),

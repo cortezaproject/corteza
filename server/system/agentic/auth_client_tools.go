@@ -63,7 +63,7 @@ func (h *authClientHandler) register() {
 					"Which grant to use decides what else you must supply. \"authorization_code\" is the "+
 					"flow where a person signs in and is sent back to 'redirectURI', which is then required. "+
 					"\"client_credentials\" has no person in it: the client authenticates as itself and acts "+
-					"as one nominated user, so 'impersonateUser' is required and everything the client does "+
+					"as one nominated user, so 'impersonateUser' (from system_user_lookup) is required and everything the client does "+
 					"is done with that user's permissions. Choosing a user with more access than you have is "+
 					"how a client ends up more powerful than the person who made it — pick the narrowest "+
 					"account that can do the job. "+

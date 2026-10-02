@@ -57,7 +57,7 @@ func (h *permissionHandler) register() {
 					"Around 40 resource types across three components, returned whole by default; "+
 					"'component' and 'resourceType' narrow it.",
 			),
-			mcp.WithString("component", mcp.Description("Narrow to one component: \"system\", \"compose\" or \"automation\". Accepts the full form (\"corteza::compose\") too. Omit for all three.")),
+			mcp.WithString("component", mcp.Enum("system", "compose", "automation"), mcp.Description("Narrow to one component. Omit for all three.")),
 			mcp.WithString("resourceType", mcp.Description("Narrow to one resource type. Either the full form (\"corteza::compose:module\") or the bare tail (\"module\"). Case-insensitive. A value matching nothing answers with every known type rather than an empty result.")),
 			hmcp.InGroup(hmcp.GroupConfiguring),
 			hmcp.WithRisk(hmcp.RiskRead),
