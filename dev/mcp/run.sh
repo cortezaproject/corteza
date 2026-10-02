@@ -33,8 +33,23 @@ stale() {
 	[[ -n "$(find "${roots[@]}" -name '*.go' -newer "${bin}" -print -quit 2>/dev/null)" ]]
 }
 
+# A failed rebuild keeps the previous binary serving: the client gets the tools
+# it had, and the compiler output is on stderr and in build/build.log. Without
+# a previous binary there is nothing to fall back to.
 if stale; then
-	(cd "${here}" && go build -o "${bin}" .) 1>&2
+	log="${here}/build/build.log"
+	if (cd "${here}" && go build -o "${bin}.new" .) 2>"${log}"; then
+		mv -f "${bin}.new" "${bin}"
+	else
+		cat "${log}" >&2
+		rm -f "${bin}.new"
+		if [[ -x "${bin}" ]]; then
+			echo "dev-mcp: rebuild failed; serving the previous binary from $(date -r "${bin}" '+%F %T')" >&2
+		else
+			echo "dev-mcp: build failed and no previous binary at ${bin}" >&2
+			exit 1
+		fi
+	fi
 fi
 
 exec "${bin}" "$@"
