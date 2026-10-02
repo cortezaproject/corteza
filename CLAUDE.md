@@ -10,7 +10,8 @@ not opted in, do not edit `*.intent.md` files or run intent tooling.
 ## Dev server & agent toolkit
 
 - To call the local dev API (verify implementations, inspect data): use
-  `dev/agent/` — `smoke.sh` first, then `api.sh METHOD PATH`. Setup:
+  `dev/agent/` — `smoke.sh` first, `shape.sh compose/record update` for a
+  call's method, path, params and traps, then `api.sh METHOD PATH`. Setup:
   `bootstrap.sh` (idempotent). Skills: `/dev-api`, `/dev-seed`. Reference +
   gotchas: `dev/agent/README.md`.
 - Test data: versioned fixtures in `dev/fixtures/`; `dev/agent/seed.sh` /

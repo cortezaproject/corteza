@@ -1,0 +1,39 @@
+# What a REST definition cannot say about a call. shape.sh prints the entries
+# whose key matches the call: a service, service/group, service/group/call, or
+# `*` for every call. Keep each entry to one line stating the trap and the move.
+'*':
+  - Collection paths need the trailing slash; without it the server serves the webapp's HTML with HTTP 200.
+  - Errors ride HTTP 200 as {"error":{message}}; api.sh exits non-zero on them, raw curl does not.
+  - Paths are absolute with the service prefix (/system, /compose, /automation, /federation).
+compose:
+  - Update is a POST to the resource path; PUT is a bare HTTP 405 for every compose resource.
+compose/namespace:
+  - The lib/js client requires `meta` on create; REST does not. A JS-client create without it is rejected client-side.
+compose/module:
+  - The lib/js client requires `meta` on create; REST does not.
+  - A field's kind options schema is the lib/js model class; an option it does not declare is dropped on save.
+compose/record:
+  - values is an array of {name, value}; a multi-value field repeats its name once per value.
+  - A never-set value (IS NULL) and one cleared to '' are different states; `= ''` errors on typed columns in queries.
+  - A dedup warning comes back inside a SUCCESSFUL save; a value-expression field can never carry an inline message.
+compose/record/report:
+  - The no-value dimension group comes back as null, not 0; charts need the distinction.
+compose/record/list:
+  - Query escaping: a backslash escapes a quote; doubling it silently matches nothing. No IN, no subqueries.
+compose/page/reorder:
+  - Fails for nested parents (the generated filter names a parent_id column that does not exist); reorder by updating each page's weight instead.
+compose/page:
+  - The server creates every page's primary layout; "module does not exist" on create means the record page for that module already exists.
+compose/pageLayout:
+  - Block IDs count from 1 within each page, so blockID 1 exists on every page; client state keyed by block must include the pageID.
+compose/chart:
+  - Update is POST, not PUT (405).
+automation:
+  - A refused write comes back as response.issues[severity=error] beside HTTP 200 and the row IS stored, so a retried create answers "handle not unique"; fix and update the stored ID.
+  - Some calls report failure as text/plain "Error: …" beside HTTP 200 rather than the error envelope.
+automation/workflow:
+  - The lib/js client requires runAs and ownedBy on create; REST does not.
+system/settings:
+  - Writes address the kebab kv name (ui.main-logo); reads return the camel json name (ui.mainLogo). A write under the read name stores a row nothing reads.
+system/user:
+  - A change to a user's flags or roles does not reach that user's active sessions until re-login (clear auth_sessions to force it).

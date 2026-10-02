@@ -55,6 +55,7 @@ normal use needs one.
 | `verify-ui.mjs PATH…`                                            | render-verify webapp paths in headless Chromium as the agent user; per-path text report (clipped blocks, cut-off columns, raw IDs) + screenshots + console/page errors                                                                              |
 | `drive.mjs SUITE.mjs [--only N]`                                 | multi-step browser checks: navigate, click, assert where you landed. Logged in already, dialogs recorded, console/network collected per check                                                                                                       |
 | `ids.sh [SLUG…]`                                                 | handle → ID map for a namespace (modules/pages/charts/records) cached in `.state/ids.json`; `seed.sh` refreshes it                                                                                                                                  |
+| `shape.sh [SERVICE[/GROUP [CALL]]] \| --grep WORD`               | the shape of a REST call before making it: method, full path, params by location, and the traps `traps.yaml` knows (POST-not-PUT, error-in-200, client-only requirements); read from `server/*/rest.yaml`, the codegen input                        |
 
 For interactive Claude Code sessions, `make claude MCP=1` attaches
 `human-local`, this checkout's `/api/mcp`, through `dev/human-local.mcp.json`
