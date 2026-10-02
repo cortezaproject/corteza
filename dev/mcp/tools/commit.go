@@ -11,7 +11,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-// The rules CLAUDE.md states, enforced rather than remembered.
+// The rules AGENTS.md states, enforced rather than remembered.
 const (
 	// maxSubject is measured from this repo's own history: median 44, longest
 	// 77. Seventy-two is the conventional ceiling and comfortably above what
@@ -53,7 +53,7 @@ func registerCommit(reg *mcpkit.Registry, root string) {
 		mcp.NewTool("dev_commit_create",
 			mcp.WithDescription(
 				"Commit staged or named files with this repo's conventions enforced rather than remembered. "+
-					"The convention is stated in one place — CLAUDE.md, section 'Commit convention' — and this "+
+					"The convention is stated in one place — AGENTS.md, section 'Commit convention' — and this "+
 					"tool enforces the half of it a machine can decide: a short imperative subject, no AI "+
 					"attribution of any kind, formatting applied before staging. It refuses rather than fixing "+
 					"a message for you, because the subject is the author's to write, and warns rather than "+

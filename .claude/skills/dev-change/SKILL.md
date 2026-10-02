@@ -24,7 +24,7 @@ equivalents (`git status`, `go test`, `gofmt`).
 follow it verbatim: the status line, the eight sections in order, the five-bullet
 cap, the confidence rubric, and the rule that anything needed from the human is
 an `AskUserQuestion` rather than a sentence. It holds whether this skill was
-invoked directly or called by `/dev-task`. Options arrive priced — CLAUDE.md
+invoked directly or called by `/dev-task`. Options arrive priced — AGENTS.md
 § Conventions, Questions.
 
 Count the status line's steps out of 7: `dev-change · step 3/7 · baseline`.
