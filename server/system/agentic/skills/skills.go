@@ -102,7 +102,11 @@ func parseSkill(data []byte) (*Skill, error) {
 	}
 
 	var fm frontmatter
-	if err := yaml.Unmarshal([]byte(rest[:end]), &fm); err != nil {
+	dec := yaml.NewDecoder(strings.NewReader(rest[:end]))
+	// A key the struct does not carry is a typo or a stale field, and either
+	// would otherwise load as if it meant something.
+	dec.KnownFields(true)
+	if err := dec.Decode(&fm); err != nil {
 		return nil, fmt.Errorf("frontmatter yaml: %w", err)
 	}
 	if fm.Name == "" {
