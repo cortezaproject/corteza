@@ -25,8 +25,8 @@ Executing one is a different skill — see `automation`.
 one call:
 
 - `functions` — every `ref` a function or iterator step may name, with its
-  parameters, their exact type names, and which are required. There are 19.
-- `triggers` — the 22 legal `resourceType`/`eventType` pairs.
+  parameters, their exact type names, and which are required.
+- `triggers` — every legal `resourceType`/`eventType` pair.
 
 **Do not use `automation_workflow_function_lookup`.** That is the workflow
 function registry; most of its 93 entries do not exist in a TAQ, and a step
@@ -74,7 +74,8 @@ Three ways to give a value:
 
 - `"value"` — a literal.
 - `"source"` + `"scope"` — an earlier step's output, `scope` being the
-  producing step's handle.
+  producing step's handle. `source` is a bare variable name; a dotted path
+  there yields `""` without an error, so a path is an `expr`.
 - `"expr"` + `"scope"` — computed.
 
 **An `expr` is evaluated inside its own `scope`, and without one that is the

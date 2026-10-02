@@ -17,20 +17,23 @@ Any time the user asks to set up pages for a module, or to "create a page" for a
 ## How to create it
 
 Call `compose_page_create` with:
+
 - `title` — the module name, usually pluralised (e.g. "Sleep Logs")
 - `visible: true` — it appears in the sidebar navigation
 - Do NOT set `module` at the page level
 - `blocks` — a single `RecordList` block with `moduleID` in options (required):
 
 ```json
-[{
-  "kind": "RecordList",
-  "title": "Sleep Logs",
-  "options": {
-    "moduleID": "Sleep Log",
-    "perPage": 20
+[
+  {
+    "kind": "RecordList",
+    "title": "Sleep Logs",
+    "options": {
+      "moduleID": "Sleep Log",
+      "perPage": 20
+    }
   }
-}]
+]
 ```
 
 Do not include `xywh` — the server computes position and height automatically. `moduleID` takes a module name, handle or ID and the server resolves it — you do not need to look it up first.

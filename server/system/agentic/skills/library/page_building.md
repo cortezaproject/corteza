@@ -56,8 +56,10 @@ and `chartID` before the block is stored. Nothing else is.
 
 **RecordOrganizer**: `{"moduleID": "candidate", "groupField": "stage", "labelField": "full_name", "positionField": "sort_order"}`
 
-**Automation**: `{"buttons": [{"label": "Run", "enabled": true, "workflowID": "0"}]}`
-— Every button needs one target: `workflowID`, `automationID` (a TAQ) or `script`. A button with none renders disabled.
+**Automation**: `{"buttons": [{"label": "Run", "enabled": true, "automationID": "<taq ID>", "triggerHandle": "manual"}]}`
+— Every button needs one target: `automationID` plus `triggerHandle` (a TAQ), `workflowID` plus `stepID`, or `script`. A button with none renders disabled.
+
+`compose_page_block_schema` with no `kind` lists every kind this server has — Tabs, IFrame, File, Navigation, RecordRevisions, Geometry, AgentChat and ChatbotInbox included — with the options each cannot render without.
 
 ## What "required" means here
 
@@ -72,6 +74,7 @@ To add a new block: call `compose_page_update` with only the new block in `block
 
 To edit an existing block: look the page up first, include the block's `blockID` exactly as returned. Never invent a `blockID`.
 
-Grid is 48 columns wide. Full-width = `w: 48`, half-width = `w: 24`. Heights are roughly `h: 18` for a small Content/Metric block and `h: 40` for a list; `cellHeight` is 10. Blocks must not overlap on the y-axis — overlapping blocks get rendered side-by-side at half-width.
+Where a block sits is the layout's business, not the page's: the grid, the
+default sizes and `xywh` are in the `page_layout` skill.
 
 When the user asks to add a block, look the page up first and check what's actually there. Only the response from that lookup counts — not memory, not prior turns.

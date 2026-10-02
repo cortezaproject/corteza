@@ -16,11 +16,15 @@ triggers:
 
 When building an application from scratch, complete each step fully before moving to the next:
 
-1. Create the namespace
-2. Create all modules
-3. Create all pages
+1. Resolve or create the namespace (`namespace_building`).
+2. Create all modules, Record fields last so the module they point at exists (`module_building`).
+3. Create charts, which name a module by its numeric ID (`chart_building`).
+4. Create pages: a list and a record page per module (`page_record_list`, `page_record`), then dashboards that place the charts (`page_building`, `page_layout`).
+5. Automations last, once the fields they read exist (`taq_authoring`).
 
-Never create pages before all modules exist. Pages reference modules — a page built before its module exists will be broken.
+Never create pages before all modules exist. Pages reference modules — a page built before its module exists will be broken. A module has one record page; a second is refused.
+
+A refused call carries a code: `not_found` means resolve the resource with its lookup first, `invalid_argument` means read the tool's parameter documentation, `forbidden` means the caller's roles do not allow it and no retry will.
 
 ## Partial requests
 

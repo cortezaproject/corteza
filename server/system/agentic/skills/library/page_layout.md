@@ -1,7 +1,6 @@
 ---
 name: page_layout
 description: A page holds what its blocks are; a layout holds where they go — and how the grid places a block you do not position.
-importance: high
 triggers:
   - compose_page_create
   - compose_page_update
@@ -56,11 +55,12 @@ Omit `xywh` and the block is auto-placed instead: it flows left to right at its
 kind's default width, wraps when the row fills, and starts below the lowest
 block you positioned yourself.
 
-| Kind                                                  | Default width | Default height |
-| ----------------------------------------------------- | ------------- | -------------- |
-| Metric, Progress                                      | 12 (quarter)  | 20             |
-| Chart, Calendar, Comment, Content, SocialFeed, Automation | 24 (half)     | 20 / 30        |
-| RecordList, Record, RecordOrganizer, ChatbotInbox      | 48 (full)     | 30             |
+| Kind                                                                   | Default width | Default height |
+| ---------------------------------------------------------------------- | ------------- | -------------- |
+| Metric, Progress                                                       | 12 (quarter)  | 20             |
+| Content, Automation                                                    | 24 (half)     | 20             |
+| Chart, Calendar, Comment, SocialFeed                                   | 24 (half)     | 30             |
+| RecordList, Record, RecordOrganizer, ChatbotInbox and every other kind | 48 (full)     | 30             |
 
 Blocks CLIP when too short: give Metric `h>=20` and RecordList or Chart
 `h>=30`.

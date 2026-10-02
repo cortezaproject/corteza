@@ -20,10 +20,23 @@ If the namespace and module IDs are listed in the **ACCESSIBLE NAMESPACES AND MO
 
 If the namespace or module is not in that section:
 
-1. Call `compose_namespace_lookup` with `namespace` set to the namespace name or handle. Never pass a numeric ID here.
-2. Call `compose_module_lookup` with `namespace` and optionally `module` (name or handle). Never pass numeric IDs here either.
+1. Call `compose_namespace_lookup` with `namespace` set to the name, slug or ID (IDs always as strings).
+2. Call `compose_module_lookup` with `namespace` and optionally `module` (name, handle or ID).
 3. Ask the user only for values that match fields returned by step 2.
 4. Perform the operation.
+
+## Values
+
+- Values are keyed by field name. A multi-value field takes an array; a
+  structured value (a Geometry point) takes an object; Record and User fields
+  take IDs as strings.
+- A field you leave out is stored as **no value**, which is not `false` and not
+  `""`: `done = false` does not find records whose `done` was never sent. Send
+  every field a filter or a chart will group on.
+- `compose_record_update` changes only the fields you send; a named field is
+  replaced entire, so adding one value to a multi-value field means sending the
+  whole list. `replace=true` writes the set whole and clears the rest.
+- A duplicate-detection warning comes back on a **successful** save; read it.
 
 ## Rules
 
@@ -40,6 +53,9 @@ If the namespace or module is not in that section:
 - Numeric: `fieldName = 42`
 - AND/OR: `status = 'open' AND assignee = 'john'`
 - Contains: `name LIKE '%john%'`
+- Never set: `field IS NULL`; cleared to empty: `field = ''` — two different
+  states, and `= ''` errors on a Number or DateTime column.
+- Membership in a multi-value field: `tags IN ('red', 'blue')`.
 - String literals use **single quotes**. Variable references use no quotes.
 - A Select field is compared by its stored **value**, never by the label a
   person sees: `stage = 'offer'`, not `stage = 'Offer'`. The two differ by

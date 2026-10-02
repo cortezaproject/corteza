@@ -17,6 +17,7 @@ Every time you create a record list page, immediately follow it with a record de
 ## How to create it
 
 Call `compose_page_create` with:
+
 - `title` — the module name, singular (e.g. "Sleep Log")
 - `module` — the module name, handle, or ID (this is what makes it a detail page)
 - `visible: false` — it must NOT appear in the sidebar
@@ -24,14 +25,20 @@ Call `compose_page_create` with:
 - `blocks` — a single `Record` block. Do NOT put the module in the block options, it comes from the page:
 
 ```json
-[{
-  "kind": "Record",
-  "title": "Sleep Log",
-  "options": {}
-}]
+[
+  {
+    "kind": "Record",
+    "title": "Sleep Log",
+    "options": {}
+  }
+]
 ```
 
-Do not include `xywh` — the server sets width to 12 and computes height from the number of fields automatically. Omit `fields` in options to show all module fields; set `fields` only if the user asks for specific ones.
+Do not include `xywh` — the server places a Record block full width (48 columns) and 30 cells high. Omit `fields` in options to show all module fields; set `fields` only if the user asks for specific ones.
+
+A module has **one** record page. A second create for the same module is
+refused with "a record page for this module already exists"; look the page up
+and update it instead.
 
 ## Record list needs a detail page to be usable
 

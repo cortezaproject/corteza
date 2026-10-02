@@ -28,8 +28,9 @@ and its metrics.
 {"colorScheme":"tableau.Tableau10","reports":[{"moduleID":"<numeric ID>","filter":"","dimensions":[{"field":"stage","modifier":"(no grouping / buckets)","conditions":{}}],"metrics":[{"field":"count","type":"doughnut"}]}]}
 ```
 
-- **`moduleID` must be the numeric ID.** A handle is accepted and stored, and
-  the chart then queries nothing. Get the ID from `compose_module_lookup`.
+- **`moduleID` must be the numeric ID, as a string.** A handle is refused, and
+  so is an ID no module in the namespace has — the chart would store cleanly and
+  draw nothing. Get the ID from `compose_module_lookup`.
 - **A dimension is what the data is grouped by.** A Select field groups well.
   `modifier` is `(no grouping / buckets)` for the field's own values, or DATE,
   WEEK, MONTH, QUARTER or YEAR to bucket a date field.
