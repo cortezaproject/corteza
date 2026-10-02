@@ -179,6 +179,37 @@ func (h *namespaceHandler) update(ctx context.Context, req mcp.CallToolRequest) 
 	return toolkit.JSONResultWith(ns, namespaceLinks(ns))
 }
 
+func (h *namespaceHandler) undelete(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, err := toolkit.Args(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// An ID rather than the name-or-slug every other namespace tool takes: a
+	// deleted namespace is excluded from every search path, so there is nothing
+	// FindByAny could resolve it against.
+	nsID, err := toolkit.ReqID(args, "namespaceID")
+	if err != nil {
+		return nil, err
+	}
+
+	if err = cmpService.DefaultNamespace.UndeleteByID(ctx, nsID); err != nil {
+		return nil, toolkit.Errf("namespace undelete", err)
+	}
+
+	ns, err := cmpService.DefaultNamespace.FindByID(ctx, nsID)
+	if err != nil {
+		return nil, toolkit.Errf("namespace lookup after undelete", err)
+	}
+
+	return toolkit.JSONResult(map[string]any{
+		"namespaceID": strconv.FormatUint(ns.ID, 10),
+		"name":        ns.Name,
+		"slug":        ns.Slug,
+		"restored":    true,
+	})
+}
+
 func (h *namespaceHandler) del(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args, err := toolkit.Args(req)
 	if err != nil {

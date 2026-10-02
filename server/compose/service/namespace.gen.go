@@ -156,6 +156,32 @@ func (svc *namespace) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	return svc.recordAction(ctx, aProps, NamespaceActionDelete, err)
 }
 
+func (svc *namespace) UndeleteByID(ctx context.Context, ID uint64) (err error) {
+	var (
+		aProps = &namespaceActionProps{}
+		res    *types.Namespace
+	)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if res, err = loadNamespace(ctx, s, ID); err != nil {
+			return
+		}
+
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
+
+		aProps.setNamespace(res)
+
+		if err = svc.guard(ctx, res); err != nil {
+			return
+		}
+
+		return svc.onUndelete(ctx, s, res, aProps)
+	})
+
+	return svc.recordAction(ctx, aProps, NamespaceActionUndelete, err)
+}
+
 func loadNamespace(ctx context.Context, s store.ComposeNamespaces, ID uint64) (res *types.Namespace, err error) {
 	if ID == 0 {
 		return nil, NamespaceErrInvalidID()

@@ -105,7 +105,8 @@ namespace: {
 		guard: true
 
 
-		customBodyOps: ["lookup", "search", "create", "update", "delete"]
+		undelete: true
+		customBodyOps: ["lookup", "search", "create", "update", "delete", "undelete"]
 
 		customAccessOps: ["create"]
 

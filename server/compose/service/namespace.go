@@ -73,6 +73,7 @@ type (
 		ImportInit(ctx context.Context, f multipart.File, size int64) (namespaceImportSession, error)
 		ImportRun(ctx context.Context, sessionID uint64, dup *types.Namespace) (ns *types.Namespace, err error)
 		DeleteByID(ctx context.Context, namespaceID uint64) error
+		UndeleteByID(ctx context.Context, namespaceID uint64) error
 	}
 
 	namespaceUpdateHandler func(ctx context.Context, ns *types.Namespace) (namespaceChanges, error)
@@ -714,18 +715,15 @@ func (svc namespace) handleDelete(ctx context.Context, ns *types.Namespace) (nam
 	return namespaceChanged, nil
 }
 
-func (svc namespace) handleUndelete(ctx context.Context, ns *types.Namespace) (namespaceChanges, error) {
-	if !svc.ac.CanDeleteNamespace(ctx, ns) {
-		return namespaceUnchanged, NamespaceErrNotAllowedToUndelete()
+// onUndelete clears the delete marker. A deleted namespace is unreachable by
+// slug, so the caller arrives with its ID; nothing inside it was touched by the
+// delete, so nothing else needs restoring.
+func (svc *namespace) onUndelete(ctx context.Context, s store.Storer, res *types.Namespace, aProps *namespaceActionProps) error {
+	if !svc.ac.CanDeleteNamespace(ctx, res) {
+		return NamespaceErrNotAllowedToUndelete()
 	}
-
-	if ns.DeletedAt == nil {
-		// namespace not deleted
-		return namespaceUnchanged, nil
-	}
-
-	ns.DeletedAt = nil
-	return namespaceChanged, nil
+	res.DeletedAt = nil
+	return store.UpdateComposeNamespace(ctx, s, res)
 }
 
 func (svc namespace) canExport(ctx context.Context, namespace *types.Namespace) error {

@@ -77,4 +77,24 @@ func (h *namespaceHandler) register() {
 		"Delete namespace",
 		h.del,
 	)
+
+	h.reg.RegisterTool(
+		mcp.NewTool("compose_namespace_undelete",
+			mcp.WithDescription(
+				"Restore a soft-deleted namespace, reversing compose_namespace_delete. The delete only set a "+
+					"marker: the namespace, its modules, records, pages and charts were all retained, so it comes "+
+					"back exactly as it was and appears in compose_namespace_lookup again. Agent allow-list "+
+					"entries the delete dropped are not restored; re-grant them with system_agent_update. "+
+					"Requires the numeric namespaceID, and nothing else will do: a deleted namespace is "+
+					"excluded from every lookup path, so neither name nor slug resolves it. Take the ID from "+
+					"what compose_namespace_delete reported, or from a compose_namespace_lookup made before the "+
+					"delete. Calling this on a namespace that is not deleted is accepted and changes nothing.",
+			),
+			mcp.WithString("namespaceID", mcp.Required(), mcp.Description("ID of the deleted namespace (as string to prevent precision loss). A name or slug will not work — deleted namespaces are not resolvable by either.")),
+			hmcp.InGroup(hmcp.GroupConfiguring),
+			hmcp.WithRisk(hmcp.RiskWrite),
+		),
+		"Undelete namespace",
+		h.undelete,
+	)
 }
