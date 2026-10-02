@@ -362,8 +362,28 @@ func DefaultFilters() (f *extendedFilters) {
 	}
 
 	f.AutomationWorkflow = func(s *Store, f automationType.WorkflowFilter) (ee []goqu.Expression, _ automationType.WorkflowFilter, err error) {
+		// The query is handled here instead of in the generated filter
+		// so that it matches the workflow name (kept in the meta JSON)
+		// and not only the handle
+		query := f.Query
+		f.Query = ""
+
 		if ee, f, err = AutomationWorkflowFilter(s.Dialect, f); err != nil {
 			return
+		}
+
+		f.Query = query
+
+		if query != "" {
+			nameExpr, err := s.Dialect.JsonExtractUnquote(goqu.C("meta"), "name")
+			if err != nil {
+				return nil, f, err
+			}
+
+			ee = append(ee, goqu.Or(
+				goqu.C("handle").ILike("%"+query+"%"),
+				goqu.COALESCE(nameExpr, "").ILike("%"+query+"%"),
+			))
 		}
 
 		if f.SubWorkflow != filter.StateInclusive {
