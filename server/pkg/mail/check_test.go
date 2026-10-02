@@ -22,6 +22,8 @@ func TestHostValidator(t *testing.T) {
         {"crust-tech?", false},
         {"crust-tech", true},
         {"crust/tech", false},
+        {"crust.tech ", false},
+        {" crust.tech", false},
     }
 
     for _, tc := range ttc {

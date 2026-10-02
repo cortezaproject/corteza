@@ -103,6 +103,7 @@
 import { inject, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
+import { trimServer } from './trimServer'
 
 const { CViewContainer } = components
 const { t } = useI18n()
@@ -148,8 +149,11 @@ async function loadSettings() {
 async function handleSave() {
   saving.value = true
   try {
+    const trimmed = trimServer(server)
+    Object.assign(server, trimmed)
+
     await $SystemAPI.settingsUpdate({
-      values: [{ name: 'smtp.servers', value: [{ ...server }] }],
+      values: [{ name: 'smtp.servers', value: [trimmed] }],
     })
     $toast.toastSuccess(t('notification.settings.update.success'))
   } catch (e) {
@@ -162,14 +166,15 @@ async function handleSave() {
 async function handleTestSmtp() {
   testing.value = true
   try {
+    const trimmed = trimServer(server)
     const response = await $SystemAPI.smtpConfigurationCheckerCheck({
-      host: server.host,
-      port: parseInt(server.port),
-      recipients: [server.from],
-      username: server.user,
-      password: server.pass,
-      tlsInsecure: server.tlsInsecure,
-      tlsServerName: server.tlsServerName,
+      host: trimmed.host,
+      port: parseInt(trimmed.port),
+      recipients: [trimmed.from],
+      username: trimmed.user,
+      password: trimmed.pass,
+      tlsInsecure: trimmed.tlsInsecure,
+      tlsServerName: trimmed.tlsServerName,
     })
 
     if (Object.values(response).every(resp => resp === '')) {
