@@ -400,6 +400,9 @@ func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
 			return err
 		}
 
+		// the pairing token is single use: once paired, a leaked pairing
+		// URI must not be able to start the handshake over
+		n.PairToken = ""
 		n.Status = types.NodeStatusPaired
 		return nil
 	}, nil)
@@ -423,6 +426,7 @@ func (svc node) HandshakeComplete(ctx context.Context, sharedNodeID uint64, toke
 
 	_, err = svc.updater(ctx, n.ID, NodeActionHandshakeComplete, func(ctx context.Context, n *types.Node) error {
 		n.AuthToken = token
+		n.PairToken = ""
 		n.Status = types.NodeStatusPaired
 		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 		n.UpdatedAt = now()
