@@ -1,11 +1,14 @@
 package system
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/crusttech/human/server/pkg/id"
+	"github.com/crusttech/human/server/store"
+	"github.com/crusttech/human/server/system/service"
 	"github.com/crusttech/human/server/system/types"
 	"github.com/crusttech/human/server/tests/helpers"
 )
@@ -189,5 +192,62 @@ func TestAuthClientExposeSecret(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+// A client that impersonates another user is as good as that user: its
+// secret and its configuration are off limits without impersonate rights
+func (h helper) repoMakeImpersonatingAuthClient(userID uint64) *types.AuthClient {
+	client := h.repoMakeAuthClient()
+	client.ValidGrant = "client_credentials"
+	client.Security = &types.AuthClientSecurity{ImpersonateUser: userID}
+	h.noError(store.UpdateAuthClient(context.Background(), service.DefaultStore, client))
+	return client
+}
+
+func TestAuthClientExposeSecretImpersonatingForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearAuthClients()
+	client := h.repoMakeImpersonatingAuthClient(id.Next())
+	helpers.AllowMe(h, types.AuthClientRbacResource(0), "read", "update")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/auth/clients/%d/secret", client.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("auth-client.errors.notAllowedToImpersonate")).
+		End()
+}
+
+func TestAuthClientExposeSecretImpersonating(t *testing.T) {
+	h := newHelper(t)
+	h.clearAuthClients()
+	client := h.repoMakeImpersonatingAuthClient(id.Next())
+	helpers.AllowMe(h, types.AuthClientRbacResource(0), "read", "update")
+	helpers.AllowMe(h, types.UserRbacResource(0), "impersonate")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/auth/clients/%d/secret", client.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+func TestAuthClientUpdateImpersonatingForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearAuthClients()
+	client := h.repoMakeImpersonatingAuthClient(id.Next())
+	helpers.AllowMe(h, types.AuthClientRbacResource(0), "read", "update")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/auth/clients/%d", client.ID)).
+		JSON(fmt.Sprintf(`{"handle": "%s", "validGrant": "client_credentials", "security": {"impersonateUser": "%d"}, "meta": {"name": "renamed"}}`, client.Handle, client.Security.ImpersonateUser)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("auth-client.errors.notAllowedToImpersonate")).
 		End()
 }

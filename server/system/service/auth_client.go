@@ -137,6 +137,11 @@ func (svc *authClient) ExposeSecret(ctx context.Context, ID uint64) (secret stri
 		client, err = nil, AuthClientErrNotAllowedToUpdate()
 	}
 
+	// holding the secret of a client that impersonates someone is acting as them
+	if err == nil && !svc.canActAsClient(ctx, client) {
+		client, err = nil, AuthClientErrNotAllowedToImpersonate()
+	}
+
 	if client != nil {
 		secret = client.Secret
 	}
@@ -278,6 +283,12 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 			}
 		}
 
+		// a client that already impersonates someone is as good as that
+		// user; changing it takes the same permission as setting it up
+		if !svc.canActAsClient(ctx, res) {
+			return AuthClientErrNotAllowedToImpersonate()
+		}
+
 		if err = svc.checkSecurity(ctx, res.Security, upd.Security); err != nil {
 			return
 		}
@@ -367,6 +378,21 @@ func (svc *authClient) DeleteByID(ctx context.Context, ID uint64) (err error) {
 //
 // Client acts as the impersonated user and forces roles on everyone that signs in with it;
 // only changed values are checked so that existing clients can still be updated
+// canActAsClient tells whether the current user may take over a client that
+// impersonates another user: holding its secret or changing it means acting
+// as that user, so it takes the impersonate permission on them
+func (svc *authClient) canActAsClient(ctx context.Context, c *types.AuthClient) bool {
+	if c == nil || c.Security == nil || c.Security.ImpersonateUser == 0 {
+		return true
+	}
+
+	if c.Security.ImpersonateUser == internalAuth.GetIdentityFromContext(ctx).Identity() {
+		return true
+	}
+
+	return svc.ac.CanImpersonateUser(ctx, &types.User{ID: c.Security.ImpersonateUser})
+}
+
 func (svc *authClient) checkSecurity(ctx context.Context, old, upd *types.AuthClientSecurity) error {
 	if upd == nil {
 		return nil
