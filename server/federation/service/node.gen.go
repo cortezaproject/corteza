@@ -161,7 +161,6 @@ func loadNode(ctx context.Context, s store.FederationNodes, ID uint64) (res *typ
 
 	return
 }
-func (svc *node) guard(_ context.Context, _ *types.Node) error { return nil }
 
 func (svc *node) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

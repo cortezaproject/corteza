@@ -72,6 +72,7 @@ node: {
 	service: {
 		lookup:   false
 		undelete: true
+		guard:    true
 
 		// status and the pairing tokens are managed by the pairing/handshake
 		// flow, not by a plain node update; excluding them keeps a metadata

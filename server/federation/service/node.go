@@ -111,6 +111,16 @@ func (svc *node) onUpdate(ctx context.Context, s store.Storer, upd *types.Node, 
 	return nil
 }
 
+// guard runs before update, delete and undelete: nodes are managed only by
+// users allowed to manage them
+func (svc *node) guard(ctx context.Context, res *types.Node) error {
+	if !svc.ac.CanManageNode(ctx, res) {
+		return NodeErrNotAllowedToManage()
+	}
+
+	return nil
+}
+
 // onDelete soft-deletes the node
 func (svc *node) onDelete(ctx context.Context, s store.Storer, res *types.Node, aProps *nodeActionProps) error {
 	res.DeletedAt = now()
