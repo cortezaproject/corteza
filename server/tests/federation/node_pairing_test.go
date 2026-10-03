@@ -238,5 +238,10 @@ func TestSuccessfulNodePairing(t *testing.T) {
 
 		checkNodeStatus(aNodeID, types.NodeStatusPaired)
 		checkNodeStatus(bNodeID, types.NodeStatusPaired)
+
+		// the pairing token is spent; a leaked pairing URI can not be replayed
+		// (both nodes live in one store here, so handshake-complete lands on
+		// node A as well; only A, which verifies the token, is checked)
+		h.a.Empty(h.lookupNodeByID(aNodeID).PairToken)
 	}
 }
