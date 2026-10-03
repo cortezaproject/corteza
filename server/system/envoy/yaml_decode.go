@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/crusttech/human/server/pkg/y7s"
 	"github.com/crusttech/human/server/system/types"
 	systemTypes "github.com/crusttech/human/server/system/types"
 	sqlt "github.com/jmoiron/sqlx/types"
-	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
 
@@ -103,7 +103,7 @@ func (d *auxYamlDoc) unmarshalSettingsNode(n *yaml.Node) (out envoyx.NodeSet, er
 	})
 
 	err = y7s.EachMap(n, func(lang, loc *yaml.Node) error {
-		langTag := systemTypes.Lang{Tag: language.Make(lang.Value)}
+		langTag := systemTypes.Lang{Tag: locale.MakeTag(lang.Value)}
 
 		return y7s.EachMap(loc, func(res, kv *yaml.Node) error {
 			return y7s.EachMap(kv, func(k, msg *yaml.Node) error {

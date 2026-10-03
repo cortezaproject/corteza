@@ -14,12 +14,12 @@ import (
 
 	"github.com/crusttech/human/server/compose/types"
 	"github.com/crusttech/human/server/pkg/envoyx"
+	"github.com/crusttech/human/server/pkg/locale"
 	"github.com/crusttech/human/server/pkg/rbac"
 	"github.com/crusttech/human/server/pkg/y7s"
 	systemTypes "github.com/crusttech/human/server/system/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
-	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
 
@@ -2592,7 +2592,7 @@ func unmarshalFlatRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, e
 
 func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 	err = y7s.EachMap(n, func(lang, loc *yaml.Node) error {
-		langTag := systemTypes.Lang{Tag: language.Make(lang.Value)}
+		langTag := systemTypes.Lang{Tag: locale.MakeTag(lang.Value)}
 
 		return y7s.EachMap(loc, func(res, kv *yaml.Node) error {
 			return y7s.EachMap(kv, func(k, msg *yaml.Node) error {
