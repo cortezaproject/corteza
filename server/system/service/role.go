@@ -291,13 +291,18 @@ func (svc *role) validate(ctx context.Context, new *types.Role) error {
 }
 
 // beforeSearch narrows the search to one user's or one group's memberships.
-func (svc *role) beforeSearch(_ context.Context, filter *types.RoleFilter) error {
+func (svc *role) beforeSearch(ctx context.Context, filter *types.RoleFilter) error {
 	if filter.MemberID > 0 && filter.UserGroupID > 0 {
 		return RoleErrSearchByMemberUserGroup()
 	}
 
 	if filter.Resource == "" {
 		if filter.MemberID > 0 {
+			// listing the roles of a user tells as much as reading the user
+			if filter.MemberID != intAuth.GetIdentityFromContext(ctx).Identity() && !svc.ac.CanReadUser(ctx, &types.User{ID: filter.MemberID}) {
+				return RoleErrNotAllowedToRead()
+			}
+
 			filter.Resource = fmt.Sprintf("corteza::system:user/%d", filter.MemberID)
 		}
 		if filter.UserGroupID > 0 {
