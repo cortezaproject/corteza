@@ -271,3 +271,49 @@ func TestWorkflowUpdateKeepOwner(t *testing.T) {
 
 	h.a.Equal(res.OwnedBy, h.lookupWorkflowByID(res.ID).OwnedBy)
 }
+
+// Changing the steps of a workflow that runs as another user makes those
+// steps run with that user's rights, so it takes the impersonate permission
+// just like setting run-as does
+func TestWorkflowUpdateStepsOfRunAsForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearWorkflows()
+	admin := h.repoMakeRunAsUser()
+	res := h.repoMakeWorkflowRunAs(admin.ID)
+
+	helpers.AllowMe(h, types.WorkflowRbacResource(0), "update")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/workflows/%d", res.ID)).
+		JSON(fmt.Sprintf(`{"handle": "%s", "meta": {"name": "run as"}, "runAs": "%d", "steps": [{"stepID": "1", "kind": "expressions", "arguments": [{"target": "foo", "type": "String", "expr": "\"foo\""}]}]}`, res.Handle, admin.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("workflow.errors.notAllowedToSetRunAs")).
+		End()
+
+	res = h.lookupWorkflowByID(res.ID)
+	h.a.Empty(res.Steps)
+}
+
+func TestWorkflowUpdateStepsOfRunAs(t *testing.T) {
+	h := newHelper(t)
+	h.clearWorkflows()
+	admin := h.repoMakeRunAsUser()
+	res := h.repoMakeWorkflowRunAs(admin.ID)
+
+	helpers.AllowMe(h, types.WorkflowRbacResource(0), "update")
+	helpers.AllowMe(h, admin.RbacResource(), "impersonate")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/workflows/%d", res.ID)).
+		JSON(fmt.Sprintf(`{"handle": "%s", "meta": {"name": "run as"}, "runAs": "%d", "steps": [{"stepID": "1", "kind": "expressions", "arguments": [{"target": "foo", "type": "String", "expr": "\"foo\""}]}]}`, res.Handle, admin.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupWorkflowByID(res.ID)
+	h.a.Len(res.Steps, 1)
+}

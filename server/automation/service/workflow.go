@@ -274,7 +274,7 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 // Update modifies existing workflow resource in the store
 func (svc *workflow) Update(ctx context.Context, upd *types.Workflow) (*types.Workflow, error) {
 	return svc.updater(ctx, upd.ID, WorkflowActionUpdate, func(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
-		if upd.Meta.Name == "" {
+		if upd.Meta == nil || upd.Meta.Name == "" {
 			return workflowUnchanged, WorkflowErrMissingName()
 		}
 
@@ -439,9 +439,13 @@ func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
 			}
 		}
 
+		// what the workflow executes: scope, steps and paths
+		logicChanged := false
+
 		if upd.Scope != nil {
 			if !reflect.DeepEqual(upd.Scope, res.Scope) {
 				changes |= workflowChanged | workflowDefChanged
+				logicChanged = true
 				res.Scope = upd.Scope
 			}
 		}
@@ -449,6 +453,7 @@ func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
 		if upd.Steps != nil {
 			if !reflect.DeepEqual(upd.Steps, res.Steps) {
 				changes |= workflowChanged | workflowDefChanged
+				logicChanged = true
 				res.Steps = upd.Steps
 			}
 		}
@@ -456,6 +461,7 @@ func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
 		if upd.Paths != nil {
 			if !reflect.DeepEqual(upd.Paths, res.Paths) {
 				changes |= workflowChanged | workflowDefChanged
+				logicChanged = true
 				res.Paths = upd.Paths
 			}
 		}
@@ -467,6 +473,13 @@ func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
 
 			changes |= workflowChanged | workflowDefChanged
 			res.RunAs = upd.RunAs
+		}
+
+		// Changing what the workflow does while it runs as another user
+		// executes that change with the other user's rights, so it takes
+		// the same permission as making the workflow run as them
+		if logicChanged && !svc.canRunAs(ctx, res.RunAs) {
+			return workflowUnchanged, WorkflowErrNotAllowedToSetRunAs()
 		}
 
 		if upd.OwnedBy != 0 && res.OwnedBy != upd.OwnedBy {
