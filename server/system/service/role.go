@@ -54,6 +54,8 @@ type (
 		CanUpdateRole(context.Context, *types.Role) bool
 		CanDeleteRole(context.Context, *types.Role) bool
 		CanManageMembersOnRole(context.Context, *types.Role) bool
+
+		CanReadUser(context.Context, *types.User) bool
 	}
 
 	RoleService interface {
@@ -156,6 +158,11 @@ func (svc role) Find(ctx context.Context, filter types.RoleFilter) (rr types.Rol
 
 	if filter.Resource == "" {
 		if filter.MemberID > 0 {
+			// listing the roles of a user tells as much as reading the user
+			if filter.MemberID != intAuth.GetIdentityFromContext(ctx).Identity() && !svc.ac.CanReadUser(ctx, &types.User{ID: filter.MemberID}) {
+				return nil, f, RoleErrNotAllowedToRead()
+			}
+
 			filter.Resource = fmt.Sprintf("corteza::system:user/%d", filter.MemberID)
 		}
 		if filter.UserGroupID > 0 {

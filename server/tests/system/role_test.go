@@ -574,3 +574,38 @@ func TestMemberRemove_denied(t *testing.T) {
 		Assert(helpers.AssertError("role.errors.notAllowedToManageMembers")).
 		End()
 }
+
+// Listing the roles of another user tells as much as reading the user, so
+// it takes the permission to read them
+func TestRoleList_byForeignMemberForbidden(t *testing.T) {
+	h := newHelper(t)
+	u := h.createUserWithEmail("member-" + rs() + "@example.tld")
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "roles.search")
+	helpers.DenyMe(h, types.UserRbacResource(0), "read")
+
+	h.apiInit().
+		Get("/roles/").
+		Query("memberID", fmt.Sprintf("%d", u.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("role.errors.notAllowedToRead")).
+		End()
+}
+
+func TestRoleList_byOwnMember(t *testing.T) {
+	h := newHelper(t)
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "roles.search")
+	helpers.DenyMe(h, types.UserRbacResource(0), "read")
+
+	h.apiInit().
+		Get("/roles/").
+		Query("memberID", fmt.Sprintf("%d", h.cUser.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
