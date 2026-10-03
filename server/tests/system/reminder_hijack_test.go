@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/cortezaproject/corteza/server/tests/helpers"
 )
 
@@ -49,4 +50,27 @@ func TestReminderUpdateOwn(t *testing.T) {
 		End()
 
 	h.a.Equal("changed:resource", h.lookupReminderByID(rm.ID).Resource)
+}
+
+// Users allowed to assign reminders may change reminders of others
+func TestReminderUpdateForeignAsAssigner(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	rm := h.makeReminderByUserID(id.Next())
+	helpers.AllowMe(h, types.ComponentRbacResource(), "reminder.assign")
+
+	h.apiInit().
+		Put(fmt.Sprintf("/reminder/%d", rm.ID)).
+		Header("Accept", "application/json").
+		FormData("resource", "reassigned:resource").
+		FormData("assignedTo", strconv.FormatUint(h.cUser.ID, 10)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	stored := h.lookupReminderByID(rm.ID)
+	h.a.Equal(h.cUser.ID, stored.AssignedTo)
+	h.a.Equal("reassigned:resource", stored.Resource)
 }

@@ -145,3 +145,22 @@ func TestPageLayoutPersonalUpdateKeepsPage(t *testing.T) {
 	h.a.Equal(ns.ID, stored.NamespaceID)
 	h.a.Equal("moved?", stored.Meta.Title)
 }
+
+func TestPageLayoutPersonalUpdateOwn(t *testing.T) {
+	h := newHelper(t)
+	ns := h.makeNamespace("personal layout ns")
+	pg, ly := h.repoMakePersonalPageLayout(ns, h.cUser.ID)
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/page/%d/layout/%d", ns.ID, pg.ID, ly.ID)).
+		Header("Accept", "application/json").
+		JSON(`{"meta": {"title": "mine"}}`).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	stored, err := store.LookupComposePageLayoutByID(context.Background(), service.DefaultStore, ly.ID)
+	h.noError(err)
+	h.a.Equal("mine", stored.Meta.Title)
+}

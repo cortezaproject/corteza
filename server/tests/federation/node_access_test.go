@@ -127,3 +127,49 @@ func TestNodeHandshakeInitEmptyPairToken(t *testing.T) {
 	h.a.Empty(stored.AuthToken)
 	h.a.Equal(types.NodeStatusPending, stored.Status)
 }
+
+// Pairing with the right token still works and records the auth token
+func TestNodeHandshakeInitValidPairToken(t *testing.T) {
+	h := newHelper(t)
+	h.clearNodes()
+	token := "pair-token-0123456789-abcdefghij-xyz"
+	n := h.repoMakeNode(token)
+
+	h.noError(service.DefaultNode.HandshakeInit(context.Background(), n.ID, token, n.ID, "auth-token"))
+
+	stored := h.lookupNodeByID(n.ID)
+	h.a.Equal("auth-token", stored.AuthToken)
+	h.a.Equal(types.NodeStatusPairRequested, stored.Status)
+}
+
+func TestNodeDelete(t *testing.T) {
+	h := newHelper(t)
+	h.clearNodes()
+	n := h.repoMakeNode("")
+	helpers.AllowMe(h, types.NodeRbacResource(0), "manage")
+
+	h.apiInit().
+		Delete(fmt.Sprintf("/nodes/%d", n.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	h.a.NotNil(h.lookupNodeByID(n.ID).DeletedAt)
+}
+
+func TestNodeGenerateURI(t *testing.T) {
+	h := newHelper(t)
+	h.clearNodes()
+	n := h.repoMakeNode("")
+	helpers.AllowMe(h, types.NodeRbacResource(0), "manage")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/nodes/%d/uri", n.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}

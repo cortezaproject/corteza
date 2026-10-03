@@ -1,9 +1,12 @@
 package service
 
 import (
+	"context"
+	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -286,4 +289,33 @@ func Test_checkPasswordStrength(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Email OTP codes are six digits, leading zeros included, drawn from a
+// cryptographically secure source
+func TestAuth_emailOTPFormat(t *testing.T) {
+	var (
+		req  = require.New(t)
+		ctx  = context.Background()
+		user = &types.User{Email: "otp@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
+		six  = regexp.MustCompile(`^[0-9]{6}$`)
+	)
+
+	svc := makeMockAuthService()
+	req.NoError(store.TruncateUsers(ctx, svc.store))
+	req.NoError(store.TruncateCredentials(ctx, svc.store))
+	req.NoError(store.CreateUser(ctx, svc.store, user))
+
+	seen := map[string]bool{}
+	for i := 0; i < 6; i++ {
+		// token creation is rate limited per user; start each round clean
+		req.NoError(store.TruncateCredentials(ctx, svc.store))
+
+		token, err := svc.createUserToken(ctx, user, credentialsTypeMFAEmailOTP)
+		req.NoError(err)
+		req.Regexp(six, token)
+		seen[token] = true
+	}
+
+	req.Greater(len(seen), 1, "codes must not repeat on every call")
 }

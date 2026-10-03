@@ -91,3 +91,24 @@ func TestPageTranslationsUpdateForbidden(t *testing.T) {
 
 	h.a.Empty(h.translationsOf(p.ResourceTranslation()))
 }
+
+// The namespace endpoint is guarded the same way
+func TestNamespaceTranslationsUpdateForbidden(t *testing.T) {
+	h := newHelper(t)
+
+	ns := h.makeNamespace("translations-ns-" + rs())
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.DenyMe(h, types.NamespaceRbacResource(0), "update")
+
+	h.apiInit().
+		Patch(fmt.Sprintf("/namespace/%d/translation", ns.ID)).
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{"translations":[{"resource":"%s","lang":"en","key":"name","message":"defaced"}]}`, ns.ResourceTranslation())).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("namespace.errors.notAllowedToUpdate")).
+		End()
+
+	h.a.Empty(h.translationsOf(ns.ResourceTranslation()))
+}
