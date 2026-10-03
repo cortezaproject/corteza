@@ -148,7 +148,7 @@ func TestPageLayoutPersonalUpdateKeepsPage(t *testing.T) {
 
 func TestPageLayoutPersonalUpdateOwn(t *testing.T) {
 	h := newHelper(t)
-	ns := h.makeNamespace("personal layout ns")
+	ns := h.makeNamespace("personal layout own ns")
 	pg, ly := h.repoMakePersonalPageLayout(ns, h.cUser.ID)
 
 	h.apiInit().
