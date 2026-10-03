@@ -48,7 +48,8 @@ export const ToastPlugin = {
       return (err: any = {}) => {
         const message = err.message || err.toString() || 'Unknown error'
         const msg = prefix ? `${prefix}: ${message}` : message
-        toastDanger(msg, title)
+        // an error raised by a workflow error step may carry its own title
+        toastDanger(msg, (err && err.meta && err.meta.title) || title)
         return message
       }
     }

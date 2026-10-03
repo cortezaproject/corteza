@@ -704,7 +704,7 @@ func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.Workf
 	// merge workflow scope with the input
 	scope = wf.Scope.MustMerge(p.Input)
 
-	return svc.services.session.Start(ctx, g, types.SessionStartParams{
+	wait, sessionID, err := svc.services.session.Start(ctx, g, types.SessionStartParams{
 		Invoker: intAuth.GetIdentityFromContext(ctx),
 		Runner:  runAs,
 
@@ -718,6 +718,29 @@ func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.Workf
 
 		CallStack: wfexec.GetContextCallStack(ctx),
 	})
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return func(ctx context.Context) (*expr.Vars, uint64, wfexec.SessionStatus, types.Stacktrace, error) {
+		scope, id, status, trace, err := wait(ctx)
+		return scope, id, status, trace, userFacingError(err)
+	}, sessionID, nil
+}
+
+// userFacingError returns the error raised by an error step as it was
+// configured in the workflow
+//
+// The session wraps it with its workflow and step IDs, which is useful in
+// logs and traces but not for the person who sees the message in the UI
+func userFacingError(err error) error {
+	var e *errors.Error
+	if errors.As(err, &e) && errors.IsAutomation(e) {
+		return e
+	}
+
+	return err
 }
 
 func makeWorkflowHandler(svc *workflow, wf *types.Workflow, t *types.Trigger) eventbus.HandlerFn {

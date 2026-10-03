@@ -23,6 +23,8 @@ enable: Enable
 enabled: Enabled
 error: Error
 error-expression: Error message (expression)
+error-title-expression: Error title (expression)
+error-title-description: Optional. Shown as the heading of the error notification; the generic heading is used when empty.
 export: Export
 extendSession:
   labels:

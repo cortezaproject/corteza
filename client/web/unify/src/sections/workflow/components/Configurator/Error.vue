@@ -6,8 +6,21 @@
           v-model="item.config.arguments[0].expr"
           font-size="18px"
           show-line-numbers
-          @open="openInEditor"
+          @open="openInEditor(0)"
           @input="valueChanged"
+        />
+      </CFormGroup>
+
+      <CFormGroup
+        :label="$t('general.error-title-expression')"
+        :description="$t('general.error-title-description')"
+      >
+        <expression-editor
+          v-model="item.config.arguments[1].expr"
+          font-size="18px"
+          show-line-numbers
+          @open="openInEditor(1)"
+          @input="eventBus.emit('change-detected')"
         />
       </CFormGroup>
     </div>
@@ -58,32 +71,33 @@ export default {
 
   data() {
     return {
+      eventBus,
       expressionEditor: {
         currentExpression: undefined,
+        index: 0,
       },
     }
   },
 
   created() {
-    let args = [
-      {
-        target: 'message',
-        type: 'String',
-        expr: '',
-      },
+    // message is what the error says; the optional title is shown as the
+    // heading of the notification instead of the generic one
+    const defaults = [
+      { target: 'message', type: 'String', expr: '' },
+      { target: 'title', type: 'String', expr: '' },
     ]
 
-    if (this.item.config.arguments && this.item.config.arguments.length) {
-      args = this.item.config.arguments.map(({ target, type, value, expr }) => {
-        return {
-          target,
-          type,
-          expr: expr || (value ? `"${value}"` : ''),
-        }
-      })
-    }
+    const configured = (this.item.config.arguments || []).map(({ target, type, value, expr }) => {
+      return {
+        target,
+        type,
+        expr: expr || (value ? `"${value}"` : ''),
+      }
+    })
 
-    this.item.config['arguments'] = args
+    this.item.config['arguments'] = defaults.map(
+      d => configured.find(a => a.target === d.target) || d,
+    )
   },
 
   methods: {
@@ -95,13 +109,14 @@ export default {
       eventBus.emit('change-detected')
     },
 
-    openInEditor() {
-      this.expressionEditor.currentExpression = this.item.config.arguments[0].expr
+    openInEditor(index = 0) {
+      this.expressionEditor.index = index
+      this.expressionEditor.currentExpression = this.item.config.arguments[index].expr
     },
 
     saveExpression() {
-      const { currentExpression } = this.expressionEditor
-      this.item.config.arguments[0]['expr'] = currentExpression
+      const { currentExpression, index } = this.expressionEditor
+      this.item.config.arguments[index]['expr'] = currentExpression
       eventBus.emit('change-detected')
 
       this.resetExpression()
