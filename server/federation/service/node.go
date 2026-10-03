@@ -202,6 +202,11 @@ func (svc *node) onRegenerateNodeURI(ctx context.Context, aProps *nodeActionProp
 		nodeID,
 		NodeActionOttRegenerated,
 		func(ctx context.Context, n *types.Node) error {
+			// a new pairing URI lets its holder pair with this node
+			if err := svc.guard(ctx, n); err != nil {
+				return err
+			}
+
 			n.PairToken = string(rand.Bytes(TokenLength))
 			return nil
 		},

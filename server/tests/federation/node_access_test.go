@@ -80,3 +80,40 @@ func TestNodeDelete(t *testing.T) {
 
 	h.a.NotNil(h.lookupNodeByID(n.ID).DeletedAt)
 }
+
+// A new pairing URI lets its holder pair with the node, so only users allowed
+// to manage the node may generate one
+func TestNodeGenerateURIForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearNodes()
+	n := h.createNode()
+	before := h.lookupNodeByID(n.ID).PairToken
+
+	h.apiInit().
+		Post(fmt.Sprintf("/nodes/%d/uri", n.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("not allowed to manage this node")).
+		End()
+
+	h.a.Equal(before, h.lookupNodeByID(n.ID).PairToken)
+}
+
+func TestNodeGenerateURI(t *testing.T) {
+	h := newHelper(t)
+	h.clearNodes()
+	n := h.createNode()
+	before := h.lookupNodeByID(n.ID).PairToken
+	helpers.AllowMe(h, types.NodeRbacResource(0), "manage")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/nodes/%d/uri", n.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	h.a.NotEqual(before, h.lookupNodeByID(n.ID).PairToken)
+}
