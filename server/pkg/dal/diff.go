@@ -59,13 +59,10 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 	}
 
 	// Deleted and update ones
-	for _, _attrA := range a.Attributes {
-		attrA := _attrA
-		// store is an interface to something that could be a pointer.
-		// we need to copy it to make sure we don't get a nil pointer
-		// make sure not to modify this since it would modify the original
-		attrA.Store = _attrA.Store
-
+	// Attributes are read only here: a is the model in use, so writing to
+	// its attributes (even assigning a field to itself) races with every
+	// request that reads the model while it is being replaced
+	for _, attrA := range a.Attributes {
 		// Missmatches
 		attrBAux, ok := bIndex[attrA.Ident]
 		if !ok {
