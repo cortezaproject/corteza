@@ -3,6 +3,7 @@ package envoy
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
@@ -10,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza/server/system/types"
 	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 	sqlt "github.com/jmoiron/sqlx/types"
-	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
 
@@ -103,7 +103,7 @@ func (d *auxYamlDoc) unmarshalSettingsNode(n *yaml.Node) (out envoyx.NodeSet, er
 	})
 
 	err = y7s.EachMap(n, func(lang, loc *yaml.Node) error {
-		langTag := systemTypes.Lang{Tag: language.Make(lang.Value)}
+		langTag := systemTypes.Lang{Tag: locale.MakeTag(lang.Value)}
 
 		return y7s.EachMap(loc, func(res, kv *yaml.Node) error {
 			return y7s.EachMap(kv, func(k, msg *yaml.Node) error {

@@ -3,6 +3,7 @@ package {{ .package }}
 {{ template "gocode/header-gentext.tpl" }}
 
 import (
+	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"strings"
 	"context"
 	"io"
@@ -12,7 +13,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
-	"golang.org/x/text/language"
 	"github.com/spf13/cast"
 	"gopkg.in/yaml.v3"
 	"github.com/pkg/errors"
@@ -779,7 +779,7 @@ func unmarshalFlatRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, e
 
 func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 	err = y7s.EachMap(n, func(lang, loc *yaml.Node) error {
-		langTag := systemTypes.Lang{Tag: language.Make(lang.Value)}
+		langTag := systemTypes.Lang{Tag: locale.MakeTag(lang.Value)}
 
 		return y7s.EachMap(loc, func(res, kv *yaml.Node) error {
 			return y7s.EachMap(kv, func(k, msg *yaml.Node) error {

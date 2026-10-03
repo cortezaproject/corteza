@@ -2,11 +2,11 @@ package yaml
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
 	"github.com/cortezaproject/corteza/server/system/types"
-	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
 
@@ -48,7 +48,7 @@ func (rr resourceTranslationSet) decodeLocale(lang string, locRes *yaml.Node) (o
 		return y7s.EachMap(km, func(k, msg *yaml.Node) error {
 			lr := &resourceTranslation{
 				locales: types.ResourceTranslationSet{{
-					Lang:     types.Lang{Tag: language.Make(lang)},
+					Lang:     types.Lang{Tag: locale.MakeTag(lang)},
 					Resource: resource,
 					K:        k.Value,
 					Message:  msg.Value,
