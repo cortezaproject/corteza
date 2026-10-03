@@ -173,3 +173,21 @@ func TestExprSet_Eval(t *testing.T) {
 		})
 	}
 }
+
+// A failing expression names the parameter it belongs to, so it can be found
+// among the step's arguments and results
+func TestExprSet_Eval_namesTarget(t *testing.T) {
+	var (
+		ctx = context.Background()
+		req = require.New(t)
+	)
+
+	e := &Expr{Target: "recordID", Expr: "missing.name", typ: &String{}}
+	req.NoError(NewGvalParser().ParseEvaluators(e))
+
+	aux, _ := NewVars(nil)
+	_, err := ExprSet{e}.Eval(ctx, aux)
+	req.Error(err)
+	req.Contains(err.Error(), `could not evaluate "recordID"`)
+	req.Contains(err.Error(), `expression "missing.name" failed`)
+}

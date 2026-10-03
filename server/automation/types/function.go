@@ -6,6 +6,7 @@ import (
 	"time"
 
 	nx "github.com/crusttech/human/server/pkg/automation_exec/types"
+	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/expr"
 	"github.com/crusttech/human/server/pkg/logger"
 	"github.com/crusttech/human/server/pkg/wfexec"
@@ -101,7 +102,7 @@ func (f functionStep) ExecN(ctx context.Context, r *nx.ExecRequest) (nx.ExecResp
 		var evaled []expr.TypedValue
 		evaled, err = f.arguments.EvalN(ctx, r.Scope)
 		if err != nil {
-			return nil, err
+			return nil, errors.Internal("function %q, arguments: %s", f.def.Ref, err.Error()).Wrap(err)
 		}
 
 		if f.def.ArgsMerger == nil {
@@ -202,7 +203,7 @@ func (f functionStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.E
 		// function/handler
 		args, err = f.arguments.Eval(ctx, r.Scope.MustMerge(r.Input))
 		if err != nil {
-			return nil, err
+			return nil, errors.Internal("function %q, arguments: %s", f.def.Ref, err.Error()).Wrap(err)
 		}
 	}
 
@@ -218,7 +219,7 @@ func (f functionStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.E
 
 	results, err = f.results.Eval(ctx, results)
 	if err != nil {
-		return nil, err
+		return nil, errors.Internal("function %q, results: %s", f.def.Ref, err.Error()).Wrap(err)
 	}
 
 	return results, nil
@@ -275,7 +276,7 @@ func (f *iteratorStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.
 		// iterator/handler
 		args, err = f.arguments.Eval(ctx, r.Scope.MustMerge(r.Input))
 		if err != nil {
-			return nil, err
+			return nil, errors.Internal("iterator %q, arguments: %s", f.def.Ref, err.Error()).Wrap(err)
 		}
 	}
 
