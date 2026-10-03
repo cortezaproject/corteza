@@ -14,6 +14,13 @@ namespace:
         fields:
           subject:
             title: Subject
+      e2e_comments:
+        name: E2E Comments
+        fields:
+          title:
+            title: Title
+          content:
+            title: Content
       e2e_items:
         name: E2E Items
         fields:
@@ -103,6 +110,75 @@ namespace:
             blocks:
               - blockID: 1
                 xywh: [0, 0, 48, 40]
+      e2e_comments_newest:
+        title: E2E Comments Newest
+        visible: true
+        blocks:
+          - title: Newest first
+            kind: Comment
+            xywh: [0, 0, 12, 10]
+            options:
+              module: e2e_comments
+              titleField: title
+              contentField: content
+              sortDirection: asc
+        layouts:
+          e2e_comments_newest_primary:
+            primary: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 48, 40]
+      e2e_comments_oldest:
+        title: E2E Comments Oldest
+        visible: true
+        blocks:
+          - title: Oldest first
+            kind: Comment
+            xywh: [0, 0, 12, 10]
+            options:
+              module: e2e_comments
+              titleField: title
+              contentField: content
+              sortDirection: desc
+        layouts:
+          e2e_comments_oldest_primary:
+            primary: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 48, 40]
+      e2e_buttons:
+        title: E2E Buttons
+        visible: true
+        blocks:
+          - title: Buttons
+            kind: Automation
+            xywh: [0, 0, 12, 4]
+            options:
+              sealed: true
+              buttons:
+                - label: Always
+                  enabled: true
+                  resourceType: compose:page
+                - label: Hidden
+                  enabled: true
+                  resourceType: compose:page
+                  visibility:
+                    expression: "false"
+                - label: Shown
+                  enabled: true
+                  resourceType: compose:page
+                  visibility:
+                    expression: "true"
+                - label: Prompt
+                  enabled: true
+                  resourceType: compose
+                  stepID: "1"
+        layouts:
+          e2e_buttons_primary:
+            primary: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 48, 16]
       e2e_items_record:
         title: E2E Item
         module: e2e_items
@@ -130,3 +206,20 @@ workflows:
         arguments:
           - { target: message, type: String, value: "Order is not ready" }
           - { target: title, type: String, value: "Order check" }
+  e2e_prompt:
+    meta:
+      name: E2E blocking prompt
+    enabled: true
+    triggers:
+      - resourceType: compose
+        eventType: onManual
+        enabled: true
+        stepID: 1
+    steps:
+      - id: 1
+        kind: prompt
+        ref: alert
+        arguments:
+          - { target: title, type: String, value: "Prompt title" }
+          - { target: message, type: String, value: "Blocking message" }
+          - { target: blocking, type: Boolean, value: true }
