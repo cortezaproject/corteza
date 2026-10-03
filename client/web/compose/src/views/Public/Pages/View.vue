@@ -93,6 +93,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
+import unsavedBlocks from 'corteza-webapp-compose/src/mixins/unsavedBlocks'
 import RecordModal from 'corteza-webapp-compose/src/components/Public/Record/Modal'
 import MagnificationModal from 'corteza-webapp-compose/src/components/Public/Page/Block/Modal'
 import { NoID } from '@cortezaproject/corteza-js'
@@ -111,14 +112,25 @@ export default {
 
   mixins: [
     page,
+    unsavedBlocks,
   ],
 
   beforeRouteLeave (to, from, next) {
+    if (!this.confirmUnsavedBlocks()) {
+      next(false)
+      return
+    }
+
     this.setPreviousPages([])
     next()
   },
 
   beforeRouteUpdate (to, from, next) {
+    if (!this.confirmUnsavedBlocks()) {
+      next(false)
+      return
+    }
+
     const { recordID: toRecordID } = to.params
     const { recordID: fromRecordID } = from.params
 

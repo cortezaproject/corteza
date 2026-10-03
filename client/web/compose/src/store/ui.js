@@ -24,6 +24,8 @@ const types = {
   setModalLayoutHandle: 'setModalLayoutHandle',
   setLayoutRequiredFields: 'setLayoutRequiredFields',
   clearLayoutRequiredFields: 'clearLayoutRequiredFields',
+  setBlockUnsaved: 'setBlockUnsaved',
+  clearUnsavedBlocks: 'clearUnsavedBlocks',
 }
 
 export default function (ComposeAPI) {
@@ -48,6 +50,10 @@ export default function (ComposeAPI) {
       modalLayoutHandle: '',
 
       layoutRequiredFields: [],
+
+      // IDs of page blocks holding changes that are not saved yet
+      // (record lists in inline-edit mode); used to warn before leaving
+      unsavedBlocks: [],
     },
 
     getters: {
@@ -80,6 +86,7 @@ export default function (ComposeAPI) {
 
       layoutRequiredFields: (state) => state.layoutRequiredFields,
       isFieldRequiredByLayout: (state) => (fieldID) => state.layoutRequiredFields.includes(fieldID),
+      hasUnsavedBlocks: (state) => state.unsavedBlocks.length > 0,
     },
 
     actions: {
@@ -183,6 +190,14 @@ export default function (ComposeAPI) {
       clearLayoutRequiredFields ({ commit }) {
         commit(types.clearLayoutRequiredFields)
       },
+
+      setBlockUnsaved ({ commit }, { id, unsaved }) {
+        commit(types.setBlockUnsaved, { id, unsaved })
+      },
+
+      clearUnsavedBlocks ({ commit }) {
+        commit(types.clearUnsavedBlocks)
+      },
     },
 
     mutations: {
@@ -268,6 +283,17 @@ export default function (ComposeAPI) {
 
       [types.clearLayoutRequiredFields] (state) {
         state.layoutRequiredFields = []
+      },
+
+      [types.setBlockUnsaved] (state, { id, unsaved }) {
+        if (!id) return
+
+        const others = state.unsavedBlocks.filter(b => b !== id)
+        state.unsavedBlocks = unsaved ? [...others, id] : others
+      },
+
+      [types.clearUnsavedBlocks] (state) {
+        state.unsavedBlocks = []
       },
     },
   }

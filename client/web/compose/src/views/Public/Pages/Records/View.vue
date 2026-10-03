@@ -192,6 +192,7 @@ import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
 import page from 'corteza-webapp-compose/src/mixins/page'
+import unsavedBlocks from 'corteza-webapp-compose/src/mixins/unsavedBlocks'
 import { compose, system, NoID } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
@@ -211,6 +212,7 @@ export default {
     // The record mixin contains all of the logic for creating/editing/deleting/undeleting the record
     record,
     page,
+    unsavedBlocks,
   ],
 
   beforeRouteLeave (to, from, next) {
@@ -860,12 +862,16 @@ export default {
     },
 
     checkUnsavedChanges (bvEvent, modalId) {
-      if ((bvEvent && modalId !== 'record-modal') || !this.edit || this.isDraft) return true
+      if (bvEvent && modalId !== 'record-modal') return true
+
+      // the record being edited and blocks with inline edits (record lists)
+      // both count as unsaved changes
+      const unsavedRecord = this.edit && !this.isDraft && this.compareRecordValues()
 
       let recordStateChange = true
 
-      if (this.compareRecordValues()) {
-        const message = this.showDrafts ? this.$t('general:record.unsavedChangesDraft') : this.$t('general:record.unsavedChanges')
+      if (unsavedRecord || this.hasUnsavedBlocks) {
+        const message = unsavedRecord && this.showDrafts ? this.$t('general:record.unsavedChangesDraft') : this.$t('general:record.unsavedChanges')
         recordStateChange = window.confirm(message)
       }
 
@@ -875,8 +881,12 @@ export default {
         if (bvEvent) {
           bvEvent.preventDefault()
         }
-      } else if (this.record) {
-        this.initialRecordState = this.record.clone()
+      } else {
+        if (this.record && this.edit && !this.isDraft) {
+          this.initialRecordState = this.record.clone()
+        }
+
+        this.clearUnsavedBlocks()
       }
 
       return recordStateChange

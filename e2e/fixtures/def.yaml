@@ -56,6 +56,28 @@ namespace:
               editFields:
                 - name: title
                 - name: amount
+      e2e_inline:
+        title: E2E Inline
+        visible: true
+        blocks:
+          - title: Inline items
+            kind: RecordList
+            xywh: [0, 0, 12, 10]
+            options:
+              module: e2e_items
+              editable: true
+              fields:
+                - name: title
+                - name: amount
+              editFields:
+                - name: title
+                - name: amount
+        layouts:
+          e2e_inline_primary:
+            primary: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 48, 40]
       e2e_items_record:
         title: E2E Item
         module: e2e_items

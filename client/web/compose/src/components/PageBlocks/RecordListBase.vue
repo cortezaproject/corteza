@@ -1474,6 +1474,13 @@ export default {
       },
     },
 
+    // let the page know about unsaved inline edits so it can warn before leaving
+    dirtyRecordsCount (count) {
+      if (this.inlineEditing) {
+        this.setBlockUnsaved({ id: this.uniqueID, unsaved: count > 0 })
+      }
+    },
+
     'record.recordID': {
       immediate: true,
       handler () {
@@ -1492,6 +1499,7 @@ export default {
     this.abortRequests()
     this.destroyEvents()
     this.setDefaultValues()
+    this.setBlockUnsaved({ id: this.uniqueID, unsaved: false })
   },
 
   created () {
@@ -1504,6 +1512,7 @@ export default {
     ...mapActions({
       loadPaginationRecords: 'ui/loadPaginationRecords',
       updateRecordSet: 'record/updateRecords',
+      setBlockUnsaved: 'ui/setBlockUnsaved',
     }),
 
     isBetweenOperator,
@@ -1515,6 +1524,7 @@ export default {
       // Set uniqueID so that events dont mix
       if (this.uniqueID) {
         this.destroyEvents()
+        this.setBlockUnsaved({ id: this.uniqueID, unsaved: false })
       }
 
       this.uniqueID = [pageID, recordID, this.block.blockID, this.magnified].map(v => v || NoID).join('-')
