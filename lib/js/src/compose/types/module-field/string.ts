@@ -7,6 +7,7 @@ interface StringOptions extends Options {
   multiLine: boolean
   useRichTextEditor: boolean
   multiDelimiter: string
+  sanitizeXSS: boolean
 }
 
 const defaults = (): Readonly<StringOptions> =>
@@ -15,6 +16,7 @@ const defaults = (): Readonly<StringOptions> =>
     multiLine: false,
     useRichTextEditor: false,
     multiDelimiter: '\n',
+    sanitizeXSS: true,
   })
 
 export class ModuleFieldString extends ModuleField {
@@ -33,7 +35,7 @@ export class ModuleFieldString extends ModuleField {
     super.applyOptions(o)
 
     Apply(this.options, o, String, 'multiDelimiter')
-    Apply(this.options, o, Boolean, 'multiLine', 'useRichTextEditor')
+    Apply(this.options, o, Boolean, 'multiLine', 'useRichTextEditor', 'sanitizeXSS')
   }
 }
 

@@ -38,6 +38,9 @@ const (
 	moduleFieldNumberOptionPrecisionMin uint = 0
 	moduleFieldNumberOptionPrecisionMax uint = 6
 
+	moduleFieldStringOptionSanitizeXSS       = "sanitizeXSS"
+	moduleFieldStringOptionUseRichTextEditor = "useRichTextEditor"
+
 	// Scale a Number field keeps when its options do not name one. The webapp
 	// writes this on every field it creates; a field made through the API or an
 	// import carries no precision at all, and reading that as zero rounds every
@@ -186,4 +189,25 @@ func (opt ModuleFieldOptions) Index() *ModuleFieldOptionIndex {
 	}
 
 	return nil
+}
+
+// SanitizeXSS - should XSS sanitization be applied to this string field?
+//
+// Rich text fields are always sanitized: their value is rendered as HTML
+// wherever it is shown, so skipping sanitization there would be a stored XSS
+func (opt ModuleFieldOptions) SanitizeXSS() bool {
+	if opt.Bool(moduleFieldStringOptionUseRichTextEditor) {
+		return true
+	}
+
+	// Default to true if not set
+	if _, has := opt[moduleFieldStringOptionSanitizeXSS]; !has {
+		return true
+	}
+	return opt.Bool(moduleFieldStringOptionSanitizeXSS)
+}
+
+// SetSanitizeXSS - set whether XSS sanitization should be applied to this string field
+func (opt ModuleFieldOptions) SetSanitizeXSS(value bool) {
+	opt[moduleFieldStringOptionSanitizeXSS] = value
 }
