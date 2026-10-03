@@ -82,6 +82,11 @@ func Static(ll ...*Language) (svc *service) {
 	for _, l := range ll {
 		svc.set[l.Tag] = l
 		svc.tags = append(svc.tags, l.Tag)
+
+		// first language given is the default one, same as when loading
+		if svc.def == nil {
+			svc.def = l
+		}
 	}
 
 	return svc

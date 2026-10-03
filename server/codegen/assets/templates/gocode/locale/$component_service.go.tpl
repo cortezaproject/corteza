@@ -62,7 +62,9 @@ func (svc resourceTranslationsManager) Upsert(ctx context.Context, rr locale.Res
 	//  or
 	//  - user is allowed to manage resource translations
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-        if rr.ContainsForeign(svc.Locale().Default().Tag) {
+        // without a default language every translation is foreign
+        def := svc.Locale().Default()
+        if def == nil || rr.ContainsForeign(def.Tag) {
             if !svc.ac.CanManageResourceTranslations(ctx) {
                 return ErrNotAllowedToManageResourceTranslations
             }

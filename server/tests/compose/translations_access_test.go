@@ -91,3 +91,51 @@ func TestPageTranslationsUpdateForbidden(t *testing.T) {
 
 	h.a.Empty(h.translationsOf(p.ResourceTranslation()))
 }
+
+// Users that can update the module can change its translations
+func TestModuleTranslationsUpdate(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	ns := h.makeNamespace("translations-ns-" + rs())
+	m := h.makeModule(ns, "some-module")
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "update")
+
+	h.apiInit().
+		Patch(fmt.Sprintf("/namespace/%d/module/%d/translation", ns.ID, m.ID)).
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{"translations":[{"resource":"%s","lang":"und","key":"name","message":"translated"}]}`, m.ResourceTranslation())).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	h.a.NotEmpty(h.translationsOf(m.ResourceTranslation()))
+}
+
+// The translation manager permission works without update rights on the module
+func TestModuleTranslationsUpdateWithManage(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	ns := h.makeNamespace("translations-ns-" + rs())
+	m := h.makeModule(ns, "some-module")
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
+	helpers.DenyMe(h, types.ModuleRbacResource(0, 0), "update")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "resource-translations.manage")
+
+	h.apiInit().
+		Patch(fmt.Sprintf("/namespace/%d/module/%d/translation", ns.ID, m.ID)).
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{"translations":[{"resource":"%s","lang":"en","key":"name","message":"translated"}]}`, m.ResourceTranslation())).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	h.a.NotEmpty(h.translationsOf(m.ResourceTranslation()))
+}
