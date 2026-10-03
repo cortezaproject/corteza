@@ -2745,7 +2745,8 @@ func (svc record) validateReportFieldPermissions(ctx context.Context, m *types.M
 			continue
 		}
 
-		re, err := regexp.Compile(`(^|[^\w])` + regexp.QuoteMeta(f.Name) + `([^\w]|$)`)
+		// identifiers resolve case-insensitively in the DAL, so the check must too
+		re, err := regexp.Compile(`(?i)(^|[^\w])` + regexp.QuoteMeta(f.Name) + `([^\w]|$)`)
 		if err != nil {
 			return err
 		}
