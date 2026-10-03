@@ -50,3 +50,38 @@ func TestReminderUpdateOwn(t *testing.T) {
 
 	h.a.Equal("changed:resource", h.lookupReminderByID(rm.ID).Resource)
 }
+
+// Reminders of other users cannot be deleted
+func TestReminderDeleteForeign(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	rm := h.makeReminderByUserID(id.Next())
+
+	h.apiInit().
+		Delete(fmt.Sprintf("/reminder/%d", rm.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("reminder.errors.notAllowedToRead")).
+		End()
+
+	h.a.Nil(h.lookupReminderByID(rm.ID).DeletedAt)
+}
+
+func TestReminderDeleteOwn(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	rm := h.makeReminderByUserID(h.cUser.ID)
+
+	h.apiInit().
+		Delete(fmt.Sprintf("/reminder/%d", rm.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	h.a.NotNil(h.lookupReminderByID(rm.ID).DeletedAt)
+}

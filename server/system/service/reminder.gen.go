@@ -150,7 +150,6 @@ func loadReminder(ctx context.Context, s store.Reminders, ID uint64) (res *types
 
 	return
 }
-func (svc *reminder) guard(_ context.Context, _ *types.Reminder) error { return nil }
 
 func (svc *reminder) checkScope(ctx context.Context, cap scope.Capability) error {
 	if err := scope.RequireTenantMembership(ctx); err != nil {

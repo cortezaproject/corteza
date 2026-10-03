@@ -267,6 +267,15 @@ func (svc *reminder) checkAssignTo(ctx context.Context, rm *types.Reminder) bool
 	return rm.AssignedTo != svc.currentUser(ctx)
 }
 
+// guard runs before update, delete and undelete of a reminder loaded by ID
+func (svc *reminder) guard(ctx context.Context, res *types.Reminder) error {
+	if !svc.canAccess(ctx, res) {
+		return ReminderErrNotAllowedToRead()
+	}
+
+	return nil
+}
+
 // canAccess returns true when reminder is assigned to the current user or when
 // the user is allowed to assign reminders to others
 func (svc *reminder) canAccess(ctx context.Context, rm *types.Reminder) bool {

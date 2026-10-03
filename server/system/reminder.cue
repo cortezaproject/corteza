@@ -61,6 +61,10 @@ reminder: {
 		// The action-log Update prop is named "updated" (not the default "update").
 		updateProp: "updated"
 
+		// update, delete and undelete of a reminder take the same access as
+		// reading it (assigned to the user, or allowed to assign reminders)
+		guard: true
+
 		// snooze_count and dismissed_by are managed by onSnooze/onDismiss (and the
 		// onUpdate remind-at reset), not by a plain update payload; excluding them
 		// keeps a generic update from zeroing them.
