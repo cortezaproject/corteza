@@ -39,7 +39,8 @@ const (
 	moduleFieldNumberOptionPrecisionMin uint = 0
 	moduleFieldNumberOptionPrecisionMax uint = 6
 
-	moduleFieldStringOptionSanitizeXSS = "sanitizeXSS"
+	moduleFieldStringOptionSanitizeXSS       = "sanitizeXSS"
+	moduleFieldStringOptionUseRichTextEditor = "useRichTextEditor"
 )
 
 func (opt *ModuleFieldOptions) Scan(src any) error          { return sql.ParseJSON(src, opt) }
@@ -186,7 +187,14 @@ func (opt ModuleFieldOptions) Index() *ModuleFieldOptionIndex {
 }
 
 // SanitizeXSS - should XSS sanitization be applied to this string field?
+//
+// Rich text fields are always sanitized: their value is rendered as HTML
+// wherever it is shown, so skipping sanitization there would be a stored XSS
 func (opt ModuleFieldOptions) SanitizeXSS() bool {
+	if opt.Bool(moduleFieldStringOptionUseRichTextEditor) {
+		return true
+	}
+
 	// Default to true if not set
 	if _, has := opt[moduleFieldStringOptionSanitizeXSS]; !has {
 		return true

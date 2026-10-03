@@ -9,6 +9,7 @@
     </b-form-checkbox>
 
     <b-form-group
+      v-if="!f.options.useRichTextEditor"
       label-class="d-flex align-items-center text-primary"
       class="mt-3"
     >
