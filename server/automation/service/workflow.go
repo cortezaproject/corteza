@@ -295,7 +295,7 @@ func (svc workflow) uniqueCheck(ctx context.Context, res *types.Workflow) (err e
 // onUpdate applies field changes from upd onto res, validates, updates the cache
 // and trigger registrations, then persists.
 func (svc *workflow) onUpdate(ctx context.Context, s store.Storer, upd, res *types.Workflow, aProps *workflowActionProps, _ func() error, _ func() error) error {
-	if upd.Meta.Name == "" {
+	if upd.Meta == nil || upd.Meta.Name == "" {
 		return WorkflowErrMissingName()
 	}
 
@@ -322,6 +322,7 @@ func (svc *workflow) onUpdate(ctx context.Context, s store.Storer, upd, res *typ
 	}
 
 	changed := false
+	logicChanged := false
 	labelsChanged := false
 
 	if res.Handle != upd.Handle {
@@ -350,14 +351,17 @@ func (svc *workflow) onUpdate(ctx context.Context, s store.Storer, upd, res *typ
 	}
 	if upd.Scope != nil && !reflect.DeepEqual(upd.Scope, res.Scope) {
 		changed = true
+		logicChanged = true
 		res.Scope = upd.Scope
 	}
 	if upd.Steps != nil && !reflect.DeepEqual(upd.Steps, res.Steps) {
 		changed = true
+		logicChanged = true
 		res.Steps = upd.Steps
 	}
 	if upd.Paths != nil && !reflect.DeepEqual(upd.Paths, res.Paths) {
 		changed = true
+		logicChanged = true
 		res.Paths = upd.Paths
 	}
 	if res.RunAs != upd.RunAs {
@@ -367,6 +371,13 @@ func (svc *workflow) onUpdate(ctx context.Context, s store.Storer, upd, res *typ
 
 		changed = true
 		res.RunAs = upd.RunAs
+	}
+
+	// Changing what the workflow does while it runs as another user
+	// executes that change with the other user's rights, so it takes
+	// the same permission as making the workflow run as them
+	if logicChanged && !svc.canRunAs(ctx, res.RunAs) {
+		return WorkflowErrNotAllowedToSetRunAs()
 	}
 	if upd.OwnedBy != 0 && res.OwnedBy != upd.OwnedBy {
 		// owner gets permissions through contextual roles
