@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
@@ -102,7 +103,7 @@ func (f functionStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.E
 		// function/handler
 		args, err = f.arguments.Eval(ctx, r.Scope.MustMerge(r.Input))
 		if err != nil {
-			return nil, err
+			return nil, errors.Internal("function %q, arguments: %s", f.def.Ref, err.Error()).Wrap(err)
 		}
 	}
 
@@ -118,7 +119,7 @@ func (f functionStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.E
 
 	results, err = f.results.Eval(ctx, results)
 	if err != nil {
-		return nil, err
+		return nil, errors.Internal("function %q, results: %s", f.def.Ref, err.Error()).Wrap(err)
 	}
 
 	return results, nil

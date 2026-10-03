@@ -118,120 +118,132 @@ func (set ExprSet) Eval(ctx context.Context, in *expr.Vars) (*expr.Vars, error) 
 		// Prepare output scope
 		out, _ = expr.NewVars(nil)
 
-		// Untyped evaluation result
-		value interface{}
-
 		knownType = func(p expr.Type) bool {
 			return p != nil && p.Type() != expr.Any{}.Type() && p.Type() != expr.Unresolved{}.Type()
 		}
 	)
 
 	for _, e := range set {
-		value = e.Value
-
-		if e.typ == nil {
-			return nil, errors.Internal("type for target %q not initialized", e.Target)
+		if err = set.evalOne(ctx, scope, out, e, knownType); err != nil {
+			// name the target so a failing argument or result can be found
+			// among the step's parameters
+			return nil, errors.Internal("could not evaluate %q: %s", e.Target, err.Error()).Wrap(err)
 		}
-
-		err = func() (err error) {
-			if len(e.Source) > 0 {
-				// can copy from existing variable
-				if !scope.Has(e.Source) {
-					return errors.NotFound("variable %q does not exist", e.Source)
-				}
-
-				value, err = expr.Select(scope, e.Source)
-				return
-			}
-
-			if len(e.Expr) > 0 {
-				if e.eval == nil {
-					// no expression set, fallback to default value
-					return errors.Internal("expression language for target %q not initialized", e.Target)
-				} else if value, err = e.eval.Eval(ctx, scope); err != nil {
-					return errors.Internal("expression %q failed: %s", e.Expr, err.Error()).Wrap(err)
-				}
-			}
-
-			return
-		}()
-
-		if err != nil && e.Value == nil {
-			return nil, err
-		}
-
-		typedValue, is := value.(expr.TypedValue)
-		if !is {
-			// value to be assigned (evaled, copied..) is not typed!
-			// try to figure out what we can do
-			if !knownType(e.typ) {
-				// Expression does not have type set
-				if out.Has(e.Target) {
-					t, _ := out.Select(e.Target)
-					typedValue, err = t.Cast(value)
-					if err != nil {
-						return nil, fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
-					}
-				} else {
-					typedValue, err = expr.Typify(value)
-					if err != nil {
-						return nil, fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
-					}
-				}
-			} else if typedValue, err = e.typ.Cast(value); err != nil {
-				return nil, fmt.Errorf("cannot cast value %T to %s (target %s): %w", value, e.typ.Type(), e.Target, err)
-			}
-		}
-
-		if !knownType(e.typ) && !knownType(typedValue) && typedValue.Type() != e.typ.Type() {
-			// Both, expression & value have type set;
-			// check if it's the same type or return an error
-			return nil, fmt.Errorf("cannot set to %q (type %s) value of type %s", e.Target, e.typ.Type(), typedValue.Type())
-		}
-
-		if e.typ != nil {
-
-			// @note handling special case for when we're dealing with arrays but in reality
-			//       we're expecting specific types (function results).
-			//       If we're dealing with an array but the expression doesn't want an array,
-			//       make it want an array.
-			typ := e.typ
-			array := &expr.Array{}
-			if typedValue.Type() == array.Type() && typ.Type() != array.Type() {
-				typ = array
-			}
-
-			if !knownType(typedValue) {
-				// Expression has fixed type but value does not
-				// cast the value of evaluation to type of the expressicason
-				if typedValue, err = typ.Cast(value); err != nil {
-					return nil, err
-				}
-			} else if typ.Type() != typedValue.Type() && typ.Type() != (expr.Any{}).Type() {
-				//
-				if typedValue, err = typ.Cast(value); err != nil {
-					return nil, err
-				}
-			}
-		}
-
-		// Set result of the expression to scope
-		//
-		// Set() fn handles multi-level path (eg "base.level1.level2")
-		// that can set result of the expression deep into scope's value
-		if err = expr.Assign(scope, e.Target, typedValue); err != nil {
-			return nil, err
-		}
-
-		// Take base of the path (1st part) and
-		// copy value of it to output scope
-		//
-		// This ensures us that the entire variable
-		// from the original scope will be present in the output
-		scope.Copy(out, expr.PathBase(e.Target))
 	}
 
 	return out, nil
+}
+
+// evalOne evaluates a single expression and assigns its result to the scope
+// and the output; shared by all expressions of the set
+func (set ExprSet) evalOne(ctx context.Context, scope, out *expr.Vars, e *Expr, knownType func(expr.Type) bool) (err error) {
+	// Untyped evaluation result
+	var value interface{} = e.Value
+
+	value = e.Value
+
+	if e.typ == nil {
+		return errors.Internal("type for target %q not initialized", e.Target)
+	}
+
+	err = func() (err error) {
+		if len(e.Source) > 0 {
+			// can copy from existing variable
+			if !scope.Has(e.Source) {
+				return errors.NotFound("variable %q does not exist", e.Source)
+			}
+
+			value, err = expr.Select(scope, e.Source)
+			return
+		}
+
+		if len(e.Expr) > 0 {
+			if e.eval == nil {
+				// no expression set, fallback to default value
+				return errors.Internal("expression language for target %q not initialized", e.Target)
+			} else if value, err = e.eval.Eval(ctx, scope); err != nil {
+				return errors.Internal("expression %q failed: %s", e.Expr, err.Error()).Wrap(err)
+			}
+		}
+
+		return
+	}()
+
+	if err != nil && e.Value == nil {
+		return err
+	}
+
+	typedValue, is := value.(expr.TypedValue)
+	if !is {
+		// value to be assigned (evaled, copied..) is not typed!
+		// try to figure out what we can do
+		if !knownType(e.typ) {
+			// Expression does not have type set
+			if out.Has(e.Target) {
+				t, _ := out.Select(e.Target)
+				typedValue, err = t.Cast(value)
+				if err != nil {
+					return fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
+				}
+			} else {
+				typedValue, err = expr.Typify(value)
+				if err != nil {
+					return fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
+				}
+			}
+		} else if typedValue, err = e.typ.Cast(value); err != nil {
+			return fmt.Errorf("cannot cast value %T to %s (target %s): %w", value, e.typ.Type(), e.Target, err)
+		}
+	}
+
+	if !knownType(e.typ) && !knownType(typedValue) && typedValue.Type() != e.typ.Type() {
+		// Both, expression & value have type set;
+		// check if it's the same type or return an error
+		return fmt.Errorf("cannot set to %q (type %s) value of type %s", e.Target, e.typ.Type(), typedValue.Type())
+	}
+
+	if e.typ != nil {
+
+		// @note handling special case for when we're dealing with arrays but in reality
+		//       we're expecting specific types (function results).
+		//       If we're dealing with an array but the expression doesn't want an array,
+		//       make it want an array.
+		typ := e.typ
+		array := &expr.Array{}
+		if typedValue.Type() == array.Type() && typ.Type() != array.Type() {
+			typ = array
+		}
+
+		if !knownType(typedValue) {
+			// Expression has fixed type but value does not
+			// cast the value of evaluation to type of the expressicason
+			if typedValue, err = typ.Cast(value); err != nil {
+				return err
+			}
+		} else if typ.Type() != typedValue.Type() && typ.Type() != (expr.Any{}).Type() {
+			//
+			if typedValue, err = typ.Cast(value); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Set result of the expression to scope
+	//
+	// Set() fn handles multi-level path (eg "base.level1.level2")
+	// that can set result of the expression deep into scope's value
+	if err = expr.Assign(scope, e.Target, typedValue); err != nil {
+		return err
+	}
+
+	// Take base of the path (1st part) and
+	// copy value of it to output scope
+	//
+	// This ensures us that the entire variable
+	// from the original scope will be present in the output
+	scope.Copy(out, expr.PathBase(e.Target))
+
+	return nil
 }
 
 func ExpressionsStep(ee ...*Expr) *expressionsStep {
