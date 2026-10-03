@@ -464,35 +464,55 @@ func (svc workflowConverter) convFunctionStep(g *wfexec.Graph, s *types.Workflow
 func (svc workflowConverter) convErrorStep(s *types.WorkflowStep) (wfexec.Step, error) {
 	const (
 		argName = "message"
+
+		// optional; shown as the heading of the error where the message is
+		// displayed (webapp notifications) instead of the generic one
+		argTitle = "title"
 	)
 
 	var (
 		args = types.ExprSet(s.Arguments)
+
+		// evaluated value of the argument, falling back to its static value
+		strArg = func(result *expr.Vars, name string) string {
+			if result.Has(name) {
+				str, _ := expr.NewString(expr.Must(result.Select(name)))
+				return str.GetValue()
+			}
+
+			if a := args.GetByTarget(name); a != nil {
+				if aux, is := a.Value.(string); is {
+					return aux
+				}
+			}
+
+			return ""
+		}
 	)
 
 	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
-		var (
-			msg         string
-			result, err = args.Eval(ctx, r.Scope)
-		)
+		result, err := args.Eval(ctx, r.Scope)
 		if err != nil {
 			return nil, err
 		}
 
-		if result.Has(argName) {
-			str, _ := expr.NewString(expr.Must(result.Select(argName)))
-			msg = str.GetValue()
-		} else {
-			if aux, is := args.GetByTarget(argName).Value.(string); is {
-				msg = aux
-			} else {
-				msg = "ERROR"
-			}
+		msg := strArg(result, argName)
+		if msg == "" {
+			msg = "ERROR"
 		}
 
-		return nil, errors.Automation("%s", msg)
+		e := errors.Automation("%s", msg)
+		if title := strArg(result, argTitle); title != "" {
+			e = e.Apply(errors.Meta(ErrorStepTitleMetaKey, title))
+		}
+
+		return nil, e
 	}), nil
 }
+
+// ErrorStepTitleMetaKey holds the optional title of an error raised by an
+// error step; a string key so that it is passed on to API clients
+const ErrorStepTitleMetaKey = "title"
 
 // converts termination definition to wfexec.Step
 func (svc workflowConverter) convTerminationStep() (wfexec.Step, error) {
@@ -850,7 +870,8 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 	case types.WorkflowStepKindError:
 		checks = append(checks,
 			requiredArg("message", expr.String{}),
-			count(0, 1, arguments),
+			// message and the optional title
+			count(0, 2, arguments),
 			zero(results),
 			last,
 		)

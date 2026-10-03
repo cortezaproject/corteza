@@ -1,0 +1,41 @@
+workflows:
+  error_step_with_title:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: error
+        arguments:
+          - { target: message, type: String, value: "Order is not ready" }
+          - { target: title, type: String, value: "Order check" }
+
+  error_step_without_title:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: error
+        arguments:
+          - { target: message, type: String, expr: '"Order " + "is not ready"' }
+
+  failing_argument:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: function
+        ref: logInfo
+        arguments:
+          - { target: message, type: String, expr: "missingVariable.name" }
