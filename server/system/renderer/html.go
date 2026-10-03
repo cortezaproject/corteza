@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"net/http"
 
 	"github.com/Masterminds/sprig"
+	httpClient "github.com/cortezaproject/corteza/server/pkg/http"
 )
 
 func preprocHTMLTemplate(pl *driverPayload) (*template.Template, error) {
@@ -36,7 +36,9 @@ func preprocHTMLTemplate(pl *driverPayload) (*template.Template, error) {
 			// },
 
 			"inlineRemote": func(url string) (template.URL, error) {
-				rsp, err := http.Get(url)
+				// templates are user content; the fetch must obey the
+				// same network restrictions as other user-driven requests
+				rsp, err := httpClient.RestrictedClient().Get(url)
 				if err != nil {
 					return "", err
 				}
