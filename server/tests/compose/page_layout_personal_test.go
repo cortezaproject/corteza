@@ -121,3 +121,27 @@ func TestPageLayoutPersonalDeleteOwn(t *testing.T) {
 
 	h.a.NotNil(h.lookupPageLayoutByID(ly.ID).DeletedAt)
 }
+
+// A personal layout cannot be moved to another page or namespace through an
+// update; it stays where it was created
+func TestPageLayoutPersonalUpdateKeepsPage(t *testing.T) {
+	h := newHelper(t)
+	ns := h.makeNamespace("personal layout ns")
+	pg, ly := h.repoMakePersonalPageLayout(ns, h.cUser.ID)
+	other := h.repoMakePage(ns, "other-page")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/page/%d/layout/%d", ns.ID, pg.ID, ly.ID)).
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{"meta": {"title": "moved?"}, "pageID": "%d", "namespaceID": "%d"}`, other.ID, ns.ID+1)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	stored, err := store.LookupComposePageLayoutByID(context.Background(), service.DefaultStore, ly.ID)
+	h.noError(err)
+	h.a.Equal(pg.ID, stored.PageID)
+	h.a.Equal(ns.ID, stored.NamespaceID)
+	h.a.Equal("moved?", stored.Meta.Title)
+}
