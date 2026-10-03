@@ -466,18 +466,11 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 			changes |= pageLayoutChanged
 		}
 
-		if res.PageID != upd.PageID {
-			res.PageID = upd.PageID
-			changes |= pageLayoutChanged
-		}
+		// a layout stays on the page (and in the namespace) it was created
+		// for; both come from the request URL, where access was checked
 
 		if res.ParentID != upd.ParentID {
 			res.ParentID = upd.ParentID
-			changes |= pageLayoutChanged
-		}
-
-		if res.NamespaceID != upd.NamespaceID {
-			res.NamespaceID = upd.NamespaceID
 			changes |= pageLayoutChanged
 		}
 
