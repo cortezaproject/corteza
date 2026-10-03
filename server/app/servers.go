@@ -145,9 +145,9 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 		)
 
 		r.Route(baseUrl, func(r chi.Router) {
-			if !app.Opt.Environment.IsDevelopment() {
-				r.Use(scim.Guard(app.Opt.SCIM))
-			}
+			// the secret guards SCIM in every environment; a development
+			// server is reachable just like any other
+			r.Use(scim.Guard(app.Opt.SCIM))
 
 			scim.Routes(r, scim.Config{
 				ExternalIdAsPrimary: app.Opt.SCIM.ExternalIdAsPrimary,
