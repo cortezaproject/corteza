@@ -419,6 +419,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          # all tags are needed to tell whether this release is the newest
+          fetch-depth: 0
       - name: "Parse version tag"
         id: version
         run: |
@@ -430,6 +433,13 @@ jobs:
             # when releasing patched version (YYYY.MM.PATCH) we
             # tag alias (YYYY.MM) as well
             echo "DOCKER_IMAGE_ALIAS=$(echo ${TAG} | cut -d '.' -f -2)" >> $GITHUB_ENV
+
+            # "latest" follows the highest stable tag, so a patch to an
+            # older line never moves it back
+            NEWEST=$(git tag --list '[0-9]*' | grep -v -- '-' | sort -V | tail -n 1)
+            if [[ "${TAG}" == "${NEWEST}" ]]; then
+              echo "DOCKER_IMAGE_LATEST=latest" >> $GITHUB_ENV
+            fi
           fi
 
       - name: "Build"
@@ -462,6 +472,16 @@ jobs:
 
           docker push \
             ${{ matrix.image }}:${{ env.DOCKER_IMAGE_ALIAS }}
+
+      - name: "Push ${{ env.DOCKER_IMAGE_LATEST }}"
+        if: ${{ !env.ACT && env.DOCKER_IMAGE_LATEST }}
+        run: |
+          docker tag \
+            ${{ matrix.image }}:${{ env.DOCKER_IMAGE_TAG }} \
+            ${{ matrix.image }}:${{ env.DOCKER_IMAGE_LATEST }}
+
+          docker push \
+            ${{ matrix.image }}:${{ env.DOCKER_IMAGE_LATEST }}
 
   notify:
     name: "Send matrix release notification"
