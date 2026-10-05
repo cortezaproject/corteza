@@ -100,6 +100,27 @@ func TestParseComplexCSVCell(t *testing.T) {
 		require.Equal(t, []string{"v1;v2"}, out)
 	})
 
+	t.Run("multi line value", func(t *testing.T) {
+		d := &decoder{
+			multiValueDelimiter: ";",
+		}
+
+		out := d.parseComplexCSVCell("line 1\nline 2")
+		require.Equal(t, []string{"line 1\nline 2"}, out)
+
+		out = d.parseComplexCSVCell("v1;line 1\nline 2;v3")
+		require.Equal(t, []string{"v1", "line 1\nline 2", "v3"}, out)
+	})
+
+	t.Run("value with quotes", func(t *testing.T) {
+		d := &decoder{
+			multiValueDelimiter: ";",
+		}
+
+		out := d.parseComplexCSVCell(`5" pipe`)
+		require.Equal(t, []string{`5" pipe`}, out)
+	})
+
 	t.Run("json", func(t *testing.T) {
 		d := &decoder{}
 
