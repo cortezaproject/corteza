@@ -510,7 +510,7 @@ export function describeField(field) {
     name: field.name,
     label: field.label || field.name,
     kind: field.kind,
-    multi: !!field.multi,
+    multi: !!(field.isMulti ?? field.multi),
   }
 
   // An option carries its wording twice. `text` is what the module calls it and

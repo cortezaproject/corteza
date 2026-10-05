@@ -870,3 +870,9 @@ describe('chatbots', () => {
     expect(ctx.openChatbot).not.toHaveBeenCalled()
   })
 })
+
+describe('fields', () => {
+  it('reads multi-value from the name the API uses', () => {
+    expect(describeField({ name: 'tags', kind: 'String', isMulti: true }).multi).toBe(true)
+  })
+})

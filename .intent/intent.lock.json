@@ -682,7 +682,7 @@
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/bridge.test.js": {
-      "h": "9ccd02123253",
+      "h": "dab98bb60679",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-10-05"
     },
@@ -697,8 +697,8 @@
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "a24162a800ae",
-      "doc": "client/web/unify/src/sections/app/app.intent.md",
+      "h": "e7c2abc3fc3e",
+      "doc": "client/web/unify/src/sections/app/host.intent.md",
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/index.js": {
