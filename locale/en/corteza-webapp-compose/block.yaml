@@ -646,6 +646,7 @@ recordList:
   unselectAllRecords: Clear selection
   sort:
     tooltip: Sort column
+    tooltipByID: Sort column by the ID of the referenced record or user, not by the displayed value
   showRecords:
     deleted: Show deleted records
     existing: Show existing records

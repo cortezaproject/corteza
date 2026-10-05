@@ -440,7 +440,7 @@
 
                   <b-button
                     v-if="field.sortable"
-                    v-b-tooltip.noninteractive.hover="{ title: $t('recordList.sort.tooltip'), boundary: 'body' }"
+                    v-b-tooltip.noninteractive.hover="{ title: sortTooltip(field), boundary: 'body' }"
                     variant="outline-extra-light"
                     class="d-flex align-items-center text-secondary d-print-none border-0 px-1 ml-1"
                     @click="handleSort(field)"
@@ -2255,6 +2255,15 @@ export default {
       } else {
         this.$router.push(route)
       }
+    },
+
+    sortTooltip ({ moduleField }) {
+      // Record and user fields are sorted by the stored ID, not the displayed value
+      if (['Record', 'User'].includes(moduleField.kind)) {
+        return this.$t('recordList.sort.tooltipByID')
+      }
+
+      return this.$t('recordList.sort.tooltip')
     },
 
     handleSort ({ key, sortable }) {
