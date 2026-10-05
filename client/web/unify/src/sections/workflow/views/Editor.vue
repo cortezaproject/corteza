@@ -19,7 +19,7 @@
 <script setup>
 import WorkflowEditor from '../components/WorkflowEditor.vue'
 import { automation } from '@planetcrust/human-js'
-import { throttle } from 'lodash-es'
+import { isEqual, pick, throttle } from 'lodash-es'
 
 let loadSeq = 0
 import { useRBACStore, useUnsavedGuard } from '@planetcrust/human-vue'
@@ -44,6 +44,8 @@ const processingSave = ref(false)
 const processingDelete = ref(false)
 const workflow = ref({})
 const triggers = ref([])
+// Plain copies of the triggers as fetched; rendering attaches graph cells to them
+const storedTriggers = ref({})
 const changeDetected = ref(false)
 
 // Computed
@@ -113,10 +115,29 @@ async function fetchWorkflow() {
 async function fetchTriggers(wfID = workflowID.value) {
   try {
     const { set = [] } = await $AutomationAPI.triggerList({ workflowID: wfID, disabled: 1 })
+    storedTriggers.value = Object.fromEntries(set.map(t => [t.triggerID, triggerFields(t)]))
     triggers.value = set
   } catch {
     toast.add({ severity: 'error', summary: t('notification.failed-fetch-triggers'), life: 5000 })
   }
+}
+
+// Plain copy of the trigger fields the server stores
+function triggerFields(t) {
+  const fields = ['stepID', 'enabled', 'resourceType', 'eventType', 'constraints', 'input']
+  return JSON.parse(
+    JSON.stringify({
+      ...pick(t, fields),
+      meta: pick(t.meta || {}, ['description', 'visual']),
+    }),
+  )
+}
+
+// Only new and modified triggers are sent, so saving step changes does not
+// require permission to manage the workflow's triggers
+function triggerChanged(t) {
+  const stored = storedTriggers.value[t.triggerID]
+  return !t.triggerID || !stored || !isEqual(triggerFields(t), stored)
 }
 
 // Change detection
@@ -153,7 +174,7 @@ const saveWorkflow = throttle(
           }),
       ).then(async () => {
         await Promise.all(
-          wfTriggers.map(t => {
+          wfTriggers.filter(triggerChanged).map(t => {
             if (t.triggerID) {
               return $AutomationAPI.triggerUpdate({
                 ...t,
