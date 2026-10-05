@@ -31,7 +31,7 @@ func (i *informationSchema) TableLookup(ctx context.Context, table, schema, dbna
 		oneTable = i.columnSelect().Where(
 			exp.ParseIdentifier("table_name").Eq(table),
 			exp.ParseIdentifier("table_catalog").Eq(dbname),
-			exp.ParseIdentifier("table_schema").Eq(schema),
+			schemaCond("table_schema", schema),
 		)
 	)
 
@@ -42,6 +42,16 @@ func (i *informationSchema) TableLookup(ctx context.Context, table, schema, dbna
 	} else {
 		return nil, errors.NotFound("table does not exist")
 	}
+}
+
+// schemaCond matches the given schema or, when empty, the connection's
+// current schema (the first existing schema on its search_path)
+func schemaCond(col, schema string) exp.Expression {
+	if schema == "" {
+		return exp.ParseIdentifier(col).Eq(goqu.L("current_schema()"))
+	}
+
+	return exp.ParseIdentifier(col).Eq(schema)
 }
 
 func (i *informationSchema) columnSelect() *goqu.SelectDataset {
@@ -151,7 +161,7 @@ func (i *informationSchema) IndexLookup(ctx context.Context, index, table, schem
 		oneIndex = i.indexSelect().Where(
 			exp.ParseIdentifier("indexname").Eq(index),
 			exp.ParseIdentifier("tablename").Eq(table),
-			exp.ParseIdentifier("schemaname").Eq(schema),
+			schemaCond("schemaname", schema),
 		)
 	)
 
