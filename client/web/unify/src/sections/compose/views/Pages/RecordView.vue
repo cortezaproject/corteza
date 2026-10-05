@@ -1394,7 +1394,16 @@ watch(
   },
 )
 
-const offRefetch = $eventBus?.on('refetch-records', () => loadPage())
+// Data changed under the page. A record being viewed is re-read in place, so
+// the blocks keep what they hold and only those that listen refetch; creating
+// or editing still reloads the page, as there is a draft to rebuild.
+function onRefetch() {
+  const recordID = props.inModal ? props.modalRecordID : route.params.recordID
+  if (mode.value === 'view' && record.value && recordID && recordID !== '0') loadRecord(recordID)
+  else loadPage()
+}
+
+const offRefetch = $eventBus?.on('refetch-records', onRefetch)
 
 onBeforeUnmount(() => {
   abortRecordLoad()

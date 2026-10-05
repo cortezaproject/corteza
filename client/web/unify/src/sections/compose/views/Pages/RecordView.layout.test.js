@@ -139,6 +139,20 @@ function blockEvaluations() {
     .map(([{ variables }]) => variables)
 }
 
+// The page-wide signal blocks send when they changed data under the page.
+let eventBus = null
+
+function makeEventBus() {
+  const handlers = {}
+  return {
+    on: (name, fn) => {
+      ;(handlers[name] ||= []).push(fn)
+      return () => (handlers[name] = handlers[name].filter(h => h !== fn))
+    },
+    emit: (name, payload) => (handlers[name] || []).forEach(fn => fn(payload)),
+  }
+}
+
 async function mountView() {
   wrapper = mount(RecordView, {
     props: { namespace: { namespaceID: 'N1' } },
@@ -151,7 +165,7 @@ async function mountView() {
         $ComposeAPI: {},
         $SystemAPI: { expressionEvaluate },
         $Auth: { user: { userID: 'U1', roles: [] } },
-        $eventBus: null,
+        $eventBus: eventBus,
       },
       renderStubDefaultSlot: false,
     },
@@ -170,6 +184,7 @@ afterEach(() => {
 })
 
 beforeEach(() => {
+  eventBus = null
   route.params = { slug: 'ns', pageID: 'P1', recordID: 'R1' }
   route.query = {}
   expressionEvaluate = vi.fn(({ expressions }) =>
@@ -534,5 +549,50 @@ describe('RecordView layout resolution', () => {
     await flushPromises()
 
     expect(layoutEvaluations()).toHaveLength(1)
+  })
+})
+
+describe('RecordView refetch-records', () => {
+  it('re-reads a viewed record in place, without blanking the page', async () => {
+    eventBus = makeEventBus()
+    await mountView()
+    expect(recordStore.findByID).toHaveBeenCalledTimes(1)
+
+    records.R1 = makeRecord('R1', { status: 'closed' })
+    const states = []
+    const stop = wrapper.vm.$watch(
+      () => [wrapper.vm.loading, wrapper.vm.record],
+      ([loading, record]) => states.push({ loading, record }),
+      { flush: 'sync' },
+    )
+    eventBus.emit('refetch-records')
+    await flushPromises()
+    stop()
+
+    expect(recordStore.findByID).toHaveBeenCalledTimes(2)
+    expect(wrapper.vm.record.values.status).toBe('closed')
+    // Never the page spinner, never an emptied record: the blocks stay mounted.
+    expect(states.some(s => s.loading)).toBe(false)
+    expect(states.some(s => s.record === null)).toBe(false)
+    records.R1 = makeRecord('R1', { status: 'open' })
+  })
+
+  it('reloads the whole page while a record is being edited', async () => {
+    eventBus = makeEventBus()
+    await mountView()
+    route.query = { edit: '1' }
+    await flushPromises()
+
+    const states = []
+    const stop = wrapper.vm.$watch(
+      () => wrapper.vm.loading,
+      v => states.push(v),
+      { flush: 'sync' },
+    )
+    eventBus.emit('refetch-records')
+    await flushPromises()
+    stop()
+
+    expect(states).toContain(true)
   })
 })

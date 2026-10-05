@@ -51,8 +51,8 @@ navigation via query params instead of route params).
 ## When changing this
 
 - Record loads are abortable; a superseded load must not clobber newer state. Layout resolution and block-visibility evaluation carry the same guarantee via their own sequence counters.
-- Fast-swap (loadRecord only) applies solely between two existing records on the same page — any transition involving create mode must go through full `loadPage()`; because it skips `loadPage()`, it must call `resolveLayout()` itself.
+- Fast-swap (loadRecord only) applies solely between two existing records on the same page, or to the record being viewed re-read on `refetch-records` — any transition involving create mode must go through full `loadPage()`; because it skips `loadPage()`, it must call `resolveLayout()` itself.
 - The pageID/recordID/query-param watcher uses separate per-value getters, not one getter returning an array: an array is compared by identity and re-fires on every touched dependency, including the edit-query toggle it must ignore.
 - After save/clone the query params `cloneFromID`/`refField`/`refValue` must be stripped so later actions don't inherit them.
 - `beforeFormSubmit` runs on the record object that is then saved, never on a clone taken before it; a `$ScriptBus` that is not installed (tests) skips every dispatch.
-- Listens to the `refetch-records` event-bus signal (automation buttons) to reload.
+- Listens to the `refetch-records` event-bus signal (automation buttons, Custom blocks). A record being viewed is re-read in place through `loadRecord()`, so blocks stay mounted and only those that listen refetch; in create or edit mode the whole page reloads through `loadPage()`.

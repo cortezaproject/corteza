@@ -1557,9 +1557,9 @@
       "t": "2026-08-26"
     },
     "client/web/unify/src/sections/compose/views/Pages/RecordView.layout.test.js": {
-      "h": "378643725c1c",
+      "h": "9862a798bc09",
       "doc": "client/web/unify/src/sections/compose/views/Pages/Pages.intent.md",
-      "t": "2026-08-14"
+      "t": "2026-10-05"
     },
     "client/web/unify/src/sections/compose/views/Pages/RecordView.title.test.js": {
       "h": "e309a9ecfeda",
@@ -1567,9 +1567,9 @@
       "t": "2026-08-14"
     },
     "client/web/unify/src/sections/compose/views/Pages/RecordView.vue": {
-      "h": "66be75ce6d85",
+      "h": "20ed45d28c43",
       "doc": "client/web/unify/src/sections/compose/views/Pages/RecordView.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-10-05"
     },
     "client/web/unify/src/sections/compose/views/Pages/View.admin-tools.test.js": {
       "h": "fb3bb1ceba92",
