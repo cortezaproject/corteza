@@ -17,7 +17,11 @@ async function openDashboard (page: Page) {
 }
 
 async function selectFirstRow (page: Page) {
-  await page.locator('[data-test-id="table-record-list"] tbody tr').first().locator('input[type="checkbox"]').first().check()
+  // the custom checkbox draws its box over the hidden input, which would
+  // otherwise make Playwright wait for the input to receive the click
+  const checkbox = page.locator('[data-test-id="table-record-list"] tbody tr').first().locator('input[type="checkbox"]').first()
+  await checkbox.check({ force: true })
+  await expect(checkbox).toBeChecked()
 }
 
 async function openBulkEdit (page: Page) {

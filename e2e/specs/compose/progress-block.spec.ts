@@ -12,7 +12,8 @@ test('progress block over an empty module shows the default instead of NaN', asy
   await expect(page.getByText('Empty progress').first()).toBeVisible()
   const label = page.locator('.progress strong').first()
 
-  await expect(label).toBeVisible()
+  // the label sits inside the 0% wide bar, so it has no size of its own
+  await expect(label).toBeAttached()
   await expect(label).not.toContainText('NaN')
   await expect(label).toHaveText(/^\s*0(\.0+)?%\s*$/)
 })
