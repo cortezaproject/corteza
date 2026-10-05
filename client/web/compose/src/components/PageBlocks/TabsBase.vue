@@ -17,9 +17,30 @@
 
     <div
       v-else
-      class="d-flex flex-column h-100"
+      ref="container"
+      class="d-flex flex-column h-100 position-relative"
     >
-      <!-- Vertical tabs take too much width on small screens; pick the tab from a list instead -->
+      <!-- Tab titles laid out on one line, only to measure whether they fit -->
+      <ul
+        ref="tabsMeasure"
+        class="nav position-absolute invisible flex-nowrap text-nowrap"
+        :class="{
+          'nav-pills': block.options.style.appearance === 'pills',
+          'nav-tabs': block.options.style.appearance === 'tabs',
+          small: block.options.style.appearance === 'small',
+        }"
+        aria-hidden="true"
+      >
+        <li
+          v-for="(tab, index) in tabbedBlocks"
+          :key="index"
+          class="nav-item"
+        >
+          <span class="nav-link">{{ getTabTitle(tab, index) }}</span>
+        </li>
+      </ul>
+
+      <!-- Tabs that do not fit are picked from a list instead -->
       <div
         v-if="compactTabs"
         class="px-3 pt-3"
@@ -160,7 +181,6 @@ import base from './base'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
-import smallScreen from 'corteza-webapp-compose/src/mixins/smallScreen'
 
 export default {
   i18nOptions: {
@@ -176,16 +196,13 @@ export default {
 
   extends: base,
 
-  mixins: [
-    smallScreen,
-  ],
-
   data () {
     return {
       tabErrors: [],
       tabErrorKinds: [],
       visitedTabs: { 0: true },
       activeTab: 0,
+      tabsDoNotFit: false,
     }
   },
 
@@ -195,7 +212,7 @@ export default {
     },
 
     compactTabs () {
-      return this.isSmallScreen && !this.editable && this.block.options.style.orientation === 'vertical'
+      return this.tabsDoNotFit && !this.editable
     },
 
     tabbedBlocks () {
@@ -263,7 +280,50 @@ export default {
     },
   },
 
+  watch: {
+    tabbedBlocks () {
+      this.$nextTick(this.checkTabsFit)
+    },
+
+    'block.options.style': {
+      deep: true,
+      handler () {
+        this.$nextTick(this.checkTabsFit)
+      },
+    },
+  },
+
+  mounted () {
+    this.tabsObserver = new ResizeObserver(this.checkTabsFit)
+
+    if (this.$refs.container) {
+      this.tabsObserver.observe(this.$refs.container)
+    }
+
+    this.$nextTick(this.checkTabsFit)
+  },
+
+  beforeDestroy () {
+    this.tabsObserver.disconnect()
+  },
+
   methods: {
+    // Horizontal tabs must fit in one row; vertical tabs may take at most half
+    // of the block's width so the content keeps enough room
+    checkTabsFit () {
+      const { container, tabsMeasure } = this.$refs
+      if (!container || !tabsMeasure) return
+
+      const available = container.clientWidth
+      const titles = [...tabsMeasure.children].map(li => li.offsetWidth)
+
+      if (this.block.options.style.orientation === 'vertical') {
+        this.tabsDoNotFit = Math.max(0, ...titles) + 32 > available / 2
+      } else {
+        this.tabsDoNotFit = tabsMeasure.scrollWidth > available
+      }
+    },
+
     editTabbedBlock (tab) {
       const blockIndex = this.blocks.findIndex(block => fetchID(block) === fetchID(tab.block))
       if (blockIndex > -1) {
