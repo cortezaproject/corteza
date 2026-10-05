@@ -17,6 +17,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { brandIconUrl } from '@planetcrust/human-js/src/automation/types/icon'
 
 const props = defineProps({
   // Brand slug from the catalog meta.icon (e.g. "google-sheets").
@@ -28,7 +29,7 @@ const props = defineProps({
 const failed = ref(false)
 const slug = computed(() => (props.icon || '').trim().toLowerCase())
 const showImg = computed(() => !!slug.value && !failed.value)
-const src = computed(() => `https://cdn.simpleicons.org/${slug.value}`)
+const src = computed(() => brandIconUrl(slug.value))
 const initial = computed(() => (props.name || slug.value || '?').charAt(0).toUpperCase())
 
 const sizeClass = computed(() => (props.size === 'lg' ? 'w-12 h-12' : 'w-10 h-10'))

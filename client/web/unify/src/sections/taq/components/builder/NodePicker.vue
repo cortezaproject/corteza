@@ -144,7 +144,18 @@ const GROUP_ICONS = {
 
 function getGroupIcon(groupName) {
   const slug = slugify(groupName)
-  return GROUP_ICONS[slug] || { type: 'name', value: 'folder' }
+  return GROUP_ICONS[slug] || null
+}
+
+// Connector groups have no fixed icon; use a member node's brand/url logo so the
+// category shows the connector's own mark instead of a generic folder.
+function groupIconFor(label, node) {
+  const mapped = getGroupIcon(label)
+  if (mapped) return mapped
+  if (node.icon && (node.icon.type === 'brand' || node.icon.type === 'url')) {
+    return node.icon
+  }
+  return { type: 'name', value: 'folder' }
 }
 
 // Helper to map a trigger to a node format
@@ -176,7 +187,7 @@ const availableCategories = computed(() => {
       groupsMap[id] = {
         id,
         label,
-        icon: getGroupIcon(label) || node.icon,
+        icon: groupIconFor(label, node),
         nodes: [],
       }
     }

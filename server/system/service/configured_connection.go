@@ -947,7 +947,7 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 
 	var icon *atypes.NgAutomationIcon
 	if conn.Meta.Icon != "" {
-		icon = &atypes.NgAutomationIcon{Type: "name", Value: conn.Meta.Icon}
+		icon = &atypes.NgAutomationIcon{Type: "brand", Value: conn.Meta.Icon}
 	}
 
 	return atypes.ConstructFunction{
@@ -1649,10 +1649,28 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 			seen[key] = true
 
 			props := make([]atypes.ConstructTriggerProperty, 0, len(wh.Payload))
+			// Each payload field is also offered as a constraint so a trigger can
+			// be scoped (e.g. only fire for a given spreadsheet/sheet or sender).
+			cons := make([]atypes.ConstructTriggerConstraint, 0, len(wh.Payload))
 			for _, f := range wh.Payload {
 				props = append(props, atypes.ConstructTriggerProperty{
 					Name: f.Name,
 					Type: f.Type,
+				})
+				t := f.Type
+				if t == "" {
+					t = "String"
+				}
+				label := labelFromName(f.Name)
+				if f.Meta != nil {
+					if s, ok := f.Meta["short"].(string); ok && s != "" {
+						label = s
+					}
+				}
+				cons = append(cons, atypes.ConstructTriggerConstraint{
+					Name:  f.Name,
+					Types: []string{t},
+					Meta:  atypes.ConstructTriggerConstraintMeta{Short: label},
 				})
 			}
 
@@ -1667,14 +1685,21 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 				desc = wh.Meta.Description
 			}
 
+			var icon *atypes.NgAutomationIcon
+			if cc.Connection.Meta.Icon != "" {
+				icon = &atypes.NgAutomationIcon{Type: "brand", Value: cc.Connection.Meta.Icon}
+			}
+
 			tt = append(tt, atypes.ConstructTrigger{
 				ResourceType: rt,
 				EventType:    wh.Event,
 				Groups:       []string{cc.Connection.Meta.Short},
 				Properties:   props,
+				Constraints:  cons,
 				Meta: &atypes.ConstructTriggerMeta{
 					Short:       short,
 					Description: desc,
+					Icon:        icon,
 				},
 			})
 		}

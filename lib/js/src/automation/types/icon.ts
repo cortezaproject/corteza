@@ -1,8 +1,10 @@
 /**
- * Typed icon definition supporting icon names, URLs, and attachment IDs.
+ * Typed icon definition supporting icon names, URLs, attachment IDs, and brand
+ * slugs. A 'brand' value is a Simple Icons slug (e.g. "google-sheets") resolved
+ * to a logo URL by brandIconUrl.
  */
 export interface IconDef {
-  type: 'name' | 'url' | 'attachment'
+  type: 'name' | 'url' | 'attachment' | 'brand'
   value: string
 }
 
@@ -16,8 +18,15 @@ export function isIconDef(value: unknown): value is IconDef {
     'type' in value &&
     'value' in value &&
     typeof (value as IconDef).value === 'string' &&
-    ['name', 'url', 'attachment'].includes((value as IconDef).type)
+    ['name', 'url', 'attachment', 'brand'].includes((value as IconDef).type)
   )
+}
+
+/**
+ * Resolve a brand slug to its Simple Icons logo URL.
+ */
+export function brandIconUrl(slug: string): string {
+  return `https://cdn.simpleicons.org/${(slug || '').trim().toLowerCase()}`
 }
 
 /**
