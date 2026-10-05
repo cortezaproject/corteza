@@ -8373,6 +8373,77 @@ export default class System {
     return '/connections/import'
   }
 
+  // Re-import a catalog connection&#x27;s definition and refresh its functions
+  async connectionResync(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.connectionResyncEndpoint({
+        connectionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionResyncCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionResync(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionResyncEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/connections/${connectionID}/resync`
+  }
+
+  // List OAuth provider blueprints from the catalog
+  async connectionListOAuthApps(extra: AxiosRequestConfig = {}): Promise<KV> {
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.connectionListOAuthAppsEndpoint(),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  connectionListOAuthAppsCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.connectionListOAuthApps(options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  connectionListOAuthAppsEndpoint(): string {
+    return '/connections/oauth-apps'
+  }
+
   // Configure a connection (create configured connection)
   async connectionConfigure(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { connectionID, name, catalogID, config, labels, projectID } = (a as KV) || {}
@@ -8683,6 +8754,136 @@ export default class System {
   configuredConnectionCheckEndpoint(a: KV): string {
     const { connectionID } = a || {}
     return `/configured-connections/${connectionID}/check`
+  }
+
+  // Refresh discovered resources (e.g. Google spreadsheets and tabs)
+  async configuredConnectionRefreshDiscovery(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.configuredConnectionRefreshDiscoveryEndpoint({
+        connectionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  configuredConnectionRefreshDiscoveryCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.configuredConnectionRefreshDiscovery(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  configuredConnectionRefreshDiscoveryEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/configured-connections/${connectionID}/refresh-discovery`
+  }
+
+  // Get the column headers of a Google Sheet tab
+  async configuredConnectionSheetColumns(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID, spreadsheetId, tab } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    if (!spreadsheetId) {
+      throw Error('field spreadsheetId is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.configuredConnectionSheetColumnsEndpoint({
+        connectionID,
+      }),
+    }
+    cfg.params = {
+      spreadsheetId,
+      tab,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  configuredConnectionSheetColumnsCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.configuredConnectionSheetColumns(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  configuredConnectionSheetColumnsEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/configured-connections/${connectionID}/sheet-columns`
+  }
+
+  // Get the worksheets of a Google spreadsheet
+  async configuredConnectionSheetTabs(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { connectionID, spreadsheetId } = (a as KV) || {}
+    if (!connectionID) {
+      throw Error('field connectionID is empty')
+    }
+    if (!spreadsheetId) {
+      throw Error('field spreadsheetId is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.configuredConnectionSheetTabsEndpoint({
+        connectionID,
+      }),
+    }
+    cfg.params = {
+      spreadsheetId,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  configuredConnectionSheetTabsCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.configuredConnectionSheetTabs(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  configuredConnectionSheetTabsEndpoint(a: KV): string {
+    const { connectionID } = a || {}
+    return `/configured-connections/${connectionID}/sheet-tabs`
   }
 
   // List available MCP tools

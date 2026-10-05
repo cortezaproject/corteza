@@ -342,7 +342,12 @@
       "dml importRun": "dmlImportRun",
       "dml importRunRead": "dmlImportRunRead",
       "stats detail": "statsDetail",
-      "stats events": "statsEvents"
+      "stats events": "statsEvents",
+      "connection resync": "connectionResync",
+      "connection listOAuthApps": "connectionListOAuthApps",
+      "configuredConnection refreshDiscovery": "configuredConnectionRefreshDiscovery",
+      "configuredConnection sheetColumns": "configuredConnectionSheetColumns",
+      "configuredConnection sheetTabs": "configuredConnectionSheetTabs"
     },
     "compose": {
       "namespace list": "findNamespaces",

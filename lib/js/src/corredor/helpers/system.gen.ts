@@ -1390,6 +1390,18 @@ export default class GeneratedSystemHelper {
     return this.SystemAPI.connectionImport(args, extra)
   }
 
+  // Re-import a catalog connection's definition and refresh its functions
+  async connectionResync(a: IdArgs = {}, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const args = argsOf(a, 'connectionID')
+    args.connectionID = await this.resolveRef('connection', args.connectionID, args)
+    return this.SystemAPI.connectionResync(args, extra)
+  }
+
+  // List OAuth provider blueprints from the catalog
+  connectionListOAuthApps(extra: AxiosRequestConfig = {}): Promise<KV> {
+    return this.SystemAPI.connectionListOAuthApps(extra)
+  }
+
   // Configure a connection (create configured connection)
   async connectionConfigure(a: IdArgs = {}, extra: AxiosRequestConfig = {}): Promise<KV> {
     const args = argsOf(a, 'connectionID')
@@ -1439,6 +1451,33 @@ export default class GeneratedSystemHelper {
     const args = argsOf(a, 'connectionID')
     args.connectionID = await this.resolveRef('configuredConnection', args.connectionID, args)
     return this.SystemAPI.configuredConnectionCheck(args, extra)
+  }
+
+  // Refresh discovered resources (e.g. Google spreadsheets and tabs)
+  async configuredConnectionRefreshDiscovery(
+    a: IdArgs = {},
+    extra: AxiosRequestConfig = {},
+  ): Promise<KV> {
+    const args = argsOf(a, 'connectionID')
+    args.connectionID = await this.resolveRef('configuredConnection', args.connectionID, args)
+    return this.SystemAPI.configuredConnectionRefreshDiscovery(args, extra)
+  }
+
+  // Get the column headers of a Google Sheet tab
+  async configuredConnectionSheetColumns(
+    a: IdArgs = {},
+    extra: AxiosRequestConfig = {},
+  ): Promise<KV> {
+    const args = argsOf(a, 'connectionID')
+    args.connectionID = await this.resolveRef('configuredConnection', args.connectionID, args)
+    return this.SystemAPI.configuredConnectionSheetColumns(args, extra)
+  }
+
+  // Get the worksheets of a Google spreadsheet
+  async configuredConnectionSheetTabs(a: IdArgs = {}, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const args = argsOf(a, 'connectionID')
+    args.connectionID = await this.resolveRef('configuredConnection', args.connectionID, args)
+    return this.SystemAPI.configuredConnectionSheetTabs(args, extra)
   }
 
   // List available MCP tools
