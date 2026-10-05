@@ -28,7 +28,9 @@ bundle (`human-webapp`).
   The dev-only `human:watch-lib-sources` plugin watches `lib/js/src` and
   `lib/vue/src` as directories: outside vite's `root` they would be watched
   file by file, and a per-file watch does not survive a git write, freezing
-  that module's transform until the server restarts.
+  that module's transform until the server restarts. The dev server ignores
+  `e2e/`: Playwright writes traces there mid-run, and a watched write reloads
+  the page under the test.
 - `jsconfig.json` — `@/` alias → `src/`
 - `tailwind.config.js`, `postcss.config.js` — extend shared root configs
 

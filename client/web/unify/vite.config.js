@@ -68,6 +68,9 @@ function devServer(mode) {
   return {
     port: Number(process.env.VITE_PORT || env.VITE_PORT || 5173),
     strictPort: true,
+    // The e2e tree is not app source: Playwright writes traces into it while a
+    // spec runs, and a watched write there reloads the page under the test.
+    watch: { ignored: ['**/e2e/**'] },
     proxy: {
       '/custom.css': getServerUrl(),
       '/code-snippets.js': getServerUrl(),
