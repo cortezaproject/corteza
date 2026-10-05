@@ -305,3 +305,9 @@ On a page whose only block draws its content inside an iframe (Custom, IFrame), 
 devwatch rebuilds on writes to `.go` files only (`server/cmd/devwatch/main.go`), and `touch` is not a write. A skill in `server/system/agentic/skills/library/*.md`, or anything else `go:embed`s, keeps serving its old text until some `.go` file in the checkout is written.
 
 **How to apply:** after editing an embedded file, write a `.go` file in its package with the same content (`cat f.go > f.go` through a copy), wait for `serving` in the server log, and re-read through the tool rather than trusting the file on disk.
+
+### `make codegen` reorders `resource_schema.gen.json`
+
+`server/pkg/codegen/resource_schema.gen.json` comes out in a different order on each run, so one new field shows as a diff of thousands of lines. The file also holds duplicate `"-"` keys, so a JSON load and dump silently merges them and changes an unrelated entry.
+
+**How to apply:** keep the committed file and add the new line by text, next to its sibling field; compare the old and new content as sets of entries, not as text, to see what really changed.
