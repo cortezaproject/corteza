@@ -257,3 +257,21 @@ A loop exercising a control several times against the same resource stops testin
 **Why:** a rule rejection looks exactly like a broken control.
 
 **How to apply:** give each attempt fresh state, and run the probe against the unmodified code before calling anything a defect, ideally before you edit. To undo a teeth-check mutation, restore from a `.bak` copy, never `git checkout` or `git stash`.
+
+### e2e right after `worktree.sh up` fails in auth.setup
+
+Straight after `up` the worktree's API can still be coming up, and `auth.setup.ts` then fails with a bare 30s timeout on `waitForURL(/\/auth\//)`, which reads like a broken login. A spec run while Vite is reloading a file you just edited can fail the same way, with "App setup failed … 401" in the console.
+
+**How to apply:** wait for `curl -s http://localhost:<api>/healthcheck` to return 200 and for the webapp to answer before the first run, and re-run once before believing an auth failure.
+
+### `$SystemAPI.userCreate` refuses a user without a group
+
+The generated JS client throws `field userGroupID is empty` before any request is sent, even though the server accepts a user with no group. The user editor sends `'0'` for that reason.
+
+**How to apply:** an e2e spec that creates a user through the API passes `userGroupID: '0'`.
+
+### A failing e2e test can blank the next one
+
+The webapp's Vite server watches `client/web/unify/e2e/.results/`. When a test fails, Playwright writes trace `.html` files there, Vite answers with a full page reload, and the next test can catch a blank page and time out. `.run/webapp.log` shows `page reload e2e/.results/…` lines when this happened.
+
+**How to apply:** after a failure, re-run the spec that went blank on its own before believing it.
