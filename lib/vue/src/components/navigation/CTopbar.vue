@@ -399,7 +399,7 @@ $nav-user-icon-size: calc(var(--topbar-height) - 16px);
   display: flex;
   align-items: center;
   min-height: $nav-user-icon-size;
-  padding-left: 47px;
+  padding-inline-start: 47px;
 
   > * {
     padding: 0.25rem 0;
