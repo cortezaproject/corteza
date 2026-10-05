@@ -15,126 +15,143 @@
       </p>
     </div>
 
-    <b-tabs
+    <div
       v-else
-      card
-      :nav-class="navClass"
-      :nav-wrapper-class="navWrapperClass"
-      :content-class="contentClass"
-      v-bind="{
-        align: block.options.style.alignment,
-        justified: block.options.style.justify === 'justify',
-        pills: block.options.style.appearance === 'pills',
-        tabs: block.options.style.appearance === 'tabs',
-        small: block.options.style.appearance === 'small',
-        vertical: block.options.style.orientation === 'vertical',
-        end: block.options.style.position === 'end'
-      }"
-      no-fade
-      class="h-100"
-      :class="{ 'd-flex flex-column': block.options.style.orientation !== 'vertical' }"
-      @activate-tab="onTabActivated"
+      class="d-flex flex-column h-100"
     >
-      <b-tab
-        v-for="(tab, index) in tabbedBlocks"
-        :key="`${getTabTitle(tab, index)}-${index}`"
-        class="h-100"
-        :title-item-class="getTitleItemClass(index)"
-        :title-link-class="getTitleItemClass(index)"
-        no-body
+      <!-- Vertical tabs take too much width on small screens; pick the tab from a list instead -->
+      <div
+        v-if="compactTabs"
+        class="px-3 pt-3"
       >
-        <template #title>
-          <span>
-            {{ getTabTitle(tab, index) }}
+        <b-form-select
+          v-model="activeTab"
+          data-test-id="select-tab"
+          :options="tabbedBlocks.map((tab, index) => ({ value: index, text: getTabTitle(tab, index) }))"
+        />
+      </div>
 
-            <font-awesome-icon
-              v-if="hasTabErrors(index)"
-              :icon="['fas', 'exclamation-triangle']"
-              :class="errorTriangleClass(index)"
-              class="ml-1"
-            />
-          </span>
+      <b-tabs
+        v-model="activeTab"
+        card
+        :nav-class="navClass"
+        :nav-wrapper-class="navWrapperClass"
+        :content-class="contentClass"
+        v-bind="{
+          align: block.options.style.alignment,
+          justified: block.options.style.justify === 'justify',
+          pills: block.options.style.appearance === 'pills',
+          tabs: block.options.style.appearance === 'tabs',
+          small: block.options.style.appearance === 'small',
+          vertical: isVertical,
+          end: block.options.style.position === 'end'
+        }"
+        no-fade
+        class="flex-fill"
+        :class="{ 'd-flex flex-column': !isVertical, 'overflow-hidden': compactTabs }"
+        @activate-tab="onTabActivated"
+      >
+        <b-tab
+          v-for="(tab, index) in tabbedBlocks"
+          :key="`${getTabTitle(tab, index)}-${index}`"
+          class="h-100"
+          :title-item-class="getTitleItemClass(index)"
+          :title-link-class="getTitleItemClass(index)"
+          no-body
+        >
+          <template #title>
+            <span>
+              {{ getTabTitle(tab, index) }}
 
-          <div
-            v-if="tab.block && editable"
-            class="d-inline ml-3"
-          >
-            <div
-              v-if="unsavedBlocks.has(tab.block.blockID !== '0' ? tab.block.blockID : tab.block.meta.tempID)"
-              v-b-tooltip.noninteractive.hover="{ title: $t('general:label.unsavedChanges'), boundary: 'body' }"
-              class="btn btn-sm border-0 p-0 px-1"
-            >
               <font-awesome-icon
+                v-if="hasTabErrors(index)"
                 :icon="['fas', 'exclamation-triangle']"
-                class="text-warning"
+                :class="errorTriangleClass(index)"
+                class="ml-1"
+              />
+            </span>
+
+            <div
+              v-if="tab.block && editable"
+              class="d-inline ml-3"
+            >
+              <div
+                v-if="unsavedBlocks.has(tab.block.blockID !== '0' ? tab.block.blockID : tab.block.meta.tempID)"
+                v-b-tooltip.noninteractive.hover="{ title: $t('general:label.unsavedChanges'), boundary: 'body' }"
+                class="btn btn-sm border-0 p-0 px-1"
+              >
+                <font-awesome-icon
+                  :icon="['fas', 'exclamation-triangle']"
+                  class="text-warning"
+                />
+              </div>
+
+              <b-button-group size="sm">
+                <b-button
+                  v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit'), boundary: 'body' }"
+                  variant="outline-light"
+                  class="text-primary border-0 toolbox-button p-0 px-1"
+                  @click="editTabbedBlock(tab)"
+                >
+                  <font-awesome-icon
+                    :icon="['far', 'edit']"
+                  />
+                </b-button>
+
+                <b-button
+                  v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.clone'), boundary: 'body' }"
+                  variant="outline-light"
+                  class="text-primary border-0 toolbox-button p-0 px-1"
+                  @click="cloneTabbedBlock(tab)"
+                >
+                  <font-awesome-icon
+                    :icon="['far', 'clone']"
+                  />
+                </b-button>
+
+                <b-button
+                  v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.copy'), boundary: 'body' }"
+                  variant="outline-light"
+                  class="text-primary border-0 toolbox-button p-0 px-1"
+                  @click="copyTabbedBlock(tab)"
+                >
+                  <font-awesome-icon
+                    :icon="['far', 'copy']"
+                  />
+                </b-button>
+              </b-button-group>
+
+              <c-input-confirm
+                :tooltip="$t('tooltip.delete')"
+                show-icon
+                button-class="p-0 px-1"
+                class="ml-1"
+                @confirmed="deleteTab(index)"
               />
             </div>
+          </template>
 
-            <b-button-group size="sm">
-              <b-button
-                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit'), boundary: 'body' }"
-                variant="outline-light"
-                class="text-primary border-0 toolbox-button p-0 px-1"
-                @click="editTabbedBlock(tab)"
-              >
-                <font-awesome-icon
-                  :icon="['far', 'edit']"
-                />
-              </b-button>
+          <page-block-tab
+            v-if="tab.block && shouldRenderTab(tab, index)"
+            v-bind="{ ...$attrs, ...$props, page, block: tab.block, blockIndex: index }"
+            :record="record"
+            :module="module"
+            :magnified="magnified"
+            header-class="border-0 border-white"
+            @errors="setTabErrors(index, $event)"
+          />
 
-              <b-button
-                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.clone'), boundary: 'body' }"
-                variant="outline-light"
-                class="text-primary border-0 toolbox-button p-0 px-1"
-                @click="cloneTabbedBlock(tab)"
-              >
-                <font-awesome-icon
-                  :icon="['far', 'clone']"
-                />
-              </b-button>
-
-              <b-button
-                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.copy'), boundary: 'body' }"
-                variant="outline-light"
-                class="text-primary border-0 toolbox-button p-0 px-1"
-                @click="copyTabbedBlock(tab)"
-              >
-                <font-awesome-icon
-                  :icon="['far', 'copy']"
-                />
-              </b-button>
-            </b-button-group>
-
-            <c-input-confirm
-              :tooltip="$t('tooltip.delete')"
-              show-icon
-              button-class="p-0 px-1"
-              class="ml-1"
-              @confirmed="deleteTab(index)"
-            />
+          <div
+            v-else-if="!tab.block"
+            class="d-flex h-100 align-items-center justify-content-center"
+          >
+            <p class="mb-0">
+              {{ $t('noBlock') }}
+            </p>
           </div>
-        </template>
-
-        <page-block-tab
-          v-if="tab.block && shouldRenderTab(tab, index)"
-          v-bind="{ ...$attrs, ...$props, page, block: tab.block, blockIndex: index }"
-          :record="record"
-          :module="module"
-          :magnified="magnified"
-          header-class="border-0 border-white"
-          @errors="setTabErrors(index, $event)"
-        />
-
-        <div
-          v-else-if="!tab.block"
-          class="d-flex h-100 align-items-center justify-content-center"
-        >
-          <p class="mb-0">
-            {{ $t('noBlock') }}
-          </p>
-        </div>
-      </b-tab>
-    </b-tabs>
+        </b-tab>
+      </b-tabs>
+    </div>
   </wrap>
 </template>
 
@@ -143,6 +160,7 @@ import base from './base'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import smallScreen from 'corteza-webapp-compose/src/mixins/smallScreen'
 
 export default {
   i18nOptions: {
@@ -158,15 +176,28 @@ export default {
 
   extends: base,
 
+  mixins: [
+    smallScreen,
+  ],
+
   data () {
     return {
       tabErrors: [],
       tabErrorKinds: [],
       visitedTabs: { 0: true },
+      activeTab: 0,
     }
   },
 
   computed: {
+    isVertical () {
+      return this.block.options.style.orientation === 'vertical' && !this.compactTabs
+    },
+
+    compactTabs () {
+      return this.isSmallScreen && !this.editable && this.block.options.style.orientation === 'vertical'
+    },
+
     tabbedBlocks () {
       return this.block.options.tabs.reduce((acc, { blockID, title, lazy = true }) => {
         const unparsedBlock = blockID ? this.blocks.find(b => fetchID(b) === blockID) : undefined
@@ -201,7 +232,7 @@ export default {
     },
 
     contentClass () {
-      return `overflow-hidden mh-100 ${this.block.options.style.orientation === 'vertical' ? 'd-block' : 'flex-fill'}`
+      return `overflow-hidden mh-100 ${this.isVertical ? 'd-block' : 'flex-fill'}`
     },
 
     navClass () {
@@ -211,6 +242,10 @@ export default {
     },
 
     navWrapperClass () {
+      if (this.compactTabs) {
+        return 'd-none'
+      }
+
       const { orientation, position } = this.block.options.style
       let border = ''
       let style = 'bg-transparent mh-100'

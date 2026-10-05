@@ -5,7 +5,98 @@
     v-on="$listeners"
   >
     <div class="h-100 w-100 card overflow-hidden bg-transparent">
+      <div
+        v-if="isSmallScreen"
+        class="d-flex align-items-center justify-content-end h-100 px-2"
+      >
+        <b-button
+          :id="`navigation-menu-${block.blockID}`"
+          data-test-id="button-navigation-menu"
+          variant="outline-extra-light"
+          class="text-primary border-0"
+        >
+          <font-awesome-icon :icon="['fas', 'bars']" />
+        </b-button>
+
+        <b-popover
+          :target="`navigation-menu-${block.blockID}`"
+          placement="bottom"
+          delay="0"
+          boundary="window"
+          triggers="click blur"
+          custom-class="navigation-menu"
+        >
+          <template
+            v-for="(navItem, index) in options.navigationItems"
+          >
+            <template v-if="navItem.type === 'dropdown'">
+              <h6
+                :key="`navItem-${index}`"
+                class="dropdown-header"
+              >
+                {{ navItem.options.item.dropdown.label }}
+              </h6>
+
+              <a
+                v-for="(dropdown, dIndex) in navItem.options.item.dropdown.items"
+                :key="`navItem-${index}-${dIndex}`"
+                :href="dropdown.url | checkValidURL"
+                :target="selectTargetOption(dropdown.target)"
+                class="dropdown-item pl-4"
+              >
+                {{ dropdown.label }}
+              </a>
+            </template>
+
+            <template v-else-if="isComposeDropdownPage(navItem)">
+              <b-link
+                :key="`navItem-${index}`"
+                :to="{ name: 'page', params: { pageID: navItem.options.item.pageID } }"
+                :target="selectTargetOption(navItem.options.item.target)"
+                :disabled="!navItem.options.enabled"
+                class="dropdown-item"
+              >
+                {{ navItem.options.item.label }}
+              </b-link>
+
+              <b-link
+                v-for="(subPage, dIndex) in getSubPages(navItem.options.item.pageID)"
+                :key="`navItem-${index}-${dIndex}`"
+                :to="{ name: 'page', params: { pageID: subPage.pageID } }"
+                :target="selectTargetOption(navItem.options.item.target)"
+                :disabled="!navItem.options.enabled"
+                class="dropdown-item pl-4"
+              >
+                {{ subPage.title }}
+              </b-link>
+            </template>
+
+            <span
+              v-else-if="navItem.type === 'text-section'"
+              :key="`navItem-${index}`"
+              class="dropdown-item-text"
+            >
+              {{ navItem.options.item.label }}
+            </span>
+
+            <b-link
+              v-else
+              :key="`navItem-${index}`"
+              :href="generateHrefAttributeLink(navItem)"
+              :to="generateToAttributeLink(navItem)"
+              :target="selectTargetOption(navItem.options.item.target)"
+              :disabled="!navItem.options.enabled"
+              :style="{ color: navItem.options.textColor }"
+              class="dropdown-item"
+            >
+              {{ navItem.options.item.label }}
+            </b-link>
+          </template>
+        </b-popover>
+      </div>
+
       <b-nav
+        v-else
         v-bind="{
           tabs: options.display.appearance === 'tabs',
           pills: options.display.appearance === 'pills',
@@ -126,9 +217,14 @@
 import { NoID } from '@cortezaproject/corteza-js'
 import { mapGetters } from 'vuex'
 import base from '../base'
+import smallScreen from '../../../mixins/smallScreen'
 
 export default {
   extends: base,
+
+  mixins: [
+    smallScreen,
+  ],
 
   computed: {
     ...mapGetters({
@@ -228,5 +324,13 @@ export default {
 <style lang="scss" scoped>
 .nav-link:hover {
   text-decoration: underline !important;
+}
+</style>
+
+<style lang="scss">
+.navigation-menu .popover-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 0.5rem 0;
 }
 </style>
