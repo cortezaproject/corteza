@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"bytes"
 	"context"
 	"database/sql/driver"
 	"encoding/json"
@@ -8,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/crusttech/human/server/pkg/j7s"
 	"github.com/crusttech/human/server/pkg/sql"
 
 	"github.com/PaesslerAG/gval"
@@ -318,12 +320,15 @@ func (t *Vars) UnmarshalJSON(in []byte) (err error) {
 		return nil
 	}
 
-	if err = json.Unmarshal(in, &aux); err != nil {
+	dec := json.NewDecoder(bytes.NewReader(in))
+	dec.UseNumber()
+	if err = dec.Decode(&aux); err != nil {
 		return
 	}
 
 	for k, v := range aux {
-		if t.value[k], err = NewUnresolved(v.Type, v.Value); err != nil {
+		// An ID sent as a number keeps its digits
+		if t.value[k], err = NewUnresolved(v.Type, j7s.ExactNumbers(v.Value)); err != nil {
 			return
 		}
 	}

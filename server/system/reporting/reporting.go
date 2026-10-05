@@ -8,9 +8,11 @@ package reporting
 import (
 	"context"
 	"fmt"
+	"math"
 
 	"github.com/crusttech/human/server/pkg/dal"
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/j7s"
 	"github.com/crusttech/human/server/system/types"
 	"github.com/spf13/cast"
 )
@@ -374,7 +376,8 @@ func mappingToFrameCols(mm []dal.AttributeMapping) FrameColumnSet {
 }
 
 // @note current implementation a bit _rushed_ since I'll probably rethink
-//       how the pipeline handles attributes -- will revisit then.
+//
+//	how the pipeline handles attributes -- will revisit then.
 func mappingToFrameCol(m dal.AttributeMapping) FrameColumn {
 	p := m.Properties()
 
@@ -643,7 +646,9 @@ func makeModelRef(step types.ReportStepLoad) (out dal.ModelRef, err error) {
 	)
 
 	if aux, ok = step.Definition["moduleID"]; ok {
-		moduleID = cast.ToUint64(aux)
+		if moduleID, err = definitionID("moduleID", aux); err != nil {
+			return
+		}
 	} else if aux, ok = step.Definition["module"]; ok {
 		module = cast.ToString(aux)
 	} else {
@@ -652,7 +657,9 @@ func makeModelRef(step types.ReportStepLoad) (out dal.ModelRef, err error) {
 	}
 
 	if aux, ok = step.Definition["namespaceID"]; ok {
-		namespaceID = cast.ToUint64(aux)
+		if namespaceID, err = definitionID("namespaceID", aux); err != nil {
+			return
+		}
 	} else if aux, ok = step.Definition["namespace"]; ok {
 		namespace = cast.ToString(aux)
 	} else {
@@ -662,7 +669,9 @@ func makeModelRef(step types.ReportStepLoad) (out dal.ModelRef, err error) {
 
 	// Connection is optional, default is primary connection
 	if aux, ok = step.Definition["connectionID"]; ok {
-		connectionID = cast.ToUint64(aux)
+		if connectionID, err = definitionID("connectionID", aux); err != nil {
+			return
+		}
 	}
 
 	out.ConnectionID = connectionID
@@ -738,4 +747,14 @@ func filterFromDef(def *FrameDefinition) (out filter.Filter) {
 	}
 
 	return aux
+}
+
+// definitionID reads an ID from a step definition. A number at or beyond 2^53
+// was rounded when the definition was decoded, so it is refused.
+func definitionID(key string, v any) (uint64, error) {
+	if f, ok := v.(float64); ok && math.Abs(f) >= j7s.MaxExactNumber {
+		return 0, fmt.Errorf("step definition %s is a number too large to be exact in JSON; send it as a string", key)
+	}
+
+	return cast.ToUint64(v), nil
 }

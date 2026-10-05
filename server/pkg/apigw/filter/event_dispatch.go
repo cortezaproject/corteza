@@ -111,7 +111,14 @@ func mapBody(r *http.Request, mapping map[string][]string) (map[string]any, erro
 
 	var raw map[string]any
 	if len(body) > 0 {
-		_ = json.Unmarshal(body, &raw)
+		dec := json.NewDecoder(bytes.NewReader(body))
+		dec.UseNumber()
+		if dec.Decode(&raw) == nil {
+			// An ID sent as a number keeps its digits
+			j7s.ExactNumbers(raw)
+		} else {
+			raw = nil
+		}
 	}
 	if raw == nil {
 		raw = make(map[string]any)
