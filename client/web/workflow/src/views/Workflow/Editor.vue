@@ -18,8 +18,17 @@
 <script>
 import WorkflowEditor from '../../components/WorkflowEditor'
 import { automation } from '@cortezaproject/corteza-js'
-import { throttle } from 'lodash'
+import { isEqual, pick, throttle } from 'lodash'
 import { mapGetters } from 'vuex'
+
+// Plain copy of the trigger fields the server stores
+function triggerFields (t) {
+  const fields = ['stepID', 'enabled', 'resourceType', 'eventType', 'constraints', 'input']
+  return JSON.parse(JSON.stringify({
+    ...pick(t, fields),
+    meta: pick(t.meta || {}, ['description', 'visual']),
+  }))
+}
 
 export default {
   name: 'Editor',
@@ -45,6 +54,7 @@ export default {
 
       workflow: {},
       triggers: [],
+      storedTriggers: {},
 
       changeDetected: false,
     }
@@ -115,9 +125,18 @@ export default {
     async fetchTriggers (workflowID = this.workflowID) {
       return this.$AutomationAPI.triggerList({ workflowID, disabled: 1 })
         .then(({ set = [] }) => {
+          // Rendering attaches graph cells to the triggers; keep a plain copy
+          this.storedTriggers = Object.fromEntries(set.map(t => [t.triggerID, triggerFields(t)]))
           this.triggers = set
         })
         .catch(this.toastErrorHandler(this.$t('notification:failed-fetch-triggers')))
+    },
+
+    // Only new and modified triggers are sent, so saving step changes does not
+    // require permission to manage the workflow's triggers
+    triggerChanged (t) {
+      const stored = this.storedTriggers[t.triggerID]
+      return !t.triggerID || !stored || !isEqual(triggerFields(t), stored)
     },
 
     saveWorkflow: throttle(async function (wf) {
@@ -136,7 +155,7 @@ export default {
           return this.$AutomationAPI.triggerDelete({ triggerID })
         }),
         ).then(async () => {
-          await Promise.all(triggers.map(t => {
+          await Promise.all(triggers.filter(this.triggerChanged).map(t => {
             // Update triggers that already have an ID
             if (t.triggerID) {
               return this.$AutomationAPI.triggerUpdate({
