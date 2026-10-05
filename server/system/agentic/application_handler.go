@@ -293,6 +293,7 @@ func (h *applicationHandler) sourceSet(ctx context.Context, req mcp.CallToolRequ
 		meta.Namespace = app.SourceMeta.Namespace
 		meta.Modules = app.SourceMeta.Modules
 		meta.Writes = app.SourceMeta.Writes
+		meta.Deletes = app.SourceMeta.Deletes
 		meta.Origins = app.SourceMeta.Origins
 		meta.Automations = app.SourceMeta.Automations
 		meta.Chatbots = app.SourceMeta.Chatbots
@@ -311,6 +312,11 @@ func (h *applicationHandler) sourceSet(ctx context.Context, req mcp.CallToolRequ
 		}
 	}
 
+	if raw, ok := args["deletes"]; ok && raw != nil {
+		if meta.Deletes, err = applicationStringList(raw); err != nil {
+			return nil, fmt.Errorf(`invalid deletes: must be a JSON array of module handles, e.g. ["Lead"]: %w`, err)
+		}
+	}
 	if raw, ok := args["origins"]; ok && raw != nil {
 		if meta.Origins, err = applicationStringList(raw); err != nil {
 			return nil, fmt.Errorf(`invalid origins: must be a JSON array of https origins, e.g. ["https://cdn.jsdelivr.net"]: %w`, err)

@@ -233,7 +233,7 @@ func (svc *application) onSetSource(ctx context.Context, aProps *applicationActi
 		return err
 	}
 
-	for _, w := range meta.Writes {
+	for _, w := range append(slices.Clone(meta.Writes), meta.Deletes...) {
 		if !slices.Contains(meta.Modules, w) {
 			return ApplicationErrUndeclaredWrite()
 		}

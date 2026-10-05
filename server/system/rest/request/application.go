@@ -206,6 +206,11 @@ type (
 		// Declared module handles the app may also create and change records in
 		Writes []string
 
+		// Deletes POST parameter
+		//
+		// Declared module handles the app may also delete records from
+		Deletes []string
+
 		// Origins POST parameter
 		//
 		// Exact https origins the app may load scripts, styles, fonts and images from, besides cdnjs
@@ -943,6 +948,7 @@ func (r ApplicationSourceSet) Auditable() map[string]interface{} {
 		"namespace":     r.Namespace,
 		"modules":       r.Modules,
 		"writes":        r.Writes,
+		"deletes":       r.Deletes,
 		"origins":       r.Origins,
 		"automations":   r.Automations,
 		"chatbots":      r.Chatbots,
@@ -972,6 +978,11 @@ func (r ApplicationSourceSet) GetModules() []string {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationSourceSet) GetWrites() []string {
 	return r.Writes
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceSet) GetDeletes() []string {
+	return r.Deletes
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -1057,6 +1068,13 @@ func (r *ApplicationSourceSet) Fill(req *http.Request) (err error) {
 
 		//if val, ok := req.Form["writes[]"]; ok && len(val) > 0  {
 		//    r.Writes, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+
+		//if val, ok := req.Form["deletes[]"]; ok && len(val) > 0  {
+		//    r.Deletes, err = val, nil
 		//    if err != nil {
 		//        return err
 		//    }

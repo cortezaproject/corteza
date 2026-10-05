@@ -1,5 +1,6 @@
 <template>
   <PageBlock :block="block" :record="record" @refreshBlock="load">
+    <template v-if="appTitle" #title>{{ appTitle }}</template>
     <div class="h-full flex flex-col" data-test-id="custom-block">
       <div v-if="loading" class="h-full flex items-center justify-center">
         <ProgressSpinner style="width: 2rem; height: 2rem" />
@@ -23,7 +24,9 @@
         :context="context"
         :resizable="false"
         @navigated="problem = $t('app.state.navigated')"
-        @changed="$eventBus?.emit('refetch-records')"
+        ref="frameRef"
+        @changed="onChanged"
+        @title="appTitle = $event"
       />
     </div>
   </PageBlock>
@@ -32,7 +35,7 @@
 <script setup>
 // A custom HTML block: a custom application's page, or one of the block's
 // own, in the custom app sandbox. See app.intent.md for what the frame keeps.
-import { computed, inject, ref, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, ref, watch } from 'vue'
 import { useApplicationsStore } from '@planetcrust/human-vue'
 import { useI18n } from 'vue-i18n'
 import PageBlock from './PageBlock.vue'
@@ -57,6 +60,27 @@ const source = ref('')
 const sourceMeta = ref({})
 const name = ref('')
 const frameKey = ref(0)
+const frameRef = ref(null)
+// What the app says it shows, over the block's own title.
+const appTitle = ref('')
+
+// The app changed data: the rest of the page catches up. The refetch that
+// sends comes back here too, and is not news to the app that caused it.
+let echo = false
+function onChanged() {
+  echo = true
+  $eventBus?.emit('refetch-records')
+}
+
+const offRefetch = $eventBus?.on('refetch-records', () => {
+  if (echo) {
+    echo = false
+    return
+  }
+  frameRef.value?.notify('refresh')
+})
+
+onBeforeUnmount(() => offRefetch?.())
 
 const applicationID = computed(() => {
   const id = props.block.options?.applicationID
@@ -106,6 +130,7 @@ function fromBlock() {
     modules: o.modules || [],
     moduleIDs: o.moduleIDs || {},
     writes: o.writes || [],
+    deletes: o.deletes || [],
     origins: o.origins || [],
     automations: o.automations || [],
     chatbots: o.chatbots || [],
@@ -117,6 +142,7 @@ async function load() {
   loading.value = true
   problem.value = ''
   source.value = ''
+  appTitle.value = ''
 
   try {
     if (applicationID.value) await fromApplication(applicationID.value)
@@ -136,6 +162,7 @@ watch(
     props.namespace?.namespaceID,
     props.block.options?.modules,
     props.block.options?.writes,
+    props.block.options?.deletes,
     props.block.options?.origins,
     props.block.options?.automations,
     props.block.options?.chatbots,

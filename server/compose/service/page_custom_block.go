@@ -48,6 +48,11 @@ func checkCustomBlocks(ctx context.Context, s store.ComposeModules, namespaceID 
 				return fail(fmt.Errorf("it may change module %q but does not read it; add it to modules too", w))
 			}
 		}
+		for _, d := range cast.ToStringSlice(b.Options["deletes"]) {
+			if !slices.Contains(modules, d) {
+				return fail(fmt.Errorf("it may delete from module %q but does not read it; add it to modules too", d))
+			}
+		}
 
 		moduleIDs := make(map[string]string, len(modules))
 		for _, handle := range modules {

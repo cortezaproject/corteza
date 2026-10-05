@@ -1644,6 +1644,10 @@ endpoints:
               type: '[]string'
               required: false
               title: Declared module handles the app may also create and change records in
+            - name: deletes
+              type: '[]string'
+              required: false
+              title: Declared module handles the app may also delete records from
             - name: origins
               type: '[]string'
               required: false

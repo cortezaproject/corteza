@@ -34,7 +34,7 @@ how it presents in the unified shell (display name, URL, listed flag, logo).
   `app/<applicationID>` — the server stores exactly that on every update, and
   creating one saves twice, since only the second save has an ID to put in it.
 - Custom app panel (custom kind, edit only): open the app; what its page
-  declares — namespace, the modules it reads and changes, the automations it
+  declares — namespace, the modules it reads, changes and deletes from, the automations it
   may run, the chatbots it may open, and the origins it may load from — set
   with `sections/app/components/CustomAppDeclaration.vue`, the same fields a
   Custom page block uses; the page's size and when it was last replaced; the

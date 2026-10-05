@@ -191,6 +191,8 @@ type (
 		// sets it when the page is stored; what is sent is replaced.
 		ModuleIDs map[string]string `json:"moduleIDs"`
 		Writes    []string          `json:"writes"`
+		// The modules of Modules it may also delete records from.
+		Deletes []string `json:"deletes"`
 		// Exact https origins the page may load scripts, styles, fonts and
 		// images from, besides cdnjs.
 		Origins []string `json:"origins"`
@@ -518,7 +520,7 @@ var PageBlockOptionSchemas = map[string]any{
 	"RecordOrganizer": RecordOrganizerBlockOptions{},
 	"ChatbotInbox":    ChatbotInboxBlockOptions{ChatbotIDs: []string{}, StatusFilter: []string{}},
 	"IFrame":          IFrameBlockOptions{},
-	"Custom":          CustomBlockOptions{Modules: []string{}, ModuleIDs: map[string]string{}, Writes: []string{}, Origins: []string{}, Automations: []string{}, Chatbots: []string{}, Params: map[string]any{}},
+	"Custom":          CustomBlockOptions{Modules: []string{}, ModuleIDs: map[string]string{}, Writes: []string{}, Deletes: []string{}, Origins: []string{}, Automations: []string{}, Chatbots: []string{}, Params: map[string]any{}},
 	"File":            FileBlockOptions{Attachments: []string{}},
 	"Navigation": NavigationBlockOptions{NavigationItems: []NavigationItem{{
 		Options: NavigationItemOptions{

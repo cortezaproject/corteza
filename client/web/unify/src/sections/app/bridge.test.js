@@ -124,8 +124,8 @@ describe('operation dispatch', () => {
 
   it('refuses an operation that is not in the table', async () => {
     const ctx = context()
-    await expect(dispatch('records.delete', {}, ctx)).rejects.toThrow(
-      'operation "records.delete" is not available to an app',
+    await expect(dispatch('records.purge', {}, ctx)).rejects.toThrow(
+      'operation "records.purge" is not available to an app',
     )
   })
 
@@ -868,6 +868,150 @@ describe('chatbots', () => {
     )
     await expect(dispatch('chatbot.open', {}, ctx)).rejects.toThrow('needs the handle')
     expect(ctx.openChatbot).not.toHaveBeenCalled()
+  })
+})
+
+describe('shell calls', () => {
+  it('shows a toast in the severity asked, and info for anything else', async () => {
+    const ctx = { ...context(), toast: vi.fn() }
+    await dispatch('toast', { message: 'saved', severity: 'success' }, ctx)
+    await dispatch('toast', { message: 'hm', severity: 'shout' }, ctx)
+    expect(ctx.toast.mock.calls).toEqual([
+      ['success', 'saved', ''],
+      ['info', 'hm', ''],
+    ])
+    await expect(dispatch('toast', {}, ctx)).rejects.toThrow('needs a message')
+  })
+
+  it('asks the viewer through Human and hands back the answer', async () => {
+    const ctx = {
+      ...context(),
+      ask: vi.fn().mockResolvedValueOnce(true).mockResolvedValueOnce('Ana'),
+    }
+    expect(await dispatch('confirm', { message: 'Sure?' }, ctx)).toBe(true)
+    expect(await dispatch('prompt', { message: 'Name?', value: 'A' }, ctx)).toBe('Ana')
+    expect(ctx.ask.mock.calls[1]).toEqual(['prompt', { message: 'Name?', title: '', value: 'A' }])
+  })
+
+  it('bounds what an app puts in Human chrome', async () => {
+    const ctx = { ...context(), setTitle: vi.fn() }
+    await dispatch('title', { text: 'x'.repeat(900) }, ctx)
+    expect(ctx.setTitle.mock.calls[0][0]).toHaveLength(500)
+  })
+
+  it('opens a record of a declared module only', async () => {
+    const ctx = { ...context(), openRecord: vi.fn() }
+    await dispatch('records.open', { module: 'agent-contact', recordID: '5' }, ctx)
+    expect(ctx.openRecord).toHaveBeenCalledWith({
+      module: 'agent-contact',
+      recordID: '5',
+      edit: false,
+    })
+    await expect(dispatch('records.open', { module: 'Lead', recordID: '5' }, ctx)).rejects.toThrow(
+      'not declared',
+    )
+    await expect(dispatch('records.open', { module: 'agent-contact' }, ctx)).rejects.toThrow(
+      'needs the recordID',
+    )
+  })
+})
+
+describe('deleting', () => {
+  const delCtx = (agree = true) => ({
+    ...context({ ...META, deletes: ['agent-contact'] }),
+    compose: { recordDelete: vi.fn().mockResolvedValue(undefined) },
+    consentToDelete: vi.fn().mockResolvedValue(agree),
+    changed: vi.fn(),
+  })
+
+  it('deletes one record of a module declared for it, once the viewer agrees', async () => {
+    const ctx = delCtx()
+    expect(await dispatch('records.delete', { module: 'agent-contact', recordID: '9' }, ctx)).toBe(
+      true,
+    )
+    expect(ctx.compose.recordDelete).toHaveBeenCalledWith({
+      namespaceID: '1',
+      moduleID: '2',
+      recordID: '9',
+    })
+    expect(ctx.changed).toHaveBeenCalled()
+  })
+
+  it('refuses a module not declared for deleting, and does nothing the viewer refused', async () => {
+    let ctx = { ...delCtx(), meta: META }
+    await expect(
+      dispatch('records.delete', { module: 'agent-contact', recordID: '9' }, ctx),
+    ).rejects.toThrow('not one this app may delete records from')
+    ctx = delCtx(false)
+    await expect(
+      dispatch('records.delete', { module: 'agent-contact', recordID: '9' }, ctx),
+    ).rejects.toThrow('did not agree to it deleting')
+    expect(ctx.compose.recordDelete).not.toHaveBeenCalled()
+  })
+})
+
+describe('uploading', () => {
+  const upCtx = multi => ({
+    ...context({ ...META, writes: ['agent-contact'] }),
+    fields: () => [{ name: 'photo', kind: 'File', isMulti: multi }],
+    compose: {
+      recordRead: vi.fn().mockResolvedValue({ values: [{ name: 'photo', value: '11' }] }),
+      recordPatch: vi.fn().mockResolvedValue(undefined),
+    },
+    consent: vi.fn().mockResolvedValue(true),
+    uploadFile: vi.fn().mockResolvedValue({
+      attachmentID: '12',
+      name: 'a.txt',
+      meta: { original: { size: 2, mimetype: 'text/plain' } },
+    }),
+  })
+  const args = {
+    module: 'agent-contact',
+    recordID: '5',
+    field: 'photo',
+    name: 'a.txt',
+    dataURL: 'data:text/plain;base64,aGk=',
+  }
+
+  it('stores the file and sets the field to it', async () => {
+    const ctx = upCtx(false)
+    expect(await dispatch('files.upload', args, ctx)).toEqual({
+      attachmentID: '12',
+      name: 'a.txt',
+      mimetype: 'text/plain',
+      size: 2,
+    })
+    const sent = ctx.uploadFile.mock.calls[0][0]
+    expect(sent.file.name).toBe('a.txt')
+    expect(new TextDecoder().decode(sent.file.data)).toBe('hi')
+    expect(ctx.compose.recordPatch.mock.calls[0][0].values).toEqual([
+      { name: 'photo', value: '12' },
+    ])
+  })
+
+  it('adds to what a multi-value field holds', async () => {
+    const ctx = upCtx(true)
+    await dispatch('files.upload', args, ctx)
+    expect(ctx.compose.recordPatch.mock.calls[0][0].values).toEqual([
+      { name: 'photo', value: '11' },
+      { name: 'photo', value: '12' },
+    ])
+  })
+
+  it('refuses a module it may not change, and what is not a data: URL', async () => {
+    await expect(dispatch('files.upload', args, { ...upCtx(false), meta: META })).rejects.toThrow()
+    await expect(
+      dispatch('files.upload', { ...args, dataURL: 'https://x' }, upCtx(false)),
+    ).rejects.toThrow('data: URL')
+  })
+})
+
+describe('users', () => {
+  it('searches as the viewer, bounded', async () => {
+    const ctx = { ...context(), searchUsers: vi.fn().mockResolvedValue([]) }
+    await dispatch('users.search', { query: 'an', limit: 500 }, ctx)
+    expect(ctx.searchUsers).toHaveBeenCalledWith('an', 50)
+    await expect(dispatch('users.search', { query: 'a' }, ctx)).rejects.toThrow('two characters')
   })
 })
 

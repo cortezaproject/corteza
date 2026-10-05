@@ -9,6 +9,39 @@
     {{ failure }}
   </Message>
 
+  <Dialog
+    v-model:visible="asking.visible"
+    modal
+    :header="asking.title || name || $t('app.title')"
+    :style="{ width: '28rem' }"
+    data-test-id="custom-app-ask"
+    @hide="answer(null)"
+  >
+    <p class="m-0 whitespace-pre-wrap break-words">{{ asking.message }}</p>
+    <InputText
+      v-if="asking.kind === 'prompt'"
+      v-model="asking.value"
+      class="w-full mt-3"
+      autofocus
+      data-test-id="custom-app-prompt-input"
+      @keydown.enter="answer(asking.value)"
+    />
+    <template #footer>
+      <Button
+        :label="asking.reject || $t('general.label.cancel')"
+        severity="secondary"
+        text
+        data-test-id="custom-app-ask-reject"
+        @click="answer(null)"
+      />
+      <Button
+        :label="asking.accept || $t('general.label.ok')"
+        data-test-id="custom-app-ask-accept"
+        @click="answer(asking.kind === 'prompt' ? asking.value : true)"
+      />
+    </template>
+  </Dialog>
+
   <iframe
     v-if="outerDocument"
     ref="frameRef"
@@ -24,10 +57,10 @@
 // bridge. Shared by the app view and the compose Custom block; see
 // app.intent.md for the boundary it keeps.
 import { getThemeVariables, useUserStore } from '@planetcrust/human-vue'
-import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useConfirm } from 'primevue/useconfirm'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { mountChatbot } from 'human-webapp-chatbot-widget/mount'
 import { BRIDGE_SCRIPT } from '../bridge'
 import { bridgeVersion, buildOuterDocument, cspInner, dispatch, hostScriptSource } from '../host'
@@ -47,9 +80,12 @@ const props = defineProps({
 })
 
 // `changed`: the app changed data, or asked for the page to catch up.
-const emit = defineEmits(['navigated', 'changed'])
+// `title`: the app named what it shows.
+const emit = defineEmits(['navigated', 'changed', 'title'])
 
 const { t } = useI18n()
+const $toast = inject('$toast', null)
+const route = useRoute()
 const confirm = useConfirm()
 const router = useRouter()
 
@@ -288,6 +324,135 @@ function closeChatbot(handle) {
   chatbots.get(handle)?.close()
 }
 
+// A confirm or prompt the app asked for, drawn by Human: the sandbox
+// suppresses the browser's own. One at a time; the answer goes back to the
+// call that asked.
+const asking = reactive({
+  visible: false,
+  kind: '',
+  title: '',
+  message: '',
+  value: '',
+  accept: '',
+  reject: '',
+})
+let answering = null
+
+function ask(kind, { title, message, value = '', accept = '', reject = '' }) {
+  if (answering) return Promise.reject(new Error('another question is already open'))
+  Object.assign(asking, { visible: true, kind, title, message, value, accept, reject })
+  return new Promise(resolve => {
+    answering = resolve
+  })
+}
+
+function answer(value) {
+  if (!answering) return
+  const resolve = answering
+  answering = null
+  asking.visible = false
+  resolve(asking.kind === 'confirm' ? value === true : value)
+}
+
+const TOASTS = {
+  info: (m, title) => $toast?.toastInfo?.(m, title || props.name || undefined),
+  success: (m, title) => $toast?.toastSuccess?.(m, title || props.name || undefined),
+  warn: (m, title) => $toast?.toastWarning?.(m, title || props.name || undefined),
+  error: (m, title) => $toast?.toastDanger?.(m, title || props.name || undefined),
+}
+
+// Asked before the app's first delete, apart from changes: a viewer who let
+// it edit records has not agreed to it removing them.
+let consentedToDelete = null
+
+function askToDelete() {
+  if (consentedToDelete !== null) return Promise.resolve(consentedToDelete)
+
+  return new Promise(resolve => {
+    const answerDelete = value => {
+      consentedToDelete = value
+      resolve(value)
+    }
+
+    confirm.require({
+      header: t('app.consent.deleteHeader'),
+      message: t('app.consent.deleteMessage', {
+        name: props.name,
+        modules: (sourceMeta.value.deletes || []).join(', '),
+      }),
+      icon: 'pi pi-trash',
+      rejectProps: { label: t('app.consent.reject'), severity: 'secondary', text: true },
+      acceptProps: { label: t('app.consent.deleteAccept'), severity: 'danger' },
+      accept: () => answerDelete(true),
+      reject: () => answerDelete(false),
+      onHide: () => answerDelete(consentedToDelete === true),
+    })
+  })
+}
+
+// Stores a file for a record's File field, as the viewer, the way the
+// record editor's upload does: one multipart request.
+async function uploadFile({ moduleID, recordID, field, file }) {
+  const form = new FormData()
+  form.append('recordID', recordID)
+  form.append('fieldName', field)
+  form.append('upload', new Blob([file.data], { type: file.type }), file.name)
+  const url = $ComposeAPI.recordUploadEndpoint({ namespaceID: namespaceID.value, moduleID })
+  // Unset, so the browser writes the multipart boundary itself rather than
+  // the client's JSON default going out with a form body.
+  const { data } = await $ComposeAPI
+    .api()
+    .post(url, form, { headers: { 'Content-Type': undefined } })
+  if (data?.error) throw new Error(data.error.message || 'the file could not be stored')
+  return data.response
+}
+
+async function searchUsers(query, limit) {
+  const { set = [] } = await $SystemAPI.userList({ query, limit }).catch(() => ({}))
+  return set.map(u => ({
+    userID: u.userID,
+    name: u.name || u.username || u.email || u.userID,
+    email: u.email || '',
+  }))
+}
+
+// A record in Human's own record view: over the page, in the namespace's
+// record modal, when the app is shown on a page of that namespace; on its own
+// page otherwise.
+async function openRecord({ module, recordID, edit }) {
+  const slug = sourceMeta.value.namespace
+  const moduleID = moduleIDs.value[module] || (await moduleIDByHandle(module))
+  const { set = [] } = moduleID
+    ? await $ComposeAPI
+        .pageList({ namespaceID: namespaceID.value, moduleID, limit: 1 })
+        .catch(() => ({}))
+    : {}
+  const page = set[0]
+  if (!page) throw new Error(`module "${module}" has no record page to open it in`)
+
+  const onNamespacePage = slug && String(route.path || '').startsWith(`/compose/namespace/${slug}/`)
+  if (onNamespacePage) {
+    const query = { ...route.query, recordID, recordPageID: page.pageID }
+    if (edit) query.edit = '1'
+    else delete query.edit
+    await router.push({ query })
+    return
+  }
+
+  const path = `/compose/namespace/${slug}/pages/${page.pageID}/records/${recordID}`
+  await router.push(edit ? { path, query: { edit: '1' } } : path)
+}
+
+// Tells the app something happened in Human, through its outer frame.
+function notify(event, payload) {
+  frameRef.value?.contentWindow?.postMessage(
+    { type: 'human:event', event, payload },
+    window.location.origin,
+  )
+}
+
+defineExpose({ notify })
+
 const ctx = {
   compose: $ComposeAPI,
   consent: askToChangeRecords,
@@ -313,6 +478,13 @@ const ctx = {
   context: () => JSON.parse(JSON.stringify(props.context || {})),
   navigate,
   consentToRun: askToRun,
+  consentToDelete: askToDelete,
+  toast: (severity, message, title) => TOASTS[severity](message, title),
+  ask,
+  setTitle: text => emit('title', text),
+  openRecord,
+  uploadFile,
+  searchUsers,
   openChatbot,
   closeChatbot,
   changed: () => emit('changed'),
@@ -494,6 +666,7 @@ async function build() {
   sourceMeta.value = props.sourceMeta || {}
   consented = null
   consentedToRun = null
+  consentedToDelete = null
   namespaceID.value = ''
   moduleIDs.value = {}
   moduleFields.value = {}

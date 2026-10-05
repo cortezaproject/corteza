@@ -59,6 +59,7 @@ type (
 		Namespace   string            `json:"namespace,omitempty"`
 		Modules     []string          `json:"modules,omitempty"`
 		Writes      []string          `json:"writes,omitempty"`
+		Deletes     []string          `json:"deletes,omitempty"`
 		Origins     []string          `json:"origins,omitempty"`
 		Automations []string          `json:"automations,omitempty"`
 		Chatbots    []string          `json:"chatbots,omitempty"`
@@ -275,6 +276,11 @@ func (r ApplicationSourceMeta) Clone() *ApplicationSourceMeta {
 		copy(dup.Writes, r.Writes)
 	}
 
+	if r.Deletes != nil {
+		dup.Deletes = make([]string, len(r.Deletes))
+		copy(dup.Deletes, r.Deletes)
+	}
+
 	if r.Origins != nil {
 		dup.Origins = make([]string, len(r.Origins))
 		copy(dup.Origins, r.Origins)
@@ -328,6 +334,10 @@ func (r ApplicationSourceMeta) Diff(cmp *ApplicationSourceMeta) []*revisions.Cha
 
 	if !reflect.DeepEqual(r.Writes, cmp.Writes) {
 		out = append(out, &revisions.Change{Key: "writes", Old: []any{cmp.Writes}, New: []any{r.Writes}})
+	}
+
+	if !reflect.DeepEqual(r.Deletes, cmp.Deletes) {
+		out = append(out, &revisions.Change{Key: "deletes", Old: []any{cmp.Deletes}, New: []any{r.Deletes}})
 	}
 
 	if !reflect.DeepEqual(r.Origins, cmp.Origins) {

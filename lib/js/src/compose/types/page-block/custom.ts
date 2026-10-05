@@ -13,6 +13,7 @@ interface Options {
   // Each module handle beside its ID, as the server stored them.
   moduleIDs: Record<string, string>
   writes: Array<string>
+  deletes: Array<string>
   origins: Array<string>
   automations: Array<string>
   chatbots: Array<string>
@@ -26,6 +27,7 @@ const defaults: Readonly<Options> = Object.freeze({
   modules: [],
   moduleIDs: {},
   writes: [],
+  deletes: [],
   origins: [],
   automations: [],
   chatbots: [],
@@ -45,6 +47,7 @@ export class PageBlockCustom extends PageBlock {
     modules: [],
     moduleIDs: {},
     writes: [],
+    deletes: [],
     origins: [],
     automations: [],
     chatbots: [],
@@ -66,6 +69,7 @@ export class PageBlockCustom extends PageBlock {
         o.moduleIDs && typeof o.moduleIDs === 'object' ? { ...o.moduleIDs } : {}
     }
     if (o.writes !== undefined) this.options.writes = strings(o.writes)
+    if (o.deletes !== undefined) this.options.deletes = strings(o.deletes)
     if (o.origins !== undefined) this.options.origins = strings(o.origins)
     if (o.automations !== undefined) this.options.automations = strings(o.automations)
     if (o.chatbots !== undefined) this.options.chatbots = strings(o.chatbots)

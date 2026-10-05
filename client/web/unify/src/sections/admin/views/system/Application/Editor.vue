@@ -352,6 +352,7 @@ const declarationChanged = computed(() => {
     (d.namespace || '') !== (meta.namespace || '') ||
     (d.modules || []).join() !== (meta.modules || []).join() ||
     (d.writes || []).join() !== (meta.writes || []).join() ||
+    (d.deletes || []).join() !== (meta.deletes || []).join() ||
     (d.origins || []).join() !== (meta.origins || []).join() ||
     (d.automations || []).join() !== (meta.automations || []).join() ||
     (d.chatbots || []).join() !== (meta.chatbots || []).join()
@@ -403,6 +404,7 @@ async function handleSaveSource() {
       namespace: declaration.value.namespace || '',
       modules: declaration.value.modules || [],
       writes: declaration.value.writes || [],
+      deletes: declaration.value.deletes || [],
       origins: declaration.value.origins || [],
       automations: declaration.value.automations || [],
       chatbots: declaration.value.chatbots || [],

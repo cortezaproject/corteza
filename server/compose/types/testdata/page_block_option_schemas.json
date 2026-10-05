@@ -101,6 +101,7 @@
     "modules": [],
     "moduleIDs": {},
     "writes": [],
+    "deletes": [],
     "origins": [],
     "automations": [],
     "chatbots": [],

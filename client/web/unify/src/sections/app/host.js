@@ -112,6 +112,7 @@ export function hostScriptSource({ origin }) {
   var seq = 0
   var pending = {}
   var loads = 0
+  var appPort = null
 
   var frame = document.createElement('iframe')
   // allow-forms is what lets a form fire its own submit event. Without it the
@@ -135,7 +136,13 @@ export function hostScriptSource({ origin }) {
     var data = e.data || {}
 
     if (e.source === parent) {
-      if (e.origin !== SHELL || data.type !== 'human:result') return
+      if (e.origin !== SHELL) return
+      // Something happened in Human the app may want to know about.
+      if (data.type === 'human:event') {
+        if (appPort) appPort.postMessage({ event: data.event, payload: data.payload })
+        return
+      }
+      if (data.type !== 'human:result') return
       var waiting = pending[data.id]
       if (!waiting) return
       delete pending[data.id]
@@ -153,6 +160,7 @@ export function hostScriptSource({ origin }) {
     if (data.type !== 'human:hello') return
 
     var channel = new MessageChannel()
+    appPort = channel.port1
     channel.port1.onmessage = function (m) {
       var call = m.data || {}
       var id = ++seq
@@ -256,6 +264,48 @@ export function automationInput(input) {
     }
   }
   return out
+}
+
+const TOAST_SEVERITIES = ['info', 'success', 'warn', 'error']
+
+// The longest text an app puts in front of the viewer in Human's own chrome.
+export const MAX_TEXT = 500
+
+// The most users one search hands back.
+export const MAX_USERS = 50
+
+// The largest file an app uploads, decoded.
+export const MAX_UPLOAD = 10 * 1024 * 1024
+
+// Text an app shows in Human's chrome: plain, one value, bounded. Optional
+// text may be empty; required text is refused when it is.
+function shortText(value, what, optional = false) {
+  const text = value === undefined || value === null ? '' : String(value).trim()
+  if (!text && !optional) throw new Error(`${what} needs a message`)
+  return text.slice(0, MAX_TEXT)
+}
+
+// Whether the app may delete records of a module: declared in `deletes`, and
+// so one it reads.
+export function allowDelete(meta, module) {
+  if (!(meta?.deletes || []).includes(module)) {
+    return `module "${module}" is not one this app may delete records from`
+  }
+  return allowModule(meta, module)
+}
+
+// A file handed over as a data: URL, decoded and bounded, with a name reduced
+// to one file name.
+export function dataURLFile(dataURL, name) {
+  const m = /^data:([^;,]*)(;base64)?,(.*)$/s.exec(String(dataURL || ''))
+  if (!m) throw new Error('a file is uploaded as a data: URL')
+  const bytes = m[2] ? atob(m[3]) : decodeURIComponent(m[3])
+  if (bytes.length > MAX_UPLOAD) {
+    throw new Error(`an upload is at most ${MAX_UPLOAD} bytes; this one is ${bytes.length}`)
+  }
+  const data = new Uint8Array(bytes.length)
+  for (let i = 0; i < bytes.length; i++) data[i] = bytes.charCodeAt(i)
+  return { name: downloadName(name || 'file'), type: m[1] || 'application/octet-stream', data }
 }
 
 // Where `navigate` may take the viewer, as the app named it: a page of the
@@ -559,7 +609,14 @@ async function refsFor(ctx, fields, records) {
 // Every operation an app can reach. Runs in the shell, as the viewer, under
 // the viewer's permissions.
 // Operations after which what the rest of the page shows may be stale.
-const CHANGES = ['records.create', 'records.update', 'automation.run', 'refresh']
+const CHANGES = [
+  'records.create',
+  'records.update',
+  'records.delete',
+  'files.upload',
+  'automation.run',
+  'refresh',
+]
 
 // Runs one operation and, once one that changes data has succeeded, tells the
 // host, which brings the rest of the page up to date.
@@ -714,6 +771,95 @@ async function runOperation(op, args = {}, ctx) {
 
     case 'refresh':
       return true
+
+    case 'toast': {
+      const severity = TOAST_SEVERITIES.includes(args.severity) ? args.severity : 'info'
+      ctx.toast(severity, shortText(args.message, 'a toast'), shortText(args.title, '', true))
+      return true
+    }
+
+    case 'confirm':
+      return !!(await ctx.ask('confirm', {
+        message: shortText(args.message, 'a confirmation'),
+        title: shortText(args.title, '', true),
+        accept: shortText(args.accept, '', true),
+        reject: shortText(args.reject, '', true),
+      }))
+
+    case 'prompt': {
+      const answer = await ctx.ask('prompt', {
+        message: shortText(args.message, 'a prompt'),
+        title: shortText(args.title, '', true),
+        value: args.value === undefined || args.value === null ? '' : String(args.value),
+      })
+      return answer === null || answer === undefined ? null : String(answer)
+    }
+
+    case 'title':
+      ctx.setTitle(shortText(args.text, '', true))
+      return true
+
+    case 'records.open': {
+      if (!args.recordID || !/^[0-9]+$/.test(String(args.recordID))) {
+        throw new Error('records.open needs the recordID of the record to open')
+      }
+      moduleIDFor(ctx, args.module)
+      await ctx.openRecord({
+        module: args.module,
+        recordID: String(args.recordID),
+        edit: !!args.edit,
+      })
+      return true
+    }
+
+    case 'records.delete': {
+      const refusal = allowDelete(ctx.meta, args.module)
+      if (refusal) throw new Error(refusal)
+      if (!args.recordID)
+        throw new Error('records.delete removes one record; name it with recordID')
+      const moduleID = moduleIDFor(ctx, args.module)
+      if (!(await ctx.consentToDelete())) {
+        throw new Error('the person using this app did not agree to it deleting records')
+      }
+      await ctx.compose.recordDelete({
+        namespaceID: ctx.namespaceID,
+        moduleID,
+        recordID: args.recordID,
+      })
+      return true
+    }
+
+    case 'files.upload': {
+      const moduleID = writableModuleIDFor(ctx, args.module)
+      const { field } = fileFieldFor(ctx, args)
+      const file = dataURLFile(args.dataURL, args.name)
+      await agreed(ctx, args.module)
+
+      const recordID = String(args.recordID)
+      const attachment = await ctx.uploadFile({ moduleID, recordID, field, file })
+
+      // The upload stores the file; the record holds it only once the field
+      // names it — beside what a multi-value field held, instead of what a
+      // single one did.
+      const spec = fieldsFor(ctx, moduleID).find(f => f.name === field)
+      const multi = !!(spec?.isMulti ?? spec?.multi)
+      const held = multi ? await fileIDs(ctx, moduleID, recordID, field) : []
+      await ctx.compose.recordPatch({
+        namespaceID: ctx.namespaceID,
+        moduleID,
+        recordID: [recordID],
+        values: [...held, attachment.attachmentID].map(value => ({ name: field, value })),
+      })
+      return describeFile(attachment)
+    }
+
+    case 'users.search': {
+      const query = String(args.query || '').trim()
+      if (query.length < 2)
+        throw new Error('users.search needs at least two characters to look for')
+      const limit = Math.min(Math.max(Number(args.limit) || 10, 1), MAX_USERS)
+      return ctx.searchUsers(query, limit)
+    }
 
     case 'chatbot.open':
     case 'chatbot.close': {

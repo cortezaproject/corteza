@@ -432,6 +432,12 @@
           },
           "type": "array"
         },
+        "deletes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "origins": {
           "items": {
             "type": "string"

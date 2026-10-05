@@ -108,8 +108,9 @@ Unsure, say which you think it is and why, in one line, and build that.
   `try` — the frame's origin is opaque and they throw. Keep state in variables.
 - No `alert`, `confirm`, `prompt` (the sandbox suppresses them; `confirm` always
   answers false), no `window.open` or `target="_blank"`, no `<a download>`.
-  Use in-page dialogs and in-page detail panes, and `human.download(name, text)`
-  for an export — up to 5 MB of text, which Human saves for the person.
+  Use `human.toast`, `human.confirm` and `human.prompt` (Human draws them),
+  in-page detail panes, and `human.download(name, text)` for an export — up to
+  5 MB of text, which Human saves for the person.
 - No links that leave the page — `mailto:`, `tel:`, another site or another
   file. They work in a preview and do nothing in Human. Link only to `#anchors`
   within the page, show an email address or phone number as text, and open a
@@ -133,13 +134,14 @@ Human prefixes this same block to every app it renders, and the snippet is
 written to be idempotent, so include it and the second copy is a no-op:
 
     window.human = window.human || (() => {
-      let port = null, seq = 0; const waiting = new Map()
+      let port = null, seq = 0; const waiting = new Map(), listeners = {}
       const ready = new Promise(resolve => {
         const t = setTimeout(() => resolve(false), 600)
         addEventListener('message', e => {
           if (e.source !== parent || e.data?.type !== 'human:port' || !e.ports[0]) return
           clearTimeout(t); port = e.ports[0]
-          port.onmessage = m => { const w = waiting.get(m.data.id); if (!w) return
+          port.onmessage = m => { if (m.data.event) { (listeners[m.data.event] || []).forEach(f => f(m.data.payload)); return }
+            const w = waiting.get(m.data.id); if (!w) return
             waiting.delete(m.data.id); m.data.error ? w.reject(new Error(m.data.error)) : w.resolve(m.data.result) }
           resolve(true)
         })
@@ -154,10 +156,17 @@ written to be idempotent, so include it and the second copy is a no-op:
           waiting.set(id, { resolve, reject }); port.postMessage({ id, op, args }) })
       })
       return { ready, call,
+        on: (event, fn) => { (listeners[event] ||= []).push(fn)
+          return () => { listeners[event] = listeners[event].filter(f => f !== fn) } },
         records: { list: a => call('records.list', a), read: a => call('records.read', a),
                    report: a => call('records.report', a),
-                   create: a => call('records.create', a), update: a => call('records.update', a) },
-        files: { list: a => call('files.list', a), read: a => call('files.read', a) },
+                   create: a => call('records.create', a), update: a => call('records.update', a),
+                   delete: a => call('records.delete', a), open: a => call('records.open', a) },
+        files: { list: a => call('files.list', a), read: a => call('files.read', a),
+                 upload: a => call('files.upload', a) },
+        users: { search: a => call('users.search', a) },
+        toast: a => call('toast', a), confirm: a => call('confirm', a), prompt: a => call('prompt', a),
+        setTitle: text => call('title', { text }),
         automation: { run: a => call('automation.run', a) },
         chatbot: { open: a => call('chatbot.open', a), close: a => call('chatbot.close', a) },
         modules: () => call('modules'), user: () => call('user'), theme: () => call('theme'),
@@ -203,6 +212,15 @@ Operations:
 | `human.chatbot.open`   | `{chatbot}`                                          | `true` — Human shows the chatbot             |
 | `human.chatbot.close`  | `{chatbot}`                                          | `true`                                       |
 | `human.refresh`        | —                                                    | `true` — the rest of the page catches up     |
+| `human.records.delete` | `{module, recordID}`                                 | `true`                                       |
+| `human.records.open`   | `{module, recordID, edit?}`                          | `true` — Human shows the record              |
+| `human.files.upload`   | `{module, recordID, field, name, dataURL}`           | the stored file                              |
+| `human.users.search`   | `{query, limit?}`                                    | `[{userID, name, email}]`                    |
+| `human.toast`          | `{message, severity?, title?}`                       | `true` — info, success, warn or error        |
+| `human.confirm`        | `{message, title?, accept?, reject?}`                | `true` or `false`                            |
+| `human.prompt`         | `{message, title?, value?}`                          | the text, or `null`                          |
+| `human.setTitle`       | `text`                                               | `true` — shown over the block or app title   |
+| `human.on`             | `(event, fn)`                                        | a function that stops listening              |
 
 - `module` is a handle and carries no namespace: the app reads the namespace it
   declared when it was deployed. A module it did not declare is refused with
@@ -283,6 +301,25 @@ recordID, params}`. On a record page `recordID` is the record shown — read it
 - After a change succeeds — a create, an update, an automation run — the rest
   of the page reloads what it shows. Call `human.refresh()` after anything else
   that changes what other blocks show.
+- `human.records.delete({module, recordID})` soft-deletes one record of a
+  module the page declared in `deletes` (every one must be in `modules`).
+  Human asks the person once before the first delete, apart from asking about
+  changes; confirm with `human.confirm` first if the page should say what it
+  is about to remove.
+- `human.files.upload({module, recordID, field, name, dataURL})` stores a file
+  in a record's File field — a module in `writes` — at most 10 MB. A
+  single-value field then holds the new file instead of the old one.
+- `human.records.open({module, recordID})` shows the record in Human's own
+  record view, over the page where it can — the place for details the page
+  does not draw itself.
+- `human.users.search({query})` finds people by name or email, at least two
+  characters, for an assignee picker; write the chosen `userID` to a User
+  field.
+- `human.toast`, `human.confirm`, `human.prompt` and `human.setTitle` show
+  plain text in Human, at most 500 characters.
+- `human.on('refresh', fn)` is called when something else on the page changed
+  data — another block, an automation button — so the page reloads what it
+  shows. Its own changes do not call it.
 - Give `window.SAMPLE` an entry for every call the page makes, the new ones
   included: a `context` with sample IDs and `params`, a `files.read` with a
   small `data:` image, an `automation.run` that resolves.
@@ -303,8 +340,8 @@ When the user is happy with the preview:
 2. `system_application_source_set` with `source` (the file exactly as
    previewed), `namespace` and `modules` — the allowlist the bridge enforces, so
    a module missing here makes the app refuse its own data — plus `writes` if
-   the page changes records, and `origins`, `automations` and `chatbots` if it
-   uses them.
+   the page changes records, `deletes` if it deletes them, and `origins`,
+   `automations` and `chatbots` if it uses them.
 3. Compare the returned `size` and `hash` with what you sent, then give the user
    the returned `url`.
 
@@ -324,7 +361,7 @@ its options. It takes one of two sources:
 - `{"applicationID": "<id>"}` — an application already deployed as above. It
   shows only to people allowed to open that application, and carries nothing
   else: what it reads is the application's declaration.
-- `{"source": "<the HTML>", "modules": [...], "writes": [...], "origins": [...],
+- `{"source": "<the HTML>", "modules": [...], "writes": [...], "deletes": [...], "origins": [...],
 "automations": [...], "chatbots": [...], "params": {...}}` — the page
   written into the block. It always reads the namespace of the page it is on,
   so it names no namespace; every module must exist there.

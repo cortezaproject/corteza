@@ -1,6 +1,6 @@
 <template>
   <Teleport to="#topbar-title" defer>
-    <span>{{ application?.name || $t('app.title') }}</span>
+    <span>{{ appTitle || application?.name || $t('app.title') }}</span>
   </Teleport>
 
   <div class="h-full w-full overflow-auto">
@@ -27,6 +27,7 @@
         :source="source"
         :source-meta="sourceMeta"
         :name="application?.name || ''"
+        @title="appTitle = $event"
         @navigated="problem = $t('app.state.navigated')"
       />
     </template>
@@ -52,6 +53,8 @@ const problem = ref('')
 const application = ref(null)
 const source = ref('')
 const sourceMeta = ref({})
+// What the app says it shows, over the application's name.
+const appTitle = ref('')
 
 // One application per route, and the route changes without the view being
 // remounted when the user goes from one custom app straight to another.
@@ -61,6 +64,7 @@ async function load(applicationID) {
   application.value = null
   source.value = ''
   sourceMeta.value = {}
+  appTitle.value = ''
 
   try {
     application.value = await applicationsStore.findByID(applicationID)

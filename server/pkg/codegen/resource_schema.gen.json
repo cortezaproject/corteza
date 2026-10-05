@@ -73,6 +73,7 @@
         "namespace": "string",
         "modules": "string",
         "writes": "string",
+        "deletes": "string",
         "origins": "string",
         "automations": "string",
         "chatbots": "string",

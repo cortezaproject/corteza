@@ -194,6 +194,7 @@ func (ctrl *Application) SourceSet(ctx context.Context, r *request.ApplicationSo
 		Namespace:   r.Namespace,
 		Modules:     r.Modules,
 		Writes:      r.Writes,
+		Deletes:     r.Deletes,
 		Origins:     r.Origins,
 		Automations: r.Automations,
 		Chatbots:    r.Chatbots,

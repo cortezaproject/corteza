@@ -173,6 +173,7 @@ const declaration = computed({
   get: () => ({
     modules: block.value.options?.modules || [],
     writes: block.value.options?.writes || [],
+    deletes: block.value.options?.deletes || [],
     origins: block.value.options?.origins || [],
     automations: block.value.options?.automations || [],
     chatbots: block.value.options?.chatbots || [],
@@ -182,6 +183,7 @@ const declaration = computed({
     updateOptions('automations', d.automations || [])
     updateOptions('origins', d.origins || [])
     updateOptions('modules', d.modules || [])
+    updateOptions('deletes', d.deletes || [])
     updateOptions('writes', d.writes || [])
   },
 })

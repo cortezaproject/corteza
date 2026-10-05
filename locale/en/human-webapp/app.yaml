@@ -3,10 +3,16 @@ consent:
   header: This app wants to change records
   message: '{name} wants to create and change records in {modules}. It does that as you, with your own permissions, and only in those modules. Nothing is changed until you allow it.'
   reject: Do not allow
+  deleteAccept: Allow this app to delete records
+  deleteHeader: This app wants to delete records
+  deleteMessage: '{name} wants to delete records in {modules}. It does that as you, with your own permissions, and only in those modules. Nothing is deleted until you allow it.'
   runAccept: Allow this app to run them
   runHeader: This app wants to run automations
   runMessage: '{name} wants to run {automations}. They run as you, with your own permissions, and may change data the app itself cannot reach. Nothing runs until you allow it.'
 declaration:
+  deletes: Modules it may delete from
+  deletesDescription: Each of these must also be one it reads. Every delete runs as the person using the page, under their own permissions, and they are asked before the first one.
+  noDeletes: None — this page deletes nothing
   automations: Automations it may run
   automationsDescription: Workflows and TAQs with a handle and a manual trigger. Each viewer is asked once before the first run, and each runs as them, with their own permissions.
   noOrigins: None — the page loads from cdnjs only

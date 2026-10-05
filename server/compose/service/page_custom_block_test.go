@@ -76,4 +76,7 @@ func TestCheckCustomBlocksResolvesWhatItDeclares(t *testing.T) {
 
 	err = checkCustomBlocks(ctx, modules, 1, block(map[string]any{"modules": []any{"task"}, "writes": []any{"lead"}}))
 	require.ErrorContains(t, err, `may change module "lead" but does not read it`)
+
+	err = checkCustomBlocks(ctx, modules, 1, block(map[string]any{"modules": []any{"task"}, "deletes": []any{"lead"}}))
+	require.ErrorContains(t, err, `may delete from module "lead" but does not read it`)
 }

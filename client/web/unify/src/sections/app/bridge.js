@@ -14,6 +14,7 @@ window.human = window.human || (function () {
   var port = null
   var seq = 0
   var waiting = {}
+  var listeners = {}
 
   var ready = new Promise(function (resolve) {
     var timer = setTimeout(function () { resolve(false) }, 600)
@@ -23,6 +24,12 @@ window.human = window.human || (function () {
       clearTimeout(timer)
       port = e.ports[0]
       port.onmessage = function (m) {
+        if (m.data && m.data.event) {
+          (listeners[m.data.event] || []).forEach(function (fn) {
+            try { fn(m.data.payload) } catch (err) { setTimeout(function () { throw err }) }
+          })
+          return
+        }
         var w = waiting[m.data.id]
         if (!w) return
         delete waiting[m.data.id]
@@ -57,13 +64,28 @@ window.human = window.human || (function () {
   return {
     ready: ready,
     call: call,
+    on: function (event, fn) {
+      (listeners[event] = listeners[event] || []).push(fn)
+      return function () {
+        listeners[event] = (listeners[event] || []).filter(function (f) { return f !== fn })
+      }
+    },
     records: {
       list: function (a) { return call('records.list', a) },
       read: function (a) { return call('records.read', a) },
       report: function (a) { return call('records.report', a) },
       create: function (a) { return call('records.create', a) },
-      update: function (a) { return call('records.update', a) }
+      update: function (a) { return call('records.update', a) },
+      delete: function (a) { return call('records.delete', a) },
+      open: function (a) { return call('records.open', a) }
     },
+    users: {
+      search: function (a) { return call('users.search', a) }
+    },
+    toast: function (a) { return call('toast', a) },
+    confirm: function (a) { return call('confirm', a) },
+    prompt: function (a) { return call('prompt', a) },
+    setTitle: function (text) { return call('title', { text: text }) },
     download: function (name, text) { return call('download', { name: name, text: text }) },
     modules: function () { return call('modules', {}) },
     user: function () { return call('user', {}) },
@@ -80,7 +102,8 @@ window.human = window.human || (function () {
     },
     files: {
       list: function (a) { return call('files.list', a) },
-      read: function (a) { return call('files.read', a) }
+      read: function (a) { return call('files.read', a) },
+      upload: function (a) { return call('files.upload', a) }
     },
     resize: function (height) { return call('resize', { height: height }) }
   }

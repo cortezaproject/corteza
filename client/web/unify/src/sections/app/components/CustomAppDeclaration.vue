@@ -46,6 +46,24 @@
   </CFormGroup>
 
   <CFormGroup
+    :label="$t('app.declaration.deletes')"
+    :description="$t('app.declaration.deletesDescription')"
+  >
+    <MultiSelect
+      v-model="deleteIDs"
+      data-test-id="custom-deletes"
+      :options="writeOptions"
+      option-label="label"
+      option-value="value"
+      display="chip"
+      :pt="CHIPS_WRAP"
+      class="w-full"
+      :placeholder="$t('app.declaration.noDeletes')"
+      :disabled="disabled || !moduleIDs.length"
+    />
+  </CFormGroup>
+
+  <CFormGroup
     :label="$t('app.declaration.automations')"
     :description="$t('app.declaration.automationsDescription')"
   >
@@ -162,6 +180,7 @@ const namespaceID = ref('')
 const namespaceSlug = ref('')
 const moduleIDs = ref([])
 const writeIDs = ref([])
+const deleteIDs = ref([])
 const modules = ref([])
 // Origins are plain text, no picker behind them, one row each; a blank row is
 // one still being added and is left out of the value. The server checks them
@@ -254,6 +273,7 @@ function current() {
     ...(props.namespace ? {} : { namespace: namespaceSlug.value }),
     modules: moduleIDs.value.map(handleOf).filter(Boolean),
     writes: writeIDs.value.map(handleOf).filter(Boolean),
+    deletes: deleteIDs.value.map(handleOf).filter(Boolean),
     automations: automations.value,
     chatbots: chatbots.value,
     origins: origins.value.map(o => o.trim()).filter(Boolean),
@@ -264,6 +284,7 @@ const same = (a = {}, b = {}) =>
   (a.namespace || '') === (b.namespace || '') &&
   (a.modules || []).join() === (b.modules || []).join() &&
   (a.writes || []).join() === (b.writes || []).join() &&
+  (a.deletes || []).join() === (b.deletes || []).join() &&
   (a.origins || []).join() === (b.origins || []).join() &&
   (a.automations || []).join() === (b.automations || []).join() &&
   (a.chatbots || []).join() === (b.chatbots || []).join()
@@ -293,11 +314,13 @@ async function loadModules(ids) {
 // A module the page no longer reads cannot stay one it may change.
 watch(moduleIDs, async ids => {
   writeIDs.value = writeIDs.value.filter(id => ids.includes(id))
+  deleteIDs.value = deleteIDs.value.filter(id => ids.includes(id))
   await loadModules(ids)
   publish()
 })
 
 watch(writeIDs, publish)
+watch(deleteIDs, publish)
 watch(origins, publish, { deep: true })
 watch(automations, publish)
 watch(chatbots, publish)
@@ -305,6 +328,7 @@ watch(chatbots, publish)
 async function onNamespaceChange(id) {
   moduleIDs.value = []
   writeIDs.value = []
+  deleteIDs.value = []
   modules.value = []
   namespaceSlug.value = ''
 
@@ -324,6 +348,7 @@ async function fill(meta = {}) {
     namespaceID.value = props.namespace?.namespaceID || ''
     moduleIDs.value = []
     writeIDs.value = []
+    deleteIDs.value = []
     modules.value = []
     origins.value = [...(meta.origins || [])]
     automations.value = [...(meta.automations || [])]
@@ -359,6 +384,9 @@ async function fill(meta = {}) {
     modules.value = found
     moduleIDs.value = found.map(m => m.moduleID)
     writeIDs.value = found.filter(m => (meta.writes || []).includes(m.handle)).map(m => m.moduleID)
+    deleteIDs.value = found
+      .filter(m => (meta.deletes || []).includes(m.handle))
+      .map(m => m.moduleID)
   } finally {
     // The watchers above run after this tick; they must see the fill as done
     // only once they have seen it at all.

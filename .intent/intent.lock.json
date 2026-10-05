@@ -92,7 +92,7 @@
       "t": "2026-09-22"
     },
     "client/web/unify/e2e/sections/compose/custom-block.spec.ts": {
-      "h": "921069fa691e",
+      "h": "09e09be559cc",
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-10-05"
     },
@@ -442,7 +442,7 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/admin/views/system/Application/Editor.vue": {
-      "h": "7b0d0b7bc2b7",
+      "h": "314a4c42be0c",
       "doc": "client/web/unify/src/sections/admin/views/system/Application/Editor.intent.md",
       "t": "2026-10-05"
     },
@@ -677,27 +677,27 @@
       "t": "2026-10-01"
     },
     "client/web/unify/src/sections/app/bridge.js": {
-      "h": "74f8476d3a6d",
+      "h": "162e2153e08d",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/bridge.test.js": {
-      "h": "dab98bb60679",
+      "h": "20e8893867e2",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/components/CustomAppDeclaration.vue": {
-      "h": "8b04cbb36c1a",
+      "h": "3c3f7006c8a6",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/components/CustomAppFrame.vue": {
-      "h": "f67a5414f280",
+      "h": "953281166108",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "e7c2abc3fc3e",
+      "h": "a4c031cb268b",
       "doc": "client/web/unify/src/sections/app/host.intent.md",
       "t": "2026-10-05"
     },
@@ -717,7 +717,7 @@
       "t": "2026-09-23"
     },
     "client/web/unify/src/sections/app/views/AppView.vue": {
-      "h": "590283c83730",
+      "h": "5123a2465d8c",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-10-05"
     },
@@ -1047,7 +1047,7 @@
       "t": "2026-08-18"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Blocks/CustomBlock.vue": {
-      "h": "192ea601ca0e",
+      "h": "4b0ba394a1fa",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-10-05"
     },
@@ -1167,7 +1167,7 @@
       "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/CustomConfigurator.vue": {
-      "h": "7dbe36ad5c5a",
+      "h": "78227fe4fd46",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
       "t": "2026-10-05"
     },
@@ -3367,7 +3367,7 @@
       "t": "2026-07-23"
     },
     "lib/js/src/compose/types/page-block/custom.ts": {
-      "h": "5a50ae607473",
+      "h": "80ff5c773c19",
       "doc": "lib/js/src/compose/compose.intent.md",
       "t": "2026-10-05"
     },

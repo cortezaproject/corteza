@@ -21,6 +21,7 @@ const PROBE = `
   out.ctx = await settle(human.context())
   out.list = await settle(human.records.list({ module: 'e2e_task' }))
   out.undeclared = await settle(human.records.list({ module: 'e2e_other' }))
+  out.modules = await settle(human.modules())
   if (out.ctx.ok && out.ctx.ok.recordID) {
     out.read = await settle(human.records.read({ module: 'e2e_task', recordID: out.ctx.ok.recordID }))
   }
@@ -37,7 +38,29 @@ type Probe = {
   list: { ok?: { records: Array<{ recordID: string; values: Record<string, any> }> } }
   undeclared: { error?: string }
   read?: { ok?: { record: { values: Record<string, any> } } }
+  modules: { ok?: Array<{ handle: string; fields: Array<{ name: string; multi: boolean }> }> }
 }
+
+// Creates a record and deletes it, and counts the refresh events it hears.
+const ACTIONS = `
+<button id="delete">delete</button>
+<pre id="log"></pre>
+<div id="heard">0</div>
+<script>
+let heard = 0
+human.on('refresh', () => { document.getElementById('heard').textContent = String(++heard) })
+document.getElementById('delete').onclick = async () => {
+  try {
+    const { record } = await human.records.create({ module: 'e2e_task', values: { title: 'doomed' } })
+    await human.records.delete({ module: 'e2e_task', recordID: record.recordID })
+    document.getElementById('log').textContent = 'deleted ' + record.recordID
+  } catch (e) { document.getElementById('log').textContent = 'error ' + e.message }
+}
+</script>`
+
+// Tells the rest of the page that data changed.
+const PINGER = `<button id="ping">ping</button>
+<script>document.getElementById('ping').onclick = () => human.refresh()</script>`
 
 const inline = (extra: Record<string, unknown> = {}) => ({
   kind: 'Custom',
@@ -76,6 +99,7 @@ async function probe(page: Page, path: string, index = 0): Promise<Probe> {
 test.describe.serial('custom page block', () => {
   let namespaceID = ''
   let dashboardID = ''
+  let actionsID = ''
   let recordPageID = ''
   let recordID = ''
 
@@ -86,10 +110,13 @@ test.describe.serial('custom page block', () => {
       await page.goto('/')
       const made = await withApp(
         page,
-        async ({ $ComposeAPI: compose }, { slug, dashboard, recordBlock }) => {
+        async ({ $ComposeAPI: compose }, { slug, dashboard, recordBlock, actionBlocks }) => {
           const ns = await compose.namespaceCreate({ name: slug, slug, enabled: true, meta: {} })
           const namespaceID = ns.namespaceID
-          const fields = [{ name: 'title', kind: 'String', label: 'Title' }]
+          const fields = [
+            { name: 'title', kind: 'String', label: 'Title' },
+            { name: 'tags', kind: 'String', label: 'Tags', isMulti: true },
+          ]
           const task = await compose.moduleCreate({
             namespaceID,
             name: 'Task',
@@ -129,16 +156,32 @@ test.describe.serial('custom page block', () => {
             visible: true,
             blocks: [recordBlock],
           })
+          const actions = await compose.pageCreate({
+            namespaceID,
+            title: 'Actions',
+            handle: 'actions',
+            visible: true,
+            blocks: actionBlocks,
+          })
           return {
             namespaceID,
+            actionsID: actions.pageID,
             dashboardID: dash.pageID,
             recordPageID: rec.pageID,
             recordID: first.recordID,
           }
         },
-        { slug: SLUG, dashboard: inline({ params: { colour: 'teal' } }), recordBlock: inline() },
+        {
+          slug: SLUG,
+          dashboard: inline({ params: { colour: 'teal' } }),
+          recordBlock: inline(),
+          actionBlocks: [
+            inline({ source: ACTIONS, writes: ['e2e_task'], deletes: ['e2e_task'] }),
+            { ...inline({ source: PINGER }), xywh: [0, 20, 48, 10] },
+          ],
+        },
       )
-      ;({ namespaceID, dashboardID, recordPageID, recordID } = made)
+      ;({ namespaceID, actionsID, dashboardID, recordPageID, recordID } = made)
     } finally {
       await context.close()
     }
@@ -218,5 +261,31 @@ test.describe.serial('custom page block', () => {
     expect(refused[0]).toContain("connect-src 'none'")
     expect(refused[1]).toContain('may change module "e2e_other" but does not read it')
     expect(refused[2]).toContain('there is no module "missing"')
+  })
+
+  test('modules tells a multi-value field apart', async ({ page }) => {
+    const out = await probe(page, `/compose/namespace/${SLUG}/pages/${dashboardID}`)
+    const fields = out.modules.ok?.find(m => m.handle === 'e2e_task')?.fields || []
+    expect(fields.find(f => f.name === 'tags')?.multi).toBe(true)
+    expect(fields.find(f => f.name === 'title')?.multi).toBe(false)
+  })
+
+  test('a block deletes a record of a module declared for it, once the viewer allows', async ({
+    page,
+  }) => {
+    await page.goto(`/compose/namespace/${SLUG}/pages/${actionsID}`)
+    const block = frame(page, 0)
+    await block.locator('#delete').click({ timeout: 20000 })
+    await page.getByRole('button', { name: 'Allow this app to make changes' }).click()
+    await page.getByRole('button', { name: 'Allow this app to delete records' }).click()
+    await expect(block.locator('#log')).toContainText('deleted ', { timeout: 15000 })
+  })
+
+  test('a block hears another block change data', async ({ page }) => {
+    await page.goto(`/compose/namespace/${SLUG}/pages/${actionsID}`)
+    const block = frame(page, 0)
+    await expect(block.locator('#heard')).toHaveText('0', { timeout: 20000 })
+    await frame(page, 1).locator('#ping').click()
+    await expect(block.locator('#heard')).toHaveText('1')
   })
 })

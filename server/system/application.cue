@@ -33,6 +33,8 @@ _applicationDefs: {
 				{ name: "Modules", goType: "[]string", json: "modules,omitempty" },
 				// The declared modules the app may also create and change records in.
 				{ name: "Writes", goType: "[]string", json: "writes,omitempty" },
+				// The declared modules the app may also delete records from.
+				{ name: "Deletes", goType: "[]string", json: "deletes,omitempty" },
 				// Origins, beyond cdnjs, the page may load scripts, styles, fonts
 				// and images from: exact https origins, set with the page.
 				{ name: "Origins", goType: "[]string", json: "origins,omitempty" },
