@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -31,6 +32,10 @@ type Controller struct {
 	store         store.Storer
 	serverSecret  string
 	sessionSvc    ChatbotSessionService
+
+	// Sessions whose first step is being started, so two streams opening
+	// at once start it once.
+	starting sync.Map
 }
 
 // AiConversationStore is satisfied by service.DefaultAiConversation. Kept for
@@ -43,6 +48,7 @@ type AiConversationStore interface {
 type ChatbotSessionService interface {
 	Open(ctx context.Context, cb *types.Chatbot) (*types.ChatbotSession, *types.AiConversation, error)
 	Start(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, scenarioIndex int)
+	FindStepsBySession(ctx context.Context, sessionID uint64) (types.ChatbotSessionStepSet, error)
 	SubmitMessage(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, input string) error
 	SubmitForm(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, fields map[string]string) (map[string]string, error)
 	SubmitConsent(ctx context.Context, cb *types.Chatbot, sessionID, convID uint64, accepted bool) error
@@ -214,8 +220,8 @@ func (c *Controller) createSession(w http.ResponseWriter, r *http.Request) {
 		"dbSessionID":    strconv.FormatUint(session.ID, 10),
 	})
 
-	// Kick off step 0 asynchronously so SSE listeners attach in time.
-	go c.sessionSvc.Start(context.Background(), cb, session.ID, conv.ID, 0)
+	// Step 0 starts when the session's stream connects (see startFirstStep):
+	// started here, its step_start went out before anyone was listening.
 }
 
 // submit dispatches on payload.type — message or form.
@@ -431,7 +437,32 @@ func (c *Controller) stream(w http.ResponseWriter, r *http.Request) {
 	c.obsBus.Register(d)
 	defer d.Close()
 
+	c.startFirstStep(r.Context(), chatbotFromCtx(r.Context()), claims)
+
 	observability.PumpSSE(w, r, d)
+}
+
+// startFirstStep starts a session's first step once a stream is listening for
+// it, and only if nothing has started it yet: a stream that reconnects, or a
+// second one, finds the step there and leaves it be. The bus does not replay,
+// so a step started before the stream registered reached nobody.
+func (c *Controller) startFirstStep(ctx context.Context, cb *types.Chatbot, claims *sessionClaims) {
+	if cb == nil || claims == nil {
+		return
+	}
+	if _, busy := c.starting.LoadOrStore(claims.Dbsid, struct{}{}); busy {
+		return
+	}
+
+	if steps, err := c.sessionSvc.FindStepsBySession(ctx, claims.Dbsid); err != nil || len(steps) > 0 {
+		c.starting.Delete(claims.Dbsid)
+		return
+	}
+
+	go func() {
+		defer c.starting.Delete(claims.Dbsid)
+		c.sessionSvc.Start(context.Background(), cb, claims.Dbsid, claims.Cid, 0)
+	}()
 }
 
 // ---- helpers ----------------------------------------------------------------
