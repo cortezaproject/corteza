@@ -203,6 +203,20 @@ Every generated `*Undelete` handler returns `api.OK()` → `{success:{message:"O
 
 **How to apply:** after an undelete, update the row the view already holds; check the `.gen.go` handler before assuming a return shape.
 
+## Federation
+
+### Two nodes need two processes
+
+Federation services are package globals (`service.DefaultStore`, `DefaultNode`), and pairing gives both sides' node rows the same `SharedNodeID`, so one process with one database cannot play both nodes. `server/tests/federation_e2e` builds the binary and runs two servers in temp dirs (`make test.federation-e2e`, opt-in via `HUMAN_FEDERATION_E2E=1`).
+
+**How to apply:** a server outside the repo needs `LOCALE_PATH` and `PROVISION_PATH` given absolutely; its healthcheck is `/healthcheck`, not under `/api`; two processes on SQLite need `_busy_timeout=…&_journal_mode=WAL`, as `cache=shared` fails with "database table is locked"; the pairing URI is always `https`, so a plain-http peer's `baseURL` is set through the node update call.
+
+### A peer reads exposed records as the origin's federation role
+
+Nothing provisions the read access: the origin's `federation` role needs `read` on the exposed module's records and `record.value.read` on its fields. A field without value read syncs as an empty value, with no error anywhere.
+
+**How to apply:** grant both per exposed module, as `grantFederationRole` in the e2e test does.
+
 ## Envoy and provisioning
 
 ### Envoy scope is compose-only
