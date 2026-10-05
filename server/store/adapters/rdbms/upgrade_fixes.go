@@ -72,6 +72,7 @@ var (
 		fix_2026_07_00_addRevisionColumnsOnProjects,
 		fix_2026_07_14_addModeOnProjects,
 		fix_2026_07_21_dropModeOnProjects,
+		fix_2026_10_05_renameFederationNodeSyncModuleColumn,
 	}
 
 	fixesPost = append([]func(context.Context, *Store) error{
@@ -1203,9 +1204,42 @@ func fix_2024_09_03_dropFederationNodeSyncPrimaryKey(ctx context.Context, s *Sto
 
 	switch {
 	case strings.HasPrefix(driverName, "sqlite"):
+		// SQLite cannot drop a primary key: the table is rebuilt without one,
+		// declaring each column with its type, which CREATE TABLE AS SELECT
+		// would drop
+		var (
+			cols    []string
+			hasPK   bool
+			colRows *sql.Rows
+		)
+
+		if colRows, err = s.DB.QueryContext(ctx, fmt.Sprintf("SELECT name, type, pk FROM pragma_table_info('%s')", tableName)); err != nil {
+			return err
+		}
+		defer colRows.Close()
+
+		for colRows.Next() {
+			var (
+				name, typ string
+				pk        int
+			)
+			if err = colRows.Scan(&name, &typ, &pk); err != nil {
+				return err
+			}
+			hasPK = hasPK || pk > 0
+			cols = append(cols, fmt.Sprintf("%q %s", name, typ))
+		}
+		if err = colRows.Err(); err != nil {
+			return err
+		}
+
+		if !hasPK {
+			return nil
+		}
+
 		tempTable := tableName + "_temp"
 		sqlStatements := []string{
-			fmt.Sprintf("CREATE TABLE %s AS SELECT * FROM %s WHERE 1=0", tempTable, tableName),
+			fmt.Sprintf("CREATE TABLE %s (%s)", tempTable, strings.Join(cols, ", ")),
 			fmt.Sprintf("INSERT INTO %s SELECT * FROM %s", tempTable, tableName),
 			fmt.Sprintf("DROP TABLE %s", tableName),
 			fmt.Sprintf("ALTER TABLE %s RENAME TO %s", tempTable, tableName),
@@ -1286,6 +1320,12 @@ func fix_2024_09_03_renameFederationNodeSyncNodeID(ctx context.Context, s *Store
 
 func fix_2024_09_03_renameFederationNodeSyncComposeID(ctx context.Context, s *Store) (err error) {
 	return renameColumn(ctx, s, "federation_nodes_sync", "module_id", "rel_module")
+}
+
+// fix_2026_10_05_renameFederationNodeSyncModuleColumn moves the module column
+// to the name the model reads and writes
+func fix_2026_10_05_renameFederationNodeSyncModuleColumn(ctx context.Context, s *Store) (err error) {
+	return renameColumn(ctx, s, "federation_nodes_sync", "rel_module", "rel_compose_module")
 }
 
 func fix_2024_09_05_addUserGroupReferenceToUser(ctx context.Context, s *Store) (err error) {
