@@ -138,6 +138,13 @@ func (b PageBlock) resourceRefs() (out []resourceref.Ref) {
 			))
 		}
 
+	case "Custom":
+		out = resourceref.Append(out, resourceref.MakeIdent(
+			resourceref.KindApplication,
+			blockOptString(b.Options, "application", "applicationID"),
+			resourceref.ReasonPageApplication,
+		))
+
 	case "ChatbotInbox":
 		for _, id := range cast.ToStringSlice(b.Options["chatbotIDs"]) {
 			out = resourceref.Append(out, resourceref.MakeIdent(
@@ -229,6 +236,8 @@ func (bb PageBlocks) LocatedRefs() map[string]resourceref.Ref {
 				put(fmt.Sprintf("%sbuttons.%d.WorkflowID", at, j), resourceref.MakeIdent(resourceref.KindAutomationWorkflow, blockOptString(btn, "workflow", "workflowID"), resourceref.ReasonPageWorkflow))
 			}
 
+		case "Custom":
+			put(at+"ApplicationID", resourceref.MakeIdent(resourceref.KindApplication, blockOptString(b.Options, "application", "applicationID"), resourceref.ReasonPageApplication))
 		}
 	}
 

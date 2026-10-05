@@ -122,6 +122,13 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 		// Modules travel by handle; the IDs beside them name nothing on another
 		// instance and are set again when the page is next stored.
 		delete(b.Options, "moduleIDs")
+
+		// An application travels by name when it is in the same export;
+		// otherwise its ID is kept, which still names it on this instance.
+		if appRef, ok := n.References[fmt.Sprintf("Blocks.%d.Options.ApplicationID", index)]; ok && tt.ParentForRef(n, appRef) != nil {
+			b.Options["application"] = safeParentIdentifier(tt, n, appRef)
+			delete(b.Options, "applicationID")
+		}
 		break
 
 	case "RecordOrganizer":

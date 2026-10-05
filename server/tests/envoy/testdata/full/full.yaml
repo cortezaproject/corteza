@@ -90,6 +90,11 @@ namespace:
             kind: Progress
             options:
               module: test_ns_1_mod_1
+
+          - title: Test Namespace 1 Page 1 Block 9
+            kind: Custom
+            options:
+              application: test_app_1
         pages:
           test_ns_1_record_page_1:
             title: Test Namespace 1 Record Page 1

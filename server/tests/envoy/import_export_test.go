@@ -235,7 +235,7 @@ func assertFullState(ctx context.Context, t *testing.T, s store.Storer, req *req
 			pg1 := pages.FindByHandle("test_ns_1_page_1")
 			req.NotNil(pg1)
 
-			req.Len(pg1.Blocks, 8)
+			req.Len(pg1.Blocks, 9)
 
 			// Page block references land in the options they came from
 			blockOpt := func(i int, k string) string { return fmt.Sprint(pg1.Blocks[i].Options[k]) }
@@ -247,6 +247,11 @@ func assertFullState(ctx context.Context, t *testing.T, s store.Storer, req *req
 			metric := pg1.Blocks[5].Options["metrics"].([]any)[0].(map[string]any)
 			req.Equal(fmt.Sprint(mod1.ID), fmt.Sprint(metric["moduleID"]), "Metric module")
 			req.Equal(fmt.Sprint(mod1.ID), blockOpt(6, "moduleID"), "Comment module")
+
+			apps, _, err := store.SearchApplications(ctx, s, systemTypes.ApplicationFilter{Name: "test_app_1"})
+			req.NoError(err)
+			req.Len(apps, 1)
+			req.Equal(fmt.Sprint(apps[0].ID), blockOpt(8, "applicationID"), "Custom application")
 
 			rpg1 := pages.FindByHandle("test_ns_1_record_page_1")
 			req.NotNil(rpg1)

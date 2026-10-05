@@ -42,6 +42,7 @@ const (
 	KindKnowledgeBase        = "corteza::system:knowledge-base"
 	KindAgent                = "corteza::system:agent"
 	KindChatbot              = "corteza::system:chatbot"
+	KindApplication          = "corteza::system:application"
 	KindRole                 = "corteza::system:role"
 	KindTemplate             = "corteza::system:template"
 )
@@ -55,6 +56,7 @@ const (
 	ReasonPageAutomation      = "page-automation"
 	ReasonPageAgent           = "page-agent"
 	ReasonPageChatbot         = "page-chatbot"
+	ReasonPageApplication     = "page-application"
 	ReasonPageNavigation      = "page-navigation"
 	ReasonChartModule         = "chart-module"
 	ReasonTriggerModule       = "trigger-module"
