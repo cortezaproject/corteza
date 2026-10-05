@@ -88,3 +88,21 @@ func Test_writeHttpJSON(t *testing.T) {
 	req.NotContains(buf.String(), "meta")
 	req.NotContains(buf.String(), "stack")
 }
+
+// A workflow error step's title is meant for the user, so it survives masking;
+// other meta and the stack do not
+func Test_writeHttpJSON_automationTitle(t *testing.T) {
+	var (
+		err = Automation("Order is not ready").Apply(Meta("title", "Order check"), Meta("secret", "s3cr3t"))
+		buf = bytes.NewBuffer(nil)
+		req = require.New(t)
+	)
+
+	writeHttpJSON(context.Background(), buf, err, true)
+	req.JSONEq(`{"error":{"message":"Order is not ready","meta":{"title":"Order check"}}}`, buf.String())
+
+	// other kinds do not keep a title
+	buf.Truncate(0)
+	writeHttpJSON(context.Background(), buf, New(KindInternal, "boom", Meta("title", "Leaked")), true)
+	req.JSONEq(`{"error":{"message":"boom"}}`, buf.String())
+}
