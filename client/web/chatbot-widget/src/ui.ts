@@ -309,6 +309,14 @@ export class WidgetUI {
     if (this.onToggle) this.onToggle(!this.panelEl.classList.contains('hb-hidden'))
   }
 
+  openPanel() {
+    if (this.panelEl.classList.contains('hb-hidden')) this.togglePanel()
+  }
+
+  closePanel() {
+    if (!this.panelEl.classList.contains('hb-hidden')) this.togglePanel()
+  }
+
   destroy() {
     if (this.mo) {
       this.mo.disconnect()

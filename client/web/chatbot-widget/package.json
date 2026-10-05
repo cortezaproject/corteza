@@ -8,6 +8,7 @@
   },
   "exports": {
     "./engine": "./src/engine.ts",
+    "./mount": "./src/mount.ts",
     "./ui": "./src/ui.ts",
     "./types": "./src/types.ts"
   },

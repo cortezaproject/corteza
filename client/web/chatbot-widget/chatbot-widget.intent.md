@@ -22,7 +22,8 @@ host-page CSS can never touch it and vice versa. `public/` (demo page) and
 
 ## Map
 
-- `src/entry.ts` — boot: locates its own `<script>` tag, reads the widget key from `data-widget-key` (fallback `?k=` in src), fetches config, wires Engine/UI/API together and opens the session immediately so the server drives the first scenario over SSE. Also owns static-message auto-advance/auto-close timers.
+- `src/entry.ts` — boot: locates its own `<script>` tag, reads the widget key from `data-widget-key` (fallback `?k=` in src), and mounts the widget with it.
+- `src/mount.ts` — `mountChatbot({scriptSrc, widgetKey, startOpen?})`: fetches config, wires Engine/UI/API together and opens the session immediately; the server starts the first scenario once the session's stream is listening, and drives it over SSE. Also owns static-message auto-advance/auto-close timers. Returns `{open, close, destroy}`, or `null` when the chatbot cannot start. The script tag's boot is one caller; the unify custom app sandbox's shell is the other (`human.chatbot.open`), which mounts the widget into the webapp's own document, exported as `human-webapp-chatbot-widget/mount`.
 - `src/api.ts` — `WidgetAPI`: the public HTTP client contract against `/api/widget/v1` (origin derived from the script's own src). Session-token Bearer auth, `credentials: 'omit'`.
 - `src/engine.ts` — thin pub/sub holding messages, current step, and handoff state; only reflects what the server reports via SSE, never orchestrates.
 - `src/ui.ts` — DOM layer (no framework): launcher + panel in the shadow root, per-scenario-type rendering, callback hooks (`onUserInput`, `onFormSubmit`, `onConsentDecision`, handoff, close) that entry.ts fills in. Sanitizes author rich-HTML (consent bodies and static messages) against tag/style allow-lists.

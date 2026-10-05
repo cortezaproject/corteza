@@ -17,9 +17,14 @@
       "t": "2026-08-13"
     },
     "client/web/chatbot-widget/src/entry.ts": {
-      "h": "1269396467e9",
+      "h": "ef1c10423498",
       "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-10-05"
+    },
+    "client/web/chatbot-widget/src/mount.ts": {
+      "h": "0487a61d0174",
+      "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
+      "t": "2026-10-05"
     },
     "client/web/chatbot-widget/src/styles.ts": {
       "h": "cadc46b7be70",
@@ -32,9 +37,9 @@
       "t": "2026-08-13"
     },
     "client/web/chatbot-widget/src/ui.ts": {
-      "h": "31c0a7067e7e",
+      "h": "8e7a24e3a62e",
       "doc": "client/web/chatbot-widget/chatbot-widget.intent.md",
-      "t": "2026-08-13"
+      "t": "2026-10-05"
     },
     "client/web/chatbot-widget/vite.config.ts": {
       "h": "af75ad789d32",
