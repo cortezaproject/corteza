@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
-	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -697,15 +696,15 @@ func (svc *connection) Import(ctx context.Context, catalogID string) (res *types
 // surgically: a stored empty value is restored, a user-set value never overwritten.
 func applyCatalogRefresh(conn, fresh *types.Connection) bool {
 	changed := healCatalogAuthParams(conn, fresh)
-	if !reflect.DeepEqual(conn.Operations, fresh.Operations) {
+	if jsonDiffers(conn.Operations, fresh.Operations) {
 		conn.Operations = fresh.Operations
 		changed = true
 	}
-	if !reflect.DeepEqual(conn.Resources, fresh.Resources) {
+	if jsonDiffers(conn.Resources, fresh.Resources) {
 		conn.Resources = fresh.Resources
 		changed = true
 	}
-	if !reflect.DeepEqual(conn.Service.AuthOptions, fresh.Service.AuthOptions) {
+	if jsonDiffers(conn.Service.AuthOptions, fresh.Service.AuthOptions) {
 		conn.Service.AuthOptions = fresh.Service.AuthOptions
 		changed = true
 	}
@@ -718,9 +717,22 @@ func applyCatalogRefresh(conn, fresh *types.Connection) bool {
 // one, without mutating conn. applyCatalogRefresh runs the same comparison but
 // also writes; this is the read-only half used for update detection.
 func catalogDiffers(conn, fresh *types.Connection) bool {
-	return !reflect.DeepEqual(conn.Operations, fresh.Operations) ||
-		!reflect.DeepEqual(conn.Resources, fresh.Resources) ||
-		!reflect.DeepEqual(conn.Service.AuthOptions, fresh.Service.AuthOptions)
+	return jsonDiffers(conn.Operations, fresh.Operations) ||
+		jsonDiffers(conn.Resources, fresh.Resources) ||
+		jsonDiffers(conn.Service.AuthOptions, fresh.Service.AuthOptions)
+}
+
+// jsonDiffers reports whether a and b differ by their JSON encoding. Unlike
+// reflect.DeepEqual, nil and empty map/slice encode identically — so catalog
+// definitions the store round-trips through omitempty (e.g. an empty "headers"
+// map dropped on save) do not produce spurious, perpetual diffs.
+func jsonDiffers(a, b any) bool {
+	aj, errA := json.Marshal(a)
+	bj, errB := json.Marshal(b)
+	if errA != nil || errB != nil {
+		return true
+	}
+	return string(aj) != string(bj)
 }
 
 func (svc *connection) setCatalogUpdate(id uint64, avail bool) {

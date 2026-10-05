@@ -87,6 +87,7 @@ _connectionDefs: {
 			ConnectionWebhook: { name: "ConnectionWebhook", fields: [
 				{ name: "Event", type: "string", json: "event" },
 				{ name: "Path", type: "string", json: "path" },
+				{ name: "Meta", ptr: true, type: _connectionDefs.ConnectionResourceMeta, json: "meta,omitempty" },
 				{ name: "Payload", slice: true, type: _connectionDefs.ConnectionWebhookField, json: "payload,omitempty" },
 				{ name: "Mapping", goType: "map[string]string", json: "mapping,omitempty" },
 				{ name: "Poll", ptr: true, type: _connectionDefs.ConnectionWebhookPoll, json: "poll,omitempty" },

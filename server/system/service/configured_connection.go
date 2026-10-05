@@ -1656,13 +1656,25 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 				})
 			}
 
+			// Prefer the connector-declared label; fall back to one derived from
+			// the resource/event handles.
+			short := fmt.Sprintf("%s: %s", labelFromName(res.Handle), labelFromName(wh.Event))
+			var desc string
+			if wh.Meta != nil {
+				if wh.Meta.Short != "" {
+					short = wh.Meta.Short
+				}
+				desc = wh.Meta.Description
+			}
+
 			tt = append(tt, atypes.ConstructTrigger{
 				ResourceType: rt,
 				EventType:    wh.Event,
 				Groups:       []string{cc.Connection.Meta.Short},
 				Properties:   props,
 				Meta: &atypes.ConstructTriggerMeta{
-					Short: fmt.Sprintf("%s: %s", labelFromName(res.Handle), labelFromName(wh.Event)),
+					Short:       short,
+					Description: desc,
 				},
 			})
 		}

@@ -127,6 +127,7 @@ type (
 	ConnectionWebhook struct {
 		Event   string                   `json:"event"`
 		Path    string                   `json:"path"`
+		Meta    *ConnectionResourceMeta  `json:"meta,omitempty"`
 		Payload []ConnectionWebhookField `json:"payload,omitempty"`
 		Mapping map[string]string        `json:"mapping,omitempty"`
 		Poll    *ConnectionWebhookPoll   `json:"poll,omitempty"`
@@ -839,6 +840,10 @@ func (r ConnectionResourceField) Value() (driver.Value, error) { return json.Mar
 
 func (r ConnectionWebhook) Clone() *ConnectionWebhook {
 	dup := r
+	if r.Meta != nil {
+		dup.Meta = r.Meta.Clone()
+	}
+
 	if r.Payload != nil {
 		dup.Payload = make([]ConnectionWebhookField, len(r.Payload))
 		for i := range r.Payload {
@@ -871,6 +876,15 @@ func (r ConnectionWebhook) Diff(cmp *ConnectionWebhook) []*revisions.Change {
 
 	if r.Path != cmp.Path {
 		out = append(out, &revisions.Change{Key: "path", Old: []any{cmp.Path}, New: []any{r.Path}})
+	}
+
+	if (r.Meta == nil) != (cmp.Meta == nil) {
+		out = append(out, &revisions.Change{Key: "meta", Old: []any{cmp.Meta}, New: []any{r.Meta}})
+	} else if r.Meta != nil {
+		for _, c := range r.Meta.Diff(cmp.Meta) {
+			c.Key = "meta." + c.Key
+			out = append(out, c)
+		}
 	}
 
 	if !reflect.DeepEqual(r.Payload, cmp.Payload) {
