@@ -3,13 +3,14 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/crusttech/human/server/pkg/id"
 
 	"github.com/crusttech/human/server/pkg/filter"
 )
 
 type (
 	NotificationFilter struct {
-		NotificationID []uint64           `json:"notificationID"`
+		NotificationID id.Uint64s         `json:"notificationID"`
 		Kind           []NotificationKind `json:"kind"`
 		Recipient      uint64             `json:"recipient,string"`
 		Read           filter.State       `json:"read"`

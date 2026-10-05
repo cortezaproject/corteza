@@ -24,7 +24,7 @@ type (
 	}
 
 	CredentialFilter struct {
-		OwnerID     uint64       `json:"ownerID"`
+		OwnerID     uint64       `json:"ownerID,string"`
 		Kind        string       `json:"kind"`
 		Credentials string       `json:"credentials"`
 		Deleted     filter.State `json:"deleted"`

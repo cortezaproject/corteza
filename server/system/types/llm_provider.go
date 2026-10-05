@@ -2,11 +2,12 @@ package types
 
 import (
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
 )
 
 type (
 	LlmProviderFilter struct {
-		LlmProviderID []uint64     `json:"llmProviderID"`
+		LlmProviderID id.Uint64s   `json:"llmProviderID"`
 		Handle        string       `json:"handle"`
 		Status        string       `json:"status"`
 		Provider      string       `json:"provider"`

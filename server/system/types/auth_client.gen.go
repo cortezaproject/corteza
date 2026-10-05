@@ -32,13 +32,13 @@ type (
 		ValidFrom   *time.Time                       `json:"validFrom,omitempty"`
 		ExpiresAt   *time.Time                       `json:"expiresAt,omitempty"`
 		Security    *AuthClientSecurity              `json:"security"`
-		OwnedBy     uint64                           `json:"ownedBy"`
+		OwnedBy     uint64                           `json:"ownedBy,string"`
 		CreatedAt   time.Time                        `json:"createdAt"`
 		UpdatedAt   *time.Time                       `json:"updatedAt,omitempty"`
 		DeletedAt   *time.Time                       `json:"deletedAt,omitempty"`
-		CreatedBy   uint64                           `json:"createdBy"`
-		UpdatedBy   uint64                           `json:"updatedBy,omitempty"`
-		DeletedBy   uint64                           `json:"deletedBy,omitempty"`
+		CreatedBy   uint64                           `json:"createdBy,string"`
+		UpdatedBy   uint64                           `json:"updatedBy,omitempty,string"`
+		DeletedBy   uint64                           `json:"deletedBy,omitempty,string"`
 		Labels      map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 	}
 

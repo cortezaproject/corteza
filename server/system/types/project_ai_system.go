@@ -2,11 +2,12 @@ package types
 
 import (
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
 )
 
 type (
 	ProjectAiSystemFilter struct {
-		ProjectAiSystemID []uint64     `json:"projectAiSystemID"`
+		ProjectAiSystemID id.Uint64s   `json:"projectAiSystemID"`
 		TenantID          uint64       `json:"tenantID,string,omitempty"`
 		ProjectID         uint64       `json:"projectID,string,omitempty"`
 		Handle            string       `json:"handle,omitempty"`

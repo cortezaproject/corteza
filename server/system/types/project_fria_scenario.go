@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
 )
 
 type (
@@ -9,12 +10,12 @@ type (
 	// filter.struct block in system/project_fria_scenario.cue — the store's
 	// generated query builder reads exactly these fields.
 	ProjectFriaScenarioFilter struct {
-		ProjectFriaScenarioID []uint64 `json:"projectFriaScenarioID"`
-		TenantID              uint64   `json:"tenantID,string,omitempty"`
-		ProjectID             uint64   `json:"projectID,string,omitempty"`
-		AiSystemID            uint64   `json:"aiSystemID,string,omitempty"`
-		Severity              string   `json:"severity,omitempty"`
-		Query                 string   `json:"query,omitempty"`
+		ProjectFriaScenarioID id.Uint64s `json:"projectFriaScenarioID"`
+		TenantID              uint64     `json:"tenantID,string,omitempty"`
+		ProjectID             uint64     `json:"projectID,string,omitempty"`
+		AiSystemID            uint64     `json:"aiSystemID,string,omitempty"`
+		Severity              string     `json:"severity,omitempty"`
+		Query                 string     `json:"query,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 

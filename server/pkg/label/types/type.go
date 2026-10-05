@@ -2,6 +2,7 @@ package types
 
 import (
 	"database/sql/driver"
+	"github.com/crusttech/human/server/pkg/id"
 
 	"github.com/crusttech/human/server/pkg/sql"
 
@@ -26,7 +27,7 @@ type (
 
 	LabelFilter struct {
 		Kind       string              `json:"kind"`
-		ResourceID []uint64            `json:"resourceID"`
+		ResourceID id.Uint64s          `json:"resourceID"`
 		Filter     map[string][]string `json:"filter"`
 		Limit      uint                `json:"limit"`
 		Name       string              `json:"name"`

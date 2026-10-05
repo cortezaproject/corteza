@@ -14,7 +14,7 @@ import (
 
 type (
 	QueueMessage struct {
-		ID        uint64     `json:"messageID"`
+		ID        uint64     `json:"messageID,string"`
 		Queue     string     `json:"queue"`
 		Payload   []byte     `json:"payload"`
 		Created   *time.Time `json:"created"`

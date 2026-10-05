@@ -80,7 +80,7 @@ func testReminders(t *testing.T, s store.Reminders) {
 
 			set, f, err := s.SearchReminders(ctx, types.ReminderFilter{ReminderID: []uint64{prefill[0].ID}})
 			req.NoError(err)
-			req.Equal([]uint64{prefill[0].ID}, f.ReminderID)
+			req.Equal([]uint64{prefill[0].ID}, []uint64(f.ReminderID))
 			req.Len(set, 1)
 		})
 

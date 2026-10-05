@@ -19,7 +19,7 @@ queue_message: {
 		omitGetterSetter: true
 
 		attributes: {
-		  id:        schema.IdField & { json: "messageID" }
+		  id:        schema.IdField & { json: "messageID,string" }
 		  queue:     {
 		  	sortable: true
 		  	dal: {}

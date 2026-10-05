@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"github.com/crusttech/human/server/pkg/id"
 	"time"
 
 	"github.com/crusttech/human/server/pkg/filter"
@@ -32,9 +33,9 @@ type (
 	}
 
 	ReminderFilter struct {
-		ReminderID       []uint64   `json:"reminderID"`
+		ReminderID       id.Uint64s `json:"reminderID"`
 		Resource         string     `json:"resource"`
-		AssignedTo       uint64     `json:"assignedTo,uint64"`
+		AssignedTo       uint64     `json:"assignedTo,string"`
 		ScheduledFrom    *time.Time `json:"scheduledFrom"`
 		ScheduledUntil   *time.Time `json:"scheduledUntil"`
 		ExcludeDismissed bool       `json:"excludeDismissed"`

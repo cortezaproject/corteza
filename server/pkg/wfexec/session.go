@@ -78,7 +78,7 @@ type (
 		Results   *expr.Vars `json:"results"`
 		ParentID  uint64     `json:"parentID"`
 		StepID    uint64     `json:"stepID"`
-		NextSteps []uint64   `json:"nextSteps"`
+		NextSteps id.Uint64s `json:"nextSteps"`
 
 		// How much time from the 1st step to the start of this step in milliseconds
 		ElapsedTime uint `json:"elapsedTime"`

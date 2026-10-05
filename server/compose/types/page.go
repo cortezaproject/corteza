@@ -21,7 +21,7 @@ type (
 	PageFilter struct {
 		TenantID    uint64   `json:"tenantID,string,omitempty"`
 		ProjectID   uint64   `json:"projectID,string,omitempty"`
-		NamespaceID uint64   `json:"namespaceID"`
+		NamespaceID uint64   `json:"namespaceID,string"`
 		PageID      []string `json:"pageID,string"`
 		ParentID    uint64   `json:"parentID,string,omitempty"`
 		ModuleID    uint64   `json:"moduleID,string,omitempty"`
@@ -45,7 +45,6 @@ type (
 		filter.Sorting
 		filter.Paging
 	}
-
 )
 
 const (

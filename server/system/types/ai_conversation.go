@@ -2,13 +2,14 @@ package types
 
 import (
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
 )
 
 type (
 	AiConversationMessages []AiConversationMessage
 
 	AiConversationFilter struct {
-		AiConversationID []uint64     `json:"aiConversationID"`
+		AiConversationID id.Uint64s   `json:"aiConversationID"`
 		AgentID          uint64       `json:"agentID,string"`
 		Deleted          filter.State `json:"deleted"`
 

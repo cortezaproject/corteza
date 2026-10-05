@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
 )
 
 type (
@@ -11,10 +12,10 @@ type (
 	ChatbotSessionState []ChatbotSessionStepState
 
 	ChatbotSessionFilter struct {
-		ChatbotSessionID []uint64 `json:"chatbotSessionID"`
-		ChatbotID        uint64   `json:"chatbotID"`
-		Status           []string `json:"status"`
-		Query            string   `json:"query"`
+		ChatbotSessionID id.Uint64s `json:"chatbotSessionID"`
+		ChatbotID        uint64     `json:"chatbotID,string"`
+		Status           []string   `json:"status"`
+		Query            string     `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
 
@@ -25,11 +26,11 @@ type (
 	}
 
 	ChatbotSessionStepFilter struct {
-		ChatbotSessionStepID []uint64 `json:"chatbotSessionStepID"`
-		SessionID            uint64   `json:"sessionID"`
-		ConversationID       uint64   `json:"conversationID"`
-		Status               string   `json:"status"`
-		Query                string   `json:"query"`
+		ChatbotSessionStepID id.Uint64s `json:"chatbotSessionStepID"`
+		SessionID            uint64     `json:"sessionID,string"`
+		ConversationID       uint64     `json:"conversationID,string"`
+		Status               string     `json:"status"`
+		Query                string     `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
 
@@ -40,11 +41,11 @@ type (
 	}
 
 	ChatbotSessionHandoffFilter struct {
-		ChatbotSessionHandoffID []uint64 `json:"chatbotSessionHandoffID"`
-		SessionID               uint64   `json:"sessionID"`
-		StepID                  uint64   `json:"stepID"`
-		Status                  string   `json:"status"`
-		Query                   string   `json:"query"`
+		ChatbotSessionHandoffID id.Uint64s `json:"chatbotSessionHandoffID"`
+		SessionID               uint64     `json:"sessionID,string"`
+		StepID                  uint64     `json:"stepID,string"`
+		Status                  string     `json:"status"`
+		Query                   string     `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
 

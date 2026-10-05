@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
 )
 
 type (
@@ -12,7 +13,7 @@ type (
 	}
 
 	DmlConnectionFilter struct {
-		ConnectionID []uint64     `json:"connectionID"`
+		ConnectionID id.Uint64s   `json:"connectionID"`
 		Handle       string       `json:"handle"`
 		Type         string       `json:"type"`
 		Deleted      filter.State `json:"deleted"`
@@ -24,8 +25,8 @@ type (
 	}
 
 	DmlMappingFilter struct {
-		MappingID    []uint64     `json:"mappingID"`
-		ConnectionID uint64       `json:"connectionID"`
+		MappingID    id.Uint64s   `json:"mappingID"`
+		ConnectionID uint64       `json:"connectionID,string"`
 		SourceIdent  string       `json:"sourceIdent"`
 		Deleted      filter.State `json:"deleted"`
 
@@ -36,9 +37,9 @@ type (
 	}
 
 	DmlImportRunFilter struct {
-		ImportRunID []uint64 `json:"importRunID"`
-		MappingID   uint64   `json:"mappingID"`
-		Status      []string `json:"status"`
+		ImportRunID id.Uint64s `json:"importRunID"`
+		MappingID   uint64     `json:"mappingID,string"`
+		Status      []string   `json:"status"`
 
 		Check func(*DmlImportRun) (bool, error) `json:"-"`
 

@@ -85,7 +85,7 @@ func testNotifications(t *testing.T, s store.Notifications) {
 
 			set, f, err := s.SearchNotifications(ctx, types.NotificationFilter{NotificationID: []uint64{prefill[0].ID}})
 			req.NoError(err)
-			req.Equal([]uint64{prefill[0].ID}, f.NotificationID)
+			req.Equal([]uint64{prefill[0].ID}, []uint64(f.NotificationID))
 			req.Len(set, 1)
 		})
 

@@ -103,13 +103,13 @@ auth_client: {
 					}
 				}
 			}
-			owned_by:   schema.AttributeUserRef & { json: "ownedBy" }
+			owned_by:   schema.AttributeUserRef & { json: "ownedBy,string" }
 			created_at: schema.SortableTimestampNowField & { json: { field: "createdAt" } }
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			created_by: schema.AttributeUserRef & { json: "createdBy" }
-			updated_by: schema.AttributeUserRef & { json: { field: "updatedBy", omitEmpty: true } }
-			deleted_by: schema.AttributeUserRef & { json: { field: "deletedBy", omitEmpty: true } }
+			created_by: schema.AttributeUserRef & { json: "createdBy,string" }
+			updated_by: schema.AttributeUserRef & { json: { field: "updatedBy", omitEmpty: true, string: true } }
+			deleted_by: schema.AttributeUserRef & { json: { field: "deletedBy", omitEmpty: true, string: true } }
 		}
 
 		indexes: {

@@ -2,16 +2,17 @@ package types
 
 import (
 	"github.com/crusttech/human/server/pkg/filter"
+	"github.com/crusttech/human/server/pkg/id"
 )
 
 type (
 	ProjectPrivacyFilter struct {
-		PrivacyID  []uint64 `json:"privacyID"`
-		TenantID   uint64   `json:"tenantID,string,omitempty"`
-		ProjectID  uint64   `json:"projectID,string,omitempty"`
-		RevisionID uint64   `json:"revisionID,string,omitempty"`
-		Status     string   `json:"status"`
-		Query      string   `json:"query"`
+		PrivacyID  id.Uint64s `json:"privacyID"`
+		TenantID   uint64     `json:"tenantID,string,omitempty"`
+		ProjectID  uint64     `json:"projectID,string,omitempty"`
+		RevisionID uint64     `json:"revisionID,string,omitempty"`
+		Status     string     `json:"status"`
+		Query      string     `json:"query"`
 
 		Deleted filter.State `json:"deleted"`
 
