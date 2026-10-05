@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, provide } from 'vue'
 import { useSegmentForm } from '@/sections/taq/composables/useSegmentForm'
 import DynamicForm from './DynamicForm.vue'
 
@@ -19,6 +19,19 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:constraints'])
+
+// Expose constraint values as arguments so inputs can read siblings — the
+// Worksheet picker needs the chosen configurationID + spreadsheetId to scope
+// its tabs to the selected spreadsheet.
+provide(
+  'taq-arguments',
+  computed(() =>
+    (props.constraints || []).map(c => ({
+      argumentName: c.name,
+      value: c.values?.[0]?.['@value'] ?? null,
+    })),
+  ),
+)
 
 // Derive parameters from catalog constraint definitions
 const parameters = computed(() =>

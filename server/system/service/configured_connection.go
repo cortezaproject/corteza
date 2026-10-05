@@ -286,7 +286,7 @@ func (svc *configuredConnection) onEnable(ctx context.Context, aProps *configure
 	if connErr == nil {
 		svc.registerOperations(conn, allCCs)
 	}
-	svc.registerWebhookTriggers(*res)
+	svc.registerWebhookTriggers(*res, allCCs)
 	return res, nil
 }
 
@@ -821,7 +821,7 @@ func (svc *configuredConnection) RegisterAllOperations(ctx context.Context) {
 		svc.registerOperations(conn, ccs)
 		for _, cc := range ccs {
 			cc.Connection = *conn // use the live definition, not the CC snapshot
-			svc.registerWebhookTriggers(cc)
+			svc.registerWebhookTriggers(cc, ccs)
 		}
 	}
 }
@@ -854,7 +854,7 @@ func (svc *configuredConnection) ReRegisterConnection(ctx context.Context, connI
 	svc.registerOperations(conn, ccs)
 	for _, cc := range ccs {
 		cc.Connection = *conn // use the live definition, not the CC snapshot
-		svc.registerWebhookTriggers(cc)
+		svc.registerWebhookTriggers(cc, ccs)
 	}
 }
 
@@ -872,6 +872,22 @@ func (svc *configuredConnection) registerOperations(conn *types.Connection, ccs 
 	}
 
 	automationService.ConstructLibrary().AddFunctions(fns...)
+}
+
+// constructIcon prefers the per-operation/per-trigger icon declared by the
+// connector and falls back to the connector's brand slug.
+func constructIcon(item *types.ConnectionIcon, brandSlug string) *atypes.NgAutomationIcon {
+	if item != nil && item.Value != "" {
+		t := item.Type
+		if t == "" {
+			t = "name"
+		}
+		return &atypes.NgAutomationIcon{Type: t, Value: item.Value}
+	}
+	if brandSlug != "" {
+		return &atypes.NgAutomationIcon{Type: "brand", Value: brandSlug}
+	}
+	return nil
 }
 
 func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection, op types.ConnectionOperation) atypes.ConstructFunction {
@@ -945,15 +961,13 @@ func operationToFunction(conn types.Connection, ccs []types.ConfiguredConnection
 		}
 	}
 
-	var icon *atypes.NgAutomationIcon
-	if conn.Meta.Icon != "" {
-		icon = &atypes.NgAutomationIcon{Type: "brand", Value: conn.Meta.Icon}
-	}
+	icon := constructIcon(op.Meta.Icon, conn.Meta.Icon)
 
 	return atypes.ConstructFunction{
-		Ref:    ref,
-		Kind:   "function",
-		Groups: []string{conn.Meta.Short},
+		Ref:       ref,
+		Kind:      "function",
+		Groups:    []string{conn.Meta.Short},
+		GroupIcon: constructIcon(nil, conn.Meta.Icon),
 		Meta: &atypes.ConstructFunctionMeta{
 			Short:       op.Meta.Short,
 			Description: op.Meta.Description,
@@ -1631,11 +1645,21 @@ func (svc *configuredConnection) provisionWebhooks(ctx context.Context, resolved
 }
 
 // registerWebhookTriggers registers Webhook-based triggers to the registry
-func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConnection) {
+func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConnection, ccs []types.ConfiguredConnection) {
 	// Dedupe within this call only. AddTriggers replaces by resource+event, so
 	// re-registering an existing trigger refreshes its properties (e.g. a webhook
 	// payload that was added after the trigger was first registered).
 	seen := make(map[string]bool)
+
+	// Which configured connection the trigger scopes to; also drives the
+	// spreadsheet/tab discovery pickers.
+	configOptions := make([]atypes.SelectItem, 0, len(ccs))
+	for _, c := range ccs {
+		configOptions = append(configOptions, atypes.SelectItem{
+			Label: c.Name,
+			Value: strconv.FormatUint(c.ID, 10),
+		})
+	}
 
 	var tt []atypes.ConstructTrigger
 
@@ -1651,13 +1675,32 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 			props := make([]atypes.ConstructTriggerProperty, 0, len(wh.Payload))
 			// Each payload field is also offered as a constraint so a trigger can
 			// be scoped (e.g. only fire for a given spreadsheet/sheet or sender).
-			cons := make([]atypes.ConstructTriggerConstraint, 0, len(wh.Payload))
-			cParams := make(atypes.ParamSet, 0, len(wh.Payload))
+			cons := make([]atypes.ConstructTriggerConstraint, 0, len(wh.Payload)+1)
+			cParams := make(atypes.ParamSet, 0, len(wh.Payload)+1)
+			// Configuration first, so the form reads Configuration → Spreadsheet → Tab.
+			cons = append(cons, atypes.ConstructTriggerConstraint{
+				Name:  "configurationID",
+				Types: []string{"ID"},
+				Meta:  atypes.ConstructTriggerConstraintMeta{Short: "Configuration"},
+			})
+			cParams = append(cParams, &atypes.Param{
+				ArgumentName: "configurationID",
+				Types:        []string{"ID"},
+				Meta:         &atypes.ParamMeta{Label: "Configuration"},
+			})
 			for _, f := range wh.Payload {
 				props = append(props, atypes.ConstructTriggerProperty{
 					Name: f.Name,
 					Type: f.Type,
 				})
+				// Output-only fields (meta.filterable == false, e.g. a per-event
+				// A1 range or row count) stay as trigger outputs but are not
+				// offered as scope inputs.
+				if f.Meta != nil {
+					if v, ok := f.Meta["filterable"].(bool); ok && !v {
+						continue
+					}
+				}
 				t := f.Type
 				if t == "" {
 					t = "String"
@@ -1673,10 +1716,16 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 					Types: []string{t},
 					Meta:  atypes.ConstructTriggerConstraintMeta{Short: label},
 				})
+				fdesc := ""
+				if f.Meta != nil {
+					if s, ok := f.Meta["description"].(string); ok {
+						fdesc = s
+					}
+				}
 				cParams = append(cParams, &atypes.Param{
 					ArgumentName: f.Name,
 					Types:        []string{t},
-					Meta:         &atypes.ParamMeta{Label: label},
+					Meta:         &atypes.ParamMeta{Label: label, Description: fdesc},
 				})
 			}
 
@@ -1687,33 +1736,41 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 				segments = []atypes.ConstructSegment{{
 					Sections: []atypes.ConstructSection{{Elements: elems}},
 				}}
-				// Turn spreadsheet/tab scope fields into discovery-backed pickers,
-				// same as the operation inputs.
-				if len(cc.Config.Discovery) > 0 {
-					injectDiscoveredOptions(segments, cc.Config.Discovery)
+				setInputSelect(segments, "configurationID", configOptions, "")
+				// Spreadsheet picker only — injectDiscoveredOptions would also
+				// relabel "range" as a tab, so inject it inline here instead.
+				var spreadsheets []atypes.SelectItem
+				if raw, ok := cc.Config.Discovery["spreadsheets"]; ok {
+					_ = json.Unmarshal(raw, &spreadsheets)
 				}
+				if len(spreadsheets) > 0 {
+					setInputSelect(segments, "spreadsheetId", spreadsheets, "")
+				}
+				// Scope the tab to the chosen spreadsheet via the dynamic picker,
+				// matching create-spreadsheet-rows. Range stays a plain A1 input.
+				setInputTypeByArgument(segments, "sheetName", "WorksheetName")
 			}
 
 			// Prefer the connector-declared label; fall back to one derived from
 			// the resource/event handles.
 			short := fmt.Sprintf("%s: %s", labelFromName(res.Handle), labelFromName(wh.Event))
 			var desc string
+			var whIcon *types.ConnectionIcon
 			if wh.Meta != nil {
 				if wh.Meta.Short != "" {
 					short = wh.Meta.Short
 				}
 				desc = wh.Meta.Description
+				whIcon = wh.Meta.Icon
 			}
 
-			var icon *atypes.NgAutomationIcon
-			if cc.Connection.Meta.Icon != "" {
-				icon = &atypes.NgAutomationIcon{Type: "brand", Value: cc.Connection.Meta.Icon}
-			}
+			icon := constructIcon(whIcon, cc.Connection.Meta.Icon)
 
 			tt = append(tt, atypes.ConstructTrigger{
 				ResourceType: rt,
 				EventType:    wh.Event,
 				Groups:       []string{cc.Connection.Meta.Short},
+				GroupIcon:    constructIcon(nil, cc.Connection.Meta.Icon),
 				Properties:   props,
 				Constraints:  cons,
 				Segments:     segments,

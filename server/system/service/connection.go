@@ -818,7 +818,20 @@ func (svc *connection) Resync(ctx context.Context, connectionID uint64) (*types.
 		return nil, errors.InvalidData("connection is not in the catalog")
 	}
 
-	updated, err := svc.Import(ctx, catalogID)
+	if svc.services.catalog == nil {
+		return nil, fmt.Errorf("appstore catalog is not configured")
+	}
+	catalogConn, err := svc.services.catalog.GetConnection(ctx, catalogID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Refresh this exact connection — not a handle-based lookup, since several
+	// connections can share one catalog handle and Import would pick the wrong one.
+	fresh := catalogConnectionToLocal(catalogConn)
+	applyCatalogRefresh(conn, fresh)
+
+	updated, err := svc.Update(ctx, conn)
 	if err != nil {
 		return nil, err
 	}

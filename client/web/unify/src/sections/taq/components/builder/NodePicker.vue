@@ -147,11 +147,12 @@ function getGroupIcon(groupName) {
   return GROUP_ICONS[slug] || null
 }
 
-// Connector groups have no fixed icon; use a member node's brand/url logo so the
-// category shows the connector's own mark instead of a generic folder.
+// Connector groups have no fixed icon; use the connector's brand mark (groupIcon)
+// so the category shows its own logo regardless of per-node icons.
 function groupIconFor(label, node) {
   const mapped = getGroupIcon(label)
   if (mapped) return mapped
+  if (node.groupIcon) return node.groupIcon
   if (node.icon && (node.icon.type === 'brand' || node.icon.type === 'url')) {
     return node.icon
   }
@@ -167,6 +168,7 @@ function mapTriggerNode(trigger) {
     type: 'trigger',
     label: trigger.meta?.short || trigger.eventType,
     icon,
+    groupIcon: normalizeIcon(trigger.groupIcon),
     description: trigger.meta?.description || '',
     eventType: trigger.eventType,
     resourceType: trigger.resourceType,
@@ -244,6 +246,7 @@ const availableCategories = computed(() => {
           type: 'action',
           label: fn.meta?.short || fn.ref,
           icon,
+          groupIcon: normalizeIcon(fn.groupIcon),
           description: fn.meta?.description || '',
           ref: fn.ref,
           kind: fn.kind,
