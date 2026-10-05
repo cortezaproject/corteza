@@ -236,8 +236,17 @@ func assertFullState(ctx context.Context, t *testing.T, s store.Storer, req *req
 			req.NotNil(pg1)
 
 			req.Len(pg1.Blocks, 8)
-			// @todo test page block references
-			// spew.Dump(pg1.Blocks)
+
+			// Page block references land in the options they came from
+			blockOpt := func(i int, k string) string { return fmt.Sprint(pg1.Blocks[i].Options[k]) }
+			req.Equal(fmt.Sprint(mod1.ID), blockOpt(0, "moduleID"), "RecordList module")
+			req.Equal(fmt.Sprint(mod1.ID), blockOpt(2, "moduleID"), "RecordOrganizer module")
+			req.Equal(fmt.Sprint(ch1.ID), blockOpt(3, "chartID"), "Chart chart")
+			feed := pg1.Blocks[4].Options["feeds"].([]any)[0].(map[string]any)["options"].(map[string]any)
+			req.Equal(fmt.Sprint(mod1.ID), fmt.Sprint(feed["moduleID"]), "Calendar feed module")
+			metric := pg1.Blocks[5].Options["metrics"].([]any)[0].(map[string]any)
+			req.Equal(fmt.Sprint(mod1.ID), fmt.Sprint(metric["moduleID"]), "Metric module")
+			req.Equal(fmt.Sprint(mod1.ID), blockOpt(6, "moduleID"), "Comment module")
 
 			rpg1 := pages.FindByHandle("test_ns_1_record_page_1")
 			req.NotNil(rpg1)

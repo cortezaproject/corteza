@@ -68,7 +68,7 @@ func (d *auxYamlDoc) unmarshalChartConfigReportNode(r *types.Chart, n *yaml.Node
 }
 
 func (d *auxYamlDoc) unmarshalPageBlocksNode(r *types.Page, n *yaml.Node) (refs map[string]envoyx.Ref, idents envoyx.Identifiers, err error) {
-	refs = toEnvoyRefs(r.Blocks.ResourceRefs())
+	refs = locatedEnvoyRefs(r.Blocks.LocatedRefs(), r.Blocks.ResourceRefs())
 
 	return
 }

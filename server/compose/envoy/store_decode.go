@@ -204,11 +204,11 @@ func (d StoreDecoder) extendedModuleDecoder(ctx context.Context, s store.Storer,
 }
 
 func decodeChartRefs(c *types.Chart) (refs map[string]envoyx.Ref) {
-	return toEnvoyRefs(c.ResourceRefs())
+	return locatedEnvoyRefs(c.LocatedRefs(), c.ResourceRefs())
 }
 
 func decodeModuleFieldRefs(c *types.ModuleField) (refs map[string]envoyx.Ref) {
-	refs = toEnvoyRefs(c.ResourceRefs())
+	refs = locatedEnvoyRefs(c.LocatedRefs(), c.ResourceRefs())
 
 	refs["NamespaceID"] = envoyx.Ref{
 		ResourceType: types.NamespaceResourceType,
@@ -220,7 +220,45 @@ func decodeModuleFieldRefs(c *types.ModuleField) (refs map[string]envoyx.Ref) {
 
 func decodePageRefs(p *types.Page) (refs map[string]envoyx.Ref) {
 	// only block refs; the page's own ModuleID ref is added by the generated decoder
-	return toEnvoyRefs(p.Blocks.ResourceRefs())
+	return locatedEnvoyRefs(p.Blocks.LocatedRefs(), p.Blocks.ResourceRefs())
+}
+
+// locatedEnvoyRefs keys each reference an import can write back by where it
+// sits in the resource — the path its SetValue takes — so the ID resolved on
+// import lands in the option it came from. The rest keep the key toEnvoyRefs
+// gives them: they order the import but nothing is written back for them.
+func locatedEnvoyRefs(located map[string]resourceref.Ref, all []resourceref.Ref) (refs map[string]envoyx.Ref) {
+	refs = make(map[string]envoyx.Ref, len(all))
+
+	placed := make(map[resourceref.Ref]bool, len(located))
+	for path, r := range located {
+		refs[path] = toEnvoyRef(r)
+		placed[r] = true
+	}
+
+	var rest []resourceref.Ref
+	for _, r := range all {
+		if !placed[r] {
+			rest = append(rest, r)
+		}
+	}
+	for k, ref := range toEnvoyRefs(rest) {
+		refs[k] = ref
+	}
+
+	return
+}
+
+func toEnvoyRef(r resourceref.Ref) envoyx.Ref {
+	var ident any = r.Label
+	if id := r.ID(); id > 0 {
+		ident = id
+	}
+
+	return envoyx.Ref{
+		ResourceType: r.Kind(),
+		Identifiers:  envoyx.MakeIdentifiers(ident),
+	}
 }
 
 // toEnvoyRefs maps shared resourceref extractor output to envoy references,
@@ -229,15 +267,7 @@ func toEnvoyRefs(rr []resourceref.Ref) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref, len(rr))
 
 	for _, r := range rr {
-		var ident any = r.Label
-		if id := r.ID(); id > 0 {
-			ident = id
-		}
-
-		refs[r.Resource] = envoyx.Ref{
-			ResourceType: r.Kind(),
-			Identifiers:  envoyx.MakeIdentifiers(ident),
-		}
+		refs[r.Resource] = toEnvoyRef(r)
 	}
 
 	return

@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/crusttech/human/server/pkg/resourceref"
 	"github.com/spf13/cast"
 )
@@ -171,6 +173,91 @@ func (b PageBlock) resourceRefs() (out []resourceref.Ref) {
 	}
 
 	return
+}
+
+// LocatedRefs returns the references of page blocks that an import can write
+// back, keyed by where each sits in the page ("Blocks.<i>.Options.ModuleID",
+// ...), which is the path Page.SetValue takes. Envoy keys a reference by that
+// path so the ID it resolves on import lands in the option it came from.
+func (bb PageBlocks) LocatedRefs() map[string]resourceref.Ref {
+	out := make(map[string]resourceref.Ref)
+	put := func(path string, ref resourceref.Ref) {
+		if !ref.IsEmpty() {
+			out[path] = ref
+		}
+	}
+	module := func(opt map[string]interface{}) resourceref.Ref {
+		return resourceref.MakeIdent(resourceref.KindComposeModule, blockOptString(opt, "module", "moduleID"), resourceref.ReasonPageModule)
+	}
+
+	for i, b := range bb {
+		at := fmt.Sprintf("Blocks.%d.Options.", i)
+
+		switch b.Kind {
+		case "RecordList", "Comment", "RecordOrganizer":
+			put(at+"ModuleID", module(b.Options))
+
+		case "Chart":
+			put(at+"ChartID", resourceref.MakeIdent(resourceref.KindComposeChart, blockOptString(b.Options, "chart", "chartID"), resourceref.ReasonPageChart))
+
+		case "Calendar":
+			ff, _ := b.Options["feeds"].([]interface{})
+			for j, f := range ff {
+				feed, _ := f.(map[string]interface{})
+				opt, _ := feed["options"].(map[string]interface{})
+				put(fmt.Sprintf("%sfeeds.%d.ModuleID", at, j), module(opt))
+			}
+
+		case "Metric":
+			mm, _ := b.Options["metrics"].([]interface{})
+			for j, m := range mm {
+				opt, _ := m.(map[string]interface{})
+				put(fmt.Sprintf("%smetrics.%d.ModuleID", at, j), module(opt))
+			}
+
+		case "Progress":
+			for _, k := range []string{"minValue", "maxValue", "value"} {
+				if opt, _ := b.Options[k].(map[string]interface{}); opt != nil {
+					put(at+k+".ModuleID", module(opt))
+				}
+			}
+
+		case "Automation":
+			bb, _ := b.Options["buttons"].([]interface{})
+			for j, raw := range bb {
+				btn, _ := raw.(map[string]interface{})
+				put(fmt.Sprintf("%sbuttons.%d.WorkflowID", at, j), resourceref.MakeIdent(resourceref.KindAutomationWorkflow, blockOptString(btn, "workflow", "workflowID"), resourceref.ReasonPageWorkflow))
+			}
+
+		}
+	}
+
+	return out
+}
+
+// LocatedRefs returns the field's module reference keyed by the path
+// ModuleField.SetValue takes.
+func (f ModuleField) LocatedRefs() map[string]resourceref.Ref {
+	out := make(map[string]resourceref.Ref)
+	if ref := resourceref.MakeIdent(resourceref.KindComposeModule, cast.ToString(f.Options["moduleID"]), resourceref.ReasonModuleFieldRef); !ref.IsEmpty() {
+		out["Options.ModuleID"] = ref
+	}
+	return out
+}
+
+// LocatedRefs returns the chart's report module references keyed by the path
+// Chart.SetValue takes.
+func (c Chart) LocatedRefs() map[string]resourceref.Ref {
+	out := make(map[string]resourceref.Ref)
+	for i, r := range c.Config.Reports {
+		if r == nil {
+			continue
+		}
+		if ref := resourceref.Make(resourceref.KindComposeModule, r.ModuleID, resourceref.ReasonChartModule); !ref.IsEmpty() {
+			out[fmt.Sprintf("Config.Reports.%d.ModuleID", i)] = ref
+		}
+	}
+	return out
 }
 
 // buttonRefs emits the workflow + ng-automation refs declared on a page-block
