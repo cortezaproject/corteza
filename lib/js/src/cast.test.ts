@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { Apply } from './cast'
+import { Apply, HumanID, NoID } from './cast'
 class Foo {
   baz = ''
   bool = false
@@ -66,5 +66,24 @@ describe('cast', () => {
       Apply(foo, { baz: null }, String, 'baz')
       expect(foo.baz).to.equal('')
     })
+  })
+})
+
+describe('HumanID', () => {
+  it('keeps a string ID as it is', () => {
+    expect(HumanID('516687706987429889')).to.eq('516687706987429889')
+  })
+
+  it('reads an empty value as no ID', () => {
+    expect(HumanID(undefined)).to.eq(NoID)
+    expect(HumanID(0)).to.eq(NoID)
+  })
+
+  it('accepts a number that is exact', () => {
+    expect(HumanID(123)).to.eq('123')
+  })
+
+  it('refuses a number past 2^53, which is already a different ID', () => {
+    expect(() => HumanID(516687706987429889)).to.throw('pass IDs as strings')
   })
 })

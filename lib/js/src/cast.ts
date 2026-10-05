@@ -82,6 +82,13 @@ export function HumanID(value: unknown): string {
   }
 
   if (typeof value === 'number') {
+    // An ID past 2^53 was rounded the moment it became a number
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw new Error(
+        `Invalid HumanID value: ${value} is not exact as a number, pass IDs as strings`,
+      )
+    }
+
     return value.toString()
   }
 
