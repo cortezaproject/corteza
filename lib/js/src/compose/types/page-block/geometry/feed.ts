@@ -11,7 +11,7 @@ export type FeedInput = Partial<Feed> | Feed
 
 const defOptions = {
   moduleID: NoID,
-  color: '#09344E',
+  color: '#E56B5B',
   prefilter: '',
 }
 

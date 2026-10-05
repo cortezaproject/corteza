@@ -35,7 +35,7 @@ export type NavigationItemInput = Partial<NavigationItem> | NavigationItem
 
 const defOptions = {
   enabled: true,
-  textColor: '#09344E',
+  textColor: '#E56B5B',
   backgroundColor: '',
   item: {
     label: '',

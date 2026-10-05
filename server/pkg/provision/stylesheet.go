@@ -101,13 +101,13 @@ func processBrandingTheme(oldBranding *types.SettingValue) (themes []types.Theme
 	var brandingMap map[string]string
 
 	lightModeMap := map[string]string{
-		"primary":     "#09344E",
-		"success":     "#43AA8B",
-		"warning":     "#E27646",
-		"danger":      "#E54122",
-		"body-bg":     "#f4f4f5",
-		"sidebar-bg":  "#ffffff",
-		"topbar-bg":   "#f4f4f5",
+		"primary":    "#E56B5B",
+		"success":    "#43AA8B",
+		"warning":    "#E27646",
+		"danger":     "#E54122",
+		"body-bg":    "#f4f4f5",
+		"sidebar-bg": "#ffffff",
+		"topbar-bg":  "#f4f4f5",
 	}
 
 	// process old branding sass settings and match them with the new branding themes setting

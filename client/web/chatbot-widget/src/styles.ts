@@ -56,7 +56,7 @@ export const baseCSS = `
 .hb-launcher {
   width: var(--hb-launch-size, 56px); height: var(--hb-launch-size, 56px);
   border-radius: var(--hb-launch-radius, 999px);
-  background: var(--hb-primary, #09344E); color: var(--hb-primary-text, #fff);
+  background: var(--hb-primary, #E56B5B); color: var(--hb-primary-text, #fff);
   border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.18);
   display: flex; align-items: center; justify-content: center;
   pointer-events: auto;
@@ -82,7 +82,7 @@ export const baseCSS = `
 }
 .hb-header {
   position: relative;
-  background: var(--hb-header, #09344E); color: var(--hb-header-text, #fff);
+  background: var(--hb-header, #E56B5B); color: var(--hb-header-text, #fff);
   padding: 12px 40px 12px 14px; font-weight: 600; font-size: var(--hb-font-heading, 16px);
   display: flex; align-items: center; gap: 8px;
 }
@@ -101,11 +101,11 @@ export const baseCSS = `
 .hb-panel { font-size: var(--hb-font-base, 14px); }
 .hb-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; font-size: var(--hb-font-base, 14px); }
 .hb-msg { max-width: 85%; padding: 8px 12px; border-radius: 14px; word-wrap: break-word; overflow-wrap: anywhere; font-size: var(--hb-font-base, 14px); }
-.hb-msg.user { align-self: flex-end; background: var(--hb-user-bubble, #09344E); color: #fff; white-space: pre-wrap; }
+.hb-msg.user { align-self: flex-end; background: var(--hb-user-bubble, #E56B5B); color: #fff; white-space: pre-wrap; }
 .hb-msg.agent { align-self: flex-start; background: var(--hb-agent-bubble, #f4f4f5); color: var(--hb-text, #111); line-height: 1.45; }
 .hb-msg.system { align-self: center; max-width: 90%; background: transparent; color: #9ca3af; font-size: var(--hb-font-small, 12px); font-style: italic; padding: 4px 8px; }
 .hb-msg.system.error { color: #dc2626; background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.25); border-radius: 8px; font-style: normal; font-weight: 500; }
-.hb-msg.agent a { color: var(--hb-primary, #09344E); text-decoration: underline; }
+.hb-msg.agent a { color: var(--hb-primary, #E56B5B); text-decoration: underline; }
 .hb-msg.agent code { background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.92em; }
 .hb-msg.agent pre { background: rgba(0,0,0,0.06); padding: 8px 10px; border-radius: 8px; overflow-x: auto; margin: 6px 0; }
 .hb-msg.agent pre code { background: none; padding: 0; border-radius: 0; font-size: 0.88em; }
@@ -118,9 +118,9 @@ export const baseCSS = `
   font-size: var(--hb-font-base, 14px);
   resize: none; max-height: 120px; overflow-y: auto; line-height: 1.4;
 }
-.hb-input:focus { outline: none; border-color: var(--hb-primary, #09344E); }
+.hb-input:focus { outline: none; border-color: var(--hb-primary, #E56B5B); }
 .hb-send {
-  background: var(--hb-primary, #09344E); color: var(--hb-primary-text, #fff);
+  background: var(--hb-primary, #E56B5B); color: var(--hb-primary-text, #fff);
   border: none; border-radius: 8px; padding: 0; cursor: pointer;
   width: 36px; height: 36px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -148,11 +148,11 @@ export const baseCSS = `
   border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 8px; font-family: inherit; font-size: var(--hb-font-base, 14px); background: var(--hb-bg, #fff); color: inherit;
 }
 .hb-scenario-form .hb-field input:focus, .hb-scenario-form .hb-field textarea:focus {
-  outline: none; border-color: var(--hb-primary, #09344E);
+  outline: none; border-color: var(--hb-primary, #E56B5B);
 }
 .hb-form-actions { display: flex; justify-content: flex-end; }
 .hb-submit {
-  background: var(--hb-primary, #09344E); color: var(--hb-primary-text, #fff);
+  background: var(--hb-primary, #E56B5B); color: var(--hb-primary-text, #fff);
   border: none; border-radius: 8px; padding: 6px 14px; cursor: pointer; font-family: inherit; font-size: var(--hb-font-base, 14px);
 }
 .hb-submit:hover { opacity: 0.92; }
@@ -172,7 +172,7 @@ export const baseCSS = `
 .hb-footer .hb-input { order: 1; }
 .hb-footer .hb-send { order: 1; }
 .hb-action {
-  background: transparent; color: var(--hb-primary, #09344E);
+  background: transparent; color: var(--hb-primary, #E56B5B);
   border: 1px solid #d1d5db; border-radius: 999px;
   padding: 4px 10px; cursor: pointer; font-family: inherit;
   font-size: var(--hb-font-small, 12px);
@@ -187,7 +187,7 @@ export const baseCSS = `
    (link affordance, list indentation, paragraph spacing). No color / size /
    style here so author inline declarations from TipTap come through 1:1. */
 .hb-consent-body { text-align: left; line-height: 1.45; }
-.hb-consent-body a { color: var(--hb-primary, #09344E); text-decoration: underline; }
+.hb-consent-body a { color: var(--hb-primary, #E56B5B); text-decoration: underline; }
 .hb-consent-body p { margin: 0 0 6px 0; }
 .hb-consent-body p:last-child { margin-bottom: 0; }
 .hb-consent-body ul, .hb-consent-body ol { margin: 6px 0; padding-left: 20px; }

@@ -78,7 +78,7 @@ function resolveValue(val, options) {
 
 // Theme-independent defaults so badges are always visible
 const DEFAULT_BADGE_TEXT_COLOR = '#FFFFFFFF'
-const DEFAULT_BADGE_BG_COLOR = '#09344EFF'
+const DEFAULT_BADGE_BG_COLOR = '#E56B5BFF'
 
 function toColor(hex) {
   if (!hex || hex === 'transparent') return null

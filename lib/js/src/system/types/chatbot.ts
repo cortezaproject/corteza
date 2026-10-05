@@ -120,13 +120,13 @@ export class Chatbot {
     fontFamily: '',
     fontSizes: { base: '14px', small: '12px', heading: '16px' },
     colors: {
-      primary: '#09344E',
+      primary: '#E56B5B',
       primaryText: '#ffffff',
-      header: '#09344E',
+      header: '#E56B5B',
       headerText: '#ffffff',
       background: '#ffffff',
       text: '#111827',
-      userBubble: '#09344E',
+      userBubble: '#E56B5B',
       agentBubble: '#f4f4f5',
     },
     launcher: {

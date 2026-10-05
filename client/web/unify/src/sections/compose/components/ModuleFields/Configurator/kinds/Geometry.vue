@@ -71,7 +71,7 @@ const field = inject('fieldDraft')
 function getPrimaryColor() {
   return (
     getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() ||
-    '#09344E'
+    '#E56B5B'
   )
 }
 

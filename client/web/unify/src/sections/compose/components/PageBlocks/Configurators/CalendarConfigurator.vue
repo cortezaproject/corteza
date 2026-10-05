@@ -258,7 +258,7 @@ const feeds = computed(() => localOptions.value.feeds || [])
 function getPrimaryColor() {
   return (
     getComputedStyle(document.documentElement).getPropertyValue('--p-primary-color').trim() ||
-    '#09344E'
+    '#E56B5B'
   )
 }
 

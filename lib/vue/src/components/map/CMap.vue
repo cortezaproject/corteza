@@ -326,7 +326,7 @@ function renderPolygons() {
   if (!renderLayer) return
   validPolygons.value.forEach(polygon => {
     L.polygon(polygon.latLngs, {
-      color: polygon.color || '#09344E',
+      color: polygon.color || '#E56B5B',
       weight: polygon.weight ?? 3,
       dashArray: polygon.dashArray || undefined,
       fillOpacity: polygon.fillOpacity ?? 0.2,

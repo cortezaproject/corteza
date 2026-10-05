@@ -37,7 +37,7 @@ const defaultVariables: {
   dark: HumanThemeVariables
 } = {
   light: {
-    primary: '#09344E',
+    primary: '#E56B5B',
     success: '#43AA8B',
     warning: '#E27646',
     danger: '#E54122',
