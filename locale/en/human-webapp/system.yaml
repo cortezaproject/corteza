@@ -253,7 +253,6 @@ applications:
       copied: Source copied to the clipboard
       copy: Copy source
       edit: The page
-      editNote: An assistant working over MCP changes this page by finding and replacing text in it, so an edit made here is what its next change looks for.
       saveError: The page could not be saved
       savePage: Save page
       saved: Page saved

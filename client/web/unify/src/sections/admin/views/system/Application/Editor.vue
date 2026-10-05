@@ -252,9 +252,6 @@
               min-height="360px"
               :read-only="!canEditSource"
             />
-            <small class="text-muted-color">
-              {{ $t('system.applications.editor.custom.editNote') }}
-            </small>
           </div>
         </div>
       </Panel>

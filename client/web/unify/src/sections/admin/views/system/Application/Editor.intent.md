@@ -44,8 +44,7 @@ how it presents in the unified shell (display name, URL, listed flag, logo).
   `CCodeEditor`, and saves it through the same endpoint and the same refusals
   as `system_application_source_set` — a page the sandbox could not run is
   refused wherever it is written. The declaration travels back untouched:
-  sending the page alone would empty what the app may read. An edit made here is what an
-  assistant's next patch has to find, and the view says so.
+  sending the page alone would empty what the app may read.
 
 ## Routes
 
