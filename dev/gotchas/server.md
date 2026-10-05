@@ -217,6 +217,12 @@ Every generated `*Undelete` handler returns `api.OK()` → `{success:{message:"O
 
 **How to apply:** carry such a filter as `[]uint64`, as the record export does via `DecodeParams.Params["recordIDs"]` (`compose/envoy/store_decode.go`). Guarded by `TestRecordExportByID`.
 
+### IDs past 2^53 in JSON
+
+Human IDs (~5e17) exceed 2^53, so a JSON number holding one is rounded by any decode into `any` (float64) and by JavaScript. mcp-go decodes tool arguments that way, so `rejectUnsafeNumbers` (`server/pkg/mcpkit/unsafe_numbers.go`) refuses any number at or past 2^53, also inside a top-level argument that is a JSON string. A `,string` tag has no effect on a slice: `[]uint64` goes out as bare numbers. A struct read back from stored JSON (a workflow stacktrace `Frame`, `SettingValue`) cannot take `,string`, which refuses the numbers already stored.
+
+**How to apply:** an ID list in a JSON-tagged struct is `id.Uint64s`; a stored struct gets a shadow `MarshalJSON`/`UnmarshalJSON` with `id.Uint64` fields (`server/pkg/wfexec/frame_json.go`); decode untyped JSON that may carry IDs with `UseNumber` and `j7s.ExactNumbers`.
+
 ### Provisioning never corrects an existing install
 
 A full import runs only when the store holds zero RBAC rules (`canImportConfig`, `server/pkg/provision/config.go`). Otherwise `provisionPartialBase` (`partial.go`) re-imports `000_base` only when a named `baseMarkers` entry is missing, so a new base grant needs a marker. The `003_auth` partial directory is listed but `server/provision/003_auth/` does not exist; when its gate fires, the empty decode makes `collectUnimportedConfigs` return early and skip the later directories. Every import encodes with `envoyx.OnConflictSkip`, which keeps the stored row (roles included), and the application files also carry `skipIf: '!missing'`; only `contextRoleTypes` (`context_roles.go`) fills empty `meta.context.resourceTypes`.
