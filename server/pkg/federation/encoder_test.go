@@ -72,7 +72,7 @@ func TestEncoder_encodeStructure(t *testing.T) {
 			err := encoder.Encode(payload, tc.format)
 
 			req.NoError(err)
-			req.Equal(tc.expect, strings.TrimSuffix(writer.String(), "\n"))
+			req.JSONEq(tc.expect, writer.String())
 		})
 	}
 }
@@ -149,7 +149,7 @@ func TestEncoder_encodeData(t *testing.T) {
 			err := encoder.Encode(payload, tc.format)
 
 			req.NoError(err)
-			req.Equal(tc.expect, strings.TrimSuffix(writer.String(), "\n"))
+			req.JSONEq(tc.expect, writer.String())
 		})
 	}
 }
