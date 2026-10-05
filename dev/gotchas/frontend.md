@@ -12,6 +12,12 @@ In `<script setup>`, `watch(..., { immediate: true })` fires at the line where i
 
 **How to apply:** helpers reached from an immediate watcher are `function` declarations or sit above the watcher; when something inside a tolerant `try/catch` stops working, suspect the catch first and verify persistence in a browser.
 
+### A record picker clears itself when its namespace blinks
+
+`CInputRecord` (`lib/vue/src/components/input/CInputRecord.vue`) emits `null` whenever its namespace or module ID changes from one value to another, `undefined` included. A parent that resets the namespace to `{}` and refills it after an async lookup therefore wipes the selection on every re-run, and the option the user then picks never reaches `onSelect`.
+
+**How to apply:** resolve first and assign field and namespace together, as `ConditionRow.vue` does; guarded by "never shows the editor an empty namespace while re-resolving".
+
 ### v-for'd inline elements render with no space between them
 
 Vue's default `whitespace: 'condense'` removes a whitespace-only node containing a newline between two elements, but condenses it to one space next to a text node. So a `v-for` over inline elements renders as one run-on token (`${recordID}${ownerID}`) while the surrounding prose keeps its spaces. Adding `{{ ' ' }}` then yields two spaces (harmless once rendered).
