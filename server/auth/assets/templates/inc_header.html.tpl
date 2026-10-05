@@ -1,5 +1,6 @@
 <!doctype html>
-<html data-color-mode="{{ .theme }}" lang="{{ language }}">
+{{- $rtl := list "ar" "he" "fa" "ur" "ps" "sd" -}}
+<html data-color-mode="{{ .theme }}" lang="{{ language }}" dir="{{ if has (language | splitList "-" | first) $rtl }}rtl{{ else }}ltr{{ end }}">
 
 <head>
 	<meta charset="utf-8">

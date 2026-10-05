@@ -9,6 +9,11 @@ body {
   overflow: auto;
 }
 
+/* Bootstrap's reboot aligns body text left regardless of direction */
+[dir="rtl"] body {
+  text-align: right;
+}
+
 label {
   color: var(--primary);
 }
