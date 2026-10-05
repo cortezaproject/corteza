@@ -1652,6 +1652,7 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 			// Each payload field is also offered as a constraint so a trigger can
 			// be scoped (e.g. only fire for a given spreadsheet/sheet or sender).
 			cons := make([]atypes.ConstructTriggerConstraint, 0, len(wh.Payload))
+			cParams := make(atypes.ParamSet, 0, len(wh.Payload))
 			for _, f := range wh.Payload {
 				props = append(props, atypes.ConstructTriggerProperty{
 					Name: f.Name,
@@ -1672,6 +1673,25 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 					Types: []string{t},
 					Meta:  atypes.ConstructTriggerConstraintMeta{Short: label},
 				})
+				cParams = append(cParams, &atypes.Param{
+					ArgumentName: f.Name,
+					Types:        []string{t},
+					Meta:         &atypes.ParamMeta{Label: label},
+				})
+			}
+
+			// Segments drive the trigger config form; one input per constraint so
+			// the builder renders the scope fields.
+			var segments []atypes.ConstructSegment
+			if elems := generateSegmentInput(cParams); len(elems) > 0 {
+				segments = []atypes.ConstructSegment{{
+					Sections: []atypes.ConstructSection{{Elements: elems}},
+				}}
+				// Turn spreadsheet/tab scope fields into discovery-backed pickers,
+				// same as the operation inputs.
+				if len(cc.Config.Discovery) > 0 {
+					injectDiscoveredOptions(segments, cc.Config.Discovery)
+				}
 			}
 
 			// Prefer the connector-declared label; fall back to one derived from
@@ -1696,6 +1716,7 @@ func (svc *configuredConnection) registerWebhookTriggers(cc types.ConfiguredConn
 				Groups:       []string{cc.Connection.Meta.Short},
 				Properties:   props,
 				Constraints:  cons,
+				Segments:     segments,
 				Meta: &atypes.ConstructTriggerMeta{
 					Short:       short,
 					Description: desc,
