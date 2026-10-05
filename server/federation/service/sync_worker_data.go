@@ -140,6 +140,7 @@ func (w *syncWorkerData) PrepareForNodes(ctx context.Context, urls chan Url) {
 				ID:                  sm.ExternalFederationModuleID,
 				ComposeModuleID:     mappings.ComposeModuleID,
 				ComposeNamespaceID:  mappings.ComposeNamespaceID,
+				NodeBaseURL:         n.BaseURL,
 				ModuleMappings:      &mappings.FieldMapping,
 				ModuleMappingValues: &mappingValues,
 				SyncService:         w.syncService,
