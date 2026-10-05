@@ -62,7 +62,7 @@
       "t": "2026-09-23"
     },
     "client/web/unify/e2e/sections/admin/user-password.spec.ts": {
-      "h": "27d2a0261cc5",
+      "h": "eb5194824627",
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-10-05"
     },
@@ -3022,9 +3022,9 @@
       "t": "2026-07-23"
     },
     "client/web/unify/vite.config.js": {
-      "h": "3eafafba8b39",
+      "h": "9c7d99432194",
       "doc": "client/web/unify/unify.intent.md",
-      "t": "2026-08-24"
+      "t": "2026-10-05"
     },
     "client/web/unify/vitest.config.js": {
       "h": "2de12b0e3777",
@@ -3756,10 +3756,15 @@
       "doc": "lib/js/src/system/system.intent.md",
       "t": "2026-07-23"
     },
-    "lib/js/src/system/types/user.ts": {
-      "h": "52c63008650e",
+    "lib/js/src/system/types/user.test.ts": {
+      "h": "59bbbfaf03a2",
       "doc": "lib/js/src/system/system.intent.md",
-      "t": "2026-07-23"
+      "t": "2026-10-05"
+    },
+    "lib/js/src/system/types/user.ts": {
+      "h": "d0b6057e3700",
+      "doc": "lib/js/src/system/system.intent.md",
+      "t": "2026-10-05"
     },
     "lib/js/src/system/types/userGroup.ts": {
       "h": "0fa3eb29cac7",

@@ -11,8 +11,14 @@ const STORAGE_STATE = 'e2e/.auth/state.json'
 const STAMP = Date.now()
 const PASSWORD = 'E2e-Strong-Passw0rd!'
 
+// Opens the user list and waits for its rows, so the API calls that follow go
+// through an app that has finished signing in.
+async function settled(page: Page) {
+  await page.goto('/admin/system/users')
+  await expect(page.locator('tbody tr').first()).toBeVisible({ timeout: 30000 })
+}
+
 async function api(page: Page, fn: string, args: Record<string, unknown>) {
-  await page.waitForFunction(() => (document.querySelector('#app') as any)?.__vue_app__)
   return page.evaluate(
     ({ fn, args }) =>
       (document.querySelector('#app') as any).__vue_app__.config.globalProperties.$SystemAPI[fn](
@@ -39,7 +45,7 @@ test.describe.serial('setting a user password', () => {
     const context = await browser.newContext({ baseURL: BASE_URL, storageState: STORAGE_STATE })
     try {
       const page = await context.newPage()
-      await page.goto('/')
+      await settled(page)
       const created = await api(page, 'userCreate', {
         email: `e2e-password-${STAMP}@local.dev`,
         name: `e2e-password-${STAMP}`,
@@ -56,7 +62,7 @@ test.describe.serial('setting a user password', () => {
     const context = await browser.newContext({ baseURL: BASE_URL, storageState: STORAGE_STATE })
     try {
       const page = await context.newPage()
-      await page.goto('/')
+      await settled(page)
       await api(page, 'userDelete', { userID })
     } catch {
       // Teardown is best-effort: an e2e- user left behind is noise, not a failure.
@@ -137,7 +143,7 @@ test.describe.serial('setting a user password', () => {
   })
 
   test('a suspended user carries a tag and is offered Unsuspend', async ({ page }) => {
-    await page.goto('/')
+    await settled(page)
     await api(page, 'userSuspend', { userID })
 
     await page.goto(`/admin/system/users/${userID}`)
@@ -149,10 +155,7 @@ test.describe.serial('setting a user password', () => {
 })
 
 test('revoking your own sessions is disabled and says why', async ({ page }) => {
-  await page.goto('/')
-  await page.waitForFunction(
-    () => (document.querySelector('#app') as any)?.__vue_app__?.config.globalProperties.$Auth?.user,
-  )
+  await settled(page)
   const selfID = await page.evaluate(
     () =>
       (document.querySelector('#app') as any).__vue_app__.config.globalProperties.$Auth.user.userID,
@@ -166,4 +169,21 @@ test('revoking your own sessions is disabled and says why', async ({ page }) => 
   await expect(revoke).toBeDisabled()
   await revoke.locator('..').hover()
   await expect(page.getByText('This would end your own session as well')).toBeVisible()
+})
+
+test('a system user is not offered a password', async ({ page }) => {
+  await settled(page)
+  const systemID = await page.evaluate(async () => {
+    const api = (document.querySelector('#app') as any).__vue_app__.config.globalProperties
+      .$SystemAPI
+    const { set } = await api.userList({ kind: 'sys', limit: 1 })
+    return set?.[0]?.userID || ''
+  })
+  test.skip(!systemID, 'no system user on this stack')
+
+  await page.goto(`/admin/system/users/${systemID}`)
+  await expect(page.locator('input[name="email"]')).toBeVisible({ timeout: 30000 })
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByRole('button', { name: 'Revoke all active sessions' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Set password' })).toHaveCount(0)
 })

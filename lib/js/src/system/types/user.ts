@@ -37,6 +37,8 @@ export class User {
   public userGroupID = NoID
   public email = ''
   public name = ''
+  // 'sys' for the platform's own service accounts, which take no password.
+  public kind = ''
   public emailConfirmed = false
   public labels: object = {}
   public meta: UserMeta = {
@@ -71,7 +73,7 @@ export class User {
 
   apply(u?: PartialUser): void {
     Apply(this, u, HumanID, 'userID', 'userGroupID')
-    Apply(this, u, String, 'handle', 'username', 'email', 'name')
+    Apply(this, u, String, 'handle', 'username', 'email', 'name', 'kind')
     Apply(this, u, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'suspendedAt')
     Apply(
       this,
