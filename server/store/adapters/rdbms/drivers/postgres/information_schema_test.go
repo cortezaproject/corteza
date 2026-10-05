@@ -74,3 +74,16 @@ func Test_parseIndexDefinition(t *testing.T) {
 		})
 	}
 }
+
+// Without an explicit schema the lookups follow the connection's search_path
+// instead of assuming "public"
+func Test_schemaCond(t *testing.T) {
+	sql, _, err := dialect.GOQU().From("information_schema.columns").Where(schemaCond("table_schema", "")).ToSQL()
+	require.NoError(t, err)
+	require.Contains(t, sql, `"table_schema" = current_schema()`)
+
+	sql, args, err := dialect.GOQU().From("information_schema.columns").Where(schemaCond("table_schema", "crm")).ToSQL()
+	require.NoError(t, err)
+	require.Contains(t, sql, `"table_schema" = $1`)
+	require.Equal(t, []any{"crm"}, args)
+}

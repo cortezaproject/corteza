@@ -74,11 +74,11 @@ func (dd *dataDefiner) TableDrop(ctx context.Context, t string) error {
 }
 
 func (dd *dataDefiner) TableLookup(ctx context.Context, t string) (*ddl.Table, error) {
-	return dd.is.TableLookup(ctx, t, "public", dd.dbName)
+	return dd.is.TableLookup(ctx, t, "", dd.dbName)
 }
 
 func (dd *dataDefiner) TableSet(ctx context.Context) ([]*ddl.Table, error) {
-	return dd.is.TableSet(ctx, "public", dd.dbName)
+	return dd.is.TableSet(ctx, "", dd.dbName)
 }
 
 func (dd *dataDefiner) ColumnAdd(ctx context.Context, t string, c *ddl.Column) error {
@@ -117,11 +117,11 @@ func (dd *dataDefiner) ColumnReType(ctx context.Context, t string, col string, t
 }
 
 func (dd *dataDefiner) IndexLookup(ctx context.Context, i, t string) (*ddl.Index, error) {
-	// "public" is the SCHEMA, dd.dbName the database — informationSchema.
-	// IndexLookup filters pg_indexes.schemaname, so passing the database name
-	// here matched nothing and made EVERY index look absent, PRIMARY included.
-	// TableLookup above always had this right.
-	if index, err := dd.is.IndexLookup(ctx, i, t, "public"); err != nil {
+	// The last argument is the SCHEMA, not the database: IndexLookup filters
+	// pg_indexes.schemaname, so passing the database name matched nothing and
+	// made EVERY index look absent, PRIMARY included. Empty means the
+	// connection's current schema, so a search_path in the DSN is respected.
+	if index, err := dd.is.IndexLookup(ctx, i, t, ""); err != nil {
 		return nil, err
 	} else {
 		return index, nil
