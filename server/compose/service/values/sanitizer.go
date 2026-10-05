@@ -298,7 +298,9 @@ func sNumber(num interface{}, p uint, s uint) string {
 
 	base, err := strconv.ParseFloat(raw, 64)
 	if err != nil {
-		return "0"
+		// Keep the original value so validation rejects it instead of
+		// silently storing 0 (e.g. "1,5" with a decimal comma)
+		return raw
 	}
 
 	// Format the value to the desired precision

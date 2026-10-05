@@ -34,6 +34,12 @@ func Test_sanitizer_Run(t *testing.T) {
 			output: "",
 		},
 		{
+			name:   "invalid number is kept so validation can reject it",
+			kind:   "Number",
+			input:  "1,5",
+			output: "1,5",
+		},
+		{
 			name:   "object reference should be processed",
 			kind:   "Record",
 			input:  " 133569629112020995 ",
