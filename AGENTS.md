@@ -17,9 +17,12 @@ in CI; `check --changed` is the scoped form.
   `dev/agent/` — `smoke.sh` first, `shape.sh compose/record update` for a
   call's method, path, params and traps, then `api.sh METHOD PATH`. Setup:
   `bootstrap.sh` (idempotent). Reference: `dev/agent/README.md`.
-- **Never start, stop or restart a dev server** (vite, `make watch`) yourself,
-  even one that is stale or misbehaving: it may be another session's. Say what
-  is wrong and let the human relaunch it.
+- **Restart only your own task's dev server.** The servers of the worktree
+  your task works in are yours: `dev/agent/worktree.sh down <name>` then `up
+  <name>` when one is stale or misbehaving. Any other server (vite,
+  `make watch`) — the primary's, another worktree's — may be another
+  session's: never start, stop or restart it; say what is wrong and let the
+  human relaunch it.
 - **Non-obvious behaviour by area lives in `dev/gotchas/`** (server, compose,
   TAQ, agentic, project, frontend, dev-toolkit, intent). Read the area file
   before working in it; add an entry when something cost a turn. `docs/` is the

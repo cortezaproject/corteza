@@ -304,7 +304,8 @@ DOM as it is; use a visibility assertion when visibility is the question.
   the server already transformed. Confirm what is actually served before
   believing a UI result about a lib change:
   `curl -s "$(dev/agent/stack.sh | sed -n 's/^HUMAN_WEBAPP=//p')/@fs<abs-path-to-file>" | head`.
-  If it is stale, say so — never restart vite yourself.
+  If it is stale in your own task's worktree, `worktree.sh down/up <name>`;
+  anywhere else, say so — never restart another session's vite.
 - **A same-origin `/api/…` fetch from inside a drive check hits the SPA, not
   the API.** Vite proxies exactly two paths (`/custom.css`,
   `/code-snippets.js`, `client/web/unify/vite.config.js`); everything else
