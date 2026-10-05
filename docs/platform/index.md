@@ -1,6 +1,6 @@
 ---
 title: The platform
-description: A map of Human's parts — home, namespaces, automation, agents, chatbots, projects and administration — and how they relate.
+description: A map of Human's parts — home, namespaces, automation, agents, chatbots, projects, administration and federation — and how they relate.
 ---
 
 # The platform
@@ -58,6 +58,12 @@ The Admin Area holds everything that is configured once for the whole
 instance: users, roles and permissions, the application registry, LLM
 providers, connections, email and the audit log.
 [Administration →](./administration)
+
+## Federation
+
+Federation shares records between two Human servers: one exposes a module, the
+other maps it onto a module of its own and receives its records as they are
+created, changed and deleted. [Federation →](./federation)
 
 ## How the parts relate
 

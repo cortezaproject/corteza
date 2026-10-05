@@ -15,8 +15,8 @@ services Human can reach, and what has happened. You find it under **Admin
 Area** in the menu.
 
 The Admin Area's sidebar is grouped into **System**, **Compose**,
-**Automation**, **Federation** (only when federation is enabled) and **User
-interface**. Each person sees only the entries their permissions reach, so an
+**Automation**, **Federation** (only when [federation](./federation) is
+enabled) and **User interface**. Each person sees only the entries their permissions reach, so an
 administrator with a narrow role sees a short menu.
 
 ## People

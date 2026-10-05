@@ -16,7 +16,7 @@ Data models, pages, automations and AI agents in one open platform. Start in ten
 
 ### Platform
 
-- [The platform](/platform.md): A map of Human's parts — home, namespaces, automation, agents, chatbots, projects and administration — and how they relate.
+- [The platform](/platform.md): A map of Human's parts — home, namespaces, automation, agents, chatbots, projects, administration and federation — and how they relate.
 - [Home and apps](/platform/home.md): The home screen, the app menu, the application registry behind it, and notifications.
 - [Namespaces and data](/platform/namespaces.md): Namespaces, modules and fields, records, pages and blocks, charts, and how people use an app built in Human.
 - [Automation (TAQ)](/platform/automation.md): What a TAQ is, the triggers that start it, the steps, branches and loops it is built from, and how it runs.
@@ -24,6 +24,7 @@ Data models, pages, automations and AI agents in one open platform. Start in ten
 - [Chatbots](/platform/chatbots.md): What a chatbot is, the journey of steps it takes visitors through, handoff to human operators, styling, and the widget key and allowed origins.
 - [Projects](/platform/projects.md): What a project is in Human.
 - [Administration](/platform/administration.md): The Admin Area — people, roles and the permission model, the application registry, LLM providers, connections, email, templates and the action log.
+- [Federation](/platform/federation.md): Share records between two Human servers — turning federation on, pairing servers, exposing a module, mapping it on the receiving side, the read access a peer needs, and how syncing behaves.
 
 ### Reference
 

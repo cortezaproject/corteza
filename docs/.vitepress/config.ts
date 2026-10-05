@@ -67,6 +67,7 @@ export default defineConfig({
           { text: 'Chatbots', link: '/platform/chatbots' },
           { text: 'Projects', link: '/platform/projects' },
           { text: 'Administration', link: '/platform/administration' },
+          { text: 'Federation', link: '/platform/federation' },
         ],
       },
       {
