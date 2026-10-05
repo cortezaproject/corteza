@@ -213,6 +213,10 @@ test.integration: $(GOTEST)
 test.integration.%: $(GOTEST)
 	$(GOTEST) $(TEST_FLAGS) ./tests/$*/...
 
+# Runs federation between two server processes it builds and starts
+test.federation-e2e: $(GOTEST)
+	HUMAN_FEDERATION_E2E=1 $(GOTEST) $(TEST_FLAGS) -count=1 ./tests/federation_e2e/...
+
 # Runs store tests
 test.store: $(GOTEST)
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_store)
