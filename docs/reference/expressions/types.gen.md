@@ -18,6 +18,26 @@ of these types. Structured types have fields, read with a dot:
 
 ## Structured types
 
+### `Agent` {#agent}
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ID` | `ID` | read-only; also `agentID` |
+| `handle` | `Handle` |  |
+| `status` | `String` |  |
+| `meta` | [`AgentMeta`](#agentmeta) |  |
+| `labels` | `LabelValue` |  |
+| `createdAt` | `DateTime` | read-only |
+| `updatedAt` | `DateTime` | read-only |
+| `deletedAt` | `DateTime` | read-only |
+
+### `AgentMeta` {#agentmeta}
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `short` | `String` |  |
+| `description` | `String` |  |
+
 ### `Attachment` {#attachment}
 
 | Field | Type | Notes |
