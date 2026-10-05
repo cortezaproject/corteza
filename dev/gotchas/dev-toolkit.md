@@ -269,3 +269,39 @@ Straight after `up` the worktree's API can still be coming up, and `auth.setup.t
 The generated JS client throws `field userGroupID is empty` before any request is sent, even though the server accepts a user with no group. The user editor sends `'0'` for that reason.
 
 **How to apply:** an e2e spec that creates a user through the API passes `userGroupID: '0'`.
+
+### lib/js runs mocha, not vitest
+
+`npx vitest run` inside `lib/js` fails every suite with `describe is not defined`, which reads like broken tests. The workspace's runner is mocha (`pnpm test`), with `bail` set.
+
+**How to apply:** run it through `dev_test_run lib/js`, which picks the runner and says when bail cut the run short.
+
+### `backlog.sh add --help` files an item called `--help`
+
+`add` takes its first argument as the item text, flags included. The usage is in the script's header comment.
+
+**How to apply:** read `sed -n 1,40p dev/agent/backlog.sh`; drop a stray item with `backlog.sh drop ID`.
+
+### verify-ui calls a lone iframe-backed block empty
+
+On a page whose only block draws its content inside an iframe (Custom, IFrame), `verify-ui.mjs` reports `empty block [single] — rendered nothing` while the screenshot shows it full. The report cannot see into frames.
+
+**How to apply:** for frame-backed blocks, read the screenshot rather than the report line.
+
+### `make codegen` stops at codegen-legacy in a worktree
+
+`make codegen` from the root fails after the cue step with `stat …/docs/src/modules: no such file or directory`, and pointing `DOCS_DIR` at a scratch directory makes `human-codegen` panic instead. Nothing from `rest.yaml` (request structs) is regenerated, and the lib clients are never reached.
+
+**How to apply:** run `cd server && make codegen`, then `$(go env GOPATH)/bin/human-codegen` with no `-d` (the REST and action code, no expression docs), then `cd lib && make codegen`. Check `git status` for the request file and `lib/js/src/api-clients/`.
+
+### A fixture-dependent e2e spec on an unseeded stack fails as a hook timeout
+
+`corredor-record-scripts.spec.ts` needs the `agent-sandbox` fixture, which the dev database does not carry by default. Its `beforeAll` waits 30s for contact rows, as long as the hook's own timeout, so the run ends in `"beforeAll" hook timeout` before the spec can say what is missing. Corredor's `ENOENT … unify.client-scripts.js` in the same log is unrelated: no fixture defines a `unify` client bundle.
+
+**How to apply:** before attributing a `beforeAll` timeout, check the fixture the spec names (`dev/agent/ids.sh <slug>`), seed it with `dev/agent/seed.sh <slug>`, and re-run that spec alone.
+
+### Editing an embedded file does not rebuild the dev server
+
+devwatch rebuilds on writes to `.go` files only (`server/cmd/devwatch/main.go`), and `touch` is not a write. A skill in `server/system/agentic/skills/library/*.md`, or anything else `go:embed`s, keeps serving its old text until some `.go` file in the checkout is written.
+
+**How to apply:** after editing an embedded file, write a `.go` file in its package with the same content (`cat f.go > f.go` through a copy), wait for `serving` in the server log, and re-read through the tool rather than trusting the file on disk.

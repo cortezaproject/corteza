@@ -257,3 +257,9 @@ The generated `lib/js/src/api-clients/*.ts` guard required fields more strictly 
 `lib/vue/src/composables/useSystemNotifications.ts` cannot show a real notification in headless Chromium, and CDP `Browser.setPermission` does not model the permission. Replace `window.Notification` with a recorder class via `addInitScript` and override `document.hasFocus`. Notifications are scoped to their recipient (another user's reads as "notification not found" beside HTTP 200), the human's browser runs as their own account rather than the agent user, and permission is per origin including port. The e2e login snapshot captures localStorage, including `notificationsFocusedTab`, so per-tab state leaks into every spec.
 
 **How to apply:** look the human's account up in the checkout's DB before sending them a test notification; only the human can confirm a real OS notification.
+
+### A reactive object posted to a frame throws DataCloneError
+
+`postMessage` structured-clones what it sends, and a Vue reactive proxy cannot be cloned: `Failed to execute 'postMessage' … could not be cloned`. It shows only where the value is reactive. A compose block's options are a reactive draft in the page builder and plain on the viewed page, so the same block works on the page and fails in the builder.
+
+**How to apply:** hand a frame a plain copy (`JSON.parse(JSON.stringify(v))` or `toRaw` deep), and check frame-backed blocks in the builder as well as on the page.

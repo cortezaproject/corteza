@@ -276,3 +276,9 @@ Suites under `server/tests/` built on `helpers.NewIntegrationTestApp` truncate t
 On this WSL2 setup the wall clock runs fast and host time sync steps it back roughly 1.5 seconds every 30 seconds. Anything that compares a timestamp it just wrote with `time.Now()` can see the past come after the present. Access tokens were refused as "issued in the future" until verification allowed for clock skew (`tokenClockSkew` in `pkg/auth/token_middleware.go`).
 
 **How to apply:** when something time-based fails in bursts about 30 seconds apart, watch for wall-clock steps against the monotonic clock before suspecting the code.
+
+### The SSE bus drops what is emitted before a stream registers
+
+`observability.Bus` hands an event only to dispatchers registered at that moment; there is no replay. Anything started from the request that creates a session (a goroutine kicked off before responding) emits before the client has opened its stream, and that event reaches nobody. The public chatbot widget lost its first step this way.
+
+**How to apply:** start what emits from the stream handler, once its dispatcher is registered (the widget's `startFirstStep`, the preview's `StartStep`), with a guard so a reconnect does not start it twice.
