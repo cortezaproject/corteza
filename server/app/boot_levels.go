@@ -647,13 +647,16 @@ func (app *HumanApp) Activate(ctx context.Context) (err error) {
 
 	}
 
-	if err = autService.Activate(ctx); err != nil {
-		return fmt.Errorf("could not activate automation services: %w", err)
+	// Compose models must be loaded before automation registers the workflow
+	// triggers; a trigger firing earlier (e.g. on the scheduler's first tick)
+	// fails on records whose model does not exist yet
+	if err = cmpService.Activate(ctx); err != nil {
+		return fmt.Errorf("could not activate compose services: %w", err)
 
 	}
 
-	if err = cmpService.Activate(ctx); err != nil {
-		return fmt.Errorf("could not activate compose services: %w", err)
+	if err = autService.Activate(ctx); err != nil {
+		return fmt.Errorf("could not activate automation services: %w", err)
 
 	}
 
