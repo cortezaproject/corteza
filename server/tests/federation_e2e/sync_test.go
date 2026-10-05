@@ -90,12 +90,10 @@ func TestFederationSyncBetweenTwoServers(t *testing.T) {
 	})
 
 	// The paired node reads the exposed records as the origin's federation
-	// role, which the admin grants access to them
+	// role: listing them and reading their field values are what the admin
+	// grants; the rest is default read access
 	origin.grantFederationRole(
-		"corteza::compose:namespace/"+originNs, "read",
-		"corteza::compose:module/"+originNs+"/"+originMod, "read",
 		"corteza::compose:module/"+originNs+"/"+originMod, "records.search",
-		"corteza::compose:record/"+originNs+"/"+originMod+"/*", "read",
 		"corteza::compose:module-field/"+originNs+"/"+originMod+"/*", "record.value.read",
 	)
 
