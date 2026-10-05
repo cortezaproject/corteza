@@ -264,3 +264,9 @@ Suites under `server/tests/` built on `helpers.NewIntegrationTestApp` truncate t
 `go build ./...` never compiles `_test.go`, so a test package referencing a renamed type stays broken unseen. `cd server && go vet ./...` reports it.
 
 **How to apply:** run it after any type rename, and sweep for siblings when one broken test package is reported.
+
+### The WSL clock steps back about 1.5s every 30s
+
+On this WSL2 setup the wall clock runs fast and host time sync steps it back roughly 1.5 seconds every 30 seconds. Anything that compares a timestamp it just wrote with `time.Now()` can see the past come after the present. Access tokens were refused as "issued in the future" until verification allowed for clock skew (`tokenClockSkew` in `pkg/auth/token_middleware.go`).
+
+**How to apply:** when something time-based fails in bursts about 30 seconds apart, watch for wall-clock steps against the monotonic clock before suspecting the code.
