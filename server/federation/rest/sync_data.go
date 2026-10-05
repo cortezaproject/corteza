@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/crusttech/human/server/pkg/options"
@@ -14,12 +13,9 @@ import (
 	"github.com/crusttech/human/server/federation/rest/request"
 	"github.com/crusttech/human/server/federation/service"
 	"github.com/crusttech/human/server/federation/types"
-	"github.com/crusttech/human/server/pkg/auth"
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/crusttech/human/server/pkg/federation"
 	"github.com/crusttech/human/server/pkg/filter"
-	ss "github.com/crusttech/human/server/system/service"
-	st "github.com/crusttech/human/server/system/types"
 )
 
 type (
@@ -179,10 +175,10 @@ func (ctrl SyncData) ReadExposedSocial(ctx context.Context, r *request.SyncDataR
 // readExposed fetches all the data - records (with paging) for an exposed module in an internal format
 func (ctrl SyncData) readExposed(ctx context.Context, r *request.SyncDataReadExposedInternal) (interface{}, error) {
 	var (
-		err   error
-		em    *types.ExposedModule
-		users st.UserSet
-		node  *types.Node
+		err            error
+		em             *types.ExposedModule
+		federatedUsers []uint64
+		node           *types.Node
 	)
 
 	if node, err = service.DefaultNode.FindBySharedNodeID(ctx, r.NodeID); err != nil {
@@ -193,18 +189,12 @@ func (ctrl SyncData) readExposed(ctx context.Context, r *request.SyncDataReadExp
 		return nil, err
 	}
 
-	if users, _, err = ss.DefaultUser.Find(ctx, st.UserFilter{}); err != nil {
+	if federatedUsers, err = service.FederatedUserIDs(ctx, service.DefaultStore); err != nil {
 		return nil, err
 	}
 
-	users, _ = users.Filter(func(u *st.User) (bool, error) {
-		return strings.Contains(u.Handle, "federation_"), nil
-	})
-
-	users = append(users, auth.FederationUser())
-
 	query := buildLastSyncQuery(r.LastSync)
-	ignoredUsersQuery := buildIgnoredUsersQuery(users)
+	ignoredUsersQuery := buildIgnoredUsersQuery(federatedUsers)
 
 	if ignoredUsersQuery != "" {
 		if query != "" {
@@ -269,17 +259,17 @@ func buildLastSyncQuery(ts uint64) string {
 		t.UTC().Format(time.RFC3339))
 }
 
-func buildIgnoredUsersQuery(users st.UserSet) string {
+func buildIgnoredUsersQuery(userIDs []uint64) string {
 	query := ""
 
-	if len(users) == 0 {
+	if len(userIDs) == 0 {
 		return query
 	}
 
-	for i, u := range users {
-		query += fmt.Sprintf("createdBy != %d", u.ID)
+	for i, ID := range userIDs {
+		query += fmt.Sprintf("createdBy != %d", ID)
 
-		if i < len(users)-1 {
+		if i < len(userIDs)-1 {
 			query += " AND "
 		}
 	}

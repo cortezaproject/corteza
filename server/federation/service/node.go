@@ -390,6 +390,24 @@ const (
 	federatedUserEmailSuffix  = "@federation.corteza"
 )
 
+// FederatedUserIDs lists the users that federation acts as on this server,
+// read from the store rather than through the caller's permissions
+func FederatedUserIDs(ctx context.Context, s store.Users) ([]uint64, error) {
+	uu, _, err := store.SearchUsers(ctx, s, sysTypes.UserFilter{})
+	if err != nil {
+		return nil, err
+	}
+
+	ids := []uint64{auth.FederationUser().ID}
+	for _, u := range uu {
+		if strings.HasSuffix(u.Email, federatedUserEmailSuffix) {
+			ids = append(ids, u.ID)
+		}
+	}
+
+	return ids, nil
+}
+
 func federatedUserHandle(n *types.Node) string {
 	return fmt.Sprintf("%s%d", federatedUserHandlePrefix, n.ID)
 }
