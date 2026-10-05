@@ -263,3 +263,9 @@ The generated `lib/js/src/api-clients/*.ts` guard required fields more strictly 
 `postMessage` structured-clones what it sends, and a Vue reactive proxy cannot be cloned: `Failed to execute 'postMessage' … could not be cloned`. It shows only where the value is reactive. A compose block's options are a reactive draft in the page builder and plain on the viewed page, so the same block works on the page and fails in the builder.
 
 **How to apply:** hand a frame a plain copy (`JSON.parse(JSON.stringify(v))` or `toRaw` deep), and check frame-backed blocks in the builder as well as on the page.
+
+### Theme defaults in code do not reach an existing instance
+
+`useTheme.ts` merges the stored `ui.studio.themes` setting over its own defaults, and provisioning (`server/pkg/provision/stylesheet.go`) writes a full palette into that setting the first time the server runs. So every existing instance, the dev DB included, has every colour saved, and editing a default in code changes nothing there.
+
+**How to apply:** after changing a theme default, also change the stored value (`mcp.py call system_theme_update`) before you check it in the browser; only new instances and the Theming page's reset pick up the code default.
