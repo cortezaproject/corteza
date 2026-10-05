@@ -213,7 +213,7 @@ Federation services are package globals (`service.DefaultStore`, `DefaultNode`),
 
 ### A peer reads exposed records as the origin's federation role
 
-Nothing provisions the read access: the origin's `federation` role needs `read` on the exposed module's records and `record.value.read` on its fields. A field without value read syncs as an empty value, with no error anywhere.
+Nothing provisions the read access: on top of the default read rules, the origin's `federation` role needs `records.search` on the exposed module and `record.value.read` on its fields. Without the first nothing syncs; a field without value read syncs as an empty value, with no error anywhere.
 
 **How to apply:** grant both per exposed module, as `grantFederationRole` in the e2e test does.
 
