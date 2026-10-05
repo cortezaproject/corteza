@@ -16,6 +16,8 @@ const activities = {
   ],
 }
 
+const seenNamespaces = vi.hoisted(() => [])
+
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: k => k }) }))
 
 vi.mock('@planetcrust/human-vue', () => ({
@@ -29,6 +31,14 @@ vi.mock('@planetcrust/human-vue/src/components/field', () => ({
       field: { type: Object, default: () => ({}) },
       namespace: { type: Object, default: () => ({}) },
       modelValue: { type: [String, Array], default: '' },
+    },
+    watch: {
+      namespace: {
+        handler(ns) {
+          seenNamespaces.push(ns)
+        },
+        deep: true,
+      },
     },
     template: '<div />',
   },
@@ -55,8 +65,10 @@ const upstream = [
 ]
 
 let wrapper
+let upstreamRef
 
 async function mountRow(symbol) {
+  upstreamRef = ref(upstream)
   wrapper = mount(ConditionRow, {
     props: {
       node: {
@@ -71,7 +83,7 @@ async function mountRow(symbol) {
     },
     global: {
       provide: {
-        'taq-upstream-results': ref(upstream),
+        'taq-upstream-results': upstreamRef,
         $ComposeAPI: {},
       },
       stubs: { Select: true, Button: true, CInputExpression: true, InputText: true },
@@ -95,6 +107,21 @@ describe('condition row — namespace passthrough', () => {
     expect(editor.exists()).toBe(true)
     expect(editor.props('field').kind).toBe('Record')
     expect(editor.props('namespace')).toEqual({ namespaceID: '100' })
+  })
+
+  it('never shows the editor an empty namespace while re-resolving', async () => {
+    await mountRow('record.values.opportunity')
+    seenNamespaces.length = 0
+
+    // Opening the reference panel recomputes the upstream results
+    upstreamRef.value = structuredClone(upstream)
+    await flushPromises()
+    await flushPromises()
+
+    expect(seenNamespaces).not.toContainEqual({})
+    expect(wrapper.findComponent({ name: 'CFieldEditor' }).props('namespace')).toEqual({
+      namespaceID: '100',
+    })
   })
 
   it('leaves the namespace empty when the field is not resolved from a module', async () => {

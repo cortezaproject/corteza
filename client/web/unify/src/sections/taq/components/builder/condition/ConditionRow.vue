@@ -194,40 +194,39 @@ watch(resolvedVariableType, (newKind, oldKind) => {
   userChangedSymbol.value = false
 })
 
+// The value side's field and namespace, assigned together once resolved: a
+// record picker shown an empty namespace in between reads it as a module
+// change and clears its value.
+let resolveRun = 0
 watchEffect(async () => {
-  resolvedNamespace.value = {}
-  const left = leftArg.value
-  if (!left?.symbol || !left?.meta?.scope) {
-    resolvedFieldDef.value = makeFieldDef()
-    return
-  }
+  const run = ++resolveRun
+  const { fieldDef, namespace } = await resolveValueField(leftArg.value, upstreamResults.value)
+  if (run !== resolveRun) return
+  resolvedFieldDef.value = fieldDef
+  resolvedNamespace.value = namespace
+})
+
+async function resolveValueField(left, upstream) {
+  const plain = kind => ({ fieldDef: makeFieldDef(kind), namespace: {} })
+
+  if (!left?.symbol || !left?.meta?.scope) return plain()
   const scope = left.meta.scope
   const symbol = left.symbol
 
-  const step = upstreamResults.value.find(s => s.handle === scope)
-  if (!step) {
-    resolvedFieldDef.value = makeFieldDef()
-    return
-  }
+  const step = upstream.find(s => s.handle === scope)
+  if (!step) return plain()
 
   const topLevelName = symbol.split('.')[0]
   const topLevel = (step.properties || step.results || []).find(r => r.sourceName === topLevelName)
-  if (!topLevel) {
-    resolvedFieldDef.value = makeFieldDef()
-    return
-  }
+  if (!topLevel) return plain()
 
-  if (symbol === topLevelName) {
-    resolvedFieldDef.value = makeFieldDef(topLevel.types?.[0] || 'String')
-    return
-  }
+  if (symbol === topLevelName) return plain(topLevel.types?.[0] || 'String')
 
   if (topLevel.types?.includes('ComposeRecord') && symbol.startsWith(`${topLevelName}.`)) {
     const fieldPath = symbol.substring(topLevelName.length + 1)
 
     if (fieldPath === 'recordID' || fieldPath === 'moduleID' || fieldPath === 'namespaceID') {
-      resolvedFieldDef.value = makeFieldDef('ID')
-      return
+      return plain('ID')
     }
     if (
       fieldPath === 'ownedBy' ||
@@ -235,12 +234,10 @@ watchEffect(async () => {
       fieldPath === 'updatedBy' ||
       fieldPath === 'deletedBy'
     ) {
-      resolvedFieldDef.value = makeFieldDef('UserSelector')
-      return
+      return plain('UserSelector')
     }
     if (fieldPath === 'createdAt' || fieldPath === 'updatedAt' || fieldPath === 'deletedAt') {
-      resolvedFieldDef.value = makeFieldDef('DateTime')
-      return
+      return plain('DateTime')
     }
     if (fieldPath.startsWith('values.')) {
       const customFieldName = fieldPath.substring(7)
@@ -252,16 +249,17 @@ watchEffect(async () => {
           })
           const field = mod.fields?.find(f => f.name === customFieldName)
           if (field) {
-            resolvedNamespace.value = { namespaceID: topLevel.namespaceID }
-            resolvedFieldDef.value = {
-              kind: field.kind,
-              name: field.name,
-              label: field.label || field.name,
-              options: field.options || {},
-              isMulti: false,
-              isRequired: false,
+            return {
+              namespace: { namespaceID: topLevel.namespaceID },
+              fieldDef: {
+                kind: field.kind,
+                name: field.name,
+                label: field.label || field.name,
+                options: field.options || {},
+                isMulti: false,
+                isRequired: false,
+              },
             }
-            return
           }
         } catch {
           // fall through to default field def
@@ -270,8 +268,8 @@ watchEffect(async () => {
     }
   }
 
-  resolvedFieldDef.value = makeFieldDef()
-})
+  return plain()
+}
 
 // --- Value (right side) ---
 
