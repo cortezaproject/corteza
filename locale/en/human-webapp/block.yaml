@@ -1193,6 +1193,7 @@ recordList:
   sort:
     reset: Reset sort
     tooltip: Click to sort by this column. Ctrl-click (Cmd-click on a Mac) to add it to the current sort; click a sorted column again to reverse it, then once more to remove it.
+    tooltipByID: Sorts by the ID of the referenced record or user, not by the displayed value. Ctrl-click (Cmd-click on a Mac) to add it to the current sort; click a sorted column again to reverse it, then once more to remove it.
   summaries:
     customSummaries:
       add:

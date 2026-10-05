@@ -439,7 +439,7 @@
           <template #sorticon="{ sorted, sortOrder, class: iconClass }">
             <i
               v-tooltip.top="{
-                value: $t('block.recordList.sort.tooltip'),
+                value: sortTooltip(col),
                 showDelay: 500,
                 class: 'max-w-sm',
               }"
@@ -911,6 +911,13 @@ const shownSortFields = computed(() => {
 
 function sortRank(name) {
   return shownSortFields.value.length > 1 ? shownSortFields.value.indexOf(name) + 1 : 0
+}
+
+// Record and user fields are sorted by the stored ID, not the displayed value
+function sortTooltip(col) {
+  return ['Record', 'User'].includes(col.kind)
+    ? t('block.recordList.sort.tooltipByID')
+    : t('block.recordList.sort.tooltip')
 }
 
 function sortIconClass(sorted, sortOrder) {
