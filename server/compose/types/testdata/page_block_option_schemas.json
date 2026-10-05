@@ -14,6 +14,8 @@
         "workflowID": "",
         "automationID": "",
         "stepID": "",
+        "triggerHandle": "",
+        "scriptType": "",
         "variant": ""
       }
     ],
