@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/crusttech/human/server/pkg/errors"
 	"github.com/go-chi/jwtauth"
@@ -16,6 +17,12 @@ var (
 	HttpTokenVerifier func(http.Handler) http.Handler
 )
 
+// tokenClockSkew is how far the verifying clock may trail or lead the issuing
+// one when a token's iat, nbf and exp are checked. A clock stepped back by time
+// sync, or a second node a little behind, otherwise refuses a token it has just
+// issued as "issued in the future".
+const tokenClockSkew = 30 * time.Second
+
 // verifier returns a jwt verification middleware
 //
 // Tasks
@@ -26,7 +33,7 @@ var (
 func verifier(ja *jwtauth.JWTAuth) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token, err := jwtauth.VerifyRequest(ja, r, jwtauth.TokenFromHeader, jwtauth.TokenFromQuery, jwtauth.TokenFromCookie)
+			token, err := verifyRequest(ja, r, jwtauth.TokenFromHeader, jwtauth.TokenFromQuery, jwtauth.TokenFromCookie)
 			ctx := r.Context()
 
 			if token != nil && err == nil {
@@ -42,6 +49,36 @@ func verifier(ja *jwtauth.JWTAuth) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// verifyRequest is jwtauth.VerifyRequest with tokenClockSkew allowed on the
+// time claims.
+func verifyRequest(ja *jwtauth.JWTAuth, r *http.Request, findTokenFns ...func(r *http.Request) string) (jwt.Token, error) {
+	var tokenString string
+	for _, fn := range findTokenFns {
+		if tokenString = fn(r); tokenString != "" {
+			break
+		}
+	}
+
+	if tokenString == "" {
+		return nil, jwtauth.ErrNoTokenFound
+	}
+
+	token, err := ja.Decode(tokenString)
+	if err != nil {
+		return token, jwtauth.ErrorReason(err)
+	}
+
+	if token == nil {
+		return nil, jwtauth.ErrUnauthorized
+	}
+
+	if err = jwt.Validate(token, jwt.WithAcceptableSkew(tokenClockSkew)); err != nil {
+		return token, jwtauth.ErrorReason(err)
+	}
+
+	return token, nil
 }
 
 // TokenVerifierMiddlewareWithSecretSigner returns HTTP handler with simple jwa.HS512 + secret verifier
