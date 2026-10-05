@@ -4,10 +4,13 @@
     v-bind="$props"
     v-on="$listeners"
   >
-    <div class="h-100 w-100 card overflow-hidden bg-transparent">
+    <div
+      ref="container"
+      class="h-100 w-100 card overflow-hidden bg-transparent"
+    >
       <div
-        v-if="isSmallScreen"
-        class="d-flex align-items-center justify-content-end h-100 px-2"
+        v-if="collapsed"
+        class="d-flex align-items-center justify-content-start h-100 px-2"
       >
         <b-button
           :id="`navigation-menu-${block.blockID}`"
@@ -95,8 +98,9 @@
         </b-popover>
       </div>
 
+      <!-- Stays rendered while collapsed so it can be measured -->
       <b-nav
-        v-else
+        ref="nav"
         v-bind="{
           tabs: options.display.appearance === 'tabs',
           pills: options.display.appearance === 'pills',
@@ -104,7 +108,8 @@
           justified: options.display.justify === 'justify'
         }"
         :align="options.display.alignment"
-        class="border-0 h-100 overflow-auto"
+        class="border-0 h-100 overflow-auto flex-nowrap"
+        :class="{ 'position-absolute w-100 invisible': collapsed }"
       >
         <b-nav-item
           v-for="(navItem, index) in options.navigationItems"
@@ -118,7 +123,7 @@
           :href="generateHrefAttributeLink(navItem)"
           :to="generateToAttributeLink(navItem)"
           :target="selectTargetOption(navItem.options.item.target)"
-          class="d-flex align-items-center"
+          class="d-flex align-items-center text-nowrap"
         >
           <template v-if="navItem.type === 'dropdown' || isComposeDropdownPage(navItem)">
             <b-button
@@ -217,14 +222,16 @@
 import { NoID } from '@cortezaproject/corteza-js'
 import { mapGetters } from 'vuex'
 import base from '../base'
-import smallScreen from '../../../mixins/smallScreen'
 
 export default {
   extends: base,
 
-  mixins: [
-    smallScreen,
-  ],
+  data () {
+    return {
+      // Items that do not fit in one row are moved to a menu
+      collapsed: false,
+    }
+  },
 
   computed: {
     ...mapGetters({
@@ -232,7 +239,34 @@ export default {
     }),
   },
 
+  watch: {
+    'options.navigationItems': {
+      deep: true,
+      handler () {
+        this.$nextTick(this.checkNavFits)
+      },
+    },
+  },
+
+  mounted () {
+    this.navObserver = new ResizeObserver(this.checkNavFits)
+    this.navObserver.observe(this.$refs.container)
+    this.$nextTick(this.checkNavFits)
+  },
+
+  beforeDestroy () {
+    this.navObserver.disconnect()
+  },
+
   methods: {
+    checkNavFits () {
+      // b-nav is functional, so the ref is its element
+      const { nav } = this.$refs
+      if (!nav) return
+
+      this.collapsed = nav.scrollWidth > nav.clientWidth + 1
+    },
+
     isComposeDropdownPage (navItem) {
       return (navItem.type === 'compose' && navItem.options.item.displaySubPages)
     },
