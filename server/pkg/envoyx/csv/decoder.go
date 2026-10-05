@@ -202,16 +202,26 @@ func (d *decoder) parseComplexCSVCell(cell string) []string {
 	}
 
 	r := csv.NewReader(strings.NewReader(cell))
+	r.LazyQuotes = true
+	r.FieldsPerRecord = -1
 	if d.multiValueDelimiter != "" {
 		r.Comma = []rune(d.multiValueDelimiter)[0]
 	}
 
 	records, err := r.ReadAll()
-	if err != nil {
-		return nil
+	if err != nil || len(records) == 0 {
+		return []string{cell}
 	}
 
-	return records[0]
+	// The cell itself may span multiple lines; the reader splits those into
+	// separate records so glue them back together
+	out := records[0]
+	for _, rec := range records[1:] {
+		out[len(out)-1] += "\n" + rec[0]
+		out = append(out, rec[1:]...)
+	}
+
+	return out
 }
 
 // splitConcatenatedJSON splits a cell of delimiter-joined JSON objects into
