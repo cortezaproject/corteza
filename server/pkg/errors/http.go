@@ -141,7 +141,7 @@ func writeHttpJSON(ctx context.Context, w io.Writer, err error, mask bool) {
 
 	if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() || mask {
 		// trim error details when not debugging or error is not safe or maske
-		err = errors.New(err.Error())
+		err = maskError(err)
 	}
 
 	// if error is translatable, pass in the lambda that returns
@@ -164,4 +164,19 @@ func writeHttpJSON(ctx context.Context, w io.Writer, err error, mask bool) {
 	if err = json.NewEncoder(w).Encode(wrap); err != nil {
 		panic(fmt.Errorf("failed to encode error: %w", err))
 	}
+}
+
+// maskError strips everything but the message
+//
+// An error raised by a workflow error step keeps its title; the workflow
+// author set it to be shown to the user
+func maskError(err error) error {
+	var e *Error
+	if errors.As(err, &e) && e.kind == KindAutomation {
+		if title := e.meta.AsString("title"); title != "" {
+			return Plain(KindAutomation, "%s", err.Error()).Apply(Meta("title", title))
+		}
+	}
+
+	return errors.New(err.Error())
 }
