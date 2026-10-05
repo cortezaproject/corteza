@@ -288,11 +288,11 @@ On a page whose only block draws its content inside an iframe (Custom, IFrame), 
 
 **How to apply:** for frame-backed blocks, read the screenshot rather than the report line.
 
-### `make codegen` stops at codegen-legacy in a worktree
+### A stale `human-codegen` binary breaks codegen-legacy
 
-`make codegen` from the root fails after the cue step with `stat …/docs/src/modules: no such file or directory`, and pointing `DOCS_DIR` at a scratch directory makes `human-codegen` panic instead. Nothing from `rest.yaml` (request structs) is regenerated, and the lib clients are never reached.
+`make codegen-legacy` runs `$(GOPATH)/bin/human-codegen`, and `Makefile.inc` builds it only when it is missing, so an old binary is never replaced. An old one fails with `stat …/docs/src/modules: no such file or directory`, or silently skips what was added since — the OpenAPI documents in `server/docs/*.yaml` among them, which `TestOpenAPIDocsAreCurrent` then catches.
 
-**How to apply:** run `cd server && make codegen`, then `$(go env GOPATH)/bin/human-codegen` with no `-d` (the REST and action code, no expression docs), then `cd lib && make codegen`. Check `git status` for the request file and `lib/js/src/api-clients/`.
+**How to apply:** rebuild it before codegen — `cd server && go build -o $(go env GOPATH)/bin/human-codegen ./cmd/codegen/main.go` — then `make codegen` from the root.
 
 ### A fixture-dependent e2e spec on an unseeded stack fails as a hook timeout
 
