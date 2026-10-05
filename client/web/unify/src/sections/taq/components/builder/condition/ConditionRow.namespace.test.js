@@ -12,6 +12,7 @@ const activities = {
   fields: [
     { name: 'opportunity', label: 'Opportunity', kind: 'Record', options: { moduleID: '300' } },
     { name: 'subject', label: 'Subject', kind: 'String', options: {} },
+    { name: 'amount', label: 'Amount', kind: 'Number', options: {} },
   ],
 }
 
@@ -125,5 +126,44 @@ describe('condition row — namespace passthrough', () => {
     const editor = wrapper.findComponent({ name: 'CFieldEditor' })
     expect(editor.props('field').kind).toBe('DateTime')
     expect(editor.props('namespace')).toEqual({})
+  })
+})
+
+describe('condition row — ID values stay strings', () => {
+  // Past 2^53; as a JS number it reads back as ...291500
+  const recordID = '516685641421291521'
+
+  async function typedValueAfter(symbol, val) {
+    await mountRow(symbol)
+    wrapper.findComponent({ name: 'CFieldEditor' }).vm.$emit('update:modelValue', val)
+    return wrapper.emitted('update').at(-1)[0].args[1].value
+  }
+
+  it('keeps a Record field value as the exact ID string', async () => {
+    expect(await typedValueAfter('record.values.opportunity', recordID)).toEqual({
+      '@type': 'String',
+      '@value': recordID,
+    })
+  })
+
+  it('keeps a multi-value Record field array as sent', async () => {
+    expect(await typedValueAfter('record.values.opportunity', [recordID])).toEqual({
+      '@type': 'String',
+      '@value': [recordID],
+    })
+  })
+
+  it('keeps an integer too large for a JS number as a string', async () => {
+    expect(await typedValueAfter('record.values.amount', recordID)).toEqual({
+      '@type': 'String',
+      '@value': recordID,
+    })
+  })
+
+  it('still reads a small integer as an Integer', async () => {
+    expect(await typedValueAfter('record.values.amount', '42')).toEqual({
+      '@type': 'Integer',
+      '@value': 42,
+    })
   })
 })

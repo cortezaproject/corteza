@@ -364,6 +364,12 @@ function onOperatorChange(op) {
   emit('update', newNode)
 }
 
+const STRING_KINDS = ['DateTime', 'UserSelector', 'ID', 'String']
+
+// Kinds whose values are IDs: kept as strings, as a JS number rounds them
+// past 2^53. A multi-value field's array is kept as it is.
+const REFERENCE_KINDS = ['Record', 'User', 'File']
+
 function onValueChange(val) {
   const newNode = cloneNode(props.node)
   if (!newNode.args) newNode.args = [{ symbol: '', meta: {} }]
@@ -372,19 +378,22 @@ function onValueChange(val) {
 
   if (resolvedVariableType.value === 'Boolean' || resolvedVariableType.value === 'Bool') {
     typedVal = { '@type': 'Boolean', '@value': Boolean(val) }
-  } else if (
-    resolvedVariableType.value === 'DateTime' ||
-    resolvedVariableType.value === 'UserSelector' ||
-    resolvedVariableType.value === 'ID' ||
-    resolvedVariableType.value === 'String'
-  ) {
+  } else if (STRING_KINDS.includes(resolvedVariableType.value)) {
     typedVal = { '@type': 'String', '@value': String(val || '') }
+  } else if (REFERENCE_KINDS.includes(resolvedVariableType.value)) {
+    typedVal = { '@type': 'String', '@value': Array.isArray(val) ? val : String(val || '') }
   } else {
     // Detect type: boolean > number > string
     const lower = String(val).toLowerCase().trim()
     if (lower === 'true' || lower === 'false') {
       typedVal = { '@type': 'Boolean', '@value': lower === 'true' }
-    } else if (val !== '' && !isNaN(Number(val)) && String(val).trim() !== '') {
+    } else if (
+      val !== '' &&
+      !isNaN(Number(val)) &&
+      String(val).trim() !== '' &&
+      // An integer past 2^53, such as a pasted ID, would round as a number
+      !(Number.isInteger(Number(val)) && !Number.isSafeInteger(Number(val)))
+    ) {
       if (Number.isInteger(Number(val))) {
         typedVal = { '@type': 'Integer', '@value': Number(val) }
       } else {
