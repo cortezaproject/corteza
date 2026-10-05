@@ -13,9 +13,9 @@ var (
 
 type (
 	NodeSyncFilter struct {
-		NodeID     uint64 `json:"nodeID"`
-		RelNodeID  uint64 `json:"relNodeID"`
-		ModuleID   uint64 `json:"moduleID"`
+		NodeID     uint64 `json:"nodeID,string"`
+		RelNodeID  uint64 `json:"relNodeID,string"`
+		ModuleID   uint64 `json:"moduleID,string"`
 		SyncStatus string `json:"syncStatus"`
 		SyncType   string `json:"syncType"`
 
