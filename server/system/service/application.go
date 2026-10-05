@@ -221,12 +221,16 @@ func (svc *application) onSetSource(ctx context.Context, aProps *applicationActi
 		return ApplicationErrSourceTooLarge()
 	}
 
-	if err = CheckApplicationSource(source); err != nil {
+	if meta == nil {
+		meta = &types.ApplicationSourceMeta{}
+	}
+
+	if meta.Origins, err = NormalizeSourceOrigins(meta.Origins); err != nil {
 		return err
 	}
 
-	if meta == nil {
-		meta = &types.ApplicationSourceMeta{}
+	if err = CheckApplicationSource(source, meta.Origins); err != nil {
+		return err
 	}
 
 	for _, w := range meta.Writes {

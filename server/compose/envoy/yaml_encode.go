@@ -118,6 +118,12 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 		delete(b.Options, "moduleID")
 		break
 
+	case "Custom":
+		// Modules travel by handle; the IDs beside them name nothing on another
+		// instance and are set again when the page is next stored.
+		delete(b.Options, "moduleIDs")
+		break
+
 	case "RecordOrganizer":
 		modRef := n.References[fmt.Sprintf("Blocks.%d.Options.ModuleID", index)]
 		b.Options["module"] = safeParentIdentifier(tt, n, modRef)

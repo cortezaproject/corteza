@@ -68,6 +68,20 @@ window.human = window.human || (function () {
     modules: function () { return call('modules', {}) },
     user: function () { return call('user', {}) },
     theme: function () { return call('theme', {}) },
+    context: function () { return call('context', {}) },
+    navigate: function (a) { return call('navigate', a) },
+    refresh: function () { return call('refresh', {}) },
+    chatbot: {
+      open: function (a) { return call('chatbot.open', a) },
+      close: function (a) { return call('chatbot.close', a) }
+    },
+    automation: {
+      run: function (a) { return call('automation.run', a) }
+    },
+    files: {
+      list: function (a) { return call('files.list', a) },
+      read: function (a) { return call('files.read', a) }
+    },
     resize: function (height) { return call('resize', { height: height }) }
   }
 })()

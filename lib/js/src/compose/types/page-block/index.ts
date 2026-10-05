@@ -19,6 +19,7 @@ export { PageBlockTab } from './tabs'
 export { PageBlockGeometry } from './geometry'
 export { PageBlockChatbotInbox } from './chatbot-inbox'
 export { PageBlockAgentChat } from './agent-chat'
+export { PageBlockCustom } from './custom'
 
 export function PageBlockMaker<T extends PageBlock>(i: { kind: string }): T {
   const PageBlockTemp = Registry.get(i.kind)

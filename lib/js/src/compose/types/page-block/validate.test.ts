@@ -31,6 +31,7 @@ describe('page block required options', () => {
       ChatbotInbox: ['chatbotIDs'],
       Comment: ['moduleID', 'contentField'],
       Content: ['body'],
+      Custom: ['source'],
       Geometry: ['feeds'],
       IFrame: ['src'],
       Metric: ['metrics'],
@@ -55,6 +56,12 @@ describe('page block required options', () => {
   it('accepts either an iframe source or a source field', () => {
     expect(optionsOf('IFrame', { src: 'https://example.test' })).to.deep.eq([])
     expect(optionsOf('IFrame', { srcField: 'link' })).to.deep.eq([])
+  })
+
+  it("accepts either a custom application or a document of the block's own", () => {
+    expect(optionsOf('Custom', { applicationID: '0' })).to.deep.eq(['source'])
+    expect(optionsOf('Custom', { applicationID: '100002' })).to.deep.eq([])
+    expect(optionsOf('Custom', { source: '<p>hi</p>' })).to.deep.eq([])
   })
 
   it('asks each metric for its own module', () => {

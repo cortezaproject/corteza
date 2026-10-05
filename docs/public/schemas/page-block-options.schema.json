@@ -404,6 +404,66 @@
       ],
       "title": "Content"
     },
+    "Custom": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/crusttech/human/server/compose/types/custom-block-options",
+      "properties": {
+        "applicationID": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "modules": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "moduleIDs": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "writes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "origins": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "automations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "chatbots": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "params": {
+          "type": "object"
+        },
+        "magnifyOption": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "source"
+      ],
+      "title": "Custom"
+    },
     "File": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "$id": "https://github.com/crusttech/human/server/compose/types/file-block-options",

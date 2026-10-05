@@ -39,6 +39,7 @@ var requiredBlockOptions = map[string][]string{
 	"ChatbotInbox":    {"chatbotIDs"},
 	"Comment":         {"moduleID", "contentField"},
 	"Content":         {"body"},
+	"Custom":          {"source"},
 	"Geometry":        {"feeds"},
 	"IFrame":          {"src"},
 	"Metric":          {"metrics"},
@@ -92,6 +93,10 @@ func missingBlockOptions(b cmpTypes.PageBlock) []string {
 	var missing []string
 
 	for _, opt := range requiredBlockOptions[b.Kind] {
+		// A Custom block shows an application's page or a document of its own.
+		if b.Kind == "Custom" && opt == "source" && !optionIsUnset(b.Options["applicationID"]) {
+			continue
+		}
 		if optionIsUnset(b.Options[opt]) {
 			missing = append(missing, opt)
 		}

@@ -95,6 +95,18 @@
     "body": "",
     "magnifyOption": ""
   },
+  "Custom": {
+    "applicationID": "",
+    "source": "",
+    "modules": [],
+    "moduleIDs": {},
+    "writes": [],
+    "origins": [],
+    "automations": [],
+    "chatbots": [],
+    "params": {},
+    "magnifyOption": ""
+  },
   "File": {
     "refreshRate": 0,
     "showRefresh": false,

@@ -157,49 +157,7 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CFormGroup
-              :label="$t('system.applications.editor.custom.namespace')"
-              :description="$t('system.applications.editor.custom.namespaceDescription')"
-            >
-              <div data-test-id="custom-namespace">
-                <CInputNamespace
-                  v-model="declNamespaceID"
-                  :disabled="!canEditSource"
-                  @update:model-value="onNamespaceChange"
-                />
-              </div>
-            </CFormGroup>
-
-            <CFormGroup
-              :label="$t('system.applications.editor.custom.modules')"
-              :description="$t('system.applications.editor.custom.modulesDescription')"
-            >
-              <div data-test-id="custom-modules">
-                <CInputModule
-                  v-model="declModuleIDs"
-                  multiple
-                  :namespace-i-d="declNamespaceID"
-                  :disabled="!canEditSource || !declNamespaceID"
-                />
-              </div>
-            </CFormGroup>
-
-            <CFormGroup
-              :label="$t('system.applications.editor.custom.writes')"
-              :description="$t('system.applications.editor.custom.writesDescription')"
-            >
-              <MultiSelect
-                data-test-id="custom-writes"
-                v-model="declWriteIDs"
-                :options="declModuleOptions"
-                option-label="label"
-                option-value="value"
-                display="chip"
-                class="w-full"
-                :placeholder="$t('system.applications.editor.custom.readOnly')"
-                :disabled="!canEditSource || !declModuleIDs.length"
-              />
-            </CFormGroup>
+            <CustomAppDeclaration v-model="declaration" :disabled="!canEditSource" />
 
             <CFormGroup :label="$t('system.applications.editor.custom.size')">
               <span class="text-sm">{{ sourceSizeLabel }} · {{ sourceUpdatedLabel }}</span>
@@ -304,16 +262,9 @@ import {
   useRBACStore,
 } from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
+import CustomAppDeclaration from '@/sections/app/components/CustomAppDeclaration.vue'
 
-const {
-  CCodeEditor,
-  CFileDropZone,
-  CInputDelete,
-  CInputModule,
-  CInputNamespace,
-  CInputToggleCard,
-  CViewContainer,
-} = components
+const { CCodeEditor, CFileDropZone, CInputDelete, CInputToggleCard, CViewContainer } = components
 
 const route = useRoute()
 const router = useRouter()
@@ -391,66 +342,21 @@ const sourceProblem = ref('')
 
 const canEditSource = computed(() => !!application.value?.canManageSourceOnApplication)
 
-// What the app may reach, as the pickers hold it: IDs here, names in what is
-// stored, because a page moved to another instance keeps its names.
-const declNamespaceID = ref('')
-const declModuleIDs = ref([])
-const declWriteIDs = ref([])
-const declModules = ref([])
-
-const declModuleOptions = computed(() =>
-  declModuleIDs.value.map(moduleID => ({
-    value: moduleID,
-    label: declModules.value.find(m => m.moduleID === moduleID)?.handle || moduleID,
-  })),
-)
+// What the app may reach, by name, as the declaration pickers hold it.
+const declaration = ref({})
 
 const declarationChanged = computed(() => {
   const meta = sourceMeta.value
-  const handles = ids => ids.map(id => declModules.value.find(m => m.moduleID === id)?.handle || '')
+  const d = declaration.value
   return (
-    declNamespaceSlug.value !== (meta.namespace || '') ||
-    handles(declModuleIDs.value).join() !== (meta.modules || []).join() ||
-    handles(declWriteIDs.value).join() !== (meta.writes || []).join()
+    (d.namespace || '') !== (meta.namespace || '') ||
+    (d.modules || []).join() !== (meta.modules || []).join() ||
+    (d.writes || []).join() !== (meta.writes || []).join() ||
+    (d.origins || []).join() !== (meta.origins || []).join() ||
+    (d.automations || []).join() !== (meta.automations || []).join() ||
+    (d.chatbots || []).join() !== (meta.chatbots || []).join()
   )
 })
-
-// What is stored is the slug, because a page carried to another instance is
-// read back by name rather than by an ID that means nothing there.
-const declNamespaceSlug = ref('')
-
-// A module the app no longer reads cannot stay one it may change.
-watch(declModuleIDs, async ids => {
-  declWriteIDs.value = declWriteIDs.value.filter(id => ids.includes(id))
-  await loadDeclaredModules(ids)
-})
-
-async function loadDeclaredModules(ids) {
-  const known = new Map(declModules.value.map(m => [m.moduleID, m]))
-  for (const moduleID of ids) {
-    if (known.has(moduleID)) continue
-    const module = await $ComposeAPI
-      .moduleRead({
-        namespaceID: declNamespaceID.value,
-        moduleID,
-      })
-      .catch(() => null)
-    if (module) known.set(moduleID, module)
-  }
-  declModules.value = [...known.values()]
-}
-
-async function onNamespaceChange(namespaceID) {
-  declModuleIDs.value = []
-  declWriteIDs.value = []
-  declModules.value = []
-  declNamespaceSlug.value = ''
-
-  if (!namespaceID) return
-
-  const namespace = await $ComposeAPI.namespaceRead({ namespaceID }).catch(() => null)
-  declNamespaceSlug.value = namespace?.slug || ''
-}
 const sourceMeta = computed(() => application.value?.sourceMeta || { size: 0 })
 
 const sourceSizeLabel = computed(() => {
@@ -477,7 +383,7 @@ async function loadSource() {
     })
     source.value = rsp.source || ''
     draftSource.value = source.value
-    await fillDeclaration(rsp.sourceMeta || {})
+    declaration.value = { ...(rsp.sourceMeta || {}) }
   } catch (e) {
     sourceProblem.value = t('system.applications.editor.custom.unreadable', {
       reason: e?.message || String(e),
@@ -491,15 +397,15 @@ async function loadSource() {
 async function handleSaveSource() {
   savingSource.value = true
   try {
-    const handles = ids =>
-      ids.map(id => declModules.value.find(m => m.moduleID === id)?.handle).filter(Boolean)
-
     await $SystemAPI.applicationSourceSet({
       applicationID: application.value.applicationID,
       source: draftSource.value,
-      namespace: declNamespaceSlug.value,
-      modules: handles(declModuleIDs.value),
-      writes: handles(declWriteIDs.value),
+      namespace: declaration.value.namespace || '',
+      modules: declaration.value.modules || [],
+      writes: declaration.value.writes || [],
+      origins: declaration.value.origins || [],
+      automations: declaration.value.automations || [],
+      chatbots: declaration.value.chatbots || [],
     })
     application.value = new system.Application(
       await applicationsStore.findByID(application.value.applicationID),
@@ -511,46 +417,6 @@ async function handleSaveSource() {
   } finally {
     savingSource.value = false
   }
-}
-
-// The stored declaration names things; the pickers hold their IDs.
-async function fillDeclaration(meta) {
-  declNamespaceSlug.value = meta.namespace || ''
-  declNamespaceID.value = ''
-  declModuleIDs.value = []
-  declWriteIDs.value = []
-  declModules.value = []
-
-  if (!meta.namespace) return
-
-  const namespace =
-    (meta.namespaceID &&
-      (await $ComposeAPI.namespaceRead({ namespaceID: meta.namespaceID }).catch(() => null))) ||
-    (await $ComposeAPI.namespaceList({ slug: meta.namespace, limit: 1 }).catch(() => ({}))).set?.[0]
-  if (!namespace) return
-
-  declNamespaceID.value = namespace.namespaceID
-
-  const modules = []
-  for (const handle of meta.modules || []) {
-    const moduleID = meta.moduleIDs?.[handle]
-    const module = moduleID
-      ? await $ComposeAPI
-          .moduleRead({ namespaceID: namespace.namespaceID, moduleID })
-          .catch(() => null)
-      : (
-          await $ComposeAPI
-            .moduleList({ namespaceID: namespace.namespaceID, handle, limit: 1 })
-            .catch(() => ({}))
-        ).set?.[0]
-    if (module) modules.push(module)
-  }
-
-  declModules.value = modules
-  declModuleIDs.value = modules.map(m => m.moduleID)
-  declWriteIDs.value = modules
-    .filter(m => (meta.writes || []).includes(m.handle))
-    .map(m => m.moduleID)
 }
 
 function copySource() {

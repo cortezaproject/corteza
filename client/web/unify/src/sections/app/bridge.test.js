@@ -2,6 +2,9 @@ import { createContext, runInContext } from 'node:vm'
 import { describe, expect, it, vi } from 'vitest'
 import { BRIDGE_SCRIPT } from './bridge'
 import {
+  cspInner,
+  automationInput,
+  navigationTarget,
   allowModule,
   describeField,
   dimensionRefs,
@@ -124,6 +127,12 @@ describe('operation dispatch', () => {
     await expect(dispatch('records.delete', {}, ctx)).rejects.toThrow(
       'operation "records.delete" is not available to an app',
     )
+  })
+
+  it('answers context with where the host shows the app, and nothing where it says nothing', async () => {
+    const where = { namespaceID: '1', pageID: '2', recordID: '3' }
+    expect(await dispatch('context', {}, { ...context(), context: () => where })).toEqual(where)
+    expect(await dispatch('context', {}, context())).toEqual({})
   })
 
   // The API calls the field a report groups by `dimension`, which is what an
@@ -656,5 +665,208 @@ describe('what the app may read about its modules', () => {
   it('says nothing about a module the app never declared', async () => {
     const ctx = { ...context({ namespace: 'x', modules: [] }), fields: () => fields }
     expect(await dispatch('modules', {}, ctx)).toEqual([])
+  })
+})
+
+describe('sandbox policy', () => {
+  it('admits a listed origin for script, style, font and image, never for a network call', () => {
+    const csp = cspInner(['https://cdn.jsdelivr.net', 'https://fonts.gstatic.com'])
+    expect(csp).toContain(
+      "script-src 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.gstatic.com;",
+    )
+    expect(csp).toContain("style-src 'unsafe-inline' https://cdn.jsdelivr.net")
+    expect(csp).toContain('font-src data: https://cdn.jsdelivr.net')
+    expect(csp).toContain('img-src data: https://cdn.jsdelivr.net')
+    expect(csp).toContain("connect-src 'none'")
+  })
+
+  it('drops anything that is not a bare https origin', () => {
+    const csp = cspInner([
+      'http://plain.test',
+      'https://x.test; connect-src *',
+      'https://*.test',
+      'https://ok.test"',
+    ])
+    expect(csp).toBe(cspInner())
+  })
+})
+
+describe('navigation', () => {
+  it('takes a page, or a module with the record to open', () => {
+    expect(navigationTarget({ page: 'board' })).toEqual({ page: 'board', module: '', recordID: '' })
+    expect(navigationTarget({ module: 'task', recordID: 42 })).toEqual({
+      page: '',
+      module: 'task',
+      recordID: '42',
+    })
+  })
+
+  it('refuses what names no single place', () => {
+    expect(() => navigationTarget({})).toThrow('needs a page')
+    expect(() => navigationTarget({ page: 'a', module: 'b' })).toThrow('not both')
+    expect(() => navigationTarget({ module: 'task' })).toThrow('name it with recordID')
+    expect(() => navigationTarget({ page: 'a', recordID: '1 or 1' })).toThrow('not a record ID')
+  })
+
+  it('hands the target to the shell', async () => {
+    const ctx = { ...context(), navigate: vi.fn() }
+    await dispatch('navigate', { page: 'board' }, ctx)
+    expect(ctx.navigate).toHaveBeenCalledWith({ page: 'board', module: '', recordID: '' })
+  })
+})
+
+describe('files', () => {
+  const fileCtx = () => ({
+    ...context(),
+    fields: () => [
+      { name: 'photo', kind: 'File' },
+      { name: 'name', kind: 'String' },
+    ],
+    compose: {
+      recordRead: vi.fn().mockResolvedValue({
+        values: [
+          { name: 'photo', value: '11' },
+          { name: 'photo', value: '12' },
+        ],
+      }),
+    },
+    attachment: vi.fn(id =>
+      Promise.resolve({
+        attachmentID: id,
+        name: `f${id}.png`,
+        meta: { original: { size: 10, mimetype: 'image/png' } },
+      }),
+    ),
+    fileData: vi.fn().mockResolvedValue('data:image/png;base64,AA=='),
+  })
+
+  it('lists and reads the files a record field holds', async () => {
+    const ctx = fileCtx()
+    const args = { module: 'agent-contact', recordID: '5', field: 'photo' }
+    expect(await dispatch('files.list', args, ctx)).toEqual([
+      { attachmentID: '11', name: 'f11.png', mimetype: 'image/png', size: 10 },
+      { attachmentID: '12', name: 'f12.png', mimetype: 'image/png', size: 10 },
+    ])
+    expect(await dispatch('files.read', { ...args, attachmentID: '12' }, ctx)).toMatchObject({
+      attachmentID: '12',
+      dataURL: 'data:image/png;base64,AA==',
+    })
+  })
+
+  it('refuses a file the record does not hold, a field that holds no files, an undeclared module', async () => {
+    const ctx = fileCtx()
+    const args = { module: 'agent-contact', recordID: '5', field: 'photo' }
+    await expect(dispatch('files.read', { ...args, attachmentID: '99' }, ctx)).rejects.toThrow(
+      'is not one field',
+    )
+    await expect(dispatch('files.read', { ...args, field: 'name' }, ctx)).rejects.toThrow(
+      'not a File field',
+    )
+    await expect(dispatch('files.list', { ...args, module: 'Lead' }, ctx)).rejects.toThrow(
+      'not declared',
+    )
+    expect(ctx.fileData).not.toHaveBeenCalled()
+  })
+
+  it('refuses a file over the cap before reading it', async () => {
+    const ctx = fileCtx()
+    ctx.attachment = vi.fn().mockResolvedValue({
+      attachmentID: '11',
+      name: 'big',
+      meta: { original: { size: 6 * 1024 * 1024 } },
+    })
+    await expect(
+      dispatch('files.read', { module: 'agent-contact', recordID: '5', field: 'photo' }, ctx),
+    ).rejects.toThrow('at most')
+    expect(ctx.fileData).not.toHaveBeenCalled()
+  })
+})
+
+describe('automations', () => {
+  const runCtx = (agree = true) => ({
+    ...context({ ...META, automations: ['close_deal'] }),
+    consentToRun: vi.fn().mockResolvedValue(agree),
+    runAutomation: vi.fn().mockResolvedValue({ ok: true }),
+  })
+
+  it('types what the app hands an automation', () => {
+    expect(automationInput({ a: 'x', n: 2, f: 1.5, b: true })).toEqual({
+      a: { '@type': 'String', '@value': 'x' },
+      n: { '@type': 'Integer', '@value': 2 },
+      f: { '@type': 'Float', '@value': 1.5 },
+      b: { '@type': 'Boolean', '@value': true },
+    })
+    expect(() => automationInput({ o: { deep: 1 } })).toThrow('not a string, number or boolean')
+  })
+
+  it('runs a declared automation once the viewer agrees', async () => {
+    const ctx = runCtx()
+    expect(
+      await dispatch('automation.run', { automation: 'close_deal', input: { n: 1 } }, ctx),
+    ).toEqual({ ok: true })
+    expect(ctx.runAutomation).toHaveBeenCalledWith('close_deal', {
+      n: { '@type': 'Integer', '@value': 1 },
+    })
+  })
+
+  it('refuses an undeclared automation before asking, and runs nothing the viewer refused', async () => {
+    let ctx = runCtx()
+    await expect(dispatch('automation.run', { automation: 'drop_all' }, ctx)).rejects.toThrow(
+      'not declared',
+    )
+    expect(ctx.consentToRun).not.toHaveBeenCalled()
+
+    ctx = runCtx(false)
+    await expect(dispatch('automation.run', { automation: 'close_deal' }, ctx)).rejects.toThrow(
+      'did not allow',
+    )
+    expect(ctx.runAutomation).not.toHaveBeenCalled()
+  })
+})
+
+describe('page refresh', () => {
+  it('tells the host after a change succeeds, and when the app asks', async () => {
+    const ctx = {
+      ...context({ ...META, automations: ['close_deal'] }),
+      consentToRun: vi.fn().mockResolvedValue(true),
+      runAutomation: vi.fn().mockResolvedValue({ ok: true }),
+      changed: vi.fn(),
+    }
+    await dispatch('automation.run', { automation: 'close_deal' }, ctx)
+    expect(ctx.changed).toHaveBeenCalledTimes(1)
+    await dispatch('refresh', {}, ctx)
+    expect(ctx.changed).toHaveBeenCalledTimes(2)
+  })
+
+  it('stays quiet for a read and for a change that failed', async () => {
+    const ctx = { ...context(), changed: vi.fn(), consentToRun: vi.fn().mockResolvedValue(false) }
+    await dispatch('records.list', { module: 'agent-contact' }, ctx)
+    await expect(dispatch('automation.run', { automation: 'nope' }, ctx)).rejects.toThrow()
+    expect(ctx.changed).not.toHaveBeenCalled()
+  })
+})
+
+describe('chatbots', () => {
+  const chatCtx = () => ({
+    ...context({ ...META, chatbots: ['support'] }),
+    openChatbot: vi.fn().mockResolvedValue(undefined),
+    closeChatbot: vi.fn(),
+  })
+
+  it('opens and closes a declared chatbot through the shell', async () => {
+    const ctx = chatCtx()
+    expect(await dispatch('chatbot.open', { chatbot: 'support' }, ctx)).toBe(true)
+    expect(ctx.openChatbot).toHaveBeenCalledWith('support')
+    await dispatch('chatbot.close', { chatbot: 'support' }, ctx)
+    expect(ctx.closeChatbot).toHaveBeenCalledWith('support')
+  })
+
+  it('refuses a chatbot the app did not declare', async () => {
+    const ctx = chatCtx()
+    await expect(dispatch('chatbot.open', { chatbot: 'sales' }, ctx)).rejects.toThrow(
+      'not declared',
+    )
+    await expect(dispatch('chatbot.open', {}, ctx)).rejects.toThrow('needs the handle')
+    expect(ctx.openChatbot).not.toHaveBeenCalled()
   })
 })

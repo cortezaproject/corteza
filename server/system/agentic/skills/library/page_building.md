@@ -17,6 +17,10 @@ triggers:
 - **Module pages** — always a list+detail pair. See the record_list and record page skills.
 - **Dashboard pages** — overview screens with charts, metrics, and summaries. A single page, no module.
 - **Content pages** — informational screens. A single page with Content blocks.
+- **Custom pages** — a page laid out in your own HTML: one Custom block, which
+  fills a page it is alone on. A Custom block also sits beside other blocks.
+  Read the `custom_app` skill before writing one; its HTML is held to that
+  skill's rules when the page is saved.
 
 ## Options keys are exact
 

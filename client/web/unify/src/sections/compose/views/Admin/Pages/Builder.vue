@@ -531,6 +531,7 @@ import RecordListConfigurator from '@/sections/compose/components/PageBlocks/Con
 import RecordConfigurator from '@/sections/compose/components/PageBlocks/Configurators/RecordConfigurator.vue'
 import MetricConfigurator from '@/sections/compose/components/PageBlocks/Configurators/MetricConfigurator.vue'
 import IFrameConfigurator from '@/sections/compose/components/PageBlocks/Configurators/IFrameConfigurator.vue'
+import CustomConfigurator from '@/sections/compose/components/PageBlocks/Configurators/CustomConfigurator.vue'
 import FileConfigurator from '@/sections/compose/components/PageBlocks/Configurators/FileConfigurator.vue'
 import CalendarConfigurator from '@/sections/compose/components/PageBlocks/Configurators/CalendarConfigurator.vue'
 import CommentConfigurator from '@/sections/compose/components/PageBlocks/Configurators/CommentConfigurator.vue'
@@ -775,6 +776,7 @@ const availableBlockTypes = computed(() => {
     { kind: 'File', label: t('block.file.label'), icon: 'pi pi-paperclip' },
     { kind: 'Geometry', label: t('block.geometry.label'), icon: 'pi pi-map' },
     { kind: 'IFrame', label: t('block.iframe.label'), icon: 'pi pi-globe' },
+    { kind: 'Custom', label: t('block.custom.label'), icon: 'pi pi-code' },
     { kind: 'Metric', label: t('block.metric.label'), icon: 'pi pi-hashtag' },
     { kind: 'Navigation', label: t('block.navigation.label'), icon: 'pi pi-link' },
     { kind: 'Progress', label: t('block.progress.label'), icon: 'pi pi-percentage' },
@@ -800,6 +802,7 @@ const configurators = {
   Record: markRaw(RecordConfigurator),
   Metric: markRaw(MetricConfigurator),
   IFrame: markRaw(IFrameConfigurator),
+  Custom: markRaw(CustomConfigurator),
   File: markRaw(FileConfigurator),
   Calendar: markRaw(CalendarConfigurator),
   Comment: markRaw(CommentConfigurator),
@@ -1180,16 +1183,18 @@ function saveBlockConfig() {
 function buildLayoutBlocks(pg, layout) {
   if (!pg?.blocks?.length || !layout?.blocks?.length) return []
   const seen = new Set()
-  return layout.blocks
-    // Skip duplicate references, they would share a grid id
-    .filter(lb => !seen.has(String(lb.blockID)) && seen.add(String(lb.blockID)))
-    .map(lb => {
-      const pb = pg.blocks.find(b => String(b.blockID) === String(lb.blockID))
-      return pb
-        ? compose.PageBlockMaker({ ...pb, xywh: lb.xywh || pb.xywh || [0, 0, 48, 15] })
-        : null
-    })
-    .filter(Boolean)
+  return (
+    layout.blocks
+      // Skip duplicate references, they would share a grid id
+      .filter(lb => !seen.has(String(lb.blockID)) && seen.add(String(lb.blockID)))
+      .map(lb => {
+        const pb = pg.blocks.find(b => String(b.blockID) === String(lb.blockID))
+        return pb
+          ? compose.PageBlockMaker({ ...pb, xywh: lb.xywh || pb.xywh || [0, 0, 48, 15] })
+          : null
+      })
+      .filter(Boolean)
+  )
 }
 
 // Page blocks not placed in the current layout — offered in the Add block dialog

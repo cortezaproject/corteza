@@ -205,6 +205,21 @@ type (
 		//
 		// Declared module handles the app may also create and change records in
 		Writes []string
+
+		// Origins POST parameter
+		//
+		// Exact https origins the app may load scripts, styles, fonts and images from, besides cdnjs
+		Origins []string
+
+		// Automations POST parameter
+		//
+		// Handles of the workflows and TAQs the app may run
+		Automations []string
+
+		// Chatbots POST parameter
+		//
+		// Handles of the chatbots the app may open
+		Chatbots []string
 	}
 
 	ApplicationUpload struct {
@@ -928,6 +943,9 @@ func (r ApplicationSourceSet) Auditable() map[string]interface{} {
 		"namespace":     r.Namespace,
 		"modules":       r.Modules,
 		"writes":        r.Writes,
+		"origins":       r.Origins,
+		"automations":   r.Automations,
+		"chatbots":      r.Chatbots,
 	}
 }
 
@@ -954,6 +972,21 @@ func (r ApplicationSourceSet) GetModules() []string {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationSourceSet) GetWrites() []string {
 	return r.Writes
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceSet) GetOrigins() []string {
+	return r.Origins
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceSet) GetAutomations() []string {
+	return r.Automations
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationSourceSet) GetChatbots() []string {
+	return r.Chatbots
 }
 
 // Fill processes request and fills internal variables
@@ -1024,6 +1057,27 @@ func (r *ApplicationSourceSet) Fill(req *http.Request) (err error) {
 
 		//if val, ok := req.Form["writes[]"]; ok && len(val) > 0  {
 		//    r.Writes, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+
+		//if val, ok := req.Form["origins[]"]; ok && len(val) > 0  {
+		//    r.Origins, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+
+		//if val, ok := req.Form["automations[]"]; ok && len(val) > 0  {
+		//    r.Automations, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+
+		//if val, ok := req.Form["chatbots[]"]; ok && len(val) > 0  {
+		//    r.Chatbots, err = val, nil
 		//    if err != nil {
 		//        return err
 		//    }

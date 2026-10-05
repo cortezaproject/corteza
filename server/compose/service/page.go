@@ -310,6 +310,10 @@ func (svc page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHan
 			return pageUnchanged, err
 		}
 
+		if err := checkCustomBlocks(ctx, svc.store, ns.ID, upd.Blocks); err != nil {
+			return pageUnchanged, err
+		}
+
 		if !svc.ac.CanUpdatePage(ctx, res) {
 			return pageUnchanged, PageErrNotAllowedToUpdate()
 		}
@@ -486,6 +490,10 @@ func (svc *page) onCreate(ctx context.Context, new *types.Page) error {
 		}
 
 		if err = svc.uniqueCheck(ctx, new); err != nil {
+			return err
+		}
+
+		if err = checkCustomBlocks(ctx, s, ns.ID, new.Blocks); err != nil {
 			return err
 		}
 

@@ -1,6 +1,6 @@
 ---
 name: custom_app
-description: A custom app is one HTML document Human renders in a sandbox with no network and no storage — how to write one that runs both in a preview and inside Human, how to deploy it, and why the data model comes before the page.
+description: A custom app is one sandboxed HTML document, an application or a Custom block on a compose page — how to write one that runs in a preview and inside Human, how to deploy it, and why the data model comes before the page.
 announce: Asked to build a page, dashboard, report view or small app for someone — even just a preview or an HTML artifact that uses Human data — the skill custom_app decides what that page may contain, what to do when the data it needs does not exist yet, and a page written without it cannot be deployed into Human.
 triggers:
   - system_application_create
@@ -9,6 +9,8 @@ triggers:
   - system_application_source_get
   - compose_module_create
   - compose_namespace_create
+  - compose_page_create
+  - compose_page_update
 ---
 
 # Custom apps
@@ -18,6 +20,13 @@ network, no storage and no login. Everything it knows about Human arrives
 through the `human` bridge. The same file must also run in your own preview,
 where there is no bridge — so every app carries sample data and says which mode
 it is in.
+
+It reaches people one of two ways, and the file is the same either way:
+
+- as an **application** of its own, opened from the app selector at
+  `/app/<applicationID>` (see Deploying);
+- as a **Custom block** on a compose page, where it sits among the page's
+  other blocks or, alone on a page, fills it (see On a compose page).
 
 ## Whether it wants a custom app at all
 
@@ -85,9 +94,13 @@ Unsure, say which you think it is and why, in one line, and build that.
 
 - One plain HTML document. No React, no JSX, no `import`, no `export`, no build
   step. Scripts run inline.
-- Libraries only from `https://cdnjs.cloudflare.com`, pinned to an exact
-  version. No web fonts, no external stylesheets, no external images — inline
-  them or use `data:` URIs.
+- Libraries from `https://cdnjs.cloudflare.com`, pinned to an exact version.
+  Scripts, stylesheets, fonts and images from anywhere else load only from an
+  origin the page declares in `origins` — exact `https://host`, no path, no
+  wildcard (a Google Fonts stylesheet needs `https://fonts.googleapis.com` and
+  `https://fonts.gstatic.com`). Anything else: inline it or use `data:` URIs.
+  Every listed origin can see what the page asks it for, so list only the CDN
+  you load from.
 - No `fetch`, `XMLHttpRequest` or `WebSocket`. The sandbox is served with
   `connect-src 'none'`, so they fail with nothing to render. Data comes from
   `human.*` only.
@@ -99,9 +112,10 @@ Unsure, say which you think it is and why, in one line, and build that.
   for an export — up to 5 MB of text, which Human saves for the person.
 - No links that leave the page — `mailto:`, `tel:`, another site or another
   file. They work in a preview and do nothing in Human. Link only to `#anchors`
-  within the page, and show an email address or phone number as text.
+  within the page, show an email address or phone number as text, and open a
+  Human page or record with `human.navigate`.
 
-`system_application_source_set` refuses a document that breaks any rule above
+`system_application_source_set` (and saving a page with a Custom block) refuses a document that breaks any rule above
 and says which; writing to them from the start saves the round trip.
 
 Asked for something in that list, build the page anyway with the nearest thing
@@ -141,10 +155,19 @@ written to be idempotent, so include it and the second copy is a no-op:
       })
       return { ready, call,
         records: { list: a => call('records.list', a), read: a => call('records.read', a),
-                   report: a => call('records.report', a) },
-        user: () => call('user'), theme: () => call('theme'),
+                   report: a => call('records.report', a),
+                   create: a => call('records.create', a), update: a => call('records.update', a) },
+        files: { list: a => call('files.list', a), read: a => call('files.read', a) },
+        automation: { run: a => call('automation.run', a) },
+        chatbot: { open: a => call('chatbot.open', a), close: a => call('chatbot.close', a) },
+        modules: () => call('modules'), user: () => call('user'), theme: () => call('theme'),
+        context: () => call('context'), navigate: a => call('navigate', a),
+        refresh: () => call('refresh'), download: (name, text) => call('download', { name, text }),
         resize: height => call('resize', { height }) }
     })()
+
+Inside Human the shell's own copy is the one that runs; this one is what your
+preview has, so every call the page makes has to be in it.
 
 It must stay a global property and never a `const` or `let` declaration: two
 top-level `const human` blocks in one document is a syntax error and the page
@@ -158,20 +181,28 @@ or two of the messy ones. End it with a semicolon: the line after it usually
 opens with `(`, and JavaScript then reads the whole thing as calling the object,
 so the page throws before it draws anything. Never begin a line with `(` or `[`.
 
-Operations, all read-only:
+Operations:
 
-| call                   | args                                            | result                                       |
-| ---------------------- | ----------------------------------------------- | -------------------------------------------- |
-| `human.records.list`   | `{module, filter?, sort?, limit?, pageCursor?}` | `{records, refs, nextPageCursor}`            |
-| `human.records.read`   | `{module, recordID}`                            | `{record, refs}`                             |
-| `human.records.report` | `{module, dimension, metrics?, filter?}`        | `{rows, refs}`                               |
-| `human.modules`        | —                                               | the declared modules and their fields today  |
-| `human.user`           | —                                               | `{userID, name, email}`                      |
-| `human.theme`          | —                                               | `{dark, colors}`                             |
-| `human.records.create` | `{module, values}`                              | `{record}`                                   |
-| `human.records.update` | `{module, recordID, values}`                    | `{record}`                                   |
-| `human.download`       | `(name, text)`                                  | `true` — Human saves the file for the person |
-| `human.resize`         | `height`                                        | `true` — the shell resizes the frame         |
+| call                   | args                                                 | result                                       |
+| ---------------------- | ---------------------------------------------------- | -------------------------------------------- |
+| `human.records.list`   | `{module, filter?, sort?, limit?, pageCursor?}`      | `{records, refs, nextPageCursor}`            |
+| `human.records.read`   | `{module, recordID}`                                 | `{record, refs}`                             |
+| `human.records.report` | `{module, dimension, metrics?, filter?}`             | `{rows, refs}`                               |
+| `human.modules`        | —                                                    | the declared modules and their fields today  |
+| `human.user`           | —                                                    | `{userID, name, email}`                      |
+| `human.theme`          | —                                                    | `{dark, colors}`                             |
+| `human.records.create` | `{module, values}`                                   | `{record}`                                   |
+| `human.records.update` | `{module, recordID, values}`                         | `{record}`                                   |
+| `human.download`       | `(name, text)`                                       | `true` — Human saves the file for the person |
+| `human.resize`         | `height`                                             | `true` — the shell resizes the frame         |
+| `human.context`        | —                                                    | where the page is shown — see below          |
+| `human.navigate`       | `{page}`, `{page, recordID}` or `{module, recordID}` | `true` — Human opens it                      |
+| `human.files.list`     | `{module, recordID, field}`                          | `[{attachmentID, name, mimetype, size}]`     |
+| `human.files.read`     | `{module, recordID, field, attachmentID?}`           | the file, with `dataURL`                     |
+| `human.automation.run` | `{automation, input?}`                               | `{ok: true}`                                 |
+| `human.chatbot.open`   | `{chatbot}`                                          | `true` — Human shows the chatbot             |
+| `human.chatbot.close`  | `{chatbot}`                                          | `true`                                       |
+| `human.refresh`        | —                                                    | `true` — the rest of the page catches up     |
 
 - `module` is a handle and carries no namespace: the app reads the namespace it
   declared when it was deployed. A module it did not declare is refused with
@@ -230,6 +261,31 @@ createdAt, updatedAt}`. `values` is an object keyed by field name, multi-value
     the record as if it had been saved, so the preview works.
 - Deleting a record and changing its owner are not available. Do not write an
   app that needs them.
+- `human.context()` answers `{namespaceID, namespace, pageID, moduleID,
+recordID, params}`. On a record page `recordID` is the record shown — read it
+  with `human.records.read` rather than asking for one. `params` are the
+  block's own settings (see On a compose page). In the app view it is `{}`.
+- `human.navigate` opens a page of the namespace the page reads, by handle or
+  ID, or the record page of a module: `{module: 'task', recordID}`. The page it
+  opens asks its own permissions.
+- `human.files.read({module, recordID, field})` hands over a file a record's
+  File field holds, as `dataURL` — set it as an `<img>` `src` or offer it with
+  `human.download`. At most 5 MB; without `attachmentID` it is the field's
+  first file, and `human.files.list` names the rest.
+- `human.automation.run({automation, input})` runs a workflow or TAQ the page
+  declared in `automations`, by handle; it needs a manual (`onManual`)
+  trigger. `input` is a flat object of strings, numbers and booleans, and on a
+  record page the record goes along. Human asks the person once before the
+  first run, apart from asking about changes, and it runs as them.
+- `human.chatbot.open({chatbot})` shows a Human chatbot the page declared in
+  `chatbots`, as Human's own widget beside the page. It must be enabled and
+  allow the Human site's address in its allowed origins.
+- After a change succeeds — a create, an update, an automation run — the rest
+  of the page reloads what it shows. Call `human.refresh()` after anything else
+  that changes what other blocks show.
+- Give `window.SAMPLE` an entry for every call the page makes, the new ones
+  included: a `context` with sample IDs and `params`, a `files.read` with a
+  small `data:` image, an `automation.run` that resolves.
 
 Two modes, and the app always says which one it is in. `await human.ready` is
 `true` when the bridge answered within 600 ms and `false` in a preview. Show a
@@ -247,7 +303,8 @@ When the user is happy with the preview:
 2. `system_application_source_set` with `source` (the file exactly as
    previewed), `namespace` and `modules` — the allowlist the bridge enforces, so
    a module missing here makes the app refuse its own data — plus `writes` if
-   the page changes records.
+   the page changes records, and `origins`, `automations` and `chatbots` if it
+   uses them.
 3. Compare the returned `size` and `hash` with what you sent, then give the user
    the returned `url`.
 
@@ -257,3 +314,32 @@ Somebody may have edited the page in Human since you wrote it, so patch what
 `system_application_source_get` returns rather than what you remember sending.
 `old_string` must match exactly once, so include the surrounding lines. Sending
 the whole file again is right only for a rewrite.
+
+## On a compose page
+
+A Custom block puts the page on a compose page, with `compose_page_create` or
+`compose_page_update` — read `compose_page_block_schema` with kind `Custom` for
+its options. It takes one of two sources:
+
+- `{"applicationID": "<id>"}` — an application already deployed as above. It
+  shows only to people allowed to open that application, and carries nothing
+  else: what it reads is the application's declaration.
+- `{"source": "<the HTML>", "modules": [...], "writes": [...], "origins": [...],
+"automations": [...], "chatbots": [...], "params": {...}}` — the page
+  written into the block. It always reads the namespace of the page it is on,
+  so it names no namespace; every module must exist there.
+
+Saving the page holds an inline source to the same rules as
+`system_application_source_set`, and refuses the whole save with the block's
+number and what to write instead. Prefer an application when the same page
+belongs on several pages or in the app selector, and the block's own source
+when it belongs to this page alone.
+
+`params` is the block's own settings object, read with `human.context().params`
+— one page used by several blocks, each with its own module filter, title or
+colour. A block alone on a page fills it, which is how a page becomes a custom
+page; on a record page, put it beside the Record block and read the record
+from `human.context().recordID`.
+
+A block's height is the grid's, not the page's: `human.resize` does nothing in
+a block. Lay the page out to scroll inside whatever height it is given.

@@ -27,6 +27,10 @@ section shows it at `/app/:applicationID` inside a sandbox that gives it no
 network, no storage and no session, and hands it data through a message bridge
 that runs every call as the viewer, under the viewer's permissions.
 
+The same sandbox and bridge show a compose page's Custom block — an
+application's page by `applicationID`, or the block's own `options.source` (see
+`PageBlocks.intent.md`) — through one component, `components/CustomAppFrame.vue`.
+
 The design goal is that a page previewed as a plain HTML artifact runs unchanged
 in Human, and that nothing an app author writes can reach the viewer's token.
 
@@ -62,6 +66,25 @@ in Human, and that nothing an app author writes can reach the viewer's token.
   fallback carries an application brought in from another instance, whose
   stored IDs name nothing here: what it declared by name still does.
 
+## What a page declares
+
+A page names what it may reach, and the bridge holds it to that — an
+application in `sourceMeta`, a Custom block in its options, both set with
+`components/CustomAppDeclaration.vue`:
+
+- `namespace` — an application picks it; a Custom block reads its page's.
+- `modules`, `writes` — handles it reads, and those of them it may change;
+  `writes` outside `modules` is refused when stored. Each is stored beside its
+  ID (`moduleIDs`) so a viewer reads by ID.
+- `origins` — exact `https://host[:port]`, beyond cdnjs, it may load scripts,
+  stylesheets, fonts and images from; no path, no wildcard, at most 20. Ruling:
+  whoever may change the page sets them — for a Custom block, anyone who may
+  update the page — accepted knowing a listed origin sees every URL requested
+  from it. `connect-src` stays `'none'` whatever is listed.
+- `automations`, `chatbots` — handles of what it may run and open.
+- A Custom block's `params` — the author's settings, read as
+  `human.context().params`, so one page serves several blocks.
+
 ## Sandbox
 
 The page is loaded with `applicationSourceRead` (Bearer auth; an iframe `src`
@@ -71,10 +94,15 @@ could not carry it) and shown as:
       <meta http-equiv="Content-Security-Policy" content="frame-src 'none'">
       and the host script below
         inner <iframe sandbox="allow-scripts allow-forms" srcdoc> — the app, prefixed with
-          <meta CSP: default-src 'none'; script-src 'unsafe-inline' cdnjs;
-           style-src 'unsafe-inline'; img-src data:; connect-src 'none';
-           form-action 'none'>
+          <meta CSP: default-src 'none';
+           script-src 'unsafe-inline' cdnjs <origins>;
+           style-src 'unsafe-inline' <origins>; font-src data: <origins>;
+           img-src data: <origins>; connect-src 'none'; form-action 'none'>
           and the in-page bridge script
+
+`<origins>` are the page's declared origins (`cspInner` in `host.js`), and a
+value that is not a bare https origin is dropped before it is written into the
+attribute.
 
 Why two frames: the inner frame's opaque origin keeps it off the viewer's
 storage and session; the outer frame's `frame-src 'none'` is what stops the
@@ -115,21 +143,32 @@ no copy of its own gets the current contract, 2. A page keeps the contract it
 was written for — changing what an existing version returns breaks deployed
 apps, so a change to a value's shape is a new version, never an edit to an old
 one.
+An operation added to the table is not a new version: a page that never calls
+it is unchanged, and one written to the skill's copy of the bridge carries the
+call with it.
 
 Operations:
 
-| op               | args                                            | result                                          |
-| ---------------- | ----------------------------------------------- | ----------------------------------------------- |
-| `records.list`   | `{module, filter?, sort?, limit?, pageCursor?}` | `{records, refs, nextPageCursor}`               |
-| `records.read`   | `{module, recordID}`                            | `{record, refs}`                                |
-| `records.report` | `{module, dimension, metrics?, filter?}`        | `{rows, refs}`, or the rows alone in contract 1 |
-| `modules`        | —                                               | the declared modules, with their fields today   |
-| `user`           | —                                               | `{userID, name, email}`                         |
-| `theme`          | —                                               | `{dark: bool, colors: {primary, body-bg, ...}}` |
-| `records.create` | `{module, values}`                              | `{record}`                                      |
-| `records.update` | `{module, recordID, values}`                    | `{record}`                                      |
-| `download`       | `{name, text}`                                  | `true` — the shell saves the file               |
-| `resize`         | `{height}`                                      | `true` — the shell sets the frame height        |
+| op               | args                                                   | result                                                         |
+| ---------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
+| `records.list`   | `{module, filter?, sort?, limit?, pageCursor?}`        | `{records, refs, nextPageCursor}`                              |
+| `records.read`   | `{module, recordID}`                                   | `{record, refs}`                                               |
+| `records.report` | `{module, dimension, metrics?, filter?}`               | `{rows, refs}`, or the rows alone in contract 1                |
+| `modules`        | —                                                      | the declared modules, with their fields today                  |
+| `user`           | —                                                      | `{userID, name, email}`                                        |
+| `theme`          | —                                                      | `{dark: bool, colors: {primary, body-bg, ...}}`                |
+| `records.create` | `{module, values}`                                     | `{record}`                                                     |
+| `records.update` | `{module, recordID, values}`                           | `{record}`                                                     |
+| `download`       | `{name, text}`                                         | `true` — the shell saves the file                              |
+| `resize`         | `{height}`                                             | `true` — the shell sets the frame height                       |
+| `context`        | —                                                      | `{namespaceID, namespace, pageID, moduleID, recordID, params}` |
+| `navigate`       | `{page}` or `{page, recordID}` or `{module, recordID}` | `true` — the shell opens it                                    |
+| `files.list`     | `{module, recordID, field}`                            | `[{attachmentID, name, mimetype, size}]`                       |
+| `files.read`     | `{module, recordID, field, attachmentID?}`             | `{attachmentID, name, mimetype, size, dataURL}`                |
+| `automation.run` | `{automation, input?}`                                 | `{ok: true}`                                                   |
+| `chatbot.open`   | `{chatbot}`                                            | `true` — the shell shows the chatbot                           |
+| `chatbot.close`  | `{chatbot}`                                            | `true`                                                         |
+| `refresh`        | —                                                      | `true` — the rest of the page catches up                       |
 
 Rules the host enforces, whatever the app asks:
 
@@ -189,13 +228,39 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
   page keeping the hex values its author copied in.
 - `download` hands the viewer a file the sandbox could not save itself: at most
   5 MB of text, under a name reduced to one file name.
-- No delete, no attachment, no owner change.
+- `context` is a plain copy of where the page is shown (a reactive object
+  cannot be posted, and a block's options are a reactive draft in the
+  builder): a Custom block's namespace, page, record page module and record,
+  and `params`; the app view hands nothing.
+- `navigate` opens a page of the namespace the app reads, by handle or ID, or a
+  module's record page with a record — Human routes only; the page asks its
+  own permissions.
+- `files.*` reach a file only through a File field of a record of a declared
+  module, read as the viewer; `files.read` hands it as a `data:` URL the shell
+  fetched by the attachment's signed address, at most 5 MB.
+- `automation.run` follows the writes' story: declared; agreed once per open
+  page in a Human dialog of its own; run as the viewer through the endpoints a
+  page's automation button uses. Input is flat strings, numbers and booleans;
+  on a record page the record goes along.
+- `chatbot.open` mounts the declared chatbot's own widget in the shell
+  (`mountChatbot`), under its settings: enabled, this site's origin allowed,
+  and readable by the viewer. It goes when the page does.
+- A succeeded change (`records.create`, `records.update`, `automation.run`)
+  or `refresh` tells the host; a Custom block then sends `refetch-records`.
+- No delete, no attachment upload, no owner change.
 
 ## Map
 
 - `index.js` — section contract, route, per-app guard.
-- `views/AppView.vue` — loads source + meta, builds the two frames, mounts the
-  host, shows the disabled / refused / error states.
+- `views/AppView.vue` — loads an application's source + meta and shows it in
+  the frame; the disabled / refused / empty / error states.
+- `components/CustomAppFrame.vue` — the two frames and the host end of the
+  bridge for one page: resolves what it declares, builds the documents, answers
+  calls, asks consent, mounts chatbots. Used by the app view and the Custom
+  block.
+- `components/CustomAppDeclaration.vue` — the declaration fields, shared by
+  the application editor and the block configurator; holds IDs in its pickers
+  and gives names back.
 - `host.js` — the host script serialised into the outer frame: port handshake,
   operation dispatch, allowlist, value reshaping. Pure functions, unit-tested.
 - `bridge.js` — the in-page bridge prefixed to the app source. The same text
@@ -211,7 +276,10 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
 - The two-frame shape and the CSP strings are the security boundary. Loosening
   `connect-src`, adding `allow-same-origin`, or dropping the outer frame's
   `frame-src 'none'` each reopen a way for app code to reach the viewer's
-  session or ship data out; do it only with a ruling in this doc.
+  session or ship data out; do it only with a ruling in this doc. Declared
+  origins are the one such ruling so far (see What a page declares).
+- What must reach Human over the network for the page (a chatbot, a file) is
+  done by the shell, never by opening the sandbox to it.
 - New operations are added to the table above first. Every write operation
   needs its own permission story before it exists; the one above is
   declaration, then the viewer's agreement, then the viewer's permissions, and

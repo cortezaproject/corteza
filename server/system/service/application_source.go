@@ -9,19 +9,80 @@ package service
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 )
+
+// The origin every page may load scripts from, listed or not.
+const sourceDefaultOrigin = "https://cdnjs.cloudflare.com"
+
+// SourceOriginsMax caps how many origins one page lists.
+const SourceOriginsMax = 20
+
+// NormalizeSourceOrigins reduces what a page lists to exact https origins —
+// scheme, host and port, nothing else — without repeats. Anything else is
+// refused, saying what to write: an origin is a place the sandbox will let
+// the page reach, so it is never a pattern.
+func NormalizeSourceOrigins(in []string) ([]string, error) {
+	out := make([]string, 0, len(in))
+	for _, raw := range in {
+		raw = strings.TrimSpace(raw)
+		if raw == "" {
+			continue
+		}
+
+		u, err := url.Parse(raw)
+		switch {
+		case err != nil || u.Host == "":
+			return nil, fmt.Errorf("the origin %q is not an address; write one as https://host, for example https://cdn.jsdelivr.net", raw)
+		case u.Scheme != "https":
+			return nil, fmt.Errorf("the origin %q is not https; the sandbox loads nothing over plain http", raw)
+		case strings.Contains(u.Host, "*"):
+			return nil, fmt.Errorf("the origin %q has a wildcard; list each host on its own", raw)
+		case u.User != nil || (u.Path != "" && u.Path != "/") || u.RawQuery != "" || u.Fragment != "":
+			return nil, fmt.Errorf("the origin %q carries more than scheme and host; write it as https://%s", raw, u.Host)
+		}
+
+		origin := "https://" + strings.ToLower(u.Host)
+		if origin == sourceDefaultOrigin || slices.Contains(out, origin) {
+			continue
+		}
+		out = append(out, origin)
+	}
+
+	if len(out) > SourceOriginsMax {
+		return nil, fmt.Errorf("the page lists %d origins and the limit is %d", len(out), SourceOriginsMax)
+	}
+
+	return out, nil
+}
+
+// originAllowed reports whether a URL the page loads is on an origin it may
+// reach: cdnjs, or one it lists.
+func originAllowed(raw string, origins []string) bool {
+	if strings.HasPrefix(raw, "//") {
+		raw = "https:" + raw
+	}
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme != "https" || u.Host == "" {
+		return false
+	}
+	origin := "https://" + strings.ToLower(u.Host)
+	return origin == sourceDefaultOrigin || slices.Contains(origins, origin)
+}
 
 // checkApplicationSource refuses a document the app sandbox cannot run.
 //
 // The sandbox serves the HTML with a CSP of default-src 'none', connect-src
-// 'none' and script-src limited to inline script and cdnjs: an ES module never
+// 'none' and script, style, font and image sources limited to inline content,
+// cdnjs (scripts) and the origins the page lists: an ES module never
 // loads, and every network call fails with nothing to catch it on. Both faults
 // surface as a blank frame in front of a user, minutes after this call
 // returned success, so they are refused here where the wording can say what to
 // write instead.
-func CheckApplicationSource(source string) error {
+func CheckApplicationSource(source string, origins []string) error {
 	if strings.TrimSpace(source) == "" {
 		return fmt.Errorf("the source is empty; a custom application is one whole HTML document")
 	}
@@ -33,7 +94,7 @@ func CheckApplicationSource(source string) error {
 		)
 	}
 
-	const plainHTML = "; write one plain HTML document with inline <script>, loading libraries from https://cdnjs.cloudflare.com"
+	const plainHTML = "; write one plain HTML document with inline <script>, loading libraries from https://cdnjs.cloudflare.com or an origin the page lists"
 
 	if strings.Contains(source, `<script type="module"`) || strings.Contains(source, "<script type='module'") {
 		return fmt.Errorf(`the source has a <script type="module">, which the sandbox's script-src never loads` + plainHTML)
@@ -102,22 +163,30 @@ func CheckApplicationSource(source string) error {
 		)
 	}
 
+	const listIt = "add its origin to the page's allowed origins, or "
+
 	for _, m := range externalScript.FindAllStringSubmatch(source, -1) {
-		if !strings.HasPrefix(strings.ToLower(m[1]), "https://cdnjs.cloudflare.com/") {
-			return fmt.Errorf("the source loads a script from %s; the sandbox's script-src admits https://cdnjs.cloudflare.com only — load the library from there, pinned to an exact version", m[1])
+		if !originAllowed(m[1], origins) {
+			return fmt.Errorf("the source loads a script from %s; the sandbox admits scripts from https://cdnjs.cloudflare.com and the page's allowed origins only — %sload the library from cdnjs, pinned to an exact version", m[1], listIt)
 		}
 	}
 
-	if m := externalLink.FindStringSubmatch(source); m != nil {
-		return fmt.Errorf("the source links %s; the sandbox loads no external stylesheet or font — inline the CSS in <style> and use a system font stack", m[1])
+	for _, m := range externalLink.FindAllStringSubmatch(source, -1) {
+		if !originAllowed(m[1], origins) {
+			return fmt.Errorf("the source links %s; the sandbox loads stylesheets and fonts only from the page's allowed origins — %sinline the CSS in <style> and use a system font stack", m[1], listIt)
+		}
 	}
 
-	if m := externalCSSURL.FindStringSubmatch(source); m != nil {
-		return fmt.Errorf("the source's CSS reaches %s; the sandbox loads nothing from outside — inline it, or use a data: URL", m[1])
+	for _, m := range externalCSSURL.FindAllStringSubmatch(source, -1) {
+		if !originAllowed(m[1], origins) {
+			return fmt.Errorf("the source's CSS reaches %s; the sandbox loads nothing from outside the page's allowed origins — %sinline it, or use a data: URL", m[1], listIt)
+		}
 	}
 
-	if m := externalImage.FindStringSubmatch(source); m != nil {
-		return fmt.Errorf("the source shows the image %s; the sandbox's img-src admits data: URLs only — embed it as data: or drop it", m[1])
+	for _, m := range externalImage.FindAllStringSubmatch(source, -1) {
+		if !originAllowed(m[1], origins) {
+			return fmt.Errorf("the source shows the image %s; the sandbox shows images from data: URLs and the page's allowed origins only — %sembed it as data: or drop it", m[1], listIt)
+		}
 	}
 
 	return nil

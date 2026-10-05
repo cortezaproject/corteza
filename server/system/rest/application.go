@@ -191,9 +191,12 @@ func (ctrl *Application) SourceSet(ctx context.Context, r *request.ApplicationSo
 	}
 
 	meta := &types.ApplicationSourceMeta{
-		Namespace: r.Namespace,
-		Modules:   r.Modules,
-		Writes:    r.Writes,
+		Namespace:   r.Namespace,
+		Modules:     r.Modules,
+		Writes:      r.Writes,
+		Origins:     r.Origins,
+		Automations: r.Automations,
+		Chatbots:    r.Chatbots,
 	}
 
 	if err = customapp.Resolve(ctx, meta); err != nil {

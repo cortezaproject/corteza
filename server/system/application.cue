@@ -33,6 +33,13 @@ _applicationDefs: {
 				{ name: "Modules", goType: "[]string", json: "modules,omitempty" },
 				// The declared modules the app may also create and change records in.
 				{ name: "Writes", goType: "[]string", json: "writes,omitempty" },
+				// Origins, beyond cdnjs, the page may load scripts, styles, fonts
+				// and images from: exact https origins, set with the page.
+				{ name: "Origins", goType: "[]string", json: "origins,omitempty" },
+				// Handles of the workflows and TAQs the page may run.
+				{ name: "Automations", goType: "[]string", json: "automations,omitempty" },
+				// Handles of the chatbots the page may open.
+				{ name: "Chatbots", goType: "[]string", json: "chatbots,omitempty" },
 				// The declaration resolved when the page was stored, so the app
 				// view needs no search to find what it names.
 				{ name: "NamespaceID", type: "uint64", json: "namespaceID,string,omitempty" },

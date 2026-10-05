@@ -33,10 +33,12 @@ how it presents in the unified shell (display name, URL, listed flag, logo).
   (`'custom'`, its own HTML page). A custom app's URL is shown locked at
   `app/<applicationID>` — the server stores exactly that on every update, and
   creating one saves twice, since only the second save has an ID to put in it.
-- Custom app panel (custom kind, edit only): open the app; the namespace, the
-  modules its page may read and those it may change, all set here with the
-  namespace and module pickers; the page's size and when it was last replaced;
-  the page itself.
+- Custom app panel (custom kind, edit only): open the app; what its page
+  declares — namespace, the modules it reads and changes, the automations it
+  may run, the chatbots it may open, and the origins it may load from — set
+  with `sections/app/components/CustomAppDeclaration.vue`, the same fields a
+  Custom page block uses; the page's size and when it was last replaced; the
+  page itself.
 - What is stored is names — the namespace's slug and module handles — while the
   pickers hold IDs, so a page carried to another instance is read back by what
   it declared rather than by IDs that mean nothing there. A module dropped from

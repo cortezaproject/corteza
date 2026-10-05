@@ -129,9 +129,10 @@ func TestTheSkillsBridgeSnippetSurvivesTheSourceGuard(t *testing.T) {
 		}
 	}
 	require.NotNil(t, skill, "the custom_app skill is missing from the library")
-	// The last two are what reach the skill before a page exists: a session
-	// modelling for an app it is about to build needs the rules that say the
-	// model comes first.
+	// The module and namespace tools are what reach the skill before a page
+	// exists: a session modelling for an app it is about to build needs the
+	// rules that say the model comes first. The page tools are how a Custom
+	// block is placed.
 	assert.ElementsMatch(t, []string{
 		"system_application_create",
 		"system_application_update",
@@ -139,6 +140,8 @@ func TestTheSkillsBridgeSnippetSurvivesTheSourceGuard(t *testing.T) {
 		"system_application_source_get",
 		"compose_module_create",
 		"compose_namespace_create",
+		"compose_page_create",
+		"compose_page_update",
 	}, skill.Triggers)
 
 	snippet := indentedBlockContaining(skill.Body, "human:hello")
@@ -146,5 +149,5 @@ func TestTheSkillsBridgeSnippetSurvivesTheSourceGuard(t *testing.T) {
 		"the bridge snippet was not found in the custom_app skill as an indented block; "+
 			"this test is asserting nothing until it is")
 
-	require.NoError(t, sysService.CheckApplicationSource("<script>\n"+snippet+"\n</script>"))
+	require.NoError(t, sysService.CheckApplicationSource("<script>\n"+snippet+"\n</script>", nil))
 }

@@ -1644,6 +1644,18 @@ endpoints:
               type: '[]string'
               required: false
               title: Declared module handles the app may also create and change records in
+            - name: origins
+              type: '[]string'
+              required: false
+              title: Exact https origins the app may load scripts, styles, fonts and images from, besides cdnjs
+            - name: automations
+              type: '[]string'
+              required: false
+              title: Handles of the workflows and TAQs the app may run
+            - name: chatbots
+              type: '[]string'
+              required: false
+              title: Handles of the chatbots the app may open
 
       - name: upload
         path: '/upload'

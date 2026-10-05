@@ -3,6 +3,20 @@ consent:
   header: This app wants to change records
   message: '{name} wants to create and change records in {modules}. It does that as you, with your own permissions, and only in those modules. Nothing is changed until you allow it.'
   reject: Do not allow
+  runAccept: Allow this app to run them
+  runHeader: This app wants to run automations
+  runMessage: '{name} wants to run {automations}. They run as you, with your own permissions, and may change data the app itself cannot reach. Nothing runs until you allow it.'
+declaration:
+  automations: Automations it may run
+  automationsDescription: Workflows and TAQs with a handle and a manual trigger. Each viewer is asked once before the first run, and each runs as them, with their own permissions.
+  noOrigins: None — the page loads from cdnjs only
+  origin: Origin
+  chatbots: Chatbots it may open
+  chatbotsDescription: The page opens these with human.chatbot.open. Human shows each as its own chatbot widget, outside the page, under the chatbot's own settings — it must be switched on and allow this site's address.
+  noChatbots: None — this page opens no chatbot
+  noAutomations: None — this page runs nothing
+  origins: Other places it may load from
+  originsDescription: 'Exact https origins, such as https://cdn.jsdelivr.net, that the page may load scripts, stylesheets, fonts and images from, besides cdnjs. A Google Fonts stylesheet also needs https://fonts.gstatic.com for its fonts. Each origin listed can see the addresses the page requests, so list only places you trust. The page still cannot call any outside API.'
 state:
   empty: This application has no page stored for it yet. An administrator can add one from the application's settings.
   error: 'This application could not be opened: {reason}'

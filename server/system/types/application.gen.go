@@ -59,6 +59,9 @@ type (
 		Namespace   string            `json:"namespace,omitempty"`
 		Modules     []string          `json:"modules,omitempty"`
 		Writes      []string          `json:"writes,omitempty"`
+		Origins     []string          `json:"origins,omitempty"`
+		Automations []string          `json:"automations,omitempty"`
+		Chatbots    []string          `json:"chatbots,omitempty"`
 		NamespaceID uint64            `json:"namespaceID,string,omitempty"`
 		ModuleIDs   map[string]string `json:"moduleIDs,omitempty"`
 		UpdatedAt   *time.Time        `json:"updatedAt,omitempty"`
@@ -272,6 +275,21 @@ func (r ApplicationSourceMeta) Clone() *ApplicationSourceMeta {
 		copy(dup.Writes, r.Writes)
 	}
 
+	if r.Origins != nil {
+		dup.Origins = make([]string, len(r.Origins))
+		copy(dup.Origins, r.Origins)
+	}
+
+	if r.Automations != nil {
+		dup.Automations = make([]string, len(r.Automations))
+		copy(dup.Automations, r.Automations)
+	}
+
+	if r.Chatbots != nil {
+		dup.Chatbots = make([]string, len(r.Chatbots))
+		copy(dup.Chatbots, r.Chatbots)
+	}
+
 	if r.ModuleIDs != nil {
 		dup.ModuleIDs = make(map[string]string, len(r.ModuleIDs))
 		for k, v := range r.ModuleIDs {
@@ -310,6 +328,18 @@ func (r ApplicationSourceMeta) Diff(cmp *ApplicationSourceMeta) []*revisions.Cha
 
 	if !reflect.DeepEqual(r.Writes, cmp.Writes) {
 		out = append(out, &revisions.Change{Key: "writes", Old: []any{cmp.Writes}, New: []any{r.Writes}})
+	}
+
+	if !reflect.DeepEqual(r.Origins, cmp.Origins) {
+		out = append(out, &revisions.Change{Key: "origins", Old: []any{cmp.Origins}, New: []any{r.Origins}})
+	}
+
+	if !reflect.DeepEqual(r.Automations, cmp.Automations) {
+		out = append(out, &revisions.Change{Key: "automations", Old: []any{cmp.Automations}, New: []any{r.Automations}})
+	}
+
+	if !reflect.DeepEqual(r.Chatbots, cmp.Chatbots) {
+		out = append(out, &revisions.Change{Key: "chatbots", Old: []any{cmp.Chatbots}, New: []any{r.Chatbots}})
 	}
 
 	if r.NamespaceID != cmp.NamespaceID {

@@ -180,6 +180,30 @@ type (
 		SrcField string `json:"srcField"`
 	}
 
+	// A custom HTML block: a custom application's page, named by
+	// ApplicationID, or one of its own in Source, which reads the page's own
+	// namespace: Modules by handle, and Writes, those of them it may change.
+	CustomBlockOptions struct {
+		ApplicationID string   `json:"applicationID"`
+		Source        string   `json:"source"`
+		Modules       []string `json:"modules"`
+		// Each module handle beside its ID in the page's namespace. The server
+		// sets it when the page is stored; what is sent is replaced.
+		ModuleIDs map[string]string `json:"moduleIDs"`
+		Writes    []string          `json:"writes"`
+		// Exact https origins the page may load scripts, styles, fonts and
+		// images from, besides cdnjs.
+		Origins []string `json:"origins"`
+		// Handles of the workflows and TAQs the page may run.
+		Automations []string `json:"automations"`
+		// Handles of the chatbots the page may open.
+		Chatbots []string `json:"chatbots"`
+		// Settings of the author's own, handed to the page as
+		// human.context().params, so one page serves several blocks.
+		Params        map[string]any `json:"params"`
+		MagnifyOption string         `json:"magnifyOption"`
+	}
+
 	FileBlockOptions struct {
 		RefreshOptions
 		// list or gallery
@@ -494,6 +518,7 @@ var PageBlockOptionSchemas = map[string]any{
 	"RecordOrganizer": RecordOrganizerBlockOptions{},
 	"ChatbotInbox":    ChatbotInboxBlockOptions{ChatbotIDs: []string{}, StatusFilter: []string{}},
 	"IFrame":          IFrameBlockOptions{},
+	"Custom":          CustomBlockOptions{Modules: []string{}, ModuleIDs: map[string]string{}, Writes: []string{}, Origins: []string{}, Automations: []string{}, Chatbots: []string{}, Params: map[string]any{}},
 	"File":            FileBlockOptions{Attachments: []string{}},
 	"Navigation": NavigationBlockOptions{NavigationItems: []NavigationItem{{
 		Options: NavigationItemOptions{

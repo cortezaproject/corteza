@@ -293,6 +293,9 @@ func (h *applicationHandler) sourceSet(ctx context.Context, req mcp.CallToolRequ
 		meta.Namespace = app.SourceMeta.Namespace
 		meta.Modules = app.SourceMeta.Modules
 		meta.Writes = app.SourceMeta.Writes
+		meta.Origins = app.SourceMeta.Origins
+		meta.Automations = app.SourceMeta.Automations
+		meta.Chatbots = app.SourceMeta.Chatbots
 	}
 	if v, ok := toolkit.OptStr(args, "namespace"); ok {
 		meta.Namespace = v
@@ -305,6 +308,24 @@ func (h *applicationHandler) sourceSet(ctx context.Context, req mcp.CallToolRequ
 	if raw, ok := args["writes"]; ok && raw != nil {
 		if meta.Writes, err = applicationStringList(raw); err != nil {
 			return nil, fmt.Errorf(`invalid writes: must be a JSON array of module handles, e.g. ["Lead"]: %w`, err)
+		}
+	}
+
+	if raw, ok := args["origins"]; ok && raw != nil {
+		if meta.Origins, err = applicationStringList(raw); err != nil {
+			return nil, fmt.Errorf(`invalid origins: must be a JSON array of https origins, e.g. ["https://cdn.jsdelivr.net"]: %w`, err)
+		}
+	}
+
+	if raw, ok := args["automations"]; ok && raw != nil {
+		if meta.Automations, err = applicationStringList(raw); err != nil {
+			return nil, fmt.Errorf(`invalid automations: must be a JSON array of workflow or TAQ handles, e.g. ["close_deal"]: %w`, err)
+		}
+	}
+
+	if raw, ok := args["chatbots"]; ok && raw != nil {
+		if meta.Chatbots, err = applicationStringList(raw); err != nil {
+			return nil, fmt.Errorf(`invalid chatbots: must be a JSON array of chatbot handles, e.g. ["support"]: %w`, err)
 		}
 	}
 

@@ -691,10 +691,13 @@ Store the HTML of a custom application — the whole document the app view rende
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `application` | string | Yes | Exact application name, or an application ID as a string to prevent precision loss. |
+| `automations` | string |  | JSON array of handles of the workflows and TAQs the page may run with human.automation.run, e.g. ["close_deal"]; each needs a manual (onManual) trigger. Each viewer is asked once, in Human, before the first run, and every run is theirs, under their own permissions. Omit in patch mode to keep the stored list. |
+| `chatbots` | string |  | JSON array of handles of the chatbots the page may open with human.chatbot.open, e.g. ["support"]. Human shows the chatbot outside the sandbox, as its own widget, under that chatbot's own settings: it must be enabled and allow the Human site's origin. Omit in patch mode to keep the stored list. |
 | `modules` | string |  | JSON array of module handles the app may query, as strings, e.g. ["Lead","Deal"]. This is the allowlist the bridge enforces; a module left out is refused at runtime. Omit in patch mode to keep the stored list. |
 | `namespace` | string |  | Handle of the compose namespace the app reads from. Omit in patch mode to keep the stored one. |
 | `new_string` | string |  | Patch mode: what old_string becomes. Pass an empty string to delete the matched text. Required whenever old_string is given. |
 | `old_string` | string |  | Patch mode: the exact text to replace, whitespace included. It must occur exactly once in the stored source — read it with system_application_source_get first. |
+| `origins` | string |  | JSON array of exact https origins the page may load scripts, styles, fonts and images from besides https://cdnjs.cloudflare.com, e.g. ["https://cdn.jsdelivr.net","https://fonts.googleapis.com","https://fonts.gstatic.com"]. Scheme and host only, no path and no wildcard; a stylesheet's fonts need their own origin listed too. fetch and XMLHttpRequest stay blocked whatever is listed. Omit in patch mode to keep the stored list. |
 | `source` | string |  | The whole HTML document, replacing whatever is stored. Capped at 256 KB; aim well under that. Cannot be combined with old_string. |
 | `writes` | string |  | JSON array of the declared module handles the app may also create and change records in, e.g. ["Lead"]; every one must be in modules too. Leave it out for a read-only app. Each viewer is asked once, in Human, before the app's first change, and changes run with that viewer's own permissions. Omit in patch mode to keep the stored list. |
 

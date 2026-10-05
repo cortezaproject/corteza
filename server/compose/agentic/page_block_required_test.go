@@ -72,7 +72,7 @@ func TestMissingBlockOptionsChecksMetricTiles(t *testing.T) {
 func TestRequiredBlockOptionsCoversTheKindsThatHaveOne(t *testing.T) {
 	for _, kind := range []string{
 		"AgentChat", "Automation", "Calendar", "Chart", "ChatbotInbox", "Comment",
-		"Content", "Geometry", "IFrame", "Metric", "Navigation", "Progress",
+		"Content", "Custom", "Geometry", "IFrame", "Metric", "Navigation", "Progress",
 		"RecordList", "RecordOrganizer", "Tabs",
 	} {
 		assert.NotEmpty(t, requiredBlockOptions[kind], "%s must declare what it needs", kind)
@@ -82,4 +82,15 @@ func TestRequiredBlockOptionsCoversTheKindsThatHaveOne(t *testing.T) {
 		_, known := cmpTypes.PageBlockOptionSchemas[kind]
 		assert.True(t, known, "%s is not a block kind this server has", kind)
 	}
+}
+
+func TestCustomBlockNeedsAnApplicationOrASource(t *testing.T) {
+	block := func(opts map[string]any) cmpTypes.PageBlock {
+		return cmpTypes.PageBlock{Kind: "Custom", Options: opts}
+	}
+
+	assert.Equal(t, []string{"source"}, missingBlockOptions(block(map[string]any{})))
+	assert.Equal(t, []string{"source"}, missingBlockOptions(block(map[string]any{"applicationID": "0"})))
+	assert.Empty(t, missingBlockOptions(block(map[string]any{"applicationID": "123"})))
+	assert.Empty(t, missingBlockOptions(block(map[string]any{"source": "<p>hi</p>"})))
 }

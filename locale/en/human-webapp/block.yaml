@@ -313,6 +313,23 @@ content:
   ok: Ok
   placeholder: Write your content here...
   urlPlaceholder: https://example.tld
+custom:
+  label: Custom HTML
+  modeLabel: Where the page comes from
+  modeApp: A custom application
+  modeInline: Written into this block
+  applicationLabel: Custom application
+  applicationDesc: The block shows this application's page, and only to people allowed to open the application.
+  pickApplication: Pick a custom application
+  sourceLabel: HTML document
+  sourceDesc: One whole HTML document with inline script, run in the same sandbox as a custom application. It reads and writes records through the window.human bridge.
+  noSource: This block has no HTML document yet
+  paramsLabel: Parameters
+  paramsDesc: Settings for this block, which the page reads with human.context().params, so one page can serve several blocks, each with its own settings. A value is read as JSON where it can be (a number, true or false, a list) and as text otherwise.
+  paramName: Name
+  paramValue: Value
+  noParams: No parameters — the page reads an empty object
+  refused: The custom application this block shows is not available to you
 field:
   noPermission: No permission to read field value
   selector:
@@ -512,6 +529,7 @@ issue:
   feedGeometryField: A geometry field to place markers from
   feedModule: A module for the feed to read records from
   feedStartField: A field holding the date each event starts on
+  customSource: A custom application, or an HTML document of the block's own
   iframeSource: A page address, or a field holding one
   metricModule: A module for the metric to count over
   module: A module to read records from

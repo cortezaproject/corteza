@@ -11,15 +11,29 @@
 // cannot block its own navigation.
 export const CSP_OUTER = "frame-src 'none'"
 
-// The app's policy: no network of any kind, inline script and style only,
-// images from data: URLs.
-export const CSP_INNER =
-  "default-src 'none'; " +
-  "script-src 'unsafe-inline' https://cdnjs.cloudflare.com; " +
-  "style-src 'unsafe-inline'; " +
-  'img-src data:; ' +
-  "connect-src 'none'; " +
-  "form-action 'none'"
+// What an allowed origin may be, and nothing else: it is written into a
+// policy inside an attribute, so a value that could close either is dropped.
+const ORIGIN = /^https:\/\/[a-z0-9.-]+(:[0-9]{1,5})?$/
+
+// The app's policy: no network calls of any kind; script from inline, cdnjs
+// and the origins the page lists; style, font and image from inline or data:
+// and those origins.
+export function cspInner(origins = []) {
+  const listed = (origins || []).filter(o => ORIGIN.test(o)).join(' ')
+  const from = base => (listed ? `${base} ${listed}` : base)
+
+  return (
+    "default-src 'none'; " +
+    `script-src ${from("'unsafe-inline' https://cdnjs.cloudflare.com")}; ` +
+    `style-src ${from("'unsafe-inline'")}; ` +
+    `font-src ${from('data:')}; ` +
+    `img-src ${from('data:')}; ` +
+    "connect-src 'none'; " +
+    "form-action 'none'"
+  )
+}
+
+export const CSP_INNER = cspInner()
 
 // A link or form in the app that would load another document does nothing
 // instead. The page's own handlers still run; only the navigation is cancelled,
@@ -183,6 +197,84 @@ ${source}`
 <script>${hostScript}</script>
 </body>
 </html>`
+}
+
+// The largest file `files.read` hands an app, as a data: URL.
+export const MAX_FILE = 5 * 1024 * 1024
+
+// A File field of a declared module, which is the only way an app names a
+// file: what it may read is what a record it may read holds.
+export function fileFieldFor(ctx, args = {}) {
+  if (!args.recordID) throw new Error('a file is read from a record; name it with recordID')
+  const moduleID = moduleIDFor(ctx, args.module)
+  const field = fieldsFor(ctx, moduleID).find(f => f.name === args.field)
+  if (!field) throw new Error(`module "${args.module}" has no field "${args.field}"`)
+  if (field.kind !== 'File')
+    throw new Error(`field "${args.field}" is a ${field.kind} field, not a File field`)
+  return { moduleID, field: field.name }
+}
+
+async function fileIDs(ctx, moduleID, recordID, field) {
+  const record = await ctx.compose.recordRead({ namespaceID: ctx.namespaceID, moduleID, recordID })
+  return (record.values || [])
+    .filter(v => v.name === field && v.value && v.value !== '0')
+    .map(v => String(v.value))
+}
+
+export function describeFile(attachment = {}) {
+  const original = attachment.meta?.original || {}
+  return {
+    attachmentID: attachment.attachmentID,
+    name: attachment.name || '',
+    mimetype: original.mimetype || '',
+    size: Number(original.size) || 0,
+  }
+}
+
+// What an app hands an automation, as the typed envelopes the exec endpoints
+// read: a flat object of strings, numbers and booleans, nothing nested.
+export function automationInput(input) {
+  if (input === undefined || input === null) return {}
+  if (typeof input !== 'object' || Array.isArray(input)) {
+    throw new Error('an automation input is an object of named values')
+  }
+
+  const out = {}
+  for (const [name, value] of Object.entries(input)) {
+    switch (typeof value) {
+      case 'string':
+        out[name] = { '@type': 'String', '@value': value }
+        break
+      case 'number':
+        out[name] = { '@type': Number.isInteger(value) ? 'Integer' : 'Float', '@value': value }
+        break
+      case 'boolean':
+        out[name] = { '@type': 'Boolean', '@value': value }
+        break
+      default:
+        throw new Error(`input "${name}" is not a string, number or boolean`)
+    }
+  }
+  return out
+}
+
+// Where `navigate` may take the viewer, as the app named it: a page of the
+// namespace the app reads, by handle or ID, or the record page of one of its
+// modules; a record page always with the record to open.
+export function navigationTarget(args = {}) {
+  const page = args.page === undefined || args.page === null ? '' : String(args.page).trim()
+  const module = String(args.module || '').trim()
+  const recordID =
+    args.recordID === undefined || args.recordID === null ? '' : String(args.recordID).trim()
+
+  if (page && module) throw new Error('navigate takes a page or a module, not both')
+  if (!page && !module)
+    throw new Error('navigate needs a page (handle or ID), or a module and a recordID')
+  if (module && !recordID)
+    throw new Error('navigate to a module opens one of its records; name it with recordID')
+  if (recordID && !/^[0-9]+$/.test(recordID)) throw new Error(`"${recordID}" is not a record ID`)
+
+  return { page, module, recordID }
 }
 
 // The app-facing shape of a record: `values` keyed by field name, a repeated
@@ -466,7 +558,18 @@ async function refsFor(ctx, fields, records) {
 
 // Every operation an app can reach. Runs in the shell, as the viewer, under
 // the viewer's permissions.
+// Operations after which what the rest of the page shows may be stale.
+const CHANGES = ['records.create', 'records.update', 'automation.run', 'refresh']
+
+// Runs one operation and, once one that changes data has succeeded, tells the
+// host, which brings the rest of the page up to date.
 export async function dispatch(op, args = {}, ctx) {
+  const result = await runOperation(op, args, ctx)
+  if (CHANGES.includes(op)) ctx.changed?.()
+  return result
+}
+
+async function runOperation(op, args = {}, ctx) {
   switch (op) {
     case 'records.list': {
       const moduleID = moduleIDFor(ctx, args.module)
@@ -573,6 +676,61 @@ export async function dispatch(op, args = {}, ctx) {
       return true
     }
 
+    case 'files.list': {
+      const { moduleID, field } = fileFieldFor(ctx, args)
+      const ids = await fileIDs(ctx, moduleID, args.recordID, field)
+      return Promise.all(ids.map(async id => describeFile(await ctx.attachment(id))))
+    }
+
+    case 'files.read': {
+      const { moduleID, field } = fileFieldFor(ctx, args)
+      const ids = await fileIDs(ctx, moduleID, args.recordID, field)
+      const id = args.attachmentID ? String(args.attachmentID) : ids[0]
+      if (!id) throw new Error(`field "${field}" of record ${args.recordID} holds no file`)
+      if (!ids.includes(id)) {
+        throw new Error(`file ${id} is not one field "${field}" of record ${args.recordID} holds`)
+      }
+
+      const file = describeFile(await ctx.attachment(id))
+      if (file.size > MAX_FILE) {
+        throw new Error(`a file read is at most ${MAX_FILE} bytes; ${file.name} is ${file.size}`)
+      }
+      return { ...file, dataURL: await ctx.fileData(id) }
+    }
+
+    case 'automation.run': {
+      const name = String(args.automation || '').trim()
+      if (!name)
+        throw new Error('automation.run needs the handle of an automation the app declared')
+      if (!(ctx.meta?.automations || []).includes(name)) {
+        throw new Error(`automation "${name}" is not declared for this app`)
+      }
+      const input = automationInput(args.input)
+      if (!(await ctx.consentToRun())) {
+        throw new Error('the viewer did not allow this app to run automations')
+      }
+      return ctx.runAutomation(name, input)
+    }
+
+    case 'refresh':
+      return true
+
+    case 'chatbot.open':
+    case 'chatbot.close': {
+      const name = String(args.chatbot || '').trim()
+      if (!name) throw new Error(`${op} needs the handle of a chatbot the app declared`)
+      if (!(ctx.meta?.chatbots || []).includes(name)) {
+        throw new Error(`chatbot "${name}" is not declared for this app`)
+      }
+      if (op === 'chatbot.open') await ctx.openChatbot(name)
+      else ctx.closeChatbot(name)
+      return true
+    }
+
+    case 'navigate':
+      await ctx.navigate(navigationTarget(args))
+      return true
+
     case 'modules': {
       // What the app declared, as it stands now: the labels and the options a
       // Select holds today, rather than the ones its author copied in.
@@ -592,6 +750,9 @@ export async function dispatch(op, args = {}, ctx) {
 
     case 'theme':
       return ctx.theme()
+
+    case 'context':
+      return ctx.context ? ctx.context() : {}
 
     case 'resize':
       ctx.resize(args.height)
