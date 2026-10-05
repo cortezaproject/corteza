@@ -254,8 +254,8 @@ func checkBlockFilters(load moduleLoader, subject string, options map[string]any
 }
 
 // optionModuleID reads the moduleID beside a filter. Block options carry it as
-// a string, and a caller may send a number; resolveRefsIn has already turned a
-// handle into one of those by the time this runs.
+// a string; resolveRefsIn has already turned a handle into one by the time
+// this runs. A JSON number is not read: it cannot hold a real ID exactly.
 func optionModuleID(options map[string]any) uint64 {
 	switch v := options["moduleID"].(type) {
 	case string:
@@ -264,8 +264,6 @@ func optionModuleID(options map[string]any) uint64 {
 			return 0
 		}
 		return id
-	case float64:
-		return uint64(v)
 	case uint64:
 		return v
 	}

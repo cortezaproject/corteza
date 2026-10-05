@@ -69,10 +69,11 @@ func NewMCPServer(reg *Registry, name, version string) *MCPServer {
 		server.WithResourceCapabilities(true, false),
 		server.WithToolFilter(m.listFilter()),
 		// First registered is outermost: mcp-go wraps in reverse, so this one
-		// sees every error the two below produce.
+		// sees every error the ones below produce.
 		server.WithToolHandlerMiddleware(m.errorsAsResults()),
 		server.WithToolHandlerMiddleware(m.riskCeiling()),
 		server.WithToolHandlerMiddleware(m.rejectUnknownArguments()),
+		server.WithToolHandlerMiddleware(m.rejectUnsafeNumbers()),
 		server.WithToolHandlerMiddleware(m.structuredForUI()),
 	)
 
