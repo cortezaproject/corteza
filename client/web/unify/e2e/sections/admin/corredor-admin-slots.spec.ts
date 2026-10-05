@@ -3,7 +3,8 @@ import { expect, test, type Page } from '@playwright/test'
 // Contract under test:
 // - views/system/User/Editor.intent.md: `system:user` manual scripts render in
 //   two slots — `infoFooter` under the basic information panel and
-//   `passwordFooter` under the password fields — and only while editing.
+//   `passwordFooter` under the multi-factor authentication toggles — and only
+//   while editing.
 // - views/system/Role/Editor.intent.md: `system:role` scripts render in the
 //   editor's toolbar, beside Archive and Clone permissions.
 // - views/system/UserGroup/Editor.intent.md: `system:user-group` scripts render
@@ -129,7 +130,7 @@ test.describe('corredor manual script slots in admin', () => {
     await expect(page.locator('input[name="email"]')).toBeVisible({ timeout: 30000 })
 
     const info = page.getByRole('region', { name: 'Basic information' })
-    const security = page.getByRole('region', { name: 'Security' })
+    const security = page.getByRole('region', { name: 'Multi-factor authentication' })
 
     // Two scripts, same resource and page, different slots — each belongs to one
     // panel and not the other.

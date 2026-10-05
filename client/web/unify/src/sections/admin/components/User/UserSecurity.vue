@@ -1,39 +1,5 @@
 <template>
-  <div class="flex flex-col gap-8">
-    <!-- Password Section -->
-    <div class="flex flex-col gap-4">
-      <div class="flex flex-col gap-4">
-        <CFormGroup name="password" :label="$t('system.users.editor.password.new')">
-          <Password
-            id="password"
-            name="password"
-            v-model="passwords.password"
-            toggleMask
-            :feedback="false"
-            :inputProps="{ autocomplete: 'new-password' }"
-            inputClass="w-full"
-            class="w-full relative"
-            :disabled="disabled"
-          />
-        </CFormGroup>
-
-        <CFormGroup name="confirmPassword" :label="$t('system.users.editor.password.confirm')">
-          <Password
-            id="confirmPassword"
-            name="confirmPassword"
-            v-model="passwords.confirmPassword"
-            toggleMask
-            :feedback="false"
-            :inputProps="{ autocomplete: 'new-password' }"
-            inputClass="w-full"
-            class="w-full"
-            :disabled="disabled"
-          />
-        </CFormGroup>
-      </div>
-    </div>
-
-    <!-- MFA Section -->
+  <div class="flex flex-col gap-4">
     <div class="grid grid-cols-1 gap-4">
       <CInputToggleCard
         :modelValue="user.meta.securityPolicy.mfa.enforcedEmailOTP"
@@ -77,9 +43,4 @@ defineProps({
 })
 
 defineEmits(['update:mfa', 'script'])
-
-const passwords = defineModel('passwords', {
-  type: Object,
-  required: true,
-})
 </script>

@@ -1325,9 +1325,9 @@ users:
       title: Manage external auth providers
       type: Type
     externalAuth:
-      empty: No external authenticators found
+      empty: This user has no password and no linked external sign-in provider yet.
       remove: Remove
-      title: External authentication
+      title: Sign-in methods
     info:
       confirmEmail: Confirm email address
       createdAt: Created at
@@ -1342,6 +1342,7 @@ users:
       name: Full name
       placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
       revokeAllSession: Revoke all active sessions
+      revokeOwnSessionsDisabled: This would end your own session as well, so it is not available on your own account.
       suspend: Suspend
       suspendConfirm: Are you sure you want to suspend this user?
       suspendedAt: Suspended at
@@ -1380,12 +1381,14 @@ users:
       title: Multi-factor authentication
     new: New User
     password:
-      confirm: Confirm password
+      confirm: Confirm new password
+      description: '{name} signs in with this password from now on. It takes effect as soon as you set it and does not wait for the user to be saved.'
       length: The passwords must be at least {length} characters long!
-      missmatch: The passwords must match
+      missmatch: The two passwords do not match
       new: New password
       removePassword: Remove password
-      title: Password
+      set: Set password
+      title: Set a new password
     permissions: Permissions
     roles:
       add: Add
@@ -1396,7 +1399,7 @@ users:
       title: Role membership
       unnamed: Unnamed role
     security:
-      title: Security
+      title: Multi-factor authentication
     title:
       create: Create user
       edit: Edit user

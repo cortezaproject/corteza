@@ -52,14 +52,19 @@
       "t": "2026-09-28"
     },
     "client/web/unify/e2e/sections/admin/corredor-admin-slots.spec.ts": {
-      "h": "fb95b4fca87e",
+      "h": "e4aec6b04acd",
       "doc": "client/web/unify/e2e/e2e.intent.md",
-      "t": "2026-09-23"
+      "t": "2026-10-05"
     },
     "client/web/unify/e2e/sections/admin/corredor-scripts.spec.ts": {
       "h": "04e63ed3cf61",
       "doc": "client/web/unify/e2e/e2e.intent.md",
       "t": "2026-09-23"
+    },
+    "client/web/unify/e2e/sections/admin/user-password.spec.ts": {
+      "h": "27d2a0261cc5",
+      "doc": "client/web/unify/e2e/e2e.intent.md",
+      "t": "2026-10-05"
     },
     "client/web/unify/e2e/sections/admin/users.spec.ts": {
       "h": "c153f38175ff",
@@ -246,15 +251,20 @@
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
       "t": "2026-07-23"
     },
+    "client/web/unify/src/sections/admin/components/User/UserPasswordDialog.vue": {
+      "h": "dfc335378e3a",
+      "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
+      "t": "2026-10-05"
+    },
     "client/web/unify/src/sections/admin/components/User/UserRoles.vue": {
       "h": "16e7cda7947b",
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/admin/components/User/UserSecurity.vue": {
-      "h": "d533e9fcf446",
+      "h": "178ed2ae6fd8",
       "doc": "client/web/unify/src/sections/admin/components/components.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-10-05"
     },
     "client/web/unify/src/sections/admin/components/UserGroup/deleteBlockers.js": {
       "h": "dad009f992ce",
@@ -562,9 +572,9 @@
       "t": "2026-08-21"
     },
     "client/web/unify/src/sections/admin/views/system/User/Editor.vue": {
-      "h": "a2c252d3d23a",
+      "h": "ddf900111865",
       "doc": "client/web/unify/src/sections/admin/views/system/User/Editor.intent.md",
-      "t": "2026-09-22"
+      "t": "2026-10-05"
     },
     "client/web/unify/src/sections/admin/views/system/User/List.vue": {
       "h": "49cc4135e2eb",

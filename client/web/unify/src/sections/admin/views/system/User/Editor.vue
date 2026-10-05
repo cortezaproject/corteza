@@ -17,12 +17,45 @@
     class="flex flex-col h-full"
   >
     <CViewContainer scroll gap="5">
-      <div v-if="isEdit" class="flex justify-end gap-2">
+      <div v-if="isEdit" class="flex flex-wrap items-center justify-end gap-2">
+        <Tag
+          v-if="userState"
+          :value="$t(`general.resourceList.state.${userState}`)"
+          :severity="USER_STATE_SEVERITY[userState]"
+          data-testid="user-state"
+          class="mr-auto"
+        />
+        <Button
+          v-if="canSetPassword"
+          :label="$t('system.users.editor.password.set')"
+          icon="pi pi-key"
+          severity="info"
+          size="small"
+          outlined
+          @click="passwordDialogVisible = true"
+        />
+        <span
+          v-if="user.canUpdateUser"
+          v-tooltip.bottom="
+            isSelf ? $t('system.users.editor.info.revokeOwnSessionsDisabled') : null
+          "
+          class="inline-flex"
+        >
+          <Button
+            :label="$t('system.users.editor.info.revokeAllSession')"
+            icon="pi pi-sign-out"
+            severity="warn"
+            size="small"
+            outlined
+            :disabled="revoking || isSelf"
+            @click="confirmRevokeSessions"
+          />
+        </span>
         <Button
           v-if="!user.suspendedAt && user.canSuspendUser"
           :label="$t('system.users.editor.info.suspend')"
           icon="pi pi-pause"
-          severity="secondary"
+          severity="danger"
           size="small"
           outlined
           :disabled="suspending"
@@ -32,21 +65,11 @@
           v-else-if="user.suspendedAt && user.canUnsuspendUser"
           :label="$t('system.users.editor.info.unsuspend')"
           icon="pi pi-play"
-          severity="secondary"
+          severity="success"
           size="small"
           outlined
           :disabled="suspending"
           @click="confirmUnsuspend"
-        />
-        <Button
-          v-if="user.canUpdateUser"
-          :label="$t('system.users.editor.info.revokeAllSession')"
-          icon="pi pi-sign-out"
-          severity="secondary"
-          size="small"
-          outlined
-          :disabled="revoking || isSelf"
-          @click="confirmRevokeSessions"
         />
 
         <CPermissionsButton
@@ -114,7 +137,6 @@
         <UserSecurity
           :user="user"
           @script="handleScriptButton"
-          v-model:passwords="passwords"
           :disabled="!canEdit"
           @update:mfa="(key, val) => (user.meta.securityPolicy.mfa[key] = val)"
         />
@@ -184,6 +206,13 @@
       />
     </CEditorActions>
   </Form>
+
+  <UserPasswordDialog
+    v-if="canSetPassword"
+    v-model:visible="passwordDialogVisible"
+    :user="user"
+    @saved="externalAuthRef?.loadCredentials()"
+  />
 </template>
 
 <script setup>
@@ -191,12 +220,13 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { system } from '@planetcrust/human-js'
-import { components, useDraftGuard, useUserStore } from '@planetcrust/human-vue'
+import { components, resourceState, useDraftGuard, useUserStore } from '@planetcrust/human-vue'
 import { useConfirm } from 'primevue/useconfirm'
 
 const { CInputDelete, CInputUserGroup, CManualScriptButtons, CViewContainer } = components
 
 import UserSecurity from '@/sections/admin/components/User/UserSecurity.vue'
+import UserPasswordDialog from '@/sections/admin/components/User/UserPasswordDialog.vue'
 import UserRoles from '@/sections/admin/components/User/UserRoles.vue'
 import UserAvatar from '@/sections/admin/components/User/UserAvatar.vue'
 import UserExternalAuth from '@/sections/admin/components/User/UserExternalAuth.vue'
@@ -226,12 +256,8 @@ const { capture, markSaved } = useDraftGuard({
   extra: () => [...membershipIDs.value].sort(),
 })
 const externalAuthRef = ref(null)
+const passwordDialogVisible = ref(false)
 
-// Lifted State for Tabs
-const passwords = ref({
-  password: '',
-  confirmPassword: '',
-})
 const initialMembershipIDs = ref(new Set())
 const membershipIDs = ref(new Set())
 
@@ -241,6 +267,15 @@ const isEdit = computed(() => !!route.params.userID)
 // Read-only is one condition, used by the fields, the banner and Save alike —
 // a form the user cannot save must not invite them to fill it in.
 const canEdit = computed(() => !isEdit.value || !!user.value?.canUpdateUser)
+
+// The server refuses a password for a system user.
+const canSetPassword = computed(
+  () => isEdit.value && !!user.value?.canUpdateUser && user.value?.kind !== 'sys',
+)
+
+// The same tag and colours the user list shows for a row in that state.
+const USER_STATE_SEVERITY = { deleted: 'danger', suspended: 'contrast' }
+const userState = computed(() => resourceState(user.value))
 
 const isSelf = computed(() => !!user.value && $Auth?.user?.userID === user.value.userID)
 
@@ -278,7 +313,6 @@ async function loadUser() {
     user.value = new system.User({})
     initialMembershipIDs.value = new Set()
     membershipIDs.value = new Set()
-    passwords.value = { password: '', confirmPassword: '' }
 
     // Preselect the default user group
     await fetchDefaultUserGroup()
@@ -362,16 +396,6 @@ async function handleSubmit({ valid }) {
       const raw = await $SystemAPI.userUpdate(payload)
       user.value = new system.User(raw)
       userStore.storeUsers([user.value])
-
-      // Handle Password if provided
-      if (passwords.value.password) {
-        await $SystemAPI.userSetPassword({
-          userID: payload.userID,
-          password: passwords.value.password,
-        })
-        passwords.value = { password: '', confirmPassword: '' }
-        await externalAuthRef.value?.loadCredentials()
-      }
 
       // Handle Role updates
       const rolesToAdd = [...membershipIDs.value].filter(id => !initialMembershipIDs.value.has(id))
@@ -495,7 +519,7 @@ function confirmSuspend(event) {
     },
     acceptProps: {
       label: t('system.users.editor.info.suspend'),
-      severity: 'warn',
+      severity: 'danger',
       size: 'small',
     },
     accept: () => {
