@@ -210,16 +210,26 @@ ${source}`
 // The largest file `files.read` hands an app, as a data: URL.
 export const MAX_FILE = 5 * 1024 * 1024
 
+// The one record a call names. It is written into the request path, so
+// anything but digits could walk that path to another endpoint (`../`).
+export function recordIDFor(args, refusal) {
+  const id =
+    args.recordID === undefined || args.recordID === null ? '' : String(args.recordID).trim()
+  if (!id) throw new Error(refusal)
+  if (!/^[0-9]+$/.test(id)) throw new Error(`"${id}" is not a record ID`)
+  return id
+}
+
 // A File field of a declared module, which is the only way an app names a
 // file: what it may read is what a record it may read holds.
 export function fileFieldFor(ctx, args = {}) {
-  if (!args.recordID) throw new Error('a file is read from a record; name it with recordID')
+  const recordID = recordIDFor(args, 'a file is read from a record; name it with recordID')
   const moduleID = moduleIDFor(ctx, args.module)
   const field = fieldsFor(ctx, moduleID).find(f => f.name === args.field)
   if (!field) throw new Error(`module "${args.module}" has no field "${args.field}"`)
   if (field.kind !== 'File')
     throw new Error(`field "${args.field}" is a ${field.kind} field, not a File field`)
-  return { moduleID, field: field.name }
+  return { moduleID, field: field.name, recordID }
 }
 
 async function fileIDs(ctx, moduleID, recordID, field) {
@@ -651,7 +661,7 @@ async function runOperation(op, args = {}, ctx) {
       const record = await ctx.compose.recordRead({
         namespaceID: ctx.namespaceID,
         moduleID,
-        recordID: args.recordID,
+        recordID: recordIDFor(args, 'records.read needs the recordID of the record to read'),
       })
       const fields = fieldsFor(ctx, moduleID)
       return {
@@ -698,10 +708,10 @@ async function runOperation(op, args = {}, ctx) {
       const moduleID = writableModuleIDFor(ctx, args.module)
       // The endpoint behind this changes every record a filter matches, so one
       // record is named here and nothing else can widen it.
-      const recordID = String(args.recordID || '')
-      if (!recordID) {
-        throw new Error('records.update needs the recordID of the one record to change')
-      }
+      const recordID = recordIDFor(
+        args,
+        'records.update needs the recordID of the one record to change',
+      )
       await agreed(ctx, args.module)
 
       const values = toStoreValues(args.values, fieldsFor(ctx, moduleID))
@@ -734,18 +744,18 @@ async function runOperation(op, args = {}, ctx) {
     }
 
     case 'files.list': {
-      const { moduleID, field } = fileFieldFor(ctx, args)
-      const ids = await fileIDs(ctx, moduleID, args.recordID, field)
+      const { moduleID, field, recordID } = fileFieldFor(ctx, args)
+      const ids = await fileIDs(ctx, moduleID, recordID, field)
       return Promise.all(ids.map(async id => describeFile(await ctx.attachment(id))))
     }
 
     case 'files.read': {
-      const { moduleID, field } = fileFieldFor(ctx, args)
-      const ids = await fileIDs(ctx, moduleID, args.recordID, field)
+      const { moduleID, field, recordID } = fileFieldFor(ctx, args)
+      const ids = await fileIDs(ctx, moduleID, recordID, field)
       const id = args.attachmentID ? String(args.attachmentID) : ids[0]
-      if (!id) throw new Error(`field "${field}" of record ${args.recordID} holds no file`)
+      if (!id) throw new Error(`field "${field}" of record ${recordID} holds no file`)
       if (!ids.includes(id)) {
-        throw new Error(`file ${id} is not one field "${field}" of record ${args.recordID} holds`)
+        throw new Error(`file ${id} is not one field "${field}" of record ${recordID} holds`)
       }
 
       const file = describeFile(await ctx.attachment(id))
@@ -815,8 +825,7 @@ async function runOperation(op, args = {}, ctx) {
     case 'records.delete': {
       const refusal = allowDelete(ctx.meta, args.module)
       if (refusal) throw new Error(refusal)
-      if (!args.recordID)
-        throw new Error('records.delete removes one record; name it with recordID')
+      const recordID = recordIDFor(args, 'records.delete removes one record; name it with recordID')
       const moduleID = moduleIDFor(ctx, args.module)
       if (!(await ctx.consentToDelete())) {
         throw new Error('the person using this app did not agree to it deleting records')
@@ -824,18 +833,17 @@ async function runOperation(op, args = {}, ctx) {
       await ctx.compose.recordDelete({
         namespaceID: ctx.namespaceID,
         moduleID,
-        recordID: args.recordID,
+        recordID,
       })
       return true
     }
 
     case 'files.upload': {
       const moduleID = writableModuleIDFor(ctx, args.module)
-      const { field } = fileFieldFor(ctx, args)
+      const { field, recordID } = fileFieldFor(ctx, args)
       const file = dataURLFile(args.dataURL, args.name)
       await agreed(ctx, args.module)
 
-      const recordID = String(args.recordID)
       const attachment = await ctx.uploadFile({ moduleID, recordID, field, file })
 
       // The upload stores the file; the record holds it only once the field

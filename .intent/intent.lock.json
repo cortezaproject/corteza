@@ -682,9 +682,9 @@
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/bridge.test.js": {
-      "h": "20e8893867e2",
+      "h": "1aa4fc0f0989",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
-      "t": "2026-10-05"
+      "t": "2026-10-06"
     },
     "client/web/unify/src/sections/app/components/CustomAppDeclaration.vue": {
       "h": "3c3f7006c8a6",
@@ -697,9 +697,9 @@
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "a4c031cb268b",
+      "h": "2943f13dc0c3",
       "doc": "client/web/unify/src/sections/app/host.intent.md",
-      "t": "2026-10-05"
+      "t": "2026-10-06"
     },
     "client/web/unify/src/sections/app/index.js": {
       "h": "51ca56861a3f",

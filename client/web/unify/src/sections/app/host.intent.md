@@ -103,6 +103,10 @@ createdAt, updatedAt}` — `values` is a plain object keyed by field name,
 - `records.update` changes exactly the one record it names and only the fields
   it lists; it refuses to run without a `recordID`, because the endpoint under
   it changes every record a filter matches.
+- A `recordID` is digits, or the call is refused with
+  `"<x>" is not a record ID`: it is written into the request path, where `../`
+  would reach another module, the namespace, or any endpoint the viewer may
+  call.
 - A report groups by one field, and the app names it `dimension` — what the
   API and its tools call it. The plural is taken as well, because a bridge that
   took only the plural dropped what an author wrote and left the server

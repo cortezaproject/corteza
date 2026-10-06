@@ -1020,3 +1020,62 @@ describe('fields', () => {
     expect(describeField({ name: 'tags', kind: 'String', isMulti: true }).multi).toBe(true)
   })
 })
+
+// A record ID is written into the request path, so `../` in one would reach
+// another module, the namespace, or any endpoint the viewer may call.
+describe('record IDs', () => {
+  const anyCtx = () => ({
+    ...context({
+      ...META,
+      writes: ['agent-contact'],
+      deletes: ['agent-contact'],
+    }),
+    fields: () => [
+      { name: 'photo', kind: 'File' },
+      { name: 'name', kind: 'String' },
+    ],
+    compose: {
+      recordRead: vi.fn().mockResolvedValue({ values: [] }),
+      recordPatch: vi.fn().mockResolvedValue(undefined),
+      recordDelete: vi.fn().mockResolvedValue(undefined),
+    },
+    consent: vi.fn().mockResolvedValue(true),
+    consentToDelete: vi.fn().mockResolvedValue(true),
+    uploadFile: vi.fn(),
+    attachment: vi.fn(),
+    changed: vi.fn(),
+  })
+  const calls = {
+    'records.read': {},
+    'records.update': { values: { name: 'x' } },
+    'records.delete': {},
+    'files.list': { field: 'photo' },
+    'files.read': { field: 'photo' },
+    'files.upload': { field: 'photo', name: 'a.txt', dataURL: 'data:text/plain;base64,aGk=' },
+  }
+
+  for (const [op, args] of Object.entries(calls)) {
+    it(`refuses ${op} on a record ID that is not one, before the API is touched`, async () => {
+      for (const recordID of ['../../3/record/4', '%2e%2e/3', '9/../10', '9?x=1', '9#']) {
+        const ctx = anyCtx()
+        await expect(
+          dispatch(op, { module: 'agent-contact', recordID, ...args }, ctx),
+        ).rejects.toThrow('is not a record ID')
+        expect(ctx.compose.recordRead).not.toHaveBeenCalled()
+        expect(ctx.compose.recordPatch).not.toHaveBeenCalled()
+        expect(ctx.compose.recordDelete).not.toHaveBeenCalled()
+        expect(ctx.uploadFile).not.toHaveBeenCalled()
+      }
+    })
+  }
+
+  it('reads the one record a numeric ID names', async () => {
+    const ctx = anyCtx()
+    await dispatch('records.read', { module: 'agent-contact', recordID: 9 }, ctx)
+    expect(ctx.compose.recordRead).toHaveBeenCalledWith({
+      namespaceID: '1',
+      moduleID: '2',
+      recordID: '9',
+    })
+  })
+})
