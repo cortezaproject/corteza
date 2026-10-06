@@ -3,8 +3,10 @@ package xss
 import (
 	"html"
 	"regexp"
+	"strings"
 
 	"github.com/microcosm-cc/bluemonday"
+	nethtml "golang.org/x/net/html"
 )
 
 var (
@@ -52,12 +54,31 @@ func init() {
 	p.AddTargetBlankToFullyQualifiedLinks(false)
 }
 
-// RichText assures safe HTML content
+// RichText assures safe HTML content. Text reads as the characters its
+// entities stand for, except <, which stays escaped: markup only ever starts
+// with it, so text never turns into markup however many times it is encoded.
 func RichText(in string) string {
-	sanitized := p.Sanitize(in)
+	return unescapeText(p.Sanitize(in))
+}
 
-	// handle escaped strings and unescape them
-	// all the dangerous chars should have been stripped
-	// by now
-	return html.UnescapeString(sanitized)
+var textMarkup = strings.NewReplacer("<", "&lt;")
+
+// unescapeText decodes entities between tags only; tags and attributes stay
+// as the policy wrote them.
+func unescapeText(in string) string {
+	var (
+		z   = nethtml.NewTokenizer(strings.NewReader(in))
+		out strings.Builder
+	)
+
+	for {
+		switch z.Next() {
+		case nethtml.ErrorToken:
+			return out.String()
+		case nethtml.TextToken:
+			out.WriteString(textMarkup.Replace(html.UnescapeString(string(z.Raw()))))
+		default:
+			out.Write(z.Raw())
+		}
+	}
 }

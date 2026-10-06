@@ -360,7 +360,7 @@ func Test_sanitizer_Run(t *testing.T) {
 			kind:    "String",
 			options: map[string]interface{}{},
 			input:   `a < b ; "'"`,
-			output:  `a < b ; "'"`,
+			output:  `a &lt; b ; "'"`,
 		},
 	}
 	for _, tt := range tests {
