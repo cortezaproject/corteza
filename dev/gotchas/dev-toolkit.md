@@ -116,6 +116,8 @@ The checkout tools (`dev_format_run`, `dev_test_run`, `dev_commit_create`, `dev_
 
 **How to apply:** use `run` only for a real `describe`/`it` string. For a file, put it in `target` after the workspace (`client/web/unify/src/….test.js`), or name the sources under test in `related`.
 
+`target` takes one path after the workspace. Two or more (`lib/vue src/a src/b`) fail with `produced no report` and run nothing; call it once per path, or run `npx vitest run <paths…>` in the package.
+
 ### `dev_ui_verify` is for one-shot checks
 
 Each call writes a uniquely named screenshot under `dev/mcp/.state/shots/` (`dev/mcp/shots.mjs`, pid plus timestamp) and reuses one storage state per origin, `dev/mcp/.state/ui-session-<origin>.json`. Its `steps` grammar is `click` and `fill` only, and it returns no input values or DOM state.

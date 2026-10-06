@@ -154,6 +154,12 @@ CodeMirror's keymap calls `preventDefault` but not `stopPropagation`, so Escape 
 
 **How to apply:** set `filter: false` and sort options yourself; jsdom with `EditorView.findFromDOM` + `startCompletion`/`currentCompletions` reproduces both.
 
+### A completion source is told apart by identity
+
+`autocompletion` re-reads `languageDataAt('autocomplete')` on every transaction and keeps a source's pending result only while the same function comes back. A provider written as `EditorState.languageData.of(() => [{ autocomplete: cx => ... }])` returns a new function each time, so its result is thrown away and the list shows only the other sources; nothing errors. A one-field `snippetCompletion` only selects its field and starts no snippet, so `clearSnippet` returns false and Escape goes on to whatever surrounds the editor. An `on…` attribute parses as `Script` only once its closing quote exists, and `CCodeEditor`'s rounded `overflow: hidden` clips tooltips unless they are placed with `tooltips({ parent: document.body })`, whose z-index of 500 sits under a PrimeVue dialog.
+
+**How to apply:** make the source once and return that one function from the provider (`sections/app/hints.js`); test Escape with a two-field snippet; in a check, type inside a closed attribute.
+
 ### Expression box height beside small fields
 
 `CInputExpression` `size="small"` with `:min-lines="1"` reads `--p-form-field-sm-*` tokens (there is no `--p-form-field-font-size`) and measures 32.94px against 33.25px for a small Select; the gap comes from Poppins' `normal` line-height and is not worth chasing. Inside an `InputGroup`, the addon (no small variant, 40px) sets the height; `class="px-2 py-0 text-sm"` on it brings the group to 32.94px.
