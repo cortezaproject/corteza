@@ -63,6 +63,16 @@ export const REPORT_FAILURE = `(function () {
   })
 })()`
 
+// A peer connection reaches the network through STUN and TURN, which no
+// policy directive covers (`connect-src` does not, and browsers ignore
+// `webrtc 'block'`), so the app's window has none. A child frame cannot hand
+// one back: inside the sandbox every frame is an opaque origin of its own.
+export const NO_PEER_CONNECTIONS = `(function () {
+  ['RTCPeerConnection', 'webkitRTCPeerConnection', 'mozRTCPeerConnection'].forEach(function (name) {
+    try { delete window[name] } catch (e) {}
+  })
+})()`
+
 // The most records one call may ask for.
 export const MAX_LIMIT = 500
 
@@ -187,6 +197,7 @@ export function buildOuterDocument({ source, hostScript, bridgeScript, cspInner 
 <base href="about:srcdoc">
 <meta http-equiv="Content-Security-Policy" content="${cspInner}">
 <script>${REPORT_FAILURE}</script>
+<script>${NO_PEER_CONNECTIONS}</script>
 <script>${INERT_NAVIGATION}</script>
 <script>${bridgeScript}</script>
 ${source}`

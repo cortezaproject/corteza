@@ -682,7 +682,7 @@
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/bridge.test.js": {
-      "h": "1aa4fc0f0989",
+      "h": "df36b139e2c1",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-10-06"
     },
@@ -697,7 +697,7 @@
       "t": "2026-10-05"
     },
     "client/web/unify/src/sections/app/host.js": {
-      "h": "2943f13dc0c3",
+      "h": "7ff6669e1330",
       "doc": "client/web/unify/src/sections/app/host.intent.md",
       "t": "2026-10-06"
     },

@@ -19,6 +19,7 @@ import {
   dispatch,
   hostScriptSource,
   INERT_NAVIGATION,
+  NO_PEER_CONNECTIONS,
   REPORT_FAILURE,
   labelFieldOf,
   recordLabels,
@@ -206,6 +207,32 @@ describe('outer document', () => {
     expect(inner).toContain(REPORT_FAILURE)
     expect(inner.indexOf(REPORT_FAILURE)).toBeLessThan(inner.indexOf(INERT_NAVIGATION))
     expect(inner.indexOf(REPORT_FAILURE)).toBeLessThan(inner.indexOf('boom()'))
+  })
+
+  it('takes peer connections away before the bridge or any app script runs', () => {
+    const doc = buildOuterDocument({
+      source: '<script>app()</script>',
+      hostScript: '',
+      bridgeScript: 'BRIDGE',
+    })
+    const inner = JSON.parse(
+      doc.match(/window.__humanInner = (".*?")<\/script>/s)[1].replace(/<\\\//g, '</'),
+    )
+    expect(inner.indexOf(REPORT_FAILURE)).toBeLessThan(inner.indexOf(NO_PEER_CONNECTIONS))
+    expect(inner.indexOf(NO_PEER_CONNECTIONS)).toBeLessThan(inner.indexOf('BRIDGE'))
+    expect(inner.indexOf(NO_PEER_CONNECTIONS)).toBeLessThan(inner.indexOf('app()'))
+  })
+
+  it('leaves the window no peer connection constructor', () => {
+    const sandbox = {
+      RTCPeerConnection() {},
+      webkitRTCPeerConnection() {},
+      RTCSessionDescription() {},
+    }
+    sandbox.window = sandbox
+    runInContext(NO_PEER_CONNECTIONS, createContext(sandbox))
+    expect('RTCPeerConnection' in sandbox).toBe(false)
+    expect('webkitRTCPeerConnection' in sandbox).toBe(false)
   })
 
   it('denies itself child frames, which is what pins the app in place', () => {

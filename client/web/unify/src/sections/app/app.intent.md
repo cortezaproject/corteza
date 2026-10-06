@@ -128,6 +128,12 @@ click handlers still run — only the navigation is cancelled.
 The host destroys the inner frame if it fires `load` a second time: that is
 now only a page navigating itself by script.
 
+The script after the reporter takes `RTCPeerConnection` and its prefixed names
+off the window. A peer connection reaches the network through STUN and TURN,
+which no policy directive covers (`connect-src` does not, and browsers ignore
+`webrtc 'block'`); a child frame cannot hand one back, since inside the sandbox
+every frame is an opaque origin of its own.
+
 ## Bridge
 
 The app talks to Human only through the bridge: one `MessagePort`, calls
@@ -162,7 +168,8 @@ added there first.
 - The two-frame shape and the CSP strings are the security boundary. Loosening
   `connect-src`, adding `allow-same-origin`, or dropping the outer frame's
   `frame-src 'none'` each reopen a way for app code to reach the viewer's
-  session or ship data out; do it only with a ruling in this doc. Declared
+  session or ship data out, and so does leaving a peer connection on the
+  inner window; do it only with a ruling in this doc. Declared
   origins are the one such ruling so far (see What a page declares).
 - What must reach Human over the network for the page (a chatbot, a file) is
   done by the shell, never by opening the sandbox to it.
