@@ -34,6 +34,13 @@ application's page by `applicationID`, or the block's own `options.source` (see
 The design goal is that a page previewed as a plain HTML artifact runs unchanged
 in Human, and that nothing an app author writes can reach the viewer's token.
 
+Ruling: the boundary is for page source that does not come from a page editor's
+own hands — written over MCP, by an assistant, or brought in by an import.
+Whoever may update a compose page is trusted as a code author: a Content
+block's body and a prefilter already run as code in the webapp, and a Custom
+block's origins are theirs to set (see What a page declares). The sandbox does
+not contain them.
+
 ## Contract (section values declared by index.js)
 
 - `id: 'app'`; one route `app` at `/app/:applicationID`, tagged
