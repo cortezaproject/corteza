@@ -51,4 +51,4 @@ if [[ -n "$want_mcp" ]]; then
   mcp_args=(--mcp-config "$HERE/human-local.mcp.json")
 fi
 
-exec "${CLAUDE_BIN:-claude}" "${mcp_args[@]}" "$@"
+exec "${CLAUDE_BIN:-claude}" ${mcp_args[@]+"${mcp_args[@]}"} "$@"

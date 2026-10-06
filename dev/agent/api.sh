@@ -182,7 +182,7 @@ if [[ "$method" == "POST" && "$path" =~ ^/compose/namespace/?(\?.*)?$ ]]; then
     ledger_record namespace "$ns_id" "$(json_get response.slug <"$body" 2>/dev/null || true)"
   fi
 fi
-if ! python3 "$AGENT_DIR/jsonout.py" "${out_args[@]}" <"$body" 2>/dev/null; then
+if ! python3 "$AGENT_DIR/jsonout.py" ${out_args[@]+"${out_args[@]}"} <"$body" 2>/dev/null; then
   # A restarting dev server answers on the socket with its boot banner rather
   # than a response. Printing that and exiting 0 makes every caller that pipes
   # into a JSON parser fail with "Expecting value: line 1 column 1", which reads
