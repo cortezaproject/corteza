@@ -2,12 +2,13 @@
   <div>
     <!-- Only a rich-text field holds markup; anything else is text, and
          rendering it as HTML lets a stored value bring its own tags. -->
-    <p v-if="formatted && isRichText" :class="viewerClasses" v-html="formatted" />
+    <p v-if="formatted && isRichText" :class="viewerClasses" v-html="markup" />
     <p v-else-if="formatted" :class="viewerClasses">{{ formatted }}</p>
   </div>
 </template>
 
 <script setup>
+import { sanitizeHtml } from '@planetcrust/human-js'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -58,6 +59,9 @@ const formatted = computed(() => {
 })
 
 const isRichText = computed(() => !!props.field.options?.useRichTextEditor)
+
+// The server sanitises rich text on write and read; this is the second layer.
+const markup = computed(() => (isRichText.value ? sanitizeHtml(formatted.value) : ''))
 
 const viewerClasses = computed(() => {
   const classes = []

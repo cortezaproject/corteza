@@ -64,6 +64,10 @@ pages, page blocks, filters and the TAQ builder.
   plain object, or a `compose.Record` built from `{ ownedBy, values }`.
   `CFieldRecordViewer` still needs `field.options.moduleID` and a `namespace`
   prop, or it falls back to the bare ID.
+- CFieldStringViewer renders markup only for a rich-text field
+  (`options.useRichTextEditor`), and only after `sanitizeHtml` from lib/js; the
+  server's sanitiser is the first layer, not the only one. Any other String
+  value is text.
 - Multi-value logic lives ONLY in CFieldEditor: one sub-editor per entry with
   add/remove and stable entry ids (`allowEmpty` decides whether an emptied list
   keeps one blank entry). Exception ("multi-absorbing"): File always, and

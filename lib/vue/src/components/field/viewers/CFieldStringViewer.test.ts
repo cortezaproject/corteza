@@ -102,4 +102,16 @@ describe('CFieldStringViewer', () => {
     })
     expect(wrapper.find('img').exists()).toBe(false)
   })
+
+  it('renders rich text without anything that would run', () => {
+    const wrapper = mount(CFieldStringViewer, {
+      props: {
+        field: field({ options: { useRichTextEditor: true } }),
+        record: record({ title: '<p>Hi <strong>there</strong><img src="x" onerror="boom()"></p>' }),
+      },
+    })
+    const html = wrapper.find('p').html()
+    expect(html).toContain('<strong>there</strong>')
+    expect(html).not.toContain('onerror')
+  })
 })
