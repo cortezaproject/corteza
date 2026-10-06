@@ -296,3 +296,9 @@ On this WSL2 setup the wall clock runs fast and host time sync steps it back rou
 `observability.Bus` hands an event only to dispatchers registered at that moment; there is no replay. Anything started from the request that creates a session (a goroutine kicked off before responding) emits before the client has opened its stream, and that event reaches nobody. The public chatbot widget lost its first step this way.
 
 **How to apply:** start what emits from the stream handler, once its dispatcher is registered (the widget's `startFirstStep`, the preview's `StartStep`), with a guard so a reconnect does not start it twice.
+
+### A sanitiser probe with one level of encoding proves nothing
+
+`xss.RichText` runs bluemonday and then `html.UnescapeString`, and a record value goes through it on write and again on every read. Each pass peels one level of entity encoding, so `&lt;img onerror&gt;` and its double and triple encodings all come back stripped, while the same payload encoded five times comes back from record read and list as a live `<img onerror>`.
+
+**How to apply:** probe a sanitiser with the payload encoded once, twice and up to six times, and read it back through every path a viewer uses (read, list, the webapp), not only the write response.

@@ -317,3 +317,9 @@ devwatch rebuilds on writes to `.go` files only (`server/cmd/devwatch/main.go`),
 macOS ships bash 3.2 as `/bin/bash`, where `"${arr[@]}"` on an empty array is an unbound-variable error under `set -u` — the script exits before the command runs. Bash 4.4+ (every Linux box here) expands it to nothing, so the breakage never shows locally.
 
 **How to apply:** expand an array that can be empty as `${arr[@]+"${arr[@]}"}`. Check a script with `docker run --rm -v "$PWD":/w -w /w bash:3.2 bash <script>`.
+
+### `backlog.sh add --help` files an item called `--help`
+
+`add` takes its first argument as the item's text, flags included. The usage is the comment at the top of `dev/agent/backlog.sh`.
+
+**How to apply:** read the header for usage; drop a stray item with `backlog.sh drop ID`.
