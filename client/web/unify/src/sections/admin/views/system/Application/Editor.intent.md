@@ -43,7 +43,8 @@ how it presents in the unified shell (display name, URL, listed flag, logo).
   pickers hold IDs, so a page carried to another instance is read back by what
   it declared rather than by IDs that mean nothing there. A module dropped from
   the read list is dropped from the writable one with it. Whoever holds `source.manage` edits the page here, in
-  `CCodeEditor`, and saves it through the same endpoint and the same refusals
+  `CCodeEditor` with the bridge's suggestions and the Insert example menu
+  (`sections/app/hints.js`), and saves it through the same endpoint and the same refusals
   as `system_application_source_set` — a page the sandbox could not run is
   refused wherever it is written. The declaration travels back untouched:
   sending the page alone would empty what the app may read.

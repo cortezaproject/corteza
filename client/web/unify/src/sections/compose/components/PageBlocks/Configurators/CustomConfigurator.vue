@@ -40,8 +40,21 @@
         :description="$t('block.custom.sourceDesc')"
         required
       >
+        <template #actions>
+          <CustomAppSnippets
+            :modules="declaration.modules"
+            @insert="sourceEditor?.insert($event)"
+          />
+        </template>
         <div data-test-id="custom-block-source">
-          <CCodeEditor id="customBlockSource" v-model="source" language="html" min-height="360px" />
+          <CCodeEditor
+            id="customBlockSource"
+            ref="sourceEditor"
+            v-model="source"
+            language="html"
+            min-height="360px"
+            :assist="assist"
+          />
         </div>
       </CFormGroup>
     </template>
@@ -94,6 +107,8 @@ import { computed, inject, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { components } from '@planetcrust/human-vue'
 import CustomAppDeclaration from '@/sections/app/components/CustomAppDeclaration.vue'
+import CustomAppSnippets from '@/sections/app/components/CustomAppSnippets.vue'
+import { bridgeAssist } from '@/sections/app/hints'
 
 const { CCodeEditor } = components
 
@@ -107,6 +122,7 @@ const block = inject('blockDraft')
 const $SystemAPI = inject('$SystemAPI')
 const $ComposeAPI = inject('$ComposeAPI')
 
+const sourceEditor = ref(null)
 const applications = ref([])
 const loadingApps = ref(false)
 
@@ -222,6 +238,12 @@ watch(
   },
   { deep: true },
 )
+
+// What the editor suggests: what this block declared and its parameters.
+const assist = bridgeAssist(t, () => ({
+  ...declaration.value,
+  params: paramRows.value.map(r => r.name.trim()).filter(Boolean),
+}))
 
 onMounted(async () => {
   // A block opened for the first time has neither an application nor a page.

@@ -169,6 +169,15 @@ added there first.
   own copy too.
 - `bridge.test.js` — host allowlist, reshaping, error texts.
 - `preview.js` — who sees a switched-off custom app; `preview.test.js`.
+- `hints.js` — what the two page editors suggest inside JavaScript (a
+  `<script>` or an `on…` attribute) and show on hover: every bridge call with
+  its arguments and result, `human.context()`'s keys, the declared modules,
+  automations and chatbots inside those strings, and a block's parameter
+  names; plus the examples the Insert menu writes, with a declared module in
+  them. Notes are `app.bridge.*` in the locale; `hints.test.js` holds the
+  catalog to the members `bridge.js` defines.
+- `components/CustomAppSnippets.vue` — that Insert menu, shared by the
+  application editor and the block configurator.
 
 ## When changing this
 

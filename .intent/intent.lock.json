@@ -442,9 +442,9 @@
       "t": "2026-08-13"
     },
     "client/web/unify/src/sections/admin/views/system/Application/Editor.vue": {
-      "h": "314a4c42be0c",
+      "h": "1c26b31ec2aa",
       "doc": "client/web/unify/src/sections/admin/views/system/Application/Editor.intent.md",
-      "t": "2026-10-05"
+      "t": "2026-10-06"
     },
     "client/web/unify/src/sections/admin/views/system/Application/List.vue": {
       "h": "f311fd02e2f5",
@@ -695,6 +695,21 @@
       "h": "953281166108",
       "doc": "client/web/unify/src/sections/app/app.intent.md",
       "t": "2026-10-05"
+    },
+    "client/web/unify/src/sections/app/components/CustomAppSnippets.vue": {
+      "h": "825213801f27",
+      "doc": "client/web/unify/src/sections/app/app.intent.md",
+      "t": "2026-10-06"
+    },
+    "client/web/unify/src/sections/app/hints.js": {
+      "h": "52a903441d3e",
+      "doc": "client/web/unify/src/sections/app/app.intent.md",
+      "t": "2026-10-06"
+    },
+    "client/web/unify/src/sections/app/hints.test.js": {
+      "h": "dcb7616611c8",
+      "doc": "client/web/unify/src/sections/app/app.intent.md",
+      "t": "2026-10-06"
     },
     "client/web/unify/src/sections/app/host.js": {
       "h": "7ff6669e1330",
@@ -1167,9 +1182,9 @@
       "t": "2026-07-27"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/CustomConfigurator.vue": {
-      "h": "78227fe4fd46",
+      "h": "2f53aaea5eac",
       "doc": "client/web/unify/src/sections/compose/components/PageBlocks/PageBlocks.intent.md",
-      "t": "2026-10-05"
+      "t": "2026-10-06"
     },
     "client/web/unify/src/sections/compose/components/PageBlocks/Configurators/FileConfigurator.vue": {
       "h": "e621f888f2c7",
@@ -4256,10 +4271,15 @@
       "doc": "lib/vue/src/components/components.intent.md",
       "t": "2026-09-22"
     },
-    "lib/vue/src/components/input/CCodeEditor.vue": {
-      "h": "2881469d913f",
+    "lib/vue/src/components/input/CCodeEditor.assist.test.ts": {
+      "h": "43b5c47846cc",
       "doc": "lib/vue/src/components/input/input.intent.md",
-      "t": "2026-09-23"
+      "t": "2026-10-06"
+    },
+    "lib/vue/src/components/input/CCodeEditor.vue": {
+      "h": "2784acc22be9",
+      "doc": "lib/vue/src/components/input/input.intent.md",
+      "t": "2026-10-06"
     },
     "lib/vue/src/components/input/CEditorActions.vue": {
       "h": "71b4e9d2c906",

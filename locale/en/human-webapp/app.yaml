@@ -31,3 +31,63 @@ state:
   preview: This app is switched off. You see it as a preview because you may change its page; nobody else can open it until it is switched on.
   refused: You do not have permission to open this application, or it is not an application this shell can display.
 title: Application
+bridge:
+  records: Read and change records of the modules this page declared, by module handle.
+  records_list: Lists records of a declared module, at most 200 per call. Follow nextPageCursor until it comes back empty to get them all. Values are keyed by field name; refs names the records and users that Record and User fields point to.
+  records_read: Reads one record of a declared module by its ID. On a record page, human.context().recordID is the record shown.
+  records_report: Groups the records of a declared module by one field. Every row holds dimension_0 and count; metrics adds a sum or an average, such as 'SUM(amount) AS total'.
+  records_create: Creates a record in a module the page may change (writes). The person is asked once before the first change, and it runs with their permissions.
+  records_update: Changes only the listed fields of one record in a module the page may change (writes).
+  records_delete: Deletes one record in a module the page may delete from (deletes). The person is asked once before the first delete.
+  records_open: Shows the record in Human, for viewing or with edit set, for editing.
+  users: Finds people by name or email.
+  users_search: Finds people whose name or email matches the query.
+  files: Reads and stores the files a record's File field holds.
+  files_list: Lists the files a record's File field holds.
+  files_read: Hands over a file a File field holds as a dataURL, at most 5 MB. Without attachmentID it is the field's first file.
+  files_upload: Stores a file, given as a dataURL, in a record's File field.
+  chatbot: Shows or hides a Human chatbot the page declared.
+  chatbot_open: Shows a declared chatbot as Human's own widget beside the page. It must be switched on and allow this site's address.
+  chatbot_close: Hides a declared chatbot again.
+  automation: Runs a workflow or TAQ the page declared.
+  automation_run: Runs a declared workflow or TAQ with a manual trigger, by handle. input is a flat object of strings, numbers and booleans; on a record page the record goes along.
+  context: Where the page is shown. On a record page recordID is the record shown; params are the block's own parameters. In the application view it is an empty object.
+  modules: The declared modules as they stand now, with every field's name, label, kind and, for a Select, its options.
+  user: The person using the page.
+  theme: Whether Human is shown dark, and its colors, so the page can match them.
+  toast: Shows a short message in Human. severity is info, success, warn or error.
+  confirm: Asks the person a yes-or-no question in a Human dialog, and answers true or false.
+  prompt: Asks the person for a line of text in a Human dialog, and answers the text, or null when they cancel.
+  setTitle: Sets the title shown above the block or the application.
+  download: Saves the text as a file with that name for the person.
+  navigate: Opens a page of this namespace by handle or ID, or the record page of a module.
+  refresh: Tells the rest of the page that data changed, so other blocks reload.
+  resize: Sets the height of the frame the page runs in, in pixels.
+  'on': "Calls fn when Human sends the event: 'refresh' when something else on the page changed data. Answers a function that stops listening."
+  ready: Settles to true once the page is connected to Human, and to false when it runs outside Human, where calls answer from window.SAMPLE.
+  call: Sends a bridge call by its operation name. The named calls above are the same thing, spelled out.
+  kind:
+    module: declared module
+    automation: declared automation
+    chatbot: declared chatbot
+    context: from human.context()
+    param: block parameter
+  contextKey:
+    namespaceID: The ID of the namespace the page reads.
+    namespace: The handle (slug) of the namespace the page reads.
+    pageID: The ID of the page the block sits on. Empty in the application view.
+    moduleID: The module of the record page the block sits on. Empty elsewhere.
+    recordID: The record shown on a record page. Read it with human.records.read. Empty elsewhere.
+    params: The block's own parameters, set in the block's settings. An empty object in the application view.
+snippets:
+  insert: Insert example
+  starter: Starter page with a record list
+  context: Read where the page is shown
+  readRecord: Read the record this page is shown on
+  listAll: List every record, page by page
+  report: Count records grouped by a field
+  modules: Read a module's fields and their labels
+  create: Create a record
+  update: Change a record
+  confirmToast: Ask before acting, then confirm with a message
+  refresh: Reload when other blocks change data

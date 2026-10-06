@@ -4,15 +4,23 @@
 
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { EditorState } from '@codemirror/state'
+import { EditorState, Prec } from '@codemirror/state'
 import {
   EditorView,
+  tooltips,
   keymap,
   lineNumbers,
   highlightActiveLine,
   highlightActiveLineGutter,
 } from '@codemirror/view'
 import { defaultKeymap, indentWithTab } from '@codemirror/commands'
+import {
+  autocompletion,
+  clearSnippet,
+  closeCompletion,
+  completionKeymap,
+  completionStatus,
+} from '@codemirror/autocomplete'
 import { html } from '@codemirror/lang-html'
 import { json } from '@codemirror/lang-json'
 import { oneDark } from '@codemirror/theme-one-dark'
@@ -44,6 +52,13 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // Suggestions while typing: the language's own (HTML tags and attributes)
+  // and whatever these extensions add. Null leaves the editor without any.
+  // Fixed when the editor is built.
+  assist: {
+    type: Array,
+    default: null,
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -71,7 +86,7 @@ function getExtensions() {
     bracketMatching(),
     foldGutter(),
     syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-    keymap.of([...defaultKeymap, indentWithTab]),
+    keymap.of([...(props.assist ? completionKeymap : []), ...defaultKeymap, indentWithTab]),
     EditorView.lineWrapping,
     EditorView.updateListener.of(update => {
       if (update.docChanged && !isUpdating) {
@@ -109,6 +124,47 @@ function getExtensions() {
   const lang = getLanguageExtension()
   if (lang) extensions.push(lang)
 
+  if (props.assist) {
+    extensions.push(
+      autocompletion({ icons: false }),
+      // In the body, so the editor's rounded clip does not cut a suggestion's
+      // note or a hover note short; above a dialog the editor may sit in.
+      tooltips({ parent: document.body }),
+      // Escape dismisses the suggestion list, or leaves the fields of a call
+      // just written, and stops there, so an editor inside a dialog does not
+      // also close the dialog. It outranks completionKeymap, which would
+      // otherwise close the list first.
+      Prec.highest(
+        EditorView.domEventHandlers({
+          keydown(event, v) {
+            if (event.key !== 'Escape') return false
+            if (completionStatus(v.state)) closeCompletion(v)
+            else if (!clearSnippet(v)) return false
+            event.stopPropagation()
+            return true
+          },
+        }),
+      ),
+      EditorView.theme({
+        '.cm-tooltip': {
+          zIndex: 3000,
+          backgroundColor: 'var(--p-content-background)',
+          color: 'var(--p-text-color)',
+          border: '1px solid var(--p-content-border-color)',
+          borderRadius: 'var(--p-content-border-radius)',
+        },
+        '.cm-tooltip-autocomplete > ul > li[aria-selected]': {
+          backgroundColor: 'var(--p-highlight-background)',
+          color: 'var(--p-highlight-color)',
+        },
+        '.cm-completionDetail': {
+          color: 'var(--p-text-muted-color)',
+        },
+      }),
+      ...props.assist,
+    )
+  }
+
   if (props.dark) {
     extensions.push(oneDark)
   }
@@ -143,6 +199,26 @@ function destroyEditor() {
     view = null
   }
 }
+
+// Puts text where the cursor is, replacing any selection, with every line after
+// the first indented as far as the line it lands on.
+function insert(text) {
+  if (!view) {
+    emit('update:modelValue', (props.modelValue || '') + text)
+    return
+  }
+  const { from, to } = view.state.selection.main
+  const indent = /^\s*/.exec(view.state.doc.lineAt(from).text)[0]
+  const insertText = text.replace(/\n/g, `\n${indent}`)
+  view.dispatch({
+    changes: { from, to, insert: insertText },
+    selection: { anchor: from + insertText.length },
+    scrollIntoView: true,
+  })
+  view.focus()
+}
+
+defineExpose({ insert })
 
 watch(
   () => props.modelValue,

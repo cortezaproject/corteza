@@ -183,6 +183,11 @@
                 }}
               </label>
               <div class="flex items-center gap-1">
+                <CustomAppSnippets
+                  v-if="canEditSource"
+                  :modules="declaration.modules"
+                  @insert="sourceEditor?.insert($event)"
+                />
                 <Button
                   :label="$t('system.applications.editor.custom.copy')"
                   icon="pi pi-copy"
@@ -205,10 +210,12 @@
             </div>
             <CCodeEditor
               id="customSource"
+              ref="sourceEditor"
               v-model="draftSource"
               language="html"
               min-height="360px"
               :read-only="!canEditSource"
+              :assist="assist"
             />
           </div>
         </div>
@@ -263,6 +270,8 @@ import {
 } from '@planetcrust/human-vue'
 import { appIconMap } from '@/utils/appIcons'
 import CustomAppDeclaration from '@/sections/app/components/CustomAppDeclaration.vue'
+import CustomAppSnippets from '@/sections/app/components/CustomAppSnippets.vue'
+import { bridgeAssist } from '@/sections/app/hints'
 
 const { CCodeEditor, CFileDropZone, CInputDelete, CInputToggleCard, CViewContainer } = components
 
@@ -337,6 +346,7 @@ const source = ref('')
 // until they differ, and an edit made here is one Claude's next patch has to
 // find, so the note under the editor says so.
 const draftSource = ref('')
+const sourceEditor = ref(null)
 const savingSource = ref(false)
 const sourceProblem = ref('')
 
@@ -344,6 +354,9 @@ const canEditSource = computed(() => !!application.value?.canManageSourceOnAppli
 
 // What the app may reach, by name, as the declaration pickers hold it.
 const declaration = ref({})
+
+// What the editor suggests: what the app declared. An app has no parameters.
+const assist = bridgeAssist(t, () => declaration.value)
 
 const declarationChanged = computed(() => {
   const meta = sourceMeta.value
