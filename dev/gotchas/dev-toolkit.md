@@ -311,3 +311,9 @@ devwatch rebuilds on writes to `.go` files only (`server/cmd/devwatch/main.go`),
 `server/pkg/codegen/resource_schema.gen.json` comes out in a different order on each run, so one new field shows as a diff of thousands of lines. The file also holds duplicate `"-"` keys, so a JSON load and dump silently merges them and changes an unrelated entry.
 
 **How to apply:** keep the committed file and add the new line by text, next to its sibling field; compare the old and new content as sets of entries, not as text, to see what really changed.
+
+### An empty array kills a `set -u` script on macOS
+
+macOS ships bash 3.2 as `/bin/bash`, where `"${arr[@]}"` on an empty array is an unbound-variable error under `set -u` — the script exits before the command runs. Bash 4.4+ (every Linux box here) expands it to nothing, so the breakage never shows locally.
+
+**How to apply:** expand an array that can be empty as `${arr[@]+"${arr[@]}"}`. Check a script with `docker run --rm -v "$PWD":/w -w /w bash:3.2 bash <script>`.
