@@ -758,19 +758,16 @@ async function isReconnectComplete(configurationID, baselineUpdatedAt) {
   }
 }
 
-// Open the provider consent popup and resolve true on success. The auth host is
-// a different origin than the SPA, so the popup's URL cannot be read. Instead we
-// poll the configured connection for the callback's update and close the popup
-// once it lands. Origin-independent by design.
-function runOAuthPopup(configurationID) {
+// Drive the already-open consent popup and resolve true on success. The auth
+// host is a different origin than the SPA, so the popup's URL cannot be read.
+// Instead we poll the configured connection for the callback's update and close
+// the popup once it lands. Origin-independent by design. The popup is opened by
+// the caller inside the click gesture so the browser does not block it.
+function runOAuthPopup(configurationID, popup) {
   const authBase = ($Auth?.authURL || `${window.location.origin}/auth`).replace(/\/$/, '')
   const url = `${authBase}/oauth2/connection/authorize?configuredConnectionID=${configurationID}`
   const baselineUpdatedAt = activeConfiguredConnection.value?.updatedAt || ''
-  const popup = window.open(url, 'oauth2-connect', 'width=520,height=680')
-  if (!popup) {
-    $toast.toastWarning(t('system.configuredConnections.editor.oauth.popupBlocked'))
-    return Promise.resolve(false)
-  }
+  popup.location = url
   return new Promise(resolve => {
     let settled = false
     const finish = ok => {
@@ -805,12 +802,23 @@ async function handleOAuthConnect() {
     $toast.toastWarning(t('general.notification.formErrors'))
     return
   }
+  // Open the popup synchronously inside the click gesture. Saving a new draft
+  // below is async; opening after that await gets the popup blocked, so a first
+  // Connect would save the draft but never show consent.
+  const popup = window.open('', 'oauth2-connect', 'width=520,height=680')
+  if (!popup) {
+    $toast.toastWarning(t('system.configuredConnections.editor.oauth.popupBlocked'))
+    return
+  }
   oauthConnecting.value = true
   try {
     const configurationID = await ensureSavedForConnect()
-    if (!configurationID) return
+    if (!configurationID) {
+      popup.close()
+      return
+    }
 
-    const ok = await runOAuthPopup(configurationID)
+    const ok = await runOAuthPopup(configurationID, popup)
     if (!ok) {
       $toast.toastWarning(t('system.configuredConnections.editor.oauth.denied'))
       return
@@ -838,6 +846,11 @@ async function handleOAuthConnect() {
       filterConfiguredConnectionsList()
     }
   } catch (e) {
+    try {
+      popup.close()
+    } catch {
+      // Popup may already be closed.
+    }
     toastError('notification.connection.update.error', e)
   } finally {
     oauthConnecting.value = false
