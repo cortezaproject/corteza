@@ -184,13 +184,19 @@ var (
 
 		// range operation
 		"between": {
-			Handler: func(args ...exp.Expression) exp.Expression {
-				return exp.NewRangeExpression(exp.BetweenOp, args[0], exp.NewRangeVal(args[1], args[2]))
+			HandlerE: func(args ...exp.Expression) (exp.Expression, error) {
+				if len(args) != 3 {
+					return nil, fmt.Errorf("BETWEEN expects a value, a lower and an upper bound")
+				}
+				return exp.NewRangeExpression(exp.BetweenOp, args[0], exp.NewRangeVal(args[1], args[2])), nil
 			},
 		},
 		"nbetween": {
-			Handler: func(args ...exp.Expression) exp.Expression {
-				return exp.NewRangeExpression(exp.NotBetweenOp, args[0], exp.NewRangeVal(args[1], args[2]))
+			HandlerE: func(args ...exp.Expression) (exp.Expression, error) {
+				if len(args) != 3 {
+					return nil, fmt.Errorf("NOT BETWEEN expects a value, a lower and an upper bound")
+				}
+				return exp.NewRangeExpression(exp.NotBetweenOp, args[0], exp.NewRangeVal(args[1], args[2])), nil
 			},
 		},
 

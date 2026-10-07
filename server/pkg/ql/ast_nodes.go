@@ -357,6 +357,15 @@ func (nn parserNodes) ToAST() (out *ASTNode) {
 				}
 			}
 
+			// x BETWEEN a AND b: the AND belongs to the range, not to the expression
+			if skip == 2 && isRangeOp(arg.Ref) && len(auxArgs) > bestOpIx+3 {
+				and, upper := auxArgs[bestOpIx+2], auxArgs[bestOpIx+3]
+				if and.Ref == "and" && and.pMeta != nil && upper.pMeta == nil {
+					skip = 4
+					arg.Args = append(arg.Args, upper)
+				}
+			}
+
 			// this is not needed anymore so we can remove it
 			arg.pMeta = nil
 
@@ -410,4 +419,8 @@ func qlTypeRegistry(ref string) expr.Type {
 	}
 
 	return nil
+}
+
+func isRangeOp(ref string) bool {
+	return ref == "between" || ref == "nbetween"
 }
