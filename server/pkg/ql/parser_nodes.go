@@ -16,6 +16,7 @@ type (
 
 	parserNodeSet []parserNode // Stream of comma delimited nodes
 	parserNodes   []parserNode // Stream of space delimited nodes
+	valueList     []parserNode // Parenthesised, comma delimited nodes: (a, b, c)
 
 	lNull    struct{}
 	lBoolean struct{ value bool }
@@ -204,6 +205,14 @@ func (nn parserNodeSet) String() (out string) {
 	}
 
 	return
+}
+
+func (nn valueList) Validate() (err error) {
+	return validate(nn)
+}
+
+func (nn valueList) String() string {
+	return "(" + parserNodeSet(nn).String() + ")"
 }
 
 func validate(nn []parserNode) (err error) {

@@ -286,6 +286,19 @@ func (nn parserNodeSet) ToAST() (out *ASTNode) {
 	}
 }
 
+func (nn valueList) ToAST() *ASTNode {
+	auxArgs := make(ASTNodeSet, 0, len(nn))
+
+	for _, n := range nn {
+		auxArgs = append(auxArgs, n.ToAST())
+	}
+
+	return &ASTNode{
+		Ref:  "list",
+		Args: auxArgs,
+	}
+}
+
 func (nn parserNodes) ToAST() (out *ASTNode) {
 	// Prep
 	auxArgs := make(ASTNodeSet, 0, len(nn))

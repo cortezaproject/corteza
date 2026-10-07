@@ -212,6 +212,16 @@ var (
 			},
 		},
 
+		"list": {
+			Handler: func(args ...exp.Expression) exp.Expression {
+				aa := make([]any, len(args))
+				for i := range args {
+					aa[i] = args[i]
+				}
+				return exp.NewLiteralExpression("("+strings.TrimSuffix(strings.Repeat("?, ", len(args)), ", ")+")", aa...)
+			},
+		},
+
 		// - filtering
 		"date_format": {
 			Handler: func(args ...exp.Expression) exp.Expression {

@@ -157,11 +157,33 @@ checkToken:
 	case PARENTHESIS_OPEN:
 		depth := p.level
 		p.level++
-		if sub, err := p.parse(p.nextToken()); err != nil {
+		sub, err := p.parse(p.nextToken())
+		if err != nil {
 			return nil, err
-		} else {
-			list = append(list, sub)
 		}
+
+		if p.peekToken(1).Is(COMMA) {
+			// A comma-delimited list: (a, b, c)
+			items := valueList{sub}
+			for p.peekToken(1).Is(COMMA) {
+				p.nextToken()
+				if sub, err = p.parse(p.nextToken()); err != nil {
+					return nil, err
+				}
+				items = append(items, sub)
+			}
+
+			// The last item stopped at the closing parenthesis and decreased the level
+			if !p.peekToken(1).Is(PARENTHESIS_CLOSE) {
+				return nil, fmt.Errorf("unterminated list in expression")
+			}
+			p.nextToken()
+
+			list = append(list, items)
+			goto next
+		}
+
+		list = append(list, sub)
 
 		// Allow parent level to continue parsing.
 		// Example: ((A) AND (B))

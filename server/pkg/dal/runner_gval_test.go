@@ -24,6 +24,21 @@ func TestRowEvaluatorTest(t *testing.T) {
 		expr: `test == 11`,
 		in:   (&Row{}).WithValue("test", 0, 10),
 		out:  false,
+	}, {
+		name: "in list",
+		expr: `test IN ('a', 'b', 'c')`,
+		in:   (&Row{}).WithValue("test", 0, "b"),
+		out:  true,
+	}, {
+		name: "not in list",
+		expr: `test NOT IN ('a', 'c')`,
+		in:   (&Row{}).WithValue("test", 0, "b"),
+		out:  true,
+	}, {
+		name: "in list, no match",
+		expr: `test IN ('a', 'c')`,
+		in:   (&Row{}).WithValue("test", 0, "b"),
+		out:  false,
 	}}
 
 	ctx := context.Background()

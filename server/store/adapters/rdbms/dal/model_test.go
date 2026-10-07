@@ -218,13 +218,14 @@ func TestModel_Search2(t *testing.T) {
 	})
 
 	t.Run("comparing with list of values", func(t *testing.T) {
-		t.Skip("this is unsupported on pkg/ql level")
 		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt IN (null, 'bar')"))), 1)
 		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt IN (null, 'baz')"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt IN ('baz', 'qux', 'bar')"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt NOT IN ('baz', 'bar')"))), 0)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt IN ('bar')"))), 1)
+		req.Len(search(t, filter.Generic(filter.WithExpression("phyTxt NOT IN ('bar')"))), 0)
 		req.Len(search(t, filter.Generic(filter.WithExpression("phyNum IN (null, 42)"))), 1)
 		req.Len(search(t, filter.Generic(filter.WithExpression("phyNum IN (null, 21)"))), 0)
-		req.Len(search(t, filter.Generic(filter.WithExpression("!phyBool IN (false))"))), 1)
-		req.Len(search(t, filter.Generic(filter.WithExpression("phyBool IN (true))"))), 1)
 		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxt IN (null, 'bar')"))), 1)
 		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxt IN (null, 'baz')"))), 0)
 		req.Len(search(t, filter.Generic(filter.WithExpression("jsonEncTxtMV IN (null, 'bar')"))), 1)

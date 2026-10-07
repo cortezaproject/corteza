@@ -130,6 +130,21 @@ func OpHandlerNotIn(d Dialect, n *ql.ASTNode, args ...exp.Expression) (expr exp.
 }
 
 func opHandlerIn(d Dialect, n *ql.ASTNode, negate bool, args ...exp.Expression) (expr exp.Expression, err error) {
+	if len(n.Args) == 2 && n.Args[1] != nil && (n.Args[1].Ref == "list" || n.Args[1].Value != nil) {
+		// value or attribute IN a list of values; a multi-value attribute
+		// compares its first value, as it does with '='.
+		// A one-item list, (a), is parsed as the bare value
+		var list exp.Expression = args[1]
+		if n.Args[1].Ref != "list" {
+			list = exp.NewLiteralExpression("(?)", args[1])
+		}
+
+		if negate {
+			return exp.NewLiteralExpression("? NOT IN ?", args[0], list), nil
+		}
+		return exp.NewLiteralExpression("? IN ?", args[0], list), nil
+	}
+
 	if len(n.Args) == 2 && n.Args[1] != nil && n.Args[1].Meta["dal.Attribute"] != nil && n.Args[1].Meta["dal.Attribute"].(*dal.Attribute).MultiValue {
 		// if right-side argument is multi-value attribute,
 		// then we need to adjust the arguments a bit:

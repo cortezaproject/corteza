@@ -278,6 +278,13 @@ var (
 			},
 			OutTypeUnknown: true,
 		},
+
+		"list": {
+			Handler: func(args ...string) string {
+				return fmt.Sprintf("[%s]", strings.Join(args, ", "))
+			},
+			OutTypeUnknown: true,
+		},
 	}
 )
 
