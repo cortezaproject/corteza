@@ -138,6 +138,9 @@ type (
 		SeedCursor []string              `json:"seedCursor,omitempty"`
 		List       *ConnectionHTTPAction `json:"list"`
 		Cursor     []string              `json:"cursor,omitempty"`
+		CursorMode string                `json:"cursorMode,omitempty"`
+		Key        []string              `json:"key,omitempty"`
+		Emit       string                `json:"emit,omitempty"`
 		Items      []string              `json:"items"`
 		Filter     *ConnectionPollFilter `json:"filter,omitempty"`
 		Enrich     *ConnectionHTTPAction `json:"enrich,omitempty"`
@@ -930,6 +933,11 @@ func (r ConnectionWebhookPoll) Clone() *ConnectionWebhookPoll {
 		copy(dup.Cursor, r.Cursor)
 	}
 
+	if r.Key != nil {
+		dup.Key = make([]string, len(r.Key))
+		copy(dup.Key, r.Key)
+	}
+
 	if r.Items != nil {
 		dup.Items = make([]string, len(r.Items))
 		copy(dup.Items, r.Items)
@@ -980,6 +988,18 @@ func (r ConnectionWebhookPoll) Diff(cmp *ConnectionWebhookPoll) []*revisions.Cha
 
 	if !reflect.DeepEqual(r.Cursor, cmp.Cursor) {
 		out = append(out, &revisions.Change{Key: "cursor", Old: []any{cmp.Cursor}, New: []any{r.Cursor}})
+	}
+
+	if r.CursorMode != cmp.CursorMode {
+		out = append(out, &revisions.Change{Key: "cursorMode", Old: []any{cmp.CursorMode}, New: []any{r.CursorMode}})
+	}
+
+	if !reflect.DeepEqual(r.Key, cmp.Key) {
+		out = append(out, &revisions.Change{Key: "key", Old: []any{cmp.Key}, New: []any{r.Key}})
+	}
+
+	if r.Emit != cmp.Emit {
+		out = append(out, &revisions.Change{Key: "emit", Old: []any{cmp.Emit}, New: []any{r.Emit}})
 	}
 
 	if !reflect.DeepEqual(r.Items, cmp.Items) {
