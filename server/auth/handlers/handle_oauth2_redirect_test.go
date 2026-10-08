@@ -8,9 +8,11 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/cortezaproject/corteza/server/auth/oauth2"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/system/types"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
+	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -131,6 +133,9 @@ func Test_oauth2DefaultClientRedirectURI(t *testing.T) {
 				handled bool
 				errored bool
 
+				// renders errors the way the server does
+				srv = oauth2.NewServer(manage.NewDefaultManager())
+
 				h = &AuthHandlers{
 					Log: zap.NewNop(),
 					Opt: opt,
@@ -148,7 +153,7 @@ func Test_oauth2DefaultClientRedirectURI(t *testing.T) {
 						},
 						getErrorData: func(err error) (map[string]interface{}, int, http.Header) {
 							errored = true
-							return map[string]interface{}{"error": err.Error()}, http.StatusBadRequest, nil
+							return srv.GetErrorData(err)
 						},
 					},
 				}
@@ -165,6 +170,14 @@ func Test_oauth2DefaultClientRedirectURI(t *testing.T) {
 			rq.NoError(h.oauth2authorizeDefaultClientProc(authReq))
 			rq.True(errored)
 			rq.Equal(tc.handled, handled, "token request must not reach oauth2 for foreign redirect URIs")
+
+			// the token response is written once and the page handler leaves it be
+			rq.Equal(-1, authReq.Status)
+
+			if !tc.handled {
+				rq.Equal(http.StatusUnauthorized, authReq.Response.(*httptest.ResponseRecorder).Code)
+				rq.Contains(authReq.Response.(*httptest.ResponseRecorder).Body.String(), "invalid_grant")
+			}
 		})
 	}
 }

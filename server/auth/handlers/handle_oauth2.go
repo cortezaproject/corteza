@@ -301,7 +301,12 @@ func (h *AuthHandlers) oauth2authorizeDefaultClientProc(req *request.AuthReq) (e
 			allowed := oauth2.AllowedRedirectURIs(h.DefaultClient.RedirectURI, h.Opt.GetDefaultRedirectURIs())
 			if err = oauth2.ValidateRedirectURI(allowed, redirectURI); err != nil {
 				h.Log.Warn("invalid oauth2 redirect URI on default client token request", zap.String("sent", redirectURI), zap.Strings("valid", allowed))
-				return h.tokenError(req.Response, err)
+
+				// a redirect URI that does not match the authorization request is
+				// invalid_grant (RFC 6749, 5.2); oauth2 has no status for its own
+				// invalid redirect URI error and would answer with 500
+				req.Status = -1
+				return h.tokenError(req.Response, oauth2errors.ErrInvalidGrant)
 			}
 		}
 	} else if _, has := r.Form["refresh_token"]; has {
