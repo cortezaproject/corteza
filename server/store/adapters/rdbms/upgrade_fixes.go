@@ -11,7 +11,6 @@ import (
 
 	"github.com/cortezaproject/corteza/server/compose/model"
 	"github.com/cortezaproject/corteza/server/compose/types"
-	discovery "github.com/cortezaproject/corteza/server/discovery/types"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -76,10 +75,6 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 			Privacy         interface{} `json:"privacy"`
 			RecordRevisions interface{} `json:"recordRevisions"`
 			RecordDeDup     interface{} `json:"recordDeDup"`
-		}
-
-		result struct {
-			Result discovery.Result `json:"result"`
 		}
 
 		updateModule struct {
@@ -156,66 +151,30 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 				continue
 			}
 
+			ss = oldS{}
 			err = json.Unmarshal(aux, &ss)
 			if err != nil {
 				continue
 			}
 
-			var (
-				bb             []byte
-				settings       discovery.ModuleMeta
-				migrateSetting = func(input interface{}) (out result) {
-					out = result{
-						Result: discovery.Result{
-							Lang:   "",
-							Fields: []string{},
-						},
+			// The old format holds one result object per setting, the current
+			// one a list of them, one per language; only the old one is
+			// rewritten, so a list keeps every language it has
+			changed := false
+			for _, setting := range []interface{}{ss.Discovery.Public, ss.Discovery.Private, ss.Discovery.Protected} {
+				if m, ok := setting.(map[string]interface{}); ok {
+					if res, ok := m["result"].(map[string]interface{}); ok {
+						m["result"] = []interface{}{res}
+						changed = true
 					}
-					var (
-						ok  bool
-						ii  map[string]interface{}
-						rr  []interface{}
-						res interface{}
-					)
-
-					if input != nil {
-						ii, ok = input.(map[string]interface{})
-						if ok {
-							if ii["result"] != nil {
-								rr, ok = ii["result"].([]interface{})
-								if !ok {
-									res, ok = ii["result"].(interface{})
-									if ok {
-										rr = append(rr, res)
-									}
-								}
-								if ok {
-									for _, r := range rr {
-										out.Result.Lang = r.(map[string]interface{})["lang"].(string)
-										out.Result.Fields = []string{}
-										if _, ok = r.(map[string]interface{})["fields"].([]interface{}); ok {
-											for _, f := range r.(map[string]interface{})["fields"].([]interface{}) {
-												out.Result.Fields = append(out.Result.Fields, f.(string))
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-					return
 				}
-			)
+			}
 
-			settings.Public.Result = append(settings.Public.Result, migrateSetting(ss.Discovery.Public).Result)
-			settings.Private.Result = append(settings.Private.Result, migrateSetting(ss.Discovery.Private).Result)
-			settings.Protected.Result = append(settings.Protected.Result, migrateSetting(ss.Discovery.Protected).Result)
+			if !changed {
+				continue
+			}
 
-			ss.Discovery.Public = settings.Public
-			ss.Discovery.Private = settings.Private
-			ss.Discovery.Protected = settings.Protected
-
-			bb, err = json.Marshal(ss)
+			bb, err := json.Marshal(ss)
 			if err != nil {
 				continue
 			}
