@@ -624,6 +624,33 @@ func TestUserMemberList(t *testing.T) {
 		End()
 }
 
+// TL;DR: listing users by role returns every member of it.
+// Example: on SQLite the subquery came out as IN ((SELECT …)), which SQLite
+// reads as one value, and concat() does not exist there.
+func TestUserListByRole(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "users.search")
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
+
+	r := h.repoMakeRole(h.randEmail())
+	a := h.createUserWithEmail(h.randEmail())
+	b := h.createUserWithEmail(h.randEmail())
+	h.createUserWithEmail(h.randEmail())
+	h.createRoleMember(a.ID, r.ID)
+	h.createRoleMember(b.ID, r.ID)
+
+	h.apiInit().
+		Get("/users/").
+		Query("roleID", fmt.Sprintf("%d", r.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response.set`, 2)).
+		End()
+}
+
 func TestUserMemberAdd(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()

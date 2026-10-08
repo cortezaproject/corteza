@@ -126,6 +126,33 @@ func TestRoleList(t *testing.T) {
 		End()
 }
 
+// TL;DR: listing roles by member returns every role the member holds.
+// Example: on SQLite the subquery came out as IN ((SELECT …)), which SQLite
+// reads as one value, so a member of two roles was listed in one; a login
+// builds its session's roles from the same query.
+func TestRoleListByMember(t *testing.T) {
+	h := newHelper(t)
+	helpers.AllowMe(h, types.ComponentRbacResource(), "roles.search")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "read")
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
+
+	u := h.createUserWithEmail(h.randEmail())
+	r1 := h.repoMakeRole(h.randEmail())
+	r2 := h.repoMakeRole(h.randEmail())
+	h.createRoleMember(u.ID, r1.ID)
+	h.createRoleMember(u.ID, r2.ID)
+
+	h.apiInit().
+		Get("/roles/").
+		Query("memberID", fmt.Sprintf("%d", u.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response.set`, 2)).
+		End()
+}
+
 func TestRoleList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 

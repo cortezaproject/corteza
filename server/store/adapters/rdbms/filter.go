@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
 
 	automationType "github.com/cortezaproject/corteza/server/automation/types"
@@ -249,7 +250,9 @@ func DefaultFilters() (f *extendedFilters) {
 				Select("rel_role").
 				Where(goqu.C("rel_resource").In(f.Resource))
 
-			ee = append(ee, goqu.C("id").In(memberships))
+			// Not .In(): goqu wraps the subquery in a second pair of brackets,
+			// which SQLite reads as one value, the first row's.
+			ee = append(ee, goqu.L("? IN ?", goqu.C("id"), memberships))
 		}
 
 		return ee, f, nil
@@ -273,10 +276,16 @@ func DefaultFilters() (f *extendedFilters) {
 					goqu.C("rel_resource").Like(userResourcePrefix+"%"),
 				)
 
-			ee = append(ee, goqu.Func("concat",
+			// The dialect's own concatenation: SQLite has no concat(). A literal
+			// IN for the reason the role filter above gives.
+			resource, err := s.Dialect.ExprHandler(&ql.ASTNode{Ref: "concat"},
 				goqu.L("'"+userResourcePrefix+"'"),
 				goqu.Cast(goqu.C("id"), "TEXT"),
-			).In(members))
+			)
+			if err != nil {
+				return nil, f, err
+			}
+			ee = append(ee, goqu.L("? IN ?", resource, members))
 		}
 
 		if f.UserGroupID > 0 {
