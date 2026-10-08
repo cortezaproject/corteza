@@ -132,27 +132,41 @@ func collectUnimportedConfigs(ctx context.Context, log *zap.Logger, s store.Stor
 		}
 	)
 
-	return nn, store.Tx(ctx, s, func(ctx context.Context, s store.Storer) (err error) {
-		for _, d := range searchPartialDirectories {
-			// first, check if we need to import at all
-			if d.fn != nil && !d.fn(ctx, s, log) {
-				log.Debug("skipping partial config import, no changes", zap.String("dir", d.dir))
-				continue
-			}
-
-			if list, e := decodeDirectory(ctx, sources, d.dir, evy); e != nil {
-				return fmt.Errorf("failed to decode  configs: %w", err)
-			} else if len(list) == 0 {
-				log.Error("failed to execute partial config import, directory not found or no configs", zap.String("dir", d.dir))
-				return
-			} else {
-				log.Debug("partial import ready", zap.String("dir", d.dir))
-				nn = append(nn, list...)
-			}
-		}
-
+	err = store.Tx(ctx, s, func(ctx context.Context, s store.Storer) (err error) {
+		nn, err = collectPartialDirectories(log, searchPartialDirectories,
+			func(d uConfig) bool { return d.fn == nil || d.fn(ctx, s, log) },
+			func(dir string) (envoyx.NodeSet, error) { return decodeDirectory(ctx, sources, dir, evy) },
+		)
 		return
 	})
+
+	return
+}
+
+// collectPartialDirectories decodes each directory that needs importing; one
+// that is missing or empty is reported and skipped, not the end of the list
+func collectPartialDirectories(log *zap.Logger, dirs []uConfig, needed func(uConfig) bool, decode func(dir string) (envoyx.NodeSet, error)) (nn envoyx.NodeSet, err error) {
+	for _, d := range dirs {
+		if !needed(d) {
+			log.Debug("skipping partial config import, no changes", zap.String("dir", d.dir))
+			continue
+		}
+
+		list, err := decode(d.dir)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode %s configs: %w", d.dir, err)
+		}
+
+		if len(list) == 0 {
+			log.Error("skipping partial config import, directory not found or no configs", zap.String("dir", d.dir))
+			continue
+		}
+
+		log.Debug("partial import ready", zap.String("dir", d.dir))
+		nn = append(nn, list...)
+	}
+
+	return
 }
 
 func hasSourceDir(sources []string, dir string) (string, bool) {
