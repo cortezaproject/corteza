@@ -354,7 +354,15 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 			return err
 		}
 
-		pp, agg, err := recordReportToDalPipeline(m, metrics, dimensions, f)
+		readable, err := svc.reportReadable(ctx, m, f)
+		if err != nil {
+			return err
+		}
+		if readable != nil && len(readable) == 0 {
+			return nil
+		}
+
+		pp, agg, err := recordReportToDalPipeline(m, metrics, dimensions, f, readable)
 		if err != nil {
 			return err
 		}
@@ -2523,7 +2531,22 @@ func loadRecord(ctx context.Context, s store.Storer, namespaceID, moduleID, reco
 	return
 }
 
-func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (pp dal.Pipeline, _ *dal.Aggregate, err error) {
+// reportFilter is the report's filter; readable, when not nil, limits it to
+// those record IDs.
+func reportFilter(f string, readable []any) filter.Filter {
+	if readable != nil {
+		return filter.Generic(
+			filter.WithExpression(f),
+			filter.WithStateConstraint("deletedAt", filter.StateExcluded),
+			filter.WithConstraints(map[string][]any{sysID: readable}),
+		)
+	}
+	return filter.Generic(filter.WithExpression(f), filter.WithStateConstraint("deletedAt", filter.StateExcluded))
+}
+
+// recordReportToDalPipeline builds the report; readable, when not nil, limits
+// it to those record IDs.
+func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string, readable []any) (pp dal.Pipeline, _ *dal.Aggregate, err error) {
 	// Map dimension to the aggregate group
 	// @note we only ever used a single dimension so this is ok
 	auxDim := dal.AggregateAttr{
@@ -2585,7 +2608,7 @@ func recordReportToDalPipeline(m *types.Module, metrics, dimensions, f string) (
 	pp = dal.Pipeline{
 		&dal.Datasource{
 			Ident:  "ds",
-			Filter: filter.Generic(filter.WithExpression(f), filter.WithStateConstraint("deletedAt", filter.StateExcluded)),
+			Filter: reportFilter(f, readable),
 			ModelRef: dal.ModelRef{
 				ConnectionID: m.Config.DAL.ConnectionID,
 				ResourceID:   m.ID,

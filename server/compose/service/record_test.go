@@ -1032,7 +1032,7 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 	}
 
 	t.Run("no additional metrics", func(t *testing.T) {
-		pp, _, err := recordReportToDalPipeline(mod, "", "created_at", "")
+		pp, _, err := recordReportToDalPipeline(mod, "", "created_at", "", nil)
 		require.NoError(t, err)
 
 		require.Len(t, pp, 2)
@@ -1043,7 +1043,7 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 	})
 
 	t.Run("additional metrics with alias", func(t *testing.T) {
-		pp, _, err := recordReportToDalPipeline(mod, "MAX(numbers) AS   something", "created_at", "")
+		pp, _, err := recordReportToDalPipeline(mod, "MAX(numbers) AS   something", "created_at", "", nil)
 		require.NoError(t, err)
 
 		require.Len(t, pp, 2)
@@ -1055,7 +1055,7 @@ func TestRecordReportToDalPipeline(t *testing.T) {
 	})
 
 	t.Run("additional metrics without alias", func(t *testing.T) {
-		pp, _, err := recordReportToDalPipeline(mod, "MAX(numbers)", "created_at", "")
+		pp, _, err := recordReportToDalPipeline(mod, "MAX(numbers)", "created_at", "", nil)
 		require.NoError(t, err)
 
 		require.Len(t, pp, 2)

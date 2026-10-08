@@ -1174,6 +1174,40 @@ func RecordErrNotAllowedToSearch(mm ...*recordActionProps) *errors.Error {
 	return e
 }
 
+// RecordErrReportTooManyReadable returns "compose:record.reportTooManyReadable" as *errors.Error
+//
+// This function is auto-generated.
+func RecordErrReportTooManyReadable(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("too many records to report on one by one; reading the whole module's records is needed for a report this size", nil),
+
+		errors.Meta("type", "reportTooManyReadable"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to report; caller reads only some of more records than a report checks one by one"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.reportTooManyReadable"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // RecordErrNotAllowedToSearchRevisions returns "compose:record.notAllowedToSearchRevisions" as *errors.Error
 //
 // This function is auto-generated.
