@@ -115,7 +115,7 @@ checkToken:
 		// Ignore ws... next token...
 		goto next
 	case ILLEGAL:
-		return nil, fmt.Errorf("found an illegal token (%+v)", t)
+		return nil, illegalTokenError(t)
 	case IDENT:
 		var ident parserNode
 		if ident, err = p.parseIdent(t); err != nil {
@@ -328,4 +328,15 @@ func (p *Parser) parseKeyword(t Token) (list parserNode, err error) {
 	default:
 		return keyword{keyword: t.literal}, nil
 	}
+}
+
+// illegalTokenError says what the parser could not read
+func illegalTokenError(t Token) error {
+	switch {
+	case t.literal == `"`:
+		return fmt.Errorf(`found a double quote: text is quoted with single quotes, as in status = 'open'`)
+	case strings.HasSuffix(t.literal, string(eof)):
+		return fmt.Errorf("found quoted text that is not closed: end it with a single quote")
+	}
+	return fmt.Errorf("found an illegal token %q", t.literal)
 }
