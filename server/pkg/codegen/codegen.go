@@ -234,7 +234,9 @@ func Proc() {
 
 			if restDefs, err = procRest(restSrc...); err == nil {
 				if genCode {
-					err = genRest(tpls, restDefs...)
+					if err = genRest(tpls, restDefs...); err == nil {
+						err = genOpenAPI(restDefs...)
+					}
 				}
 			}
 
