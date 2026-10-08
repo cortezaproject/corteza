@@ -882,6 +882,13 @@ func (ctrl *Record) exportRecords(ctx context.Context, s *service.RecordExportSe
 		w.Header().Add("Content-Type", contentType)
 		w.Header().Add("Content-Disposition", "attachment"+filename)
 
+		// Browsers hide an error sent as an attachment behind a generic
+		// error page, so drop it while nothing has been written yet
+		fail := func(err error) {
+			w.Header().Del("Content-Disposition")
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
 		mapping := make([]envoyx.MapEntry, 0, len(s.Fields))
 		for _, f := range s.Fields {
 			mapping = append(mapping, envoyx.MapEntry{
@@ -901,12 +908,12 @@ func (ctrl *Record) exportRecords(ctx context.Context, s *service.RecordExportSe
 			FieldMapping: mapping,
 		}, gg)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fail(err)
 			return
 		}
 
 		if err = ctrl.record.RecordExport(ctx, *rf); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fail(err)
 			return
 		}
 
