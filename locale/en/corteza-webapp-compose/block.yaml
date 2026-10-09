@@ -691,6 +691,7 @@ recordOrganizer:
   openInSameTab: Open in the same tab
   openInNewTab: Open in a new tab
   openInModal: Open in a modal
+  editMode: Open records in edit mode by default
   module:
     placeholder: Select a module
   descriptionField:

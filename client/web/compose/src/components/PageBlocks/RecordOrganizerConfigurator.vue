@@ -190,6 +190,23 @@
             />
           </b-form-group>
         </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('recordOrganizer.editMode')"
+            label-class="text-primary"
+            class="mb-0"
+          >
+            <c-input-checkbox
+              v-model="options.openRecordInEditMode"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
     </div>
   </b-tab>
@@ -233,6 +250,11 @@ export default {
         field: undefined,
         record: undefined,
         errors: new validator.Validated(),
+      },
+
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
       },
     }
   },

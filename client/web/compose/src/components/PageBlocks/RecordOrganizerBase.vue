@@ -535,7 +535,7 @@ export default {
       }
 
       const route = {
-        name: 'page.record',
+        name: this.options.openRecordInEditMode ? 'page.record.edit' : 'page.record',
         params: {
           pageID: (this.roRecordPage || {}).pageID,
           recordID: record.recordID,
@@ -547,6 +547,7 @@ export default {
         this.$root.$emit('show-record-modal', {
           recordID: record.recordID,
           recordPageID: (this.roRecordPage || {}).pageID,
+          edit: this.options.openRecordInEditMode,
         })
       } else if (this.options.displayOption === 'newTab') {
         window.open(this.$router.resolve(route).href)
