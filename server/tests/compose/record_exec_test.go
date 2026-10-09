@@ -38,6 +38,66 @@ func TestRecordExecUnknownProcedure(t *testing.T) {
 		End()
 }
 
+// A card dropped onto a position another record already holds must land in
+// front of it. The moved record is written to that position before the
+// records it displaced are renumbered, so a sweep that includes the moved
+// record leaves the two tied and the iterator picks the winner by ID — and an
+// older neighbour wins, leaving the card one slot behind where it was dropped.
+func TestRecordExecOrganizeDropsOntoAnOccupiedPosition(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read", "update")
+
+	module := h.repoMakeRecordModuleWithFields(
+		"organize drop position",
+		&types.ModuleField{Name: "position", Kind: "Number"},
+		&types.ModuleField{Name: "handle"},
+	)
+
+	makeRecord := func(position int, handle string) *types.Record {
+		return h.makeRecord(module,
+			&types.RecordValue{Name: "position", Value: strconv.Itoa(position)},
+			&types.RecordValue{Name: "handle", Value: handle},
+		)
+	}
+
+	order := func() string {
+		sorting, _ := filter.NewSorting("position ASC")
+		set, _, err := dalutils.ComposeRecordsList(context.Background(), defDal, module, types.RecordFilter{
+			ModuleID:    module.ID,
+			NamespaceID: module.NamespaceID,
+			Sorting:     sorting,
+		})
+		h.noError(err)
+
+		out := ""
+		_ = set.Walk(func(r *types.Record) error {
+			out += r.Values.FilterByName("handle")[0].Value
+			return nil
+		})
+		return out
+	}
+
+	_ = makeRecord(1, "a")
+	_ = makeRecord(2, "b")
+	cRec := makeRecord(3, "c")
+
+	h.a.Equal("abc", order())
+
+	// 'c' is dropped in front of 'b', onto the position 'b' holds. 'c' is the
+	// younger of the two, so this is the tie the sweep used to decide wrongly.
+	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
+		{Name: "recordID", Value: strconv.FormatUint(cRec.ID, 10)},
+		{Name: "positionField", Value: "position"},
+		{Name: "position", Value: "2"}}).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	h.a.Equal("acb", order())
+}
+
 func TestRecordExecOrganize(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
