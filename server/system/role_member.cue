@@ -14,7 +14,7 @@ role_member: {
 				goType: "string",
 				storeIdent: "rel_resource",
 				ident: "resource"
-				dal: {}
+				dal: { type: "Text", length: 512 }
 			}
 			role_id: {
 				goType: "uint64",

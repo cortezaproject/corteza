@@ -2434,7 +2434,7 @@ var RoleMember = &dal.Model{
 	Attributes: dal.AttributeSet{
 		&dal.Attribute{
 			Ident: "Resource",
-			Type:  &dal.TypeText{},
+			Type:  &dal.TypeText{Length: 512},
 			Store: &dal.CodecAlias{Ident: "rel_resource"},
 		},
 
