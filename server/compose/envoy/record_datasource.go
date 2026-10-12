@@ -380,6 +380,11 @@ func (ip *iteratorProvider) resolveReferences(ctx context.Context, ds dal.FullSe
 	for i, cacheRecord := range ip.rows {
 
 		for refField, refWrap := range ip.relMods {
+			// No referenced module to resolve against; the raw IDs stay
+			if refWrap.modLvl1 == nil {
+				continue
+			}
+
 			value := cacheRecord[refField]
 			if len(value.Values) == 0 {
 				continue
