@@ -108,8 +108,8 @@
           justified: options.display.justify === 'justify'
         }"
         :align="options.display.alignment"
-        class="border-0 h-100 overflow-auto flex-nowrap"
-        :class="{ 'position-absolute w-100 invisible': collapsed }"
+        class="border-0 h-100 overflow-auto"
+        :class="{ 'flex-nowrap': isSmallScreen, 'position-absolute w-100 invisible': collapsed }"
       >
         <b-nav-item
           v-for="(navItem, index) in options.navigationItems"
@@ -123,7 +123,8 @@
           :href="generateHrefAttributeLink(navItem)"
           :to="generateToAttributeLink(navItem)"
           :target="selectTargetOption(navItem.options.item.target)"
-          class="d-flex align-items-center text-nowrap"
+          class="d-flex align-items-center"
+          :class="{ 'text-nowrap': isSmallScreen }"
         >
           <template v-if="navItem.type === 'dropdown' || isComposeDropdownPage(navItem)">
             <b-button
@@ -222,13 +223,18 @@
 import { NoID } from '@cortezaproject/corteza-js'
 import { mapGetters } from 'vuex'
 import base from '../base'
+import smallScreen from '../../../mixins/smallScreen'
 
 export default {
   extends: base,
 
+  mixins: [
+    smallScreen,
+  ],
+
   data () {
     return {
-      // Items that do not fit in one row are moved to a menu
+      // On small screens, items that do not fit in one row are moved to a menu
       collapsed: false,
     }
   },
@@ -240,6 +246,10 @@ export default {
   },
 
   watch: {
+    isSmallScreen () {
+      this.$nextTick(this.checkNavFits)
+    },
+
     'options.navigationItems': {
       deep: true,
       handler () {
@@ -262,7 +272,10 @@ export default {
     checkNavFits () {
       // b-nav is functional, so the ref is its element
       const { nav } = this.$refs
-      if (!nav) return
+      if (!nav || !this.isSmallScreen) {
+        this.collapsed = false
+        return
+      }
 
       this.collapsed = nav.scrollWidth > nav.clientWidth + 1
     },
