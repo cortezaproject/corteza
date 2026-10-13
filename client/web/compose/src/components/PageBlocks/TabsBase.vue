@@ -427,6 +427,9 @@ export default {
   }
 
   .tabs {
+    // Bounded by the block, so a tall tabbed block scrolls inside it
+    min-height: 0;
+
     .card {
       border-radius: 0;
     }
