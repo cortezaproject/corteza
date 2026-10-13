@@ -43,8 +43,26 @@ type (
 		// it will affect how
 		//  - cursor conditions are applied (WHERE )
 		aggregated bool
+
+		// stored values of the cast sort columns, per scanned row (by primary key);
+		// decoded records may hold them reformatted, the cursor needs them as stored
+		storedSortKeys map[string]storedValues
 	}
+
+	storedValues map[string]any
 )
+
+func (v storedValues) GetValue(k string, _ uint) (any, error) {
+	return v[k], nil
+}
+
+func (v storedValues) SetValue(k string, place uint, val any) error {
+	if place == 0 {
+		v[k] = val
+	}
+
+	return nil
+}
 
 func (i *iterator) Next(ctx context.Context) bool {
 	if i.err == nil && i.rows == nil {
@@ -147,6 +165,16 @@ func (i *iterator) fetch(ctx context.Context) (rows *sql.Rows, err error) {
 						panic("unknown attribute " + ident + " used in cursor expression cast callback")
 					}
 
+					if raw, ok := val.(string); ok && !i.aggregated && castsJSONValue(attr) {
+						// same cast the sort expression applies to the stored value
+						c, err := i.dst.dialect.AttributeCast(attr, exp.NewLiteralExpression("?", raw))
+						if err != nil {
+							return nil, err
+						}
+
+						return rdbms.SQLCursorValue(c), nil
+					}
+
 					enc, err := i.dst.dialect.TypeWrap(attr.Type).Encode(val)
 					if err != nil {
 						return nil, err
@@ -240,7 +268,58 @@ func (i *iterator) Scan(r dal.ValueSetter) (err error) {
 		return
 	}
 
+	if cc := i.castSortColumns(); len(cc) > 0 {
+		stored := storedValues{}
+		if err = i.dst.table.Decode(i.scanBuf, stored); err != nil {
+			return
+		}
+
+		keys := make(storedValues, len(cc))
+		for _, c := range cc {
+			keys[c] = stored[c]
+		}
+
+		if i.storedSortKeys == nil {
+			i.storedSortKeys = make(map[string]storedValues)
+		}
+
+		i.storedSortKeys[i.rowKey(stored)] = keys
+	}
+
 	return nil
+}
+
+// castSortColumns returns sort columns whose sort expression casts a value
+// stored in the JSON column
+func (i *iterator) castSortColumns() (out []string) {
+	if i.aggregated {
+		return
+	}
+
+	for _, s := range i.sorting {
+		if attr := i.src.model.Attributes.FindByIdent(s.Column); attr != nil && castsJSONValue(attr) {
+			out = append(out, s.Column)
+		}
+	}
+
+	return
+}
+
+// rowKey identifies a row by its primary key values
+func (i *iterator) rowKey(r interface {
+	GetValue(string, uint) (any, error)
+}) string {
+	var key string
+	for _, c := range i.dst.table.Columns() {
+		if !c.IsPrimaryKey() {
+			continue
+		}
+
+		v, _ := r.GetValue(c.Attribute().Ident, 0)
+		key += fmt.Sprintf("%v;", v)
+	}
+
+	return key
 }
 
 func (i *iterator) Err() error {
@@ -283,6 +362,8 @@ func (i *iterator) collectCursorValues(r dal.ValueGetter) (_ *filter.PagingCurso
 		value  any
 
 		pKeys = make(map[string]bool)
+
+		stored = i.storedSortKeys[i.rowKey(r)]
 	)
 
 	for _, c := range i.dst.table.Columns() {
@@ -301,7 +382,9 @@ func (i *iterator) collectCursorValues(r dal.ValueGetter) (_ *filter.PagingCurso
 			pkUsed = true
 		}
 
-		if value, err = r.GetValue(c.Column, 0); err != nil {
+		if v, ok := stored[c.Column]; ok {
+			value = v
+		} else if value, err = r.GetValue(c.Column, 0); err != nil {
 			return
 		}
 
@@ -320,4 +403,19 @@ func (i *iterator) collectCursorValues(r dal.ValueGetter) (_ *filter.PagingCurso
 	}
 
 	return cur, nil
+}
+
+// castsJSONValue reports whether the attribute's sort expression is a
+// validating cast over a value stored in the JSON column
+func castsJSONValue(attr *dal.Attribute) bool {
+	if _, is := attr.Store.(*dal.CodecRecordValueSetJSON); !is {
+		return false
+	}
+
+	switch attr.Type.(type) {
+	case *dal.TypeTimestamp, *dal.TypeDate, *dal.TypeTime, *dal.TypeNumber, *dal.TypeID, *dal.TypeRef:
+		return true
+	}
+
+	return false
 }

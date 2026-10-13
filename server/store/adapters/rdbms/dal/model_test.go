@@ -762,3 +762,120 @@ func TestModel_AggregateWithCursors(t *testing.T) {
 	}
 
 }
+
+// Pages through records sorted by a JSON-stored timestamp whose values are not
+// all in the canonical format; every record must come back exactly once
+func TestModel_SearchCursorNonCanonicalTimestamps(t *testing.T) {
+	const (
+		items = 200
+		limit = 7
+	)
+
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+
+		baseModel = &dal.Model{
+			Ident: t.Name(),
+			Attributes: []*dal.Attribute{
+				dal.PrimaryAttribute("id", &dal.CodecAlias{Ident: "id"}),
+				{Ident: "due", Type: &dal.TypeTimestamp{Timezone: true}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}, Sortable: true},
+			},
+		}
+
+		m = Model(baseModel, s.DB, s.Dialect)
+
+		table, err = s.DataDefiner.ConvertModel(baseModel)
+
+		// value shapes found in stored records besides the canonical one
+		shapes = []string{
+			"2024-%02d-%02dT10:00:00Z",
+			"2024-%02d-%02d",
+			"2024-%02d-%02dT12:00:00+02:00",
+			"2024-%02d-%02dT10:00:00",
+			"",
+		}
+	)
+
+	req.NoError(err)
+	table.Temporary = true
+	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
+
+	for i := 1; i <= items; i++ {
+		shape := shapes[0]
+		if i%10 == 0 {
+			shape = shapes[(i/10)%len(shapes)]
+		}
+
+		due := shape
+		if shape != "" {
+			due = fmt.Sprintf(shape, i%12+1, i%28+1)
+		}
+
+		req.NoError(m.Create(ctx, &kv{"id": uint64(i), "due": due}))
+	}
+
+	for _, desc := range []bool{false, true} {
+		t.Run(fmt.Sprintf("desc=%v", desc), func(t *testing.T) {
+			var (
+				req  = require.New(t)
+				seen = make(map[uint64]int)
+				cur  *filter.PagingCursor
+			)
+
+			for page := 0; page < items; page++ {
+				i, err := m.Search(filter.Generic(
+					filter.WithCursor(cur),
+					filter.WithLimit(limit),
+					filter.WithOrderBy(filter.SortExprSet{
+						&filter.SortExpr{Column: "due", Descending: desc},
+						&filter.SortExpr{Column: "id", Descending: desc},
+					}),
+				))
+				req.NoError(err)
+
+				var last normalizingKv
+				for i.Next(ctx) {
+					last = normalizingKv{}
+					req.NoError(i.Scan(last))
+					seen[cast.ToUint64(last["id"])]++
+				}
+				req.NoError(i.Err())
+
+				if last == nil {
+					cur, err = nil, i.Close()
+					req.NoError(err)
+					break
+				}
+
+				cur, err = i.ForwardCursor(last)
+				req.NoError(err)
+				req.NoError(i.Close())
+			}
+
+			req.Len(seen, items, "every record is returned")
+			for id, n := range seen {
+				req.Equal(1, n, "record %d returned once", id)
+			}
+		})
+	}
+}
+
+// normalizingKv reformats timestamps on decode, as compose records do
+type normalizingKv kv
+
+func (r normalizingKv) CountValues() map[string]uint { return kv(r).CountValues() }
+
+func (r normalizingKv) GetValue(k string, place uint) (any, error) { return r[k], nil }
+
+func (r normalizingKv) SetValue(k string, place uint, v any) error {
+	if s, ok := v.(string); ok && k == "due" {
+		if t, err := cast.ToTimeE(s); err == nil {
+			v = t.Format(time.RFC3339)
+		}
+	}
+
+	r[k] = v
+	return nil
+}

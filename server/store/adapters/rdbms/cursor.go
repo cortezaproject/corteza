@@ -40,7 +40,16 @@ type (
 	// @todo extend the return args to provide additional info (like is-nullable)
 	//       to avoid IS NULL checks (see sql() fn)
 	cursorKeyMapper func(string) (KeyMap, error)
+
+	// sqlCursorValue is a cursor value the database evaluates, NULL-ness included
+	sqlCursorValue struct{ exp.LiteralExpression }
 )
+
+// SQLCursorValue wraps a typed SQL expression so the cursor condition checks
+// its NULL-ness in SQL instead of on the raw Go value
+func SQLCursorValue(e exp.Expression) exp.Expression {
+	return sqlCursorValue{exp.NewLiteralExpression("?", e)}
+}
 
 func cursor(cursor *filter.PagingCursor) ([]goqu.Expression, error) {
 	sql, args, err := CursorCondition(cursor, nil, nil).ToSQL()
@@ -270,6 +279,10 @@ func CursorExpression(
 		// @todo rethink and redo the whole/all of the filtering logic surrounding paging
 		// cursors to make them consistent/reusable
 		isValueNull = func(i int, neg bool) exp.Expression {
+			if v, ok := value.(sqlCursorValue); ok {
+				return exp.NewLiteralExpression(`(? IS ?)`, v.LiteralExpression, notOp[neg])
+			}
+
 			if (nilCheck(vv[i]) && !neg) || (!nilCheck(vv[i]) && neg) {
 				return exp.NewLiteralExpression("1=1")
 			}
