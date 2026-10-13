@@ -879,3 +879,53 @@ func (r normalizingKv) SetValue(k string, place uint, v any) error {
 	r[k] = v
 	return nil
 }
+
+// Sorts by a JSON-stored timestamp whose values carry a positive UTC offset or
+// only a date; both sort by the time they name, not as missing values
+func TestModel_SearchSortNonCanonicalTimestamps(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+
+		baseModel = &dal.Model{
+			Ident: t.Name(),
+			Attributes: []*dal.Attribute{
+				dal.PrimaryAttribute("id", &dal.CodecAlias{Ident: "id"}),
+				{Ident: "due", Type: &dal.TypeTimestamp{Timezone: true}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}, Sortable: true},
+			},
+		}
+
+		m = Model(baseModel, s.DB, s.Dialect)
+
+		table, err = s.DataDefiner.ConvertModel(baseModel)
+	)
+
+	req.NoError(err)
+	table.Temporary = true
+	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
+
+	req.NoError(m.Create(ctx, &kv{"id": uint64(1), "due": "2024-03-01T10:00:00Z"}))
+	req.NoError(m.Create(ctx, &kv{"id": uint64(2), "due": "2024-02-01T12:00:00+02:00"}))
+	req.NoError(m.Create(ctx, &kv{"id": uint64(3), "due": "2024-01-15"}))
+	req.NoError(m.Create(ctx, &kv{"id": uint64(4), "due": "not a date"}))
+
+	i, err := m.Search(filter.Generic(
+		filter.WithOrderBy(filter.SortExprSet{
+			&filter.SortExpr{Column: "due"},
+			&filter.SortExpr{Column: "id"},
+		}),
+	))
+	req.NoError(err)
+	defer i.Close()
+
+	var ids []uint64
+	for i.Next(ctx) {
+		row := kv{}
+		req.NoError(i.Scan(row))
+		ids = append(ids, cast.ToUint64(row["id"]))
+	}
+
+	req.NoError(i.Err())
+	req.Equal([]uint64{4, 3, 2, 1}, ids)
+}
