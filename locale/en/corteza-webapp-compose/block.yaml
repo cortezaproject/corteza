@@ -879,6 +879,7 @@ navigation:
   none: None
   displaySubPages: Display sub-pages
   selectBackground: Select background
+  more: More ({{count}})
   preview:
     preview: Preview
     label: Label

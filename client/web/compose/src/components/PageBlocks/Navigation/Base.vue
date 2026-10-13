@@ -16,86 +16,18 @@
           :id="`navigation-menu-${block.blockID}`"
           data-test-id="button-navigation-menu"
           variant="outline-extra-light"
-          class="text-primary border-0"
+          class="d-flex align-items-center text-primary text-left border-0"
         >
           <font-awesome-icon :icon="['fas', 'bars']" />
-        </b-button>
 
-        <b-popover
-          :target="`navigation-menu-${block.blockID}`"
-          placement="bottom"
-          delay="0"
-          boundary="window"
-          triggers="click blur"
-          custom-class="navigation-menu"
-        >
-          <template
-            v-for="(navItem, index) in options.navigationItems"
+          <span
+            v-if="currentItem"
+            data-test-id="navigation-menu-current"
+            class="ml-2 text-body"
           >
-            <template v-if="navItem.type === 'dropdown'">
-              <h6
-                :key="`navItem-${index}`"
-                class="dropdown-header"
-              >
-                {{ navItem.options.item.dropdown.label }}
-              </h6>
-
-              <a
-                v-for="(dropdown, dIndex) in navItem.options.item.dropdown.items"
-                :key="`navItem-${index}-${dIndex}`"
-                :href="dropdown.url | checkValidURL"
-                :target="selectTargetOption(dropdown.target)"
-                class="dropdown-item pl-4"
-              >
-                {{ dropdown.label }}
-              </a>
-            </template>
-
-            <template v-else-if="isComposeDropdownPage(navItem)">
-              <b-link
-                :key="`navItem-${index}`"
-                :to="{ name: 'page', params: { pageID: navItem.options.item.pageID } }"
-                :target="selectTargetOption(navItem.options.item.target)"
-                :disabled="!navItem.options.enabled"
-                class="dropdown-item"
-              >
-                {{ navItem.options.item.label }}
-              </b-link>
-
-              <b-link
-                v-for="(subPage, dIndex) in getSubPages(navItem.options.item.pageID)"
-                :key="`navItem-${index}-${dIndex}`"
-                :to="{ name: 'page', params: { pageID: subPage.pageID } }"
-                :target="selectTargetOption(navItem.options.item.target)"
-                :disabled="!navItem.options.enabled"
-                class="dropdown-item pl-4"
-              >
-                {{ subPage.title }}
-              </b-link>
-            </template>
-
-            <span
-              v-else-if="navItem.type === 'text-section'"
-              :key="`navItem-${index}`"
-              class="dropdown-item-text"
-            >
-              {{ navItem.options.item.label }}
-            </span>
-
-            <b-link
-              v-else
-              :key="`navItem-${index}`"
-              :href="generateHrefAttributeLink(navItem)"
-              :to="generateToAttributeLink(navItem)"
-              :target="selectTargetOption(navItem.options.item.target)"
-              :disabled="!navItem.options.enabled"
-              :style="{ color: navItem.options.textColor }"
-              class="dropdown-item"
-            >
-              {{ navItem.options.item.label }}
-            </b-link>
-          </template>
-        </b-popover>
+            {{ displayDropdownText(currentItem) }}
+          </span>
+        </b-button>
       </div>
 
       <!-- Stays rendered while collapsed so it can be measured -->
@@ -123,8 +55,8 @@
           :href="generateHrefAttributeLink(navItem)"
           :to="generateToAttributeLink(navItem)"
           :target="selectTargetOption(navItem.options.item.target)"
-          class="d-flex align-items-center"
-          :class="{ 'text-nowrap': isSmallScreen }"
+          class="align-items-center"
+          :class="{ 'd-flex': !hiddenItems.includes(index), 'd-none': hiddenItems.includes(index), 'text-nowrap': isSmallScreen }"
         >
           <template v-if="navItem.type === 'dropdown' || isComposeDropdownPage(navItem)">
             <b-button
@@ -214,7 +146,105 @@
             {{ navItem.options.item.label }}
           </template>
         </b-nav-item>
+
+        <li
+          v-if="hiddenItems.length"
+          class="nav-item d-flex align-items-center"
+          :style="{ order: options.navigationItems.length, flex: '0 0 auto' }"
+        >
+          <b-button
+            :id="`navigation-menu-${block.blockID}`"
+            data-test-id="button-navigation-more"
+            variant="link"
+            class="text-nowrap"
+          >
+            {{ $t('navigation.more', { count: hiddenItems.length }) }}
+            <font-awesome-icon
+              :icon="['fas', 'chevron-down']"
+              size="sm"
+              class="ml-1"
+            />
+          </b-button>
+        </li>
       </b-nav>
+
+      <b-popover
+        v-if="collapsed || hiddenItems.length"
+        :key="collapsed ? 'menu' : 'more'"
+        :target="`navigation-menu-${block.blockID}`"
+        placement="bottom"
+        delay="0"
+        boundary="window"
+        triggers="click blur"
+        custom-class="navigation-menu"
+      >
+        <template
+          v-for="(navItem, index) in menuItems"
+        >
+          <template v-if="navItem.type === 'dropdown'">
+            <h6
+              :key="`navItem-${index}`"
+              class="dropdown-header"
+            >
+              {{ navItem.options.item.dropdown.label }}
+            </h6>
+
+            <a
+              v-for="(dropdown, dIndex) in navItem.options.item.dropdown.items"
+              :key="`navItem-${index}-${dIndex}`"
+              :href="dropdown.url | checkValidURL"
+              :target="selectTargetOption(dropdown.target)"
+              class="dropdown-item pl-4"
+            >
+              {{ dropdown.label }}
+            </a>
+          </template>
+
+          <template v-else-if="isComposeDropdownPage(navItem)">
+            <b-link
+              :key="`navItem-${index}`"
+              :to="{ name: 'page', params: { pageID: navItem.options.item.pageID } }"
+              :target="selectTargetOption(navItem.options.item.target)"
+              :disabled="!navItem.options.enabled"
+              class="dropdown-item"
+            >
+              {{ navItem.options.item.label }}
+            </b-link>
+
+            <b-link
+              v-for="(subPage, dIndex) in getSubPages(navItem.options.item.pageID)"
+              :key="`navItem-${index}-${dIndex}`"
+              :to="{ name: 'page', params: { pageID: subPage.pageID } }"
+              :target="selectTargetOption(navItem.options.item.target)"
+              :disabled="!navItem.options.enabled"
+              class="dropdown-item pl-4"
+            >
+              {{ subPage.title }}
+            </b-link>
+          </template>
+
+          <span
+            v-else-if="navItem.type === 'text-section'"
+            :key="`navItem-${index}`"
+            class="dropdown-item-text"
+          >
+            {{ navItem.options.item.label }}
+          </span>
+
+          <b-link
+            v-else
+            :key="`navItem-${index}`"
+            :href="generateHrefAttributeLink(navItem)"
+            :to="generateToAttributeLink(navItem)"
+            :target="selectTargetOption(navItem.options.item.target)"
+            :disabled="!navItem.options.enabled"
+            :style="{ color: navItem.options.textColor }"
+            class="dropdown-item"
+          >
+            {{ navItem.options.item.label }}
+          </b-link>
+        </template>
+      </b-popover>
     </div>
   </wrap>
 </template>
@@ -234,8 +264,10 @@ export default {
 
   data () {
     return {
-      // On small screens, items that do not fit in one row are moved to a menu
+      // On small screens, items that do not fit in one row go under More,
+      // or all of them into a menu when not even one fits
       collapsed: false,
+      hiddenItems: [],
     }
   },
 
@@ -243,10 +275,34 @@ export default {
     ...mapGetters({
       pages: 'page/set',
     }),
+
+    // The item linking to the page being viewed, its exact layout first
+    currentIndex () {
+      const { pageID } = this.$route.params
+      const { layoutID } = this.$route.query
+      const items = this.options.navigationItems
+      const onPage = ({ type, options }) => type === 'compose' && options.item.pageID === pageID
+
+      const exact = items.findIndex(navItem => onPage(navItem) && navItem.options.item.pageLayoutID === layoutID)
+      return exact >= 0 ? exact : items.findIndex(onPage)
+    },
+
+    currentItem () {
+      return this.options.navigationItems[this.currentIndex]
+    },
+
+    menuItems () {
+      const items = this.options.navigationItems
+      return this.collapsed ? items : items.filter((_, index) => this.hiddenItems.includes(index))
+    },
   },
 
   watch: {
     isSmallScreen () {
+      this.$nextTick(this.checkNavFits)
+    },
+
+    currentIndex () {
       this.$nextTick(this.checkNavFits)
     },
 
@@ -269,15 +325,83 @@ export default {
   },
 
   methods: {
-    checkNavFits () {
+    async checkNavFits () {
+      if (this.measuring) {
+        this.remeasure = true
+        return
+      }
+
+      this.measuring = true
+      try {
+        await this.fitNav()
+      } finally {
+        this.measuring = false
+      }
+
+      if (this.remeasure) {
+        this.remeasure = false
+        this.checkNavFits()
+      }
+    },
+
+    // Keeps the items that fit in one row, the current page among them
+    async fitNav () {
       // b-nav is functional, so the ref is its element
       const { nav } = this.$refs
       if (!nav || !this.isSmallScreen) {
         this.collapsed = false
+        this.hiddenItems = []
         return
       }
 
-      this.collapsed = nav.scrollWidth > nav.clientWidth + 1
+      if (this.hiddenItems.length) {
+        this.hiddenItems = []
+        await this.$nextTick()
+      }
+
+      const overflows = () => nav.scrollWidth > nav.clientWidth + 1
+      if (!overflows()) {
+        this.collapsed = false
+        return
+      }
+
+      const widths = [...nav.children].map(item => item.offsetWidth)
+      const current = this.currentIndex
+      const room = nav.clientWidth - (this.moreWidth || 0)
+      const shown = current < 0 ? [] : [current]
+      let used = current < 0 ? 0 : widths[current]
+
+      for (let index = 0; index < widths.length; index++) {
+        if (index === current) continue
+        if (used + widths[index] > room) break
+        shown.push(index)
+        used += widths[index]
+      }
+
+      if (!shown.length || used > room) {
+        this.collapsed = true
+        return
+      }
+
+      this.collapsed = false
+      this.hiddenItems = widths.map((_, index) => index).filter(index => !shown.includes(index))
+      await this.$nextTick()
+
+      // More can be wider than the room kept for it
+      while (overflows() && shown.length > 1) {
+        const last = Math.max(...shown.filter(index => index !== current))
+        shown.splice(shown.indexOf(last), 1)
+        this.hiddenItems = [...this.hiddenItems, last].sort((a, b) => a - b)
+        await this.$nextTick()
+      }
+
+      const more = nav.querySelector('[data-test-id="button-navigation-more"]')
+      this.moreWidth = more ? more.parentElement.offsetWidth : 0
+
+      if (overflows()) {
+        this.hiddenItems = []
+        this.collapsed = true
+      }
     },
 
     isComposeDropdownPage (navItem) {
@@ -379,5 +503,9 @@ export default {
   max-height: 70vh;
   overflow-y: auto;
   padding: 0.5rem 0;
+
+  .dropdown-item {
+    white-space: normal;
+  }
 }
 </style>
