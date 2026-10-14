@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
@@ -155,3 +156,43 @@ func (svc *recordRevisions) skippedField(mod *types.Module) []string {
 //
 //	return svc.r.Create(ctx, svc.modelRef(del.GetModule()), rev)
 //}
+
+// readableRevisions keeps the changes of fields whose values the user may read
+type readableRevisions struct {
+	dal.Iterator
+	readable func(field string) bool
+}
+
+func (i readableRevisions) Scan(t dal.ValueSetter) (err error) {
+	rev := &revisions.Revision{}
+	if err = i.Iterator.Scan(rev); err != nil {
+		return
+	}
+
+	kept := rev.Changes[:0]
+	for _, c := range rev.Changes {
+		if i.readable(c.Key) {
+			kept = append(kept, c)
+		}
+	}
+	rev.Changes = kept
+
+	if r, ok := t.(*revisions.Revision); ok {
+		*r = *rev
+		return nil
+	}
+
+	for _, ident := range []string{"id", "ts", "rel_resource", "revision", "operation", "rel_user", "comment"} {
+		v, _ := rev.GetValue(ident, 0)
+		if err = t.SetValue(ident, 0, v); err != nil {
+			return
+		}
+	}
+
+	delta, err := json.Marshal(rev.Changes)
+	if err != nil {
+		return
+	}
+
+	return t.SetValue("delta", 0, delta)
+}

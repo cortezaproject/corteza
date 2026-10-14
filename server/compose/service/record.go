@@ -616,6 +616,14 @@ func (svc record) SearchRevisions(ctx context.Context, namespaceID, moduleID, re
 		}
 
 		iter, err = svc.revisions.search(ctx, rec, sorting)
+		if err != nil {
+			return
+		}
+
+		iter = readableRevisions{Iterator: iter, readable: func(name string) bool {
+			f := mod.Fields.FindByName(name)
+			return f == nil || svc.ac.CanReadRecordValueOnModuleField(ctx, f)
+		}}
 		return
 	}()
 

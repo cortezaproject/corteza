@@ -1923,3 +1923,65 @@ func TestRecordListSummariesHonourFieldAndRecordRead(t *testing.T) {
 		Assert(jsonpath.Equal(`$.response.summaries["sum amount"].value`, "10")).
 		End()
 }
+
+// Revisions list the changes of readable fields only
+func TestRecordRevisionsHideUnreadableFields(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	ns := h.makeNamespace("record revisions namespace")
+	module := h.createModule(ns, &types.Module{
+		Name:        "record revisions module",
+		NamespaceID: ns.ID,
+		Fields: types.ModuleFieldSet{
+			&types.ModuleField{Name: "name", Kind: "String"},
+			&types.ModuleField{Name: "secret", Kind: "String"},
+		},
+		Config: types.ModuleConfig{RecordRevisions: types.ModuleConfigRecordRevisions{Enabled: true}},
+	})
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "record.create")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read", "revisions.search")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read", "record.value.update")
+	helpers.DenyMe(h, types.ModuleFieldRbacResource(module.NamespaceID, module.ID, module.Fields.FindByName("secret").ID), "record.value.read")
+
+	var created struct {
+		Response struct{ RecordID string }
+	}
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		JSON(`{"values": [{"name": "name", "value": "a"}, {"name": "secret", "value": "s"}]}`).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End().
+		JSON(&created)
+
+	var revs struct {
+		Response struct {
+			Set []struct {
+				Changes []struct{ Key string }
+			}
+		}
+	}
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/%s/revisions", module.NamespaceID, module.ID, created.Response.RecordID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		End().
+		JSON(&revs)
+
+	h.a.NotEmpty(revs.Response.Set)
+	keys := map[string]bool{}
+	for _, rev := range revs.Response.Set {
+		for _, c := range rev.Changes {
+			keys[c.Key] = true
+		}
+	}
+
+	h.a.True(keys["name"], "readable field change is listed")
+	h.a.False(keys["secret"], "unreadable field change is hidden")
+}
