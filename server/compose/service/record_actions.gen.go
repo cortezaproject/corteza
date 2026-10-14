@@ -1106,6 +1106,40 @@ func RecordErrNotAllowedToSortByField(mm ...*recordActionProps) *errors.Error {
 	return e
 }
 
+// RecordErrNotAllowedToSummarizeField returns "compose:record.notAllowedToSummarizeField" as *errors.Error
+//
+// This function is auto-generated.
+func RecordErrNotAllowedToSummarizeField(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to summarize field {{field}}; you do not have permission to read its values", nil),
+
+		errors.Meta("type", "notAllowedToSummarizeField"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to summarize field {{field}}; insufficient permissions to read field values"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToSummarizeField"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // RecordErrNotAllowedToRead returns "compose:record.notAllowedToRead" as *errors.Error
 //
 // This function is auto-generated.

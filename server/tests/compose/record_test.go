@@ -1883,3 +1883,43 @@ func TestRecordListPagingOverUnreadableRuns(t *testing.T) {
 		h.a.Len(back, len(readable), "%s: backward", sort)
 	}
 }
+
+// Summaries over a field the user may not read are refused; over a readable
+// field they cover only the records the user may read
+func TestRecordListSummariesHonourFieldAndRecordRead(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module",
+		&types.ModuleField{Name: "amount", Kind: "Number"},
+		&types.ModuleField{Name: "secret", Kind: "Number"},
+	)
+	helpers.AllowMe(h, module.RbacResource(), "records.search")
+	helpers.DenyMe(h, types.ModuleFieldRbacResource(module.NamespaceID, module.ID, module.Fields.FindByName("secret").ID), "record.value.read")
+
+	readable := h.makeRecord(module, &types.RecordValue{Name: "amount", Value: "10"}, &types.RecordValue{Name: "secret", Value: "1"})
+	h.makeRecord(module, &types.RecordValue{Name: "amount", Value: "100"}, &types.RecordValue{Name: "secret", Value: "1"})
+
+	helpers.DenyMe(h, types.RecordRbacResource(0, 0, 0), "read")
+	helpers.AllowMe(h, types.RecordRbacResource(module.NamespaceID, module.ID, readable.ID), "read")
+
+	list := func(summaries string) *apitest.Response {
+		return h.apiInit().
+			Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+			Query("limit", "10").
+			Query("summaries", summaries).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK)
+	}
+
+	list(`[{"name":"sum","field":"secret"}]`).
+		Assert(helpers.AssertError("record.errors.notAllowedToSummarizeField")).
+		End()
+
+	list(`[{"name":"sum","field":"amount"}]`).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response.set`, 1)).
+		Assert(jsonpath.Equal(`$.response.summaries["sum amount"].value`, "10")).
+		End()
+}
