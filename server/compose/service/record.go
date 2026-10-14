@@ -2113,12 +2113,27 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 			return err
 		}
 
+		if !svc.ac.CanSearchRecordsOnModule(ctx, m) {
+			return RecordErrNotAllowedToSearch()
+		}
+
+		// undeleting walks the deleted records
+		if action == "undelete" && f.Deleted == filter.StateExcluded {
+			f.Deleted = filter.StateExclusive
+		}
+
 		iter, _, err = dalutils.ComposeRecordsIterator(ctx, svc.dal, m, f)
 		if err != nil {
 			return err
 		}
+		defer iter.Close()
 
 		err = dalutils.WalkIterator(ctx, iter, m, func(rec *types.Record) (err error) {
+			// a record the user may not read is not theirs to iterate
+			if !svc.ac.CanReadRecord(ctx, rec) {
+				return nil
+			}
+
 			switch action {
 			case "clone":
 				if !svc.ac.CanCreateRecordOnModule(ctx, m) {
@@ -2140,10 +2155,6 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 				}
 			}
 			recordableAction := RecordActionIteratorIteration
-
-			if !svc.ac.CanReadRecord(ctx, rec) {
-				return RecordErrNotAllowedToRead()
-			}
 
 			err = func() error {
 				if err = fn(ctx, event.RecordOnIteration(rec, nil, m, ns, nil, nil)); err != nil {

@@ -12,8 +12,11 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/compose/dalutils"
+	"github.com/cortezaproject/corteza/server/compose/service"
 	"github.com/cortezaproject/corteza/server/compose/service/values"
 	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/corredor"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	systemService "github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/tests/helpers"
@@ -2039,4 +2042,51 @@ func TestRecordListSummariesMaths(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to fetch summaries with page cursor")).
 		End()
+}
+
+// The Corredor record iterator skips records the user may not read, needs the
+// right to search the module, and undelete walks the deleted records
+func TestRecordIteratorAccessAndUndelete(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record iterator module",
+		&types.ModuleField{Name: "name", Kind: "String"},
+	)
+	visible := h.makeRecord(module, &types.RecordValue{Name: "name", Value: "visible"})
+	hidden := h.makeRecord(module, &types.RecordValue{Name: "name", Value: "hidden"})
+	helpers.DenyMe(h, types.RecordRbacResource(module.NamespaceID, module.ID, hidden.ID), "read")
+
+	f := types.RecordFilter{NamespaceID: module.NamespaceID, ModuleID: module.ID}
+	// the script aborts softly: the records are walked, nothing is written
+	seen := func(action string) (names []string, err error) {
+		err = service.DefaultRecord.Iterator(h.secCtx(), f, func(_ context.Context, ev eventbus.Event) error {
+			names = append(names, ev.(interface{ Record() *types.Record }).Record().Values.Get("name", 0).Value)
+			return corredor.ScriptExecAborted
+		}, action)
+		return
+	}
+
+	_, err := seen("")
+	h.a.Error(err, "search right is needed")
+
+	helpers.AllowMe(h, module.RbacResource(), "records.search")
+	names, err := seen("")
+	h.noError(err)
+	h.a.Equal([]string{"visible"}, names, "unreadable records are skipped, the rest is iterated")
+
+	// soft-delete the visible record, then undelete through the iterator
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "undelete")
+	r := h.lookupRecordByID(module, visible.ID)
+	now := time.Now()
+	r.DeletedAt = &now
+	h.noError(dalutils.ComposeRecordSoftDelete(context.Background(), defDal, module, r))
+
+	names, err = seen("")
+	h.noError(err)
+	h.a.Empty(names, "a deleted record is not iterated")
+
+	names, err = seen("undelete")
+	h.noError(err)
+	h.a.Equal([]string{"visible"}, names, "undelete iterates the deleted records")
 }
