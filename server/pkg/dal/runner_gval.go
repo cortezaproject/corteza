@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/PaesslerAG/gval"
@@ -345,8 +346,9 @@ func newRunnerGvalParsed(n *ql.ASTNode) (out *runnerGval, err error) {
 // used in the pipeline.
 //
 // @note the subset is limited to simplify the (eventual) offloading to the DB.
-//       At some point, more functions will be supported, and the ones which can't
-//       be offloaded will be performed in some exec. step.
+//
+//	At some point, more functions will be supported, and the ones which can't
+//	be offloaded will be performed in some exec. step.
 func newGval(e string) (gval.Evaluable, error) {
 	return gval.Full(
 		// Extra functions we'll need
@@ -423,7 +425,7 @@ func (c converterGval) convert(n *ql.ASTNode) (_ string, err error) {
 	case n.Value != nil:
 		// @todo I don't think this is quite ok, but it works for now so it'll do for now
 		if n.Value.V.Type() == "String" {
-			return fmt.Sprintf("\"%v\"", n.Value.V.Get()), nil
+			return strconv.Quote(fmt.Sprintf("%v", n.Value.V.Get())), nil
 		}
 		return fmt.Sprintf("%v", n.Value.V.Get()), nil
 	}
@@ -451,9 +453,10 @@ func (c converterGval) refHandler(n *ql.ASTNode, args ...string) (out string, er
 // the first argument
 //
 // @todo this is needed because how the ValueGetters returns multi-value fields so
-//       an edge case where a field would have [a] but here, it would be presented
-//       as a.
-//       This would become obsolete when we address the actual issue.
+//
+//	an edge case where a field would have [a] but here, it would be presented
+//	as a.
+//	This would become obsolete when we address the actual issue.
 func arrHas(arr interface{}, vv ...interface{}) (b bool, err error) {
 	arr = expr.UntypedValue(arr)
 

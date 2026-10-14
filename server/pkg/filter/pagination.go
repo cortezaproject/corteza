@@ -337,7 +337,6 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 		vv = cur.Values()
 
 		value expr.TypedValue
-
 		ident string
 
 		ltOp = map[bool]string{
@@ -345,36 +344,51 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 			false: "gt",
 		}
 
-		// Modifying this function to use expressions instead of constant boolean
-		// values because MSSQL doesn't have those.
-		//
-		// @todo rethink and redo the whole/all of the filtering logic surrounding paging
-		// cursors to make them consistent/reusable
-		isValueNull = func(i int, neg bool) *ql.ASTNode {
-			out := &ql.ASTNode{
-				Ref: "eq",
-				Args: ql.ASTNodeSet{{
-					Value: ql.MakeValueOf("Integer", 1),
-				}},
+		// constant truth, spelled as a comparison; the expression runners
+		// have no boolean literal in common
+		boolNode = func(b bool) *ql.ASTNode {
+			one := func() *ql.ASTNode { return &ql.ASTNode{Value: ql.MakeValueOf("Integer", 1)} }
+			other := one()
+			if !b {
+				other = &ql.ASTNode{Value: ql.MakeValueOf("Integer", 0)}
 			}
-			if (reflect2.IsNil(vv[i]) && !neg) || (!reflect2.IsNil(vv[i]) && neg) {
-				// Makes the expr. true
-				out.Args = append(out.Args, &ql.ASTNode{Value: ql.MakeValueOf("Integer", 1)})
-			}
-			// Makes the expr false
-			out.Args = append(out.Args, &ql.ASTNode{Value: ql.MakeValueOf("Integer", 0)})
+			return &ql.ASTNode{Ref: "eq", Args: ql.ASTNodeSet{one(), other}}
+		}
 
-			return out
+		// nullNode tests the field for NULL (or NOT NULL)
+		nullNode = func(ident string, isNull bool) *ql.ASTNode {
+			ref := "nnull"
+			if isNull {
+				ref = "null"
+			}
+			return &ql.ASTNode{Ref: ref, Args: ql.ASTNodeSet{{Symbol: ident}}}
+		}
+
+		// cmpNode compares a field that is not NULL to a value that is not
+		// NULL; with a NULL value no row compares
+		cmpNode = func(op, ident string, v any, value expr.TypedValue) *ql.ASTNode {
+			if reflect2.IsNil(v) {
+				return boolNode(false)
+			}
+			return &ql.ASTNode{Ref: "and", Args: ql.ASTNodeSet{
+				nullNode(ident, false),
+				{Ref: op, Args: ql.ASTNodeSet{{Symbol: ident}, {Value: ql.WrapValue(value)}}},
+			}}
+		}
+
+		group = func(n *ql.ASTNode) *ql.ASTNode {
+			return &ql.ASTNode{Ref: "group", Args: ql.ASTNodeSet{n}}
 		}
 	)
-
-	_ = value
 
 	if len(cc) == 0 {
 		return
 	}
 
-	// going from the last key/column to the 1st one
+	// going from the last key/column to the 1st one, the same shape the SQL
+	// cursor condition has:
+	//   ((field IS [NOT] NULL AND value is [not] null) OR field < value)
+	//   OR (((field IS NULL AND value is null) OR field = value) AND <next key>)
 	for i := len(cc) - 1; i >= 0; i-- {
 		if identLookup != nil {
 			// Get the key context so we know how to format fields and format typecasts
@@ -402,109 +416,35 @@ func (cur *PagingCursor) ToAST(identLookup func(i string) (string, error), castF
 			lt = !lt
 		}
 
-		op := ltOp[lt]
+		valueNull := reflect2.IsNil(vv[i])
 
-		// // Typecast the value so comparison can work properly
-
-		// Either BOTH (field and value) are NULL or field is grater-then value
-		base := &ql.ASTNode{
-			Ref: "group",
-			Args: ql.ASTNodeSet{
-				&ql.ASTNode{
-					Ref: "or",
-					Args: ql.ASTNodeSet{
-						&ql.ASTNode{
-							Ref: "group",
-							Args: ql.ASTNodeSet{
-								&ql.ASTNode{
-									Ref: "and",
-									Args: ql.ASTNodeSet{
-										&ql.ASTNode{
-											Ref: "nnull",
-											Args: ql.ASTNodeSet{
-												&ql.ASTNode{
-													Symbol: ident,
-												},
-											},
-										},
-										isValueNull(i, false),
-									},
-								},
-							},
-						},
-						&ql.ASTNode{
-							Ref: op,
-							Args: ql.ASTNodeSet{{
-								Symbol: ident,
-							}, {
-								Value: ql.WrapValue(value),
-							}},
-						},
-					},
-				},
-			},
-		}
+		// NULL sorts first: before the cursor a NULL field passes a value,
+		// after it a set field passes a NULL value
+		base := group(&ql.ASTNode{Ref: "or", Args: ql.ASTNodeSet{
+			group(&ql.ASTNode{Ref: "and", Args: ql.ASTNodeSet{
+				nullNode(ident, lt),
+				boolNode(valueNull != lt),
+			}}),
+			group(cmpNode(ltOp[lt], ident, vv[i], value)),
+		}})
 
 		if out == nil {
 			out = base
-		} else {
-			out = &ql.ASTNode{
-				Ref: "group",
-				Args: ql.ASTNodeSet{
-					&ql.ASTNode{
-						Ref: "or",
-						Args: ql.ASTNodeSet{
-							base,
-							&ql.ASTNode{
-								Ref: "group",
-								Args: ql.ASTNodeSet{
-									&ql.ASTNode{
-										Ref: "and",
-										Args: ql.ASTNodeSet{
-											&ql.ASTNode{
-												Ref: "group",
-												Args: ql.ASTNodeSet{
-													&ql.ASTNode{
-														Ref: "or",
-														Args: ql.ASTNodeSet{
-															&ql.ASTNode{
-																Ref: "and",
-																Args: ql.ASTNodeSet{
-																	&ql.ASTNode{
-																		Ref: "null",
-																		Args: ql.ASTNodeSet{
-																			&ql.ASTNode{
-																				Symbol: ident,
-																			},
-																		},
-																	},
-																	isValueNull(i, false),
-																},
-															},
-
-															&ql.ASTNode{
-																Ref: "eq",
-																Args: ql.ASTNodeSet{{
-																	Symbol: ident,
-																}, {
-																	Value: ql.WrapValue(value),
-																}},
-															},
-														},
-													},
-												},
-											},
-											out,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			}
-
+			continue
 		}
+
+		equal := group(&ql.ASTNode{Ref: "or", Args: ql.ASTNodeSet{
+			group(&ql.ASTNode{Ref: "and", Args: ql.ASTNodeSet{
+				nullNode(ident, true),
+				boolNode(valueNull),
+			}}),
+			group(cmpNode("eq", ident, vv[i], value)),
+		}})
+
+		out = group(&ql.ASTNode{Ref: "or", Args: ql.ASTNodeSet{
+			base,
+			group(&ql.ASTNode{Ref: "and", Args: ql.ASTNodeSet{equal, out}}),
+		}})
 	}
 
 	return
