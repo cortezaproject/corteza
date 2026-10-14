@@ -30,6 +30,7 @@ var (
 
 	nuances = drivers.Nuances{
 		HavingClauseMustUseAlias: true,
+		NullsSortLast:            true,
 	}
 )
 

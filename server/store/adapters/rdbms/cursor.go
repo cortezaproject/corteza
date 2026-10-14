@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 )
@@ -15,6 +16,9 @@ type (
 		cur          pagingCursor
 		keyMapper    cursorKeyMapper
 		sortableCols map[string]string
+
+		// NULLs sort after values ascending (Postgres) instead of before them
+		nullsLast bool
 	}
 
 	pagingCursor interface {
@@ -60,8 +64,11 @@ func cursor(cursor *filter.PagingCursor) ([]goqu.Expression, error) {
 	return []goqu.Expression{goqu.Literal(sql, args...)}, nil
 }
 
-func cursorWithSorting(cursor *filter.PagingCursor, sortableCols map[string]string) ([]goqu.Expression, error) {
-	sql, args, err := CursorCondition(cursor, nil, sortableCols).ToSQL()
+func cursorWithSorting(d drivers.Dialect, cursor *filter.PagingCursor, sortableCols map[string]string) ([]goqu.Expression, error) {
+	cc := CursorCondition(cursor, nil, sortableCols)
+	cc.nullsLast = d.Nuances().NullsSortLast
+
+	sql, args, err := cc.ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -212,10 +219,16 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 		}
 		op := ltOp[lt]
 
+		// where NULLs sort last, a NULL field lies on the other side of every value
+		nlt := lt
+		if c.nullsLast {
+			nlt = !lt
+		}
+
 		// Typecast the value so comparasement can work properly
 		vc := fmt.Sprintf(km.TypeCastPtrn, "?")
 
-		base := fmt.Sprintf(baseTpl, km.FieldCast, notOp[!lt], isNull(i, lt), km.TypeCast, op, vc)
+		base := fmt.Sprintf(baseTpl, km.FieldCast, notOp[!nlt], isNull(i, nlt), km.TypeCast, op, vc)
 
 		if cnd == "" {
 			cnd = base

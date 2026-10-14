@@ -27,6 +27,11 @@ type (
 		// if it needs to do an insert.
 		TwoStepUpsert bool
 
+		// NullsSortLast is the database's own order for NULLs: after every
+		// value ascending and before them descending (Postgres); the others
+		// put NULLs first ascending
+		NullsSortLast bool
+
 		// @todo change this around; temporary fix as not sure how I'd rewrite
 		ExpandedJsonColumnSelector func(ident string) exp.Expression
 	}

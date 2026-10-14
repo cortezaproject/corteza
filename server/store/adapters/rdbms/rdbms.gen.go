@@ -229,7 +229,7 @@ func (s *Store) QueryActionlogs(
 	query := actionlogSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableActionlogFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableActionlogFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for Actionlog: %w", err)
 		return
 	}
@@ -857,7 +857,7 @@ func (s *Store) QueryApigwFilters(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableApigwFilterFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableApigwFilterFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -867,7 +867,7 @@ func (s *Store) QueryApigwFilters(
 	query := apigwFilterSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableApigwFilterFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableApigwFilterFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for ApigwFilter: %w", err)
 		return
 	}
@@ -1566,7 +1566,7 @@ func (s *Store) QueryApigwRoutes(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableApigwRouteFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableApigwRouteFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -1576,7 +1576,7 @@ func (s *Store) QueryApigwRoutes(
 	query := apigwRouteSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableApigwRouteFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableApigwRouteFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for ApigwRoute: %w", err)
 		return
 	}
@@ -2279,7 +2279,7 @@ func (s *Store) QueryApplications(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableApplicationFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableApplicationFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -2289,7 +2289,7 @@ func (s *Store) QueryApplications(
 	query := applicationSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableApplicationFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableApplicationFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for Application: %w", err)
 		return
 	}
@@ -2947,7 +2947,7 @@ func (s *Store) QueryAttachments(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableAttachmentFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableAttachmentFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -2957,7 +2957,7 @@ func (s *Store) QueryAttachments(
 	query := attachmentSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableAttachmentFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableAttachmentFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for Attachment: %w", err)
 		return
 	}
@@ -3610,7 +3610,7 @@ func (s *Store) QueryAuthClients(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableAuthClientFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableAuthClientFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -3620,7 +3620,7 @@ func (s *Store) QueryAuthClients(
 	query := authClientSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableAuthClientFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableAuthClientFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for AuthClient: %w", err)
 		return
 	}
@@ -5475,7 +5475,7 @@ func (s *Store) QueryAutomationSessions(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableAutomationSessionFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableAutomationSessionFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -5485,7 +5485,7 @@ func (s *Store) QueryAutomationSessions(
 	query := automationSessionSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableAutomationSessionFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableAutomationSessionFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for AutomationSession: %w", err)
 		return
 	}
@@ -6153,7 +6153,7 @@ func (s *Store) QueryAutomationTriggers(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableAutomationTriggerFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableAutomationTriggerFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -6163,7 +6163,7 @@ func (s *Store) QueryAutomationTriggers(
 	query := automationTriggerSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableAutomationTriggerFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableAutomationTriggerFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for AutomationTrigger: %w", err)
 		return
 	}
@@ -6827,7 +6827,7 @@ func (s *Store) QueryAutomationWorkflows(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableAutomationWorkflowFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableAutomationWorkflowFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -6837,7 +6837,7 @@ func (s *Store) QueryAutomationWorkflows(
 	query := automationWorkflowSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableAutomationWorkflowFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableAutomationWorkflowFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for AutomationWorkflow: %w", err)
 		return
 	}
@@ -7563,7 +7563,7 @@ func (s *Store) QueryComposeAttachments(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposeAttachmentFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableComposeAttachmentFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -7573,7 +7573,7 @@ func (s *Store) QueryComposeAttachments(
 	query := composeAttachmentSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableComposeAttachmentFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableComposeAttachmentFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for ComposeAttachment: %w", err)
 		return
 	}
@@ -8230,7 +8230,7 @@ func (s *Store) QueryComposeCharts(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposeChartFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableComposeChartFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -8240,7 +8240,7 @@ func (s *Store) QueryComposeCharts(
 	query := composeChartSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableComposeChartFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableComposeChartFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for ComposeChart: %w", err)
 		return
 	}
@@ -8938,7 +8938,7 @@ func (s *Store) QueryComposeModules(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposeModuleFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableComposeModuleFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -8948,7 +8948,7 @@ func (s *Store) QueryComposeModules(
 	query := composeModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableComposeModuleFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableComposeModuleFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for ComposeModule: %w", err)
 		return
 	}
@@ -10140,7 +10140,7 @@ func (s *Store) QueryComposeNamespaces(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposeNamespaceFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableComposeNamespaceFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -10150,7 +10150,7 @@ func (s *Store) QueryComposeNamespaces(
 	query := composeNamespaceSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableComposeNamespaceFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableComposeNamespaceFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for ComposeNamespace: %w", err)
 		return
 	}
@@ -10873,7 +10873,7 @@ func (s *Store) QueryComposePages(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposePageFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableComposePageFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -10883,7 +10883,7 @@ func (s *Store) QueryComposePages(
 	query := composePageSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableComposePageFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableComposePageFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for ComposePage: %w", err)
 		return
 	}
@@ -11630,7 +11630,7 @@ func (s *Store) QueryComposePageLayouts(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableComposePageLayoutFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableComposePageLayoutFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -11640,7 +11640,7 @@ func (s *Store) QueryComposePageLayouts(
 	query := composePageLayoutSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableComposePageLayoutFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableComposePageLayoutFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for ComposePageLayout: %w", err)
 		return
 	}
@@ -12733,7 +12733,7 @@ func (s *Store) QueryDalConnections(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableDalConnectionFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableDalConnectionFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -12743,7 +12743,7 @@ func (s *Store) QueryDalConnections(
 	query := dalConnectionSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableDalConnectionFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableDalConnectionFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for DalConnection: %w", err)
 		return
 	}
@@ -13423,7 +13423,7 @@ func (s *Store) QueryDalSchemaAlterations(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableDalSchemaAlterationFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableDalSchemaAlterationFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -13433,7 +13433,7 @@ func (s *Store) QueryDalSchemaAlterations(
 	query := dalSchemaAlterationSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableDalSchemaAlterationFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableDalSchemaAlterationFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for DalSchemaAlteration: %w", err)
 		return
 	}
@@ -14079,7 +14079,7 @@ func (s *Store) QueryDalSensitivityLevels(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableDalSensitivityLevelFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableDalSensitivityLevelFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -14089,7 +14089,7 @@ func (s *Store) QueryDalSensitivityLevels(
 	query := dalSensitivityLevelSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableDalSensitivityLevelFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableDalSensitivityLevelFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for DalSensitivityLevel: %w", err)
 		return
 	}
@@ -14745,7 +14745,7 @@ func (s *Store) QueryDataPrivacyRequests(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableDataPrivacyRequestFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableDataPrivacyRequestFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -14755,7 +14755,7 @@ func (s *Store) QueryDataPrivacyRequests(
 	query := dataPrivacyRequestSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableDataPrivacyRequestFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableDataPrivacyRequestFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for DataPrivacyRequest: %w", err)
 		return
 	}
@@ -15418,7 +15418,7 @@ func (s *Store) QueryDataPrivacyRequestComments(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableDataPrivacyRequestCommentFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableDataPrivacyRequestCommentFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -15428,7 +15428,7 @@ func (s *Store) QueryDataPrivacyRequestComments(
 	query := dataPrivacyRequestCommentSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableDataPrivacyRequestCommentFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableDataPrivacyRequestCommentFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for DataPrivacyRequestComment: %w", err)
 		return
 	}
@@ -16035,7 +16035,7 @@ func (s *Store) QueryFederationExposedModules(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableFederationExposedModuleFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableFederationExposedModuleFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -16045,7 +16045,7 @@ func (s *Store) QueryFederationExposedModules(
 	query := federationExposedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableFederationExposedModuleFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableFederationExposedModuleFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for FederationExposedModule: %w", err)
 		return
 	}
@@ -16696,7 +16696,7 @@ func (s *Store) QueryFederationModuleMappings(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableFederationModuleMappingFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableFederationModuleMappingFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -16706,7 +16706,7 @@ func (s *Store) QueryFederationModuleMappings(
 	query := federationModuleMappingSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableFederationModuleMappingFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableFederationModuleMappingFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for FederationModuleMapping: %w", err)
 		return
 	}
@@ -17395,7 +17395,7 @@ func (s *Store) QueryFederationNodes(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableFederationNodeFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableFederationNodeFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -17405,7 +17405,7 @@ func (s *Store) QueryFederationNodes(
 	query := federationNodeSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableFederationNodeFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableFederationNodeFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for FederationNode: %w", err)
 		return
 	}
@@ -18143,7 +18143,7 @@ func (s *Store) QueryFederationNodeSyncs(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableFederationNodeSyncFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableFederationNodeSyncFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -18153,7 +18153,7 @@ func (s *Store) QueryFederationNodeSyncs(
 	query := federationNodeSyncSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableFederationNodeSyncFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableFederationNodeSyncFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for FederationNodeSync: %w", err)
 		return
 	}
@@ -18846,7 +18846,7 @@ func (s *Store) QueryFederationSharedModules(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableFederationSharedModuleFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableFederationSharedModuleFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -18856,7 +18856,7 @@ func (s *Store) QueryFederationSharedModules(
 	query := federationSharedModuleSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableFederationSharedModuleFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableFederationSharedModuleFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for FederationSharedModule: %w", err)
 		return
 	}
@@ -20217,7 +20217,7 @@ func (s *Store) QueryNotifications(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableNotificationFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableNotificationFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -20227,7 +20227,7 @@ func (s *Store) QueryNotifications(
 	query := notificationSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableNotificationFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableNotificationFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for Notification: %w", err)
 		return
 	}
@@ -20881,7 +20881,7 @@ func (s *Store) QueryQueues(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableQueueFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableQueueFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -20891,7 +20891,7 @@ func (s *Store) QueryQueues(
 	query := queueSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableQueueFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableQueueFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for Queue: %w", err)
 		return
 	}
@@ -21538,7 +21538,7 @@ func (s *Store) QueryQueueMessages(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableQueueMessageFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableQueueMessageFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -21548,7 +21548,7 @@ func (s *Store) QueryQueueMessages(
 	query := queueMessageSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableQueueMessageFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableQueueMessageFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for QueueMessage: %w", err)
 		return
 	}
@@ -22443,7 +22443,7 @@ func (s *Store) QueryReminders(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableReminderFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableReminderFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -22453,7 +22453,7 @@ func (s *Store) QueryReminders(
 	query := reminderSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableReminderFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableReminderFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for Reminder: %w", err)
 		return
 	}
@@ -23115,7 +23115,7 @@ func (s *Store) QueryReports(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableReportFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableReportFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -23125,7 +23125,7 @@ func (s *Store) QueryReports(
 	query := reportSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableReportFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableReportFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for Report: %w", err)
 		return
 	}
@@ -24087,7 +24087,7 @@ func (s *Store) QueryResourceTranslations(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableResourceTranslationFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableResourceTranslationFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -24097,7 +24097,7 @@ func (s *Store) QueryResourceTranslations(
 	query := resourceTranslationSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableResourceTranslationFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableResourceTranslationFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for ResourceTranslation: %w", err)
 		return
 	}
@@ -24735,7 +24735,7 @@ func (s *Store) QueryRoles(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableRoleFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableRoleFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -24745,7 +24745,7 @@ func (s *Store) QueryRoles(
 	query := roleSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableRoleFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableRoleFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for Role: %w", err)
 		return
 	}
@@ -26174,7 +26174,7 @@ func (s *Store) QueryTemplates(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableTemplateFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableTemplateFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -26184,7 +26184,7 @@ func (s *Store) QueryTemplates(
 	query := templateSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableTemplateFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableTemplateFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for Template: %w", err)
 		return
 	}
@@ -26920,7 +26920,7 @@ func (s *Store) QueryUsers(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableUserFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableUserFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -26930,7 +26930,7 @@ func (s *Store) QueryUsers(
 	query := userSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableUserFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableUserFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for User: %w", err)
 		return
 	}
@@ -27811,7 +27811,7 @@ func (s *Store) QueryUserGroups(
 
 	// paging feature is enabled
 	if f.PageCursor != nil {
-		if tExpr, err = cursorWithSorting(f.PageCursor, s.sortableUserGroupFields()); err != nil {
+		if tExpr, err = cursorWithSorting(s.Dialect, f.PageCursor, s.sortableUserGroupFields()); err != nil {
 			return
 		} else {
 			expr = append(expr, tExpr...)
@@ -27821,7 +27821,7 @@ func (s *Store) QueryUserGroups(
 	query := userGroupSelectQuery(s.Dialect.GOQU()).Where(expr...)
 
 	// sorting feature is enabled
-	if sortExpr, err = order(s.Dialect, f.Sort, s.sortableUserGroupFields()); err != nil {
+	if sortExpr, err = order(f.Sort, s.sortableUserGroupFields()); err != nil {
 		err = fmt.Errorf("could not generate order expression for UserGroup: %w", err)
 		return
 	}
