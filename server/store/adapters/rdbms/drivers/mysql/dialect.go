@@ -168,14 +168,14 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp.
 
 	case *dal.TypeNumber:
 		ce := exp.NewCaseExpression().
-			When(drivers.RegexpLike(drivers.CheckNumber, val), val).
+			When(regexpLike(drivers.CheckNumber, val), val).
 			Else(drivers.LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "DECIMAL(65,10)")
 
 	case *dal.TypeTimestamp:
 		ce := exp.NewCaseExpression().
-			When(drivers.RegexpLike(drivers.CheckFullISO8061, val), val).
+			When(regexpLike(drivers.CheckFullISO8061, val), val).
 			Else(drivers.LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "DATETIME")
@@ -185,17 +185,24 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp.
 
 	case *dal.TypeID, *dal.TypeRef:
 		ce := exp.NewCaseExpression().
-			When(drivers.RegexpLike(drivers.CheckID, val), val).
+			When(regexpLike(drivers.CheckID, val), val).
 			Else(drivers.LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "UNSIGNED")
 
 	case *dal.TypeTime:
 		ce := exp.NewCaseExpression().
-			When(drivers.RegexpLike(drivers.CheckTimeISO8061, val), val).
+			When(regexpLike(drivers.CheckTimeISO8061, val), val).
 			Else(drivers.LiteralNULL)
 
 		c = exp.NewCastExpression(ce, "TIME")
+
+	case *dal.TypeDate:
+		ce := exp.NewCaseExpression().
+			When(regexpLike(drivers.CheckDateISO8061, val), val).
+			Else(drivers.LiteralNULL)
+
+		c = exp.NewCastExpression(ce, "DATE")
 
 	default:
 		return drivers.AttributeCast(attr, val)
@@ -438,4 +445,10 @@ func (d mysqlDialect) ValHandler(n *ql.ASTNode) (out exp.Expression, err error) 
 
 func (d mysqlDialect) OrderedExpression(expr exp.Expression, dir exp.SortDirection, _ exp.NullSortType) exp.OrderedExpression {
 	return exp.NewOrderedExpression(expr, dir, exp.NoNullsSortType)
+}
+
+// regexpLike matches val against the pattern with REGEXP alone: goqu's
+// REGEXP BINARY forces a binary collation that MySQL 8 refuses on utf8mb4
+func regexpLike(pattern, val exp.Expression) exp.Expression {
+	return exp.NewLiteralExpression("(? REGEXP ?)", val, pattern)
 }
