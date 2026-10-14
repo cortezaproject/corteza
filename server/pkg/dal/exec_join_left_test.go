@@ -92,6 +92,26 @@ func TestStepJoinLocal(t *testing.T) {
 			},
 		},
 		{
+			name:            "two left rows share a right row",
+			outAttributes:   basicAttrs,
+			leftAttributes:  basicLocalAttrs,
+			rightAttributes: basicForeignAttrs,
+			joinPred:        JoinPredicate{Left: "l_val", Right: "f_val"},
+
+			lIn: []simpleRow{
+				{"l_pk": 1, "l_val": "shared"},
+				{"l_pk": 2, "l_val": "shared"},
+			},
+			fIn: []simpleRow{
+				{"f_pk": 1, "f_fk": 1, "f_val": "shared"},
+			},
+
+			out: []simpleRow{
+				{"l_pk": 1, "l_val": "shared", "f_pk": 1, "f_fk": 1, "f_val": "shared"},
+				{"l_pk": 2, "l_val": "shared", "f_pk": 1, "f_fk": 1, "f_val": "shared"},
+			},
+		},
+		{
 			name:            "basic link no rows joined",
 			outAttributes:   basicAttrs,
 			leftAttributes:  basicLocalAttrs,

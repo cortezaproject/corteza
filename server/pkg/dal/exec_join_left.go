@@ -288,11 +288,13 @@ func (xs *joinLeft) joinRight(ctx context.Context, left *Row) (err error) {
 
 	for _, b := range bb {
 		for _, right := range b.rows {
-			// Merge the two
-			xs.mergeRows(xs.def.OutAttributes, right, left, right)
+			// Merge the two into a row of their own; the right row is shared
+			// by every left row it matches
+			out := right.clone()
+			xs.mergeRows(xs.def.OutAttributes, out, left, right)
 
 			// Assert if we want to keep
-			k, err := xs.keep(ctx, right)
+			k, err := xs.keep(ctx, out)
 			if err != nil {
 				return err
 			}
@@ -300,7 +302,7 @@ func (xs *joinLeft) joinRight(ctx context.Context, left *Row) (err error) {
 				continue
 			}
 
-			xs.outSorted.Set(right)
+			xs.outSorted.Set(out)
 		}
 	}
 

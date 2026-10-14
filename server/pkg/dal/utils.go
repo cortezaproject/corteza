@@ -84,6 +84,25 @@ func (r Row) SelectGVal(ctx context.Context, wk string) (interface{}, error) {
 // Important: Reset only clears out the counters and does not re-init/clear out
 // the underlaying values. Don't directly iterate over the values, but use the
 // counters.
+// clone copies the row with its values, so one side of a join can be merged
+// into more than one output row
+func (r *Row) clone() *Row {
+	out := &Row{
+		counters: make(map[string]uint, len(r.counters)),
+		values:   make(valueSet, len(r.values)),
+	}
+
+	for k, c := range r.counters {
+		out.counters[k] = c
+	}
+
+	for k, vv := range r.values {
+		out.values[k] = append(make([]any, 0, len(vv)), vv...)
+	}
+
+	return out
+}
+
 func (r *Row) Reset() {
 	for k := range r.counters {
 		r.counters[k] = 0
