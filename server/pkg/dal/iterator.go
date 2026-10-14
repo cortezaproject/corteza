@@ -70,9 +70,10 @@ func IteratorEncodeJSON(ctx context.Context, w io.Writer, iter Iterator, initTar
 	return
 }
 
-// PreLoadCursor into iterator and check it exist then return the cursor
+// PreLoadCursor returns the cursor past r when at least one row beyond it
+// passes fx, reading on in windows of limit rows until one does or rows run out
 // @todo this should be move to the Iterator
-func PreLoadCursor(ctx context.Context, iter Iterator, limit uint, reverse bool, r ValueGetter, fx func(Iterator) (bool, error)) (out *filter.PagingCursor, err error) {
+func PreLoadCursor(ctx context.Context, iter Iterator, limit uint, reverse bool, r ValueGetter, fx func(Iterator) (ValueGetter, bool, error)) (out *filter.PagingCursor, err error) {
 	makeCursor := func() (*filter.PagingCursor, error) {
 		if reverse {
 			return iter.BackCursor(r)
@@ -92,22 +93,40 @@ func PreLoadCursor(ctx context.Context, iter Iterator, limit uint, reverse bool,
 	}
 
 	for {
-		if !iter.Next(ctx) {
-			out = nil
-			return
+		var (
+			scanned uint
+
+			// row the next window continues from; windows come in sort order,
+			// so a reverse one continues before its first row
+			edge ValueGetter
+		)
+
+		for iter.Next(ctx) {
+			row, ok, err := fx(iter)
+			if err != nil {
+				return nil, err
+			}
+
+			if ok {
+				return out, nil
+			}
+
+			scanned++
+			if edge == nil || !reverse {
+				edge = row
+			}
 		}
 
-		ok, err := fx(iter)
-		if err != nil {
+		if err = iter.Err(); err != nil {
 			return nil, err
 		}
 
-		if ok {
-			return out, err
+		if scanned < limit {
+			return nil, nil
+		}
 
-			// // @todo Skip the things we don't have access to; could cause some edge cases so probably not
-			// // It adds some performance since we skip unneeded stuff but could some records change in the mean time?
-			// // return makeCursor()
+		if err = iter.More(limit, edge); err != nil {
+			return nil, err
 		}
 	}
 }

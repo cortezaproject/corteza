@@ -1778,3 +1778,108 @@ func TestRecordClone(t *testing.T) {
 	h.a.Equal("Modified Name", cloned.Values.Get("name", 0).Value, "Cloned record should have modified name")
 	h.a.Equal("Modified Description", cloned.Values.Get("description", 0).Value, "Cloned record should have modified description")
 }
+
+// Pages through a module where the user can read only a few records, spread
+// apart by long runs of records they cannot read; every readable record must
+// come back exactly once, in either direction, and the total must count them all
+func TestRecordListPagingOverUnreadableRuns(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module")
+	helpers.AllowMe(h, module.RbacResource(), "records.search")
+	helpers.DenyMe(h, types.RecordRbacResource(0, 0, 0), "read")
+
+	const items = 1300
+	readable := map[string]bool{}
+	for i := 1; i <= items; i++ {
+		name := fmt.Sprintf("%04d", i)
+		rec := h.makeRecord(module, &types.RecordValue{Name: "name", Value: name})
+
+		if i <= 5 || (i >= 130 && i < 135) || (i >= 1250 && i < 1255) {
+			readable[name] = true
+			helpers.AllowMe(h, types.RecordRbacResource(module.NamespaceID, module.ID, rec.ID), "read")
+		}
+	}
+
+	type page struct {
+		Response struct {
+			Filter struct {
+				Total    int
+				NextPage *string
+				PrevPage *string
+			}
+			Set []struct {
+				Values []struct{ Name, Value string }
+			}
+		}
+	}
+
+	list := func(sort string, cursor *string) (p page) {
+		r := h.apiInit().
+			Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+			Query("limit", "5").
+			Query("sort", sort).
+			Header("Accept", "application/json")
+
+		if cursor == nil {
+			r = r.Query("incTotal", "true")
+		} else {
+			r = r.Query("pageCursor", *cursor)
+		}
+
+		r.Expect(t).Status(http.StatusOK).Assert(helpers.AssertNoErrors).End().JSON(&p)
+		return
+	}
+
+	names := func(p page) (out []string) {
+		for _, r := range p.Response.Set {
+			for _, v := range r.Values {
+				if v.Name == "name" {
+					out = append(out, v.Value)
+				}
+			}
+		}
+		return
+	}
+
+	for _, sort := range []string{"name", "name DESC"} {
+		seen := map[string]int{}
+
+		p := list(sort, nil)
+		h.a.Equal(len(readable), p.Response.Filter.Total, "%s: total", sort)
+
+		for n := 0; ; n++ {
+			h.a.Less(n, 10, "%s: pages", sort)
+			for _, name := range names(p) {
+				h.a.True(readable[name], "%s: %s is not readable", sort, name)
+				seen[name]++
+			}
+
+			if p.Response.Filter.NextPage == nil {
+				break
+			}
+			p = list(sort, p.Response.Filter.NextPage)
+		}
+
+		h.a.Len(seen, len(readable), "%s: forward", sort)
+		for name, n := range seen {
+			h.a.Equal(1, n, "%s: %s returned once", sort, name)
+		}
+
+		back := map[string]bool{}
+		for n := 0; ; n++ {
+			h.a.Less(n, 10, "%s: pages back", sort)
+			for _, name := range names(p) {
+				back[name] = true
+			}
+
+			if p.Response.Filter.PrevPage == nil {
+				break
+			}
+			p = list(sort, p.Response.Filter.PrevPage)
+		}
+
+		h.a.Len(back, len(readable), "%s: backward", sort)
+	}
+}

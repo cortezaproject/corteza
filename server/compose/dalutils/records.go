@@ -333,19 +333,18 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 			return
 		}
 
-		recordChecker = func(i dal.Iterator) (ok bool, err error) {
-			if p.Check == nil {
-				return true, err
-			}
-
+		recordChecker = func(i dal.Iterator) (row dal.ValueGetter, ok bool, err error) {
 			rc := prepareRecordTarget(mod)
-			err = i.Scan(rc)
-
-			if err != nil {
+			if err = i.Scan(rc); err != nil {
 				return
 			}
 
-			return p.Check(rc)
+			if p.Check == nil {
+				return rc, true, nil
+			}
+
+			ok, err = p.Check(rc)
+			return rc, ok, err
 		}
 	)
 
@@ -499,13 +498,16 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 		for counter == 0 || counter < howMuchMore {
 			counter++
 
-			interLoop := 0
+			scanned := 0
 
 			if err = iter.More(howMuchMore, last); err != nil {
 				return
 			}
 
 			err = WalkIterator(ctx, iter, mod, func(rec *types.Record) error {
+				scanned++
+				last = rec
+
 				// check fetched record
 				if p.Check != nil {
 					if ok, err = p.Check(rec); err != nil {
@@ -520,16 +522,14 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 					return err
 				}
 
-				interLoop++
 				total++
-				last = rec
 				return generatePage(rec)
 			})
 			if err != nil {
 				return
 			}
 
-			if interLoop < howMuchMore {
+			if scanned < howMuchMore {
 				break
 			}
 		}
