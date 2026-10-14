@@ -22,13 +22,20 @@ type (
 var (
 	ref2exp = ExprHandlerMap{
 		// keywords
+		// bare, the keyword for an IS comparison; with an argument, the test itself
 		"null": {
 			Handler: func(args ...exp.Expression) exp.Expression {
+				if len(args) > 0 {
+					return exp.NewLiteralExpression("(? IS NULL)", args[0])
+				}
 				return exp.NewLiteralExpression("NULL")
 			},
 		},
 		"nnull": {
 			Handler: func(args ...exp.Expression) exp.Expression {
+				if len(args) > 0 {
+					return exp.NewLiteralExpression("(? IS NOT NULL)", args[0])
+				}
 				return exp.NewLiteralExpression("NOT NULL")
 			},
 		},
