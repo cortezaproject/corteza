@@ -125,6 +125,7 @@ type (
 		SearchSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
 		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64, sorting filter.Sorting) (dal.Iterator, error)
 		RecordExport(context.Context, types.RecordFilter) error
+		CanExport(context.Context, types.RecordFilter) error
 		RecordImport(context.Context, error) error
 
 		Create(ctx context.Context, record *types.Record) (*types.Record, *types.RecordValueErrorSet, error)
@@ -461,6 +462,10 @@ func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set typ
 			return err
 		}
 
+		if err = svc.validateSummaryFieldPermissions(ctx, svc.ac, m, filter.Summaries); err != nil {
+			return err
+		}
+
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
 
 		if set, stats, f, err = dalutils.ComposeRecordsListN(ctx, svc.dal, m, filter); err != nil {
@@ -622,6 +627,21 @@ func (svc record) RecordImport(ctx context.Context, err error) error {
 }
 
 // RecordExport records that the export has occurred
+// CanExport checks the user may search the module's records and filter them by
+// the fields the query uses
+func (svc record) CanExport(ctx context.Context, f types.RecordFilter) error {
+	m, err := loadModule(ctx, svc.store, f.NamespaceID, f.ModuleID)
+	if err != nil {
+		return err
+	}
+
+	if !svc.ac.CanSearchRecordsOnModule(ctx, m) {
+		return RecordErrNotAllowedToSearch()
+	}
+
+	return svc.validateFilterFieldPermissions(ctx, svc.ac, m, f.Query)
+}
+
 func (svc record) RecordExport(ctx context.Context, f types.RecordFilter) (err error) {
 	return svc.recordAction(ctx, &recordActionProps{filter: &f}, RecordActionExport, err)
 }
@@ -2825,6 +2845,23 @@ func (svc record) validateSortFieldPermissions(ctx context.Context, ac recordVal
 
 		if !ac.CanReadRecordValueOnModuleField(ctx, field) {
 			return RecordErrNotAllowedToSortByField(&recordActionProps{field: fieldName})
+		}
+	}
+
+	return nil
+}
+
+// validateSummaryFieldPermissions rejects summaries over module fields whose
+// values the user may not read
+func (svc record) validateSummaryFieldPermissions(ctx context.Context, ac recordValueAccessController, m *types.Module, ss []types.RecordSummaryReq) error {
+	for _, s := range ss {
+		field := m.Fields.FindByName(s.Field)
+		if field == nil {
+			continue
+		}
+
+		if !ac.CanReadRecordValueOnModuleField(ctx, field) {
+			return RecordErrNotAllowedToSummarizeField(&recordActionProps{field: s.Field})
 		}
 	}
 

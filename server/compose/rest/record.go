@@ -792,6 +792,10 @@ func (ctrl *Record) exportRecords(ctx context.Context, s *service.RecordExportSe
 		return nil, err
 	}
 
+	if err = ctrl.record.CanExport(ctx, *rf); err != nil {
+		return nil, err
+	}
+
 	return func(w http.ResponseWriter, req *http.Request) {
 		if len(s.Fields) == 0 {
 			http.Error(w, "no record value fields provided", http.StatusBadRequest)
