@@ -662,7 +662,7 @@ func TestStepAggregate(t *testing.T) {
 			},
 			group: []simpleAttribute{{
 				ident: "d",
-				expr: "year(now())",
+				expr:  "year(now())",
 			}},
 			outAttributes: []simpleAttribute{{
 				ident: "users",
