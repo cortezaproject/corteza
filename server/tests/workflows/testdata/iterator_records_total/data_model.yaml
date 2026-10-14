@@ -1,0 +1,12 @@
+namespaces:
+  ns1:
+    name: ns1 name
+
+modules:
+  mod1:
+    name: mod1 name
+    fields:
+      f1:
+        label: f1 label
+        kind: String
+        required: false

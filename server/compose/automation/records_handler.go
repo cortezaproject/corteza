@@ -233,9 +233,15 @@ func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (out wf
 		i.total += i.ptr
 		i.ptr = 0
 
-		i.filter.PageCursor = i.filter.NextPage
+		// the total comes with the first page only; later pages carry it on
+		total, cursor := i.filter.Total, i.filter.NextPage
+
+		i.filter.PageCursor = cursor
 		i.filter.NextPage = nil
 		i.buffer, i.filter, err = h.rec.Find(ctx, i.filter)
+		if err == nil && cursor != nil {
+			i.filter.Total = total
+		}
 
 		return
 	}
