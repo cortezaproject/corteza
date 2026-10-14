@@ -322,13 +322,18 @@ func (s *aggregate) addToGroup(ctx context.Context, key groupKey, r ValueGetter)
 // Group key comparator
 // @todo can this be moved to the struct's Less method?
 func (t *aggregate) compareGroupKeys(a, b *aggregateGroup) (out bool) {
-	for i := range a.key {
-		va := a.key[i]
-		vb := b.key[i]
-		out = out || compareValues(va, vb) < 0
+	return compareKeys(a.key, b.key) < 0
+}
+
+// compareKeys orders group keys by their first differing component
+func compareKeys(a, b []any) int {
+	for i := range a {
+		if c := compareValues(a[i], b[i]); c != 0 {
+			return c
+		}
 	}
 
-	return
+	return 0
 }
 
 func (s *aggregate) wrapGroup(ctx context.Context, key groupKey) (g *aggregateGroup, err error) {
@@ -420,7 +425,10 @@ func (s *aggregate) sortGroups() {
 				return cmp < 0
 			}
 		}
-		return false
+
+		// groups tied on every sort value follow their key, the order the
+		// paging cursor breaks the tie in
+		return compareKeys(ga.key, gb.key) < 0
 	})
 }
 

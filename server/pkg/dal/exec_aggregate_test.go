@@ -60,6 +60,35 @@ func TestStepAggregate(t *testing.T) {
 			f: internalFilter{orderBy: filter.SortExprSet{{Column: "k1"}}},
 		},
 		{
+			name:             "two key group keeps equal keys together",
+			sourceAttributes: basicAttrs,
+			group: []simpleAttribute{
+				{ident: "k1"},
+				{ident: "k2"},
+			},
+			outAttributes: []simpleAttribute{{
+				ident: "cc",
+				expr:  "count(v1)",
+			}},
+
+			// keys where one component is smaller and the other larger
+			// than the next group's, and the first group comes back last
+			inSimple: []simpleRow{
+				{"k1": "1", "k2": "3", "v1": 1},
+				{"k1": "2", "k2": "2", "v1": 1},
+				{"k1": "3", "k2": "1", "v1": 1},
+				{"k1": "1", "k2": "3", "v1": 1},
+			},
+
+			out: []simpleRow{
+				{"k1": "1", "k2": "3", "cc": float64(2)},
+				{"k1": "2", "k2": "2", "cc": float64(1)},
+				{"k1": "3", "k2": "1", "cc": float64(1)},
+			},
+
+			f: internalFilter{orderBy: filter.SortExprSet{{Column: "k1"}, {Column: "k2"}}},
+		},
+		{
 			name:             "basic one key group rename values",
 			sourceAttributes: basicAttrs,
 			group: []simpleAttribute{{
@@ -1326,6 +1355,41 @@ func TestStepAggregate_paging(t *testing.T) {
 			outB1: []simpleRow{
 				{"k1": "d", "mm": float64(4)},
 				{"k1": "c", "mm": float64(3)},
+			},
+		},
+		{
+			name:             "groups tied on the sort value page by their key",
+			sourceAttributes: basicAttrs,
+			in: []simpleRow{
+				{"k1": "d", "v1": 1, "txt": "d4"},
+				{"k1": "c", "v1": 2, "txt": "c3"},
+				{"k1": "b", "v1": 2, "txt": "b2"},
+				{"k1": "a", "v1": 2, "txt": "a1"},
+			},
+
+			group: []simpleAttribute{
+				{ident: "k1", source: "k1"},
+			},
+			outAttributes: []simpleAttribute{
+				{ident: "mm", expr: "max(v1)"},
+			},
+
+			f: internalFilter{
+				limit:   2,
+				orderBy: filter.SortExprSet{{Column: "mm", Descending: true}},
+			},
+
+			outF1: []simpleRow{
+				{"k1": "a", "mm": float64(2)},
+				{"k1": "b", "mm": float64(2)},
+			},
+			outF2: []simpleRow{
+				{"k1": "c", "mm": float64(2)},
+				{"k1": "d", "mm": float64(1)},
+			},
+			outB1: []simpleRow{
+				{"k1": "a", "mm": float64(2)},
+				{"k1": "b", "mm": float64(2)},
 			},
 		},
 	}
