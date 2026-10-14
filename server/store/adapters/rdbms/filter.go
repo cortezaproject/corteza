@@ -445,11 +445,13 @@ func DefaultFilters() (f *extendedFilters) {
 	return
 }
 
-func Order(sort filter.SortExprSet, sortables map[string]string) (oo []exp.OrderedExpression, err error) {
-	return order(sort, sortables)
+func Order(d drivers.Dialect, sort filter.SortExprSet, sortables map[string]string) (oo []exp.OrderedExpression, err error) {
+	return order(d, sort, sortables)
 }
 
-func order(sort filter.SortExprSet, sortables map[string]string) (oo []exp.OrderedExpression, err error) {
+// order sorts NULLs first ascending and last descending on every dialect, the
+// order the paging cursor condition assumes
+func order(d drivers.Dialect, sort filter.SortExprSet, sortables map[string]string) (oo []exp.OrderedExpression, err error) {
 	var (
 		sortExpr goqu.Expression
 	)
@@ -461,9 +463,9 @@ func order(sort filter.SortExprSet, sortables map[string]string) (oo []exp.Order
 		}
 
 		if s.Descending {
-			oo = append(oo, exp.NewOrderedExpression(sortExpr, exp.DescSortDir, exp.NoNullsSortType))
+			oo = append(oo, d.OrderedExpression(sortExpr, exp.DescSortDir, exp.NullsLastSortType))
 		} else {
-			oo = append(oo, exp.NewOrderedExpression(sortExpr, exp.AscDir, exp.NoNullsSortType))
+			oo = append(oo, d.OrderedExpression(sortExpr, exp.AscDir, exp.NullsFirstSortType))
 		}
 	}
 

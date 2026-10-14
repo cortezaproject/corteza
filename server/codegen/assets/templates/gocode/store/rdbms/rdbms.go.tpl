@@ -524,7 +524,7 @@ func (s *Store) Query{{ .expIdentPlural }}(
 
 	{{ if .features.sorting }}
 	// sorting feature is enabled
-	if sortExpr, err = order(f.Sort, s.{{ .api.sortableFields.fnIdent }}()); err != nil {
+	if sortExpr, err = order(s.Dialect, f.Sort, s.{{ .api.sortableFields.fnIdent }}()); err != nil {
 		err = fmt.Errorf("could not generate order expression for {{ .expIdent }}: %w", err)
 		return
 	}

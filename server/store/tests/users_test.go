@@ -208,6 +208,53 @@ func testUsers(t *testing.T, s store.Users) {
 		})
 	})
 
+	t.Run("paging over a nullable sort column", func(t *testing.T) {
+		// every user is returned exactly once in either direction, whether
+		// or not the sort column is set on it
+		req := require.New(t)
+		req.NoError(s.TruncateUsers(ctx))
+
+		const items = 12
+		for i := 1; i <= items; i++ {
+			u := makeNew(fmt.Sprintf("%02d", i))
+			if i%2 == 0 {
+				ts := time.Date(2024, 1, i, 0, 0, 0, 0, time.UTC)
+				u.UpdatedAt = &ts
+			}
+			req.NoError(s.CreateUser(ctx, u))
+		}
+
+		for _, sort := range []string{"updatedAt", "updatedAt DESC"} {
+			t.Run(sort, func(t *testing.T) {
+				req := require.New(t)
+				seen := make(map[uint64]int)
+
+				f := types.UserFilter{}
+				f.Limit = 5
+				req.NoError(f.Sort.Set(sort))
+
+				for page := 0; page < items; page++ {
+					set, out, err := store.SearchUsers(ctx, s, f)
+					req.NoError(err)
+					for _, u := range set {
+						seen[u.ID]++
+					}
+
+					if out.NextPage == nil {
+						break
+					}
+
+					f.PageCursor = out.NextPage
+				}
+
+				req.Len(seen, items, "every user is paged over")
+				for id, n := range seen {
+					req.Equal(1, n, "user %d is returned once", id)
+				}
+			})
+		}
+	})
+
 	t.Run("paging and sorting", func(t *testing.T) {
 		require.NoError(t, s.TruncateUsers(ctx))
 		require.NoError(t, s.CreateUser(ctx,
