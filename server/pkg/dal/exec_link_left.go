@@ -36,6 +36,10 @@ type (
 		leftRow       *Row
 		rightRow      *Row
 		relScanBuffer *relIndexBuffer
+
+		// left row of the row last scanned; a cursor is made from it, not
+		// from the left row the iteration has already moved on to
+		scannedLeft *Row
 	}
 )
 
@@ -95,6 +99,8 @@ func (xs *linkLeft) More(limit uint, v ValueGetter) (err error) {
 func (xs *linkLeft) Err() error { return xs.err }
 
 func (xs *linkLeft) Scan(s ValueSetter) (err error) {
+	xs.scannedLeft = xs.leftRow
+
 	for k, cc := range xs.scanRow.CountValues() {
 		for i := uint(0); i < cc; i++ {
 			// @note internal row won't raise errors so we can safely omit them
@@ -133,7 +139,7 @@ func (xs *linkLeft) Close() (err error) {
 
 func (xs *linkLeft) BackCursor(v ValueGetter) (pc *filter.PagingCursor, err error) {
 	g := &rowLink{
-		a: xs.leftRow,
+		a: xs.cursorLeft(),
 		b: v,
 	}
 	pc, err = filter.PagingCursorFrom(xs.filter.OrderBy(), g, xs.collectPrimaryAttributes()...)
@@ -149,7 +155,7 @@ func (xs *linkLeft) BackCursor(v ValueGetter) (pc *filter.PagingCursor, err erro
 
 func (xs *linkLeft) ForwardCursor(v ValueGetter) (pc *filter.PagingCursor, err error) {
 	g := &rowLink{
-		a: xs.leftRow,
+		a: xs.cursorLeft(),
 		b: v,
 	}
 	pc, err = filter.PagingCursorFrom(xs.filter.OrderBy(), g, xs.collectPrimaryAttributes()...)
@@ -158,6 +164,16 @@ func (xs *linkLeft) ForwardCursor(v ValueGetter) (pc *filter.PagingCursor, err e
 	}
 
 	return
+}
+
+// cursorLeft is the left row a cursor belongs to: the one of the last scanned
+// row, or the current one before anything was scanned
+func (xs *linkLeft) cursorLeft() *Row {
+	if xs.scannedLeft != nil {
+		return xs.scannedLeft
+	}
+
+	return xs.leftRow
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
@@ -496,6 +512,10 @@ func (xs *linkLeft) collectPrimaryAttributes() (out []string) {
 // convertStringToIntForColumn converts the string value that have numeric data in the specified column
 // and updates the Row value datatype to int, if the conversion is successful
 func convertStringToIntForColumn(column string, row *Row) *Row {
+	if len(row.values[column]) == 0 {
+		return row
+	}
+
 	if strValue, ok := row.values[column][0].(string); ok {
 		if rowVal, err := strconv.Atoi(strValue); err == nil {
 			row.values[column][0] = rowVal

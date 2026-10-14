@@ -1090,3 +1090,75 @@ func simpleToRow(in simpleRow) (out *Row) {
 	}
 	return
 }
+
+// The reporter reads one row past the page before it makes the cursor; the
+// cursor belongs to the last scanned row, not to the row the iteration moved on to
+func TestStepLinkleft_cursorAfterReadingPastThePage(t *testing.T) {
+	ctx := context.Background()
+	req := require.New(t)
+
+	l := InMemoryBuffer()
+	req.NoError(l.Add(ctx, simpleRow{"l_pk": 1, "l_val": "l1"}))
+	req.NoError(l.Add(ctx, simpleRow{"l_pk": 2, "l_val": "l2"}))
+
+	f := InMemoryBuffer()
+	req.NoError(f.Add(ctx, simpleRow{"f_pk": 10, "f_fk": 1, "f_val": "f1"}))
+	req.NoError(f.Add(ctx, simpleRow{"f_pk": 20, "f_fk": 2, "f_val": "f2"}))
+
+	attrs := func(ss ...simpleAttribute) []AttributeMapping { return saToMapping(ss...) }
+	def := Link{
+		Ident:    "foo",
+		RelLeft:  "left",
+		RelRight: "right",
+		On:       LinkPredicate{Left: "l_pk", Right: "f_fk"},
+		LeftAttributes: attrs(
+			simpleAttribute{ident: "l_pk", t: TypeID{}, primary: true},
+			simpleAttribute{ident: "l_val", t: TypeText{}},
+		),
+		RightAttributes: attrs(
+			simpleAttribute{ident: "f_pk", t: TypeID{}, primary: true},
+			simpleAttribute{ident: "f_fk", t: TypeRef{}},
+			simpleAttribute{ident: "f_val", t: TypeText{}},
+		),
+		OutLeftAttributes: attrs(
+			simpleAttribute{ident: "l_pk", t: TypeID{}, primary: true},
+			simpleAttribute{ident: "l_val", t: TypeText{}},
+		),
+		OutRightAttributes: attrs(
+			simpleAttribute{ident: "f_pk", t: TypeID{}, primary: true},
+			simpleAttribute{ident: "f_fk", t: TypeRef{}},
+			simpleAttribute{ident: "f_val", t: TypeText{}},
+		),
+		filter: internalFilter{orderBy: filter.SortExprSet{{Column: "l_pk"}}},
+	}
+
+	xs, err := def.iterator(ctx, l, f)
+	req.NoError(err)
+
+	// first left row and its right row make the page
+	last := &Row{}
+	req.True(xs.Next(ctx))
+	req.NoError(xs.Scan(last))
+	req.True(xs.Next(ctx))
+	req.NoError(xs.Scan(last))
+
+	// the reporter peeks at the next row before it stops
+	req.True(xs.Next(ctx))
+
+	cur, err := xs.ForwardCursor(last)
+	req.NoError(err)
+
+	v, _ := (&cursorValues{cur}).value("l_pk")
+	req.Equal(1, v, "the cursor continues after the first left row")
+}
+
+type cursorValues struct{ *filter.PagingCursor }
+
+func (c *cursorValues) value(key string) (any, bool) {
+	for i, k := range c.Keys() {
+		if k == key {
+			return c.Values()[i], true
+		}
+	}
+	return nil, false
+}
