@@ -1985,3 +1985,58 @@ func TestRecordRevisionsHideUnreadableFields(t *testing.T) {
 	h.a.True(keys["name"], "readable field change is listed")
 	h.a.False(keys["secret"], "unreadable field change is hidden")
 }
+
+// Each summary keeps its own running state, an average of nothing is zero, and
+// summaries are refused with a page cursor, which would cover only part of the set
+func TestRecordListSummariesMaths(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module",
+		&types.ModuleField{Name: "neg", Kind: "Number"},
+		&types.ModuleField{Name: "pos", Kind: "Number"},
+		&types.ModuleField{Name: "none", Kind: "Number"},
+	)
+	helpers.AllowMe(h, module.RbacResource(), "records.search")
+
+	h.makeRecord(module, &types.RecordValue{Name: "neg", Value: "-5"}, &types.RecordValue{Name: "pos", Value: "2"})
+	h.makeRecord(module, &types.RecordValue{Name: "neg", Value: "-3"}, &types.RecordValue{Name: "pos", Value: "4"})
+	h.makeRecord(module, &types.RecordValue{Name: "neg", Value: "-3"}, &types.RecordValue{Name: "pos", Value: "4"})
+
+	var aux struct {
+		Response struct {
+			Filter    struct{ NextPage *string }
+			Summaries map[string]struct{ Value string }
+		}
+	}
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Query("limit", "2").
+		Query("summaries", `[{"name":"max","field":"neg"},{"name":"min","field":"pos"},{"name":"uniqueCount","field":"pos"},{"name":"uniqueCount","field":"neg"},{"name":"avg","field":"none"}]`).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End().
+		JSON(&aux)
+
+	s := aux.Response.Summaries
+	h.a.Equal("-3", s["max neg"].Value, "max of negative values")
+	h.a.Equal("2", s["min pos"].Value, "min of a second summary")
+	h.a.Equal("2", s["uniqueCount pos"].Value, "unique values of one field")
+	h.a.Equal("2", s["uniqueCount neg"].Value, "unique values of another field")
+	h.a.Equal("0", s["avg none"].Value, "average of no values")
+
+	h.a.NotNil(aux.Response.Filter.NextPage)
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Query("limit", "2").
+		Query("pageCursor", *aux.Response.Filter.NextPage).
+		Query("summaries", `[{"name":"max","field":"neg"}]`).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("not allowed to fetch summaries with page cursor")).
+		End()
+}

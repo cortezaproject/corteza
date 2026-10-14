@@ -157,6 +157,12 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 			err = fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
 			return
 		}
+
+		// a summary counts from the cursor on, not over the whole set
+		if len(f.Summaries) > 0 {
+			err = fmt.Errorf("not allowed to fetch summaries with page cursor")
+			return
+		}
 	}
 
 	var (
@@ -356,8 +362,9 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 		return
 	}
 
-	existing := make(map[any]struct{}, 24)
-	looped := false
+	// running state per summary: the values seen and whether a value was seen
+	existing := make(map[string]map[any]struct{}, len(p.Summaries))
+	looped := make(map[string]bool, len(p.Summaries))
 
 	procSummary := func(r *types.Record) (err error) {
 		for _, smDef := range p.Summaries {
@@ -368,7 +375,11 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 				return
 			}
 
-			bit := summaries[fmt.Sprintf("%s %s", smDef.Name, smDef.Field)]
+			key := fmt.Sprintf("%s %s", smDef.Name, smDef.Field)
+			bit := summaries[key]
+			if existing[key] == nil {
+				existing[key] = make(map[any]struct{}, 24)
+			}
 
 			// This will be constant so we're good
 			bit.Name = smDef.Name
@@ -376,7 +387,7 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 			// Skip empty
 			if len(vv) == 0 {
 				bit.EmptyCount++
-				summaries[fmt.Sprintf("%s %s", smDef.Name, smDef.Field)] = bit
+				summaries[key] = bit
 				continue
 			}
 
@@ -385,8 +396,8 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 			for _, v := range vv {
 				bit.Count++
 
-				if _, ok := existing[v]; !ok {
-					existing[v] = struct{}{}
+				if _, ok := existing[key][v]; !ok {
+					existing[key][v] = struct{}{}
 					bit.UniqueCount++
 				}
 			}
@@ -394,20 +405,22 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 			switch smDef.Name {
 			case "min":
 				for _, v := range vv {
-					if !looped {
+					if !looped[key] {
 						bit.Min = cast.ToFloat64(v)
 					} else {
 						bit.Min = math.Min(bit.Min, cast.ToFloat64(v))
 					}
+					looped[key] = true
 				}
 
 			case "max":
 				for _, v := range vv {
-					if !looped {
+					if !looped[key] {
 						bit.Max = cast.ToFloat64(v)
 					} else {
 						bit.Max = math.Max(bit.Max, cast.ToFloat64(v))
 					}
+					looped[key] = true
 				}
 
 			case "avg":
@@ -445,8 +458,7 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 				}
 			}
 
-			looped = true
-			summaries[fmt.Sprintf("%s %s", smDef.Name, smDef.Field)] = bit
+			summaries[key] = bit
 		}
 		return
 	}
@@ -562,7 +574,9 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 				continue
 			}
 
-			s.Avg = s.Sum / float64(s.Count)
+			if s.Count > 0 {
+				s.Avg = s.Sum / float64(s.Count)
+			}
 			summaries[n] = s
 		}
 	}
