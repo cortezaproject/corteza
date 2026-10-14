@@ -1,11 +1,15 @@
 package compose
 
 import (
+	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/compose/service"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/tests/helpers"
 )
 
@@ -52,4 +56,43 @@ func TestRecordPatch_emptyNumberIsCleared(t *testing.T) {
 		h.a.NotEqual("0", v.Value, "cleared multi-value number must not become [0]")
 		h.a.Equal("", v.Value)
 	}
+}
+
+// A bulk patch by query reaches every matching record, however many there
+// are, and ends even when the patched records still match the query
+func TestRecordPatch_byQueryWalksAllPages(t *testing.T) {
+	const items = 1100
+
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record patch module",
+		&types.ModuleField{Name: "name", Kind: "String"},
+		&types.ModuleField{Name: "amount", Kind: "Number"},
+	)
+	for i := 0; i < items; i++ {
+		h.makeRecord(module, &types.RecordValue{Name: "name", Value: "a"})
+	}
+
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "records.search")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
+
+	ctx, cancel := context.WithTimeout(h.secCtx(), 20*time.Second)
+	defer cancel()
+
+	err := service.DefaultRecord.BulkModifyByFilter(ctx, types.RecordFilter{
+		Query:       "name = 'a'",
+		NamespaceID: module.NamespaceID,
+		ModuleID:    module.ID,
+	}, types.RecordValueSet{{Name: "amount", Value: "1"}}, types.OperationTypePatch)
+	h.noError(err)
+
+	set, _, err := service.DefaultRecord.Find(h.secCtx(), types.RecordFilter{
+		Query:       "amount = 1",
+		NamespaceID: module.NamespaceID,
+		ModuleID:    module.ID,
+		Paging:      filter.Paging{Limit: items + 1},
+	})
+	h.noError(err)
+	h.a.Len(set, items, "every matching record is patched")
 }
