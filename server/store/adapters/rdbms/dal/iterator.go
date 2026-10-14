@@ -73,7 +73,13 @@ func (i *iterator) Next(ctx context.Context) bool {
 		return false
 	}
 
-	return i.rows.Next()
+	if i.rows.Next() {
+		return true
+	}
+
+	// rows end on an error as well as on the last row
+	i.err = i.rows.Err()
+	return false
 }
 
 // More fetches more records from the point of last record

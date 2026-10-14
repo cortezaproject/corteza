@@ -929,3 +929,48 @@ func TestModel_SearchSortNonCanonicalTimestamps(t *testing.T) {
 	req.NoError(i.Err())
 	req.Equal([]uint64{4, 3, 2, 1}, ids)
 }
+
+// A query that fails midway reports the failure instead of ending as if the
+// rows had run out
+func TestModel_SearchReportsInterruptedRows(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+
+		baseModel = &dal.Model{
+			Ident: t.Name(),
+			Attributes: []*dal.Attribute{
+				dal.PrimaryAttribute("id", &dal.CodecAlias{Ident: "id"}),
+				{Ident: "name", Type: &dal.TypeText{}, Store: &dal.CodecRecordValueSetJSON{Ident: "values"}, Sortable: true},
+			},
+		}
+
+		m = Model(baseModel, s.DB, s.Dialect)
+
+		table, err = s.DataDefiner.ConvertModel(baseModel)
+	)
+
+	req.NoError(err)
+	table.Temporary = true
+	req.NoError(s.DataDefiner.TableCreate(ctx, table))
+	req.NoError(truncate(ctx, table.Ident))
+
+	for i := 1; i <= 50; i++ {
+		req.NoError(m.Create(ctx, &kv{"id": uint64(i), "name": fmt.Sprintf("n%d", i)}))
+	}
+
+	qctx, cancel := context.WithCancel(ctx)
+	i, err := m.Search(filter.Generic(filter.WithOrderBy(filter.SortExprSet{&filter.SortExpr{Column: "id"}})))
+	req.NoError(err)
+	defer i.Close()
+
+	req.True(i.Next(qctx))
+	req.NoError(i.Scan(kv{}))
+
+	cancel()
+	for i.Next(qctx) {
+		req.NoError(i.Scan(kv{}))
+	}
+
+	req.Error(i.Err(), "a cancelled query is an error, not the end of the rows")
+}
