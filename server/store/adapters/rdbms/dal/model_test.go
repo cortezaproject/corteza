@@ -10,6 +10,8 @@ import (
 	. "github.com/cortezaproject/corteza/server/store/adapters/rdbms/dal"
 	"github.com/spf13/cast"
 	"github.com/stretchr/testify/require"
+	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -933,6 +935,10 @@ func TestModel_SearchSortNonCanonicalTimestamps(t *testing.T) {
 // A query that fails midway reports the failure instead of ending as if the
 // rows had run out
 func TestModel_SearchReportsInterruptedRows(t *testing.T) {
+	if dsn := os.Getenv("DB_DSN"); dsn != "" && !strings.HasPrefix(dsn, "sqlite") {
+		t.Skip("only SQLite reports a cancelled query through rows.Err midway")
+	}
+
 	var (
 		req = require.New(t)
 		ctx = context.Background()
