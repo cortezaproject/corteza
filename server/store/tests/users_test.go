@@ -255,6 +255,51 @@ func testUsers(t *testing.T, s store.Users) {
 		}
 	})
 
+	t.Run("paging sorted by a column name", func(t *testing.T) {
+		// a sort given by column name pages like one given by field name
+		req := require.New(t)
+		req.NoError(s.TruncateUsers(ctx))
+
+		const items = 12
+		for i := 1; i <= items; i++ {
+			u := makeNew(fmt.Sprintf("%02d", i))
+			u.CreatedAt = time.Date(2024, 1, i, 0, 0, 0, 0, time.UTC)
+			req.NoError(s.CreateUser(ctx, u))
+		}
+
+		for _, sort := range []string{"created_at", "created_at DESC", "ID"} {
+			t.Run(sort, func(t *testing.T) {
+				req := require.New(t)
+				seen := make(map[uint64]int)
+
+				f := types.UserFilter{}
+				f.Limit = 5
+				req.NoError(f.Sort.Set(sort))
+
+				for page := 0; ; page++ {
+					req.Less(page, items, "paging ends")
+
+					set, out, err := store.SearchUsers(ctx, s, f)
+					req.NoError(err)
+					for _, u := range set {
+						seen[u.ID]++
+					}
+
+					if out.NextPage == nil {
+						break
+					}
+
+					f.PageCursor = out.NextPage
+				}
+
+				req.Len(seen, items, "every user is paged over")
+				for id, n := range seen {
+					req.Equal(1, n, "user %d is returned once", id)
+				}
+			})
+		}
+	})
+
 	t.Run("paging and sorting", func(t *testing.T) {
 		require.NoError(t, s.TruncateUsers(ctx))
 		require.NoError(t, s.CreateUser(ctx,

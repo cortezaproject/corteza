@@ -695,9 +695,10 @@ func (s *Store) {{ .fnIdent }}(res *{{ .goType }}, cc ...*filter.SortExpr) *filt
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				{{- range .fields }}
-				case {{ printf "%q" .ident }}:
+				case {{ printf "%q" (lower .ident) }}{{ if ne (lower .ident) (lower .name) }}, {{ printf "%q" (lower .name) }}{{ end }}:
 					{{- if .primaryKey }}
 	                                        pk{{ .expIdent }} = true
 	                                {{- else if .unique }}

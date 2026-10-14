@@ -365,7 +365,8 @@ func (s *Store) collectActionlogCursorValues(res *actionlogType.Action, cc ...*f
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -1061,7 +1062,8 @@ func (s *Store) collectApigwFilterCursorValues(res *systemType.ApigwFilter, cc .
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -1073,11 +1075,11 @@ func (s *Store) collectApigwFilterCursorValues(res *systemType.ApigwFilter, cc .
 					return res.Kind
 				case "enabled":
 					return res.Enabled
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -1773,7 +1775,8 @@ func (s *Store) collectApigwRouteCursorValues(res *systemType.ApigwRoute, cc ...
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -1785,11 +1788,11 @@ func (s *Store) collectApigwRouteCursorValues(res *systemType.ApigwRoute, cc ...
 					return res.Enabled
 				case "group":
 					return res.Group
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -2442,7 +2445,8 @@ func (s *Store) collectApplicationCursorValues(res *systemType.Application, cc .
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -2452,11 +2456,11 @@ func (s *Store) collectApplicationCursorValues(res *systemType.Application, cc .
 					return res.Enabled
 				case "weight":
 					return res.Weight
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -3106,7 +3110,8 @@ func (s *Store) collectAttachmentCursorValues(res *systemType.Attachment, cc ...
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -3114,11 +3119,11 @@ func (s *Store) collectAttachmentCursorValues(res *systemType.Attachment, cc ...
 					return res.Kind
 				case "name":
 					return res.Name
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -3818,7 +3823,8 @@ func (s *Store) collectAuthClientCursorValues(res *systemType.AuthClient, cc ...
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -3829,15 +3835,15 @@ func (s *Store) collectAuthClientCursorValues(res *systemType.AuthClient, cc ...
 					return res.Enabled
 				case "trusted":
 					return res.Trusted
-				case "validFrom":
+				case "validfrom", "valid_from":
 					return res.ValidFrom
-				case "expiresAt":
+				case "expiresat", "expires_at":
 					return res.ExpiresAt
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -4191,14 +4197,15 @@ func (s *Store) collectAuthConfirmedClientCursorValues(res *systemType.AuthConfi
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
-				case "userID":
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
+				case "userid", "user_id":
 					pkUserID = true
 					return res.UserID
-				case "clientID":
+				case "clientid", "client_id":
 					pkClientID = true
 					return res.ClientID
-				case "confirmedAt":
+				case "confirmedat", "confirmed_at":
 					return res.ConfirmedAt
 				}
 				return nil
@@ -4644,13 +4651,14 @@ func (s *Store) collectAuthOa2tokenCursorValues(res *systemType.AuthOa2token, cc
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "expiresAt":
+				case "expiresat", "expires_at":
 					return res.ExpiresAt
 				}
 				return nil
@@ -4973,13 +4981,14 @@ func (s *Store) collectAuthSessionCursorValues(res *systemType.AuthSession, cc .
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
-				case "expiresAt":
+				case "expiresat", "expires_at":
 					return res.ExpiresAt
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
 				}
 				return nil
@@ -5638,25 +5647,26 @@ func (s *Store) collectAutomationSessionCursorValues(res *automationType.Session
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
-				case "workflowID":
+				case "workflowid", "workflow_id":
 					return res.WorkflowID
 				case "status":
 					return res.Status
-				case "eventType":
+				case "eventtype", "event_type":
 					return res.EventType
-				case "resourceType":
+				case "resourcetype", "resource_type":
 					return res.ResourceType
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "purgeAt":
+				case "purgeat", "purge_at":
 					return res.PurgeAt
-				case "suspendedAt":
+				case "suspendedat", "suspended_at":
 					return res.SuspendedAt
-				case "completedAt":
+				case "completedat", "completed_at":
 					return res.CompletedAt
 				}
 				return nil
@@ -6313,23 +6323,24 @@ func (s *Store) collectAutomationTriggerCursorValues(res *automationType.Trigger
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
-				case "workflowID":
+				case "workflowid", "workflow_id":
 					return res.WorkflowID
 				case "enabled":
 					return res.Enabled
-				case "resourceType":
+				case "resourcetype", "resource_type":
 					return res.ResourceType
-				case "eventType":
+				case "eventtype", "event_type":
 					return res.EventType
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -7024,7 +7035,8 @@ func (s *Store) collectAutomationWorkflowCursorValues(res *automationType.Workfl
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -7033,11 +7045,11 @@ func (s *Store) collectAutomationWorkflowCursorValues(res *automationType.Workfl
 					return res.Handle
 				case "enabled":
 					return res.Enabled
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -7716,21 +7728,22 @@ func (s *Store) collectComposeAttachmentCursorValues(res *composeType.Attachment
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
-				case "ownerID":
+				case "ownerid", "owner_id":
 					return res.OwnerID
 				case "kind":
 					return res.Kind
 				case "name":
 					return res.Name
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -8424,7 +8437,8 @@ func (s *Store) collectComposeChartCursorValues(res *composeType.Chart, cc ...*f
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -8433,11 +8447,11 @@ func (s *Store) collectComposeChartCursorValues(res *composeType.Chart, cc ...*f
 					return res.Handle
 				case "name":
 					return res.Name
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -9173,7 +9187,8 @@ func (s *Store) collectComposeModuleCursorValues(res *composeType.Module, cc ...
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -9182,11 +9197,11 @@ func (s *Store) collectComposeModuleCursorValues(res *composeType.Module, cc ...
 					return res.Handle
 				case "name":
 					return res.Name
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -9589,7 +9604,8 @@ func (s *Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleFie
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -9601,11 +9617,11 @@ func (s *Store) collectComposeModuleFieldCursorValues(res *composeType.ModuleFie
 					return res.Name
 				case "label":
 					return res.Label
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -10330,7 +10346,8 @@ func (s *Store) collectComposeNamespaceCursorValues(res *composeType.Namespace, 
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -10338,11 +10355,11 @@ func (s *Store) collectComposeNamespaceCursorValues(res *composeType.Namespace, 
 					return res.Slug
 				case "name":
 					return res.Name
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -11108,7 +11125,8 @@ func (s *Store) collectComposePageCursorValues(res *composeType.Page, cc ...*fil
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -11117,15 +11135,15 @@ func (s *Store) collectComposePageCursorValues(res *composeType.Page, cc ...*fil
 				case "handle":
 					hasUnique = true
 					return res.Handle
-				case "selfID":
+				case "selfid", "self_id":
 					return res.SelfID
 				case "weight":
 					return res.Weight
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -11866,24 +11884,25 @@ func (s *Store) collectComposePageLayoutCursorValues(res *composeType.PageLayout
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
 				case "handle":
 					hasUnique = true
 					return res.Handle
-				case "pageID":
+				case "pageid", "page_id":
 					return res.PageID
-				case "parentID":
+				case "parentid", "parent_id":
 					return res.ParentID
 				case "weight":
 					return res.Weight
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -12214,19 +12233,20 @@ func (s *Store) collectCredentialCursorValues(res *systemType.Credential, cc ...
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
-				case "lastUsedAt":
+				case "lastusedat", "last_used_at":
 					return res.LastUsedAt
-				case "expiresAt":
+				case "expiresat", "expires_at":
 					return res.ExpiresAt
 				}
 				return nil
@@ -12921,7 +12941,8 @@ func (s *Store) collectDalConnectionCursorValues(res *systemType.DalConnection, 
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -12930,11 +12951,11 @@ func (s *Store) collectDalConnectionCursorValues(res *systemType.DalConnection, 
 					return res.Handle
 				case "type":
 					return res.Type
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -13558,19 +13579,20 @@ func (s *Store) collectDalSchemaAlterationCursorValues(res *systemType.DalSchema
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
-				case "completedAt":
+				case "completedat", "completed_at":
 					return res.CompletedAt
-				case "dismissedAt":
+				case "dismissedat", "dismissed_at":
 					return res.DismissedAt
 				}
 				return nil
@@ -14222,7 +14244,8 @@ func (s *Store) collectDalSensitivityLevelCursorValues(res *systemType.DalSensit
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -14231,11 +14254,11 @@ func (s *Store) collectDalSensitivityLevelCursorValues(res *systemType.DalSensit
 					return res.Handle
 				case "level":
 					return res.Level
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -14891,7 +14914,8 @@ func (s *Store) collectDataPrivacyRequestCursorValues(res *systemType.DataPrivac
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -14899,15 +14923,15 @@ func (s *Store) collectDataPrivacyRequestCursorValues(res *systemType.DataPrivac
 					return res.Kind
 				case "status":
 					return res.Status
-				case "requestedAt":
+				case "requestedat", "requested_at":
 					return res.RequestedAt
-				case "completedAt":
+				case "completedat", "completed_at":
 					return res.CompletedAt
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -15515,15 +15539,16 @@ func (s *Store) collectDataPrivacyRequestCommentCursorValues(res *systemType.Dat
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -16177,7 +16202,8 @@ func (s *Store) collectFederationExposedModuleCursorValues(res *federationType.E
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -16186,13 +16212,13 @@ func (s *Store) collectFederationExposedModuleCursorValues(res *federationType.E
 					return res.Handle
 				case "name":
 					return res.Name
-				case "nodeID":
+				case "nodeid", "node_id":
 					return res.NodeID
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -16876,15 +16902,16 @@ func (s *Store) collectFederationModuleMappingCursorValues(res *federationType.M
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
-				case "nodeID":
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
+				case "nodeid", "node_id":
 					hasUnique = true
 					return res.NodeID
-				case "federationModuleID":
+				case "federationmoduleid", "federation_module_id":
 					return res.FederationModuleID
-				case "composeModuleID":
+				case "composemoduleid", "compose_module_id":
 					return res.ComposeModuleID
-				case "composeNamespaceID":
+				case "composenamespaceid", "compose_namespace_id":
 					return res.ComposeNamespaceID
 				}
 				return nil
@@ -17619,25 +17646,26 @@ func (s *Store) collectFederationNodeCursorValues(res *federationType.Node, cc .
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
-				case "sharedNodeID":
+				case "sharednodeid", "shared_node_id":
 					return res.SharedNodeID
 				case "name":
 					return res.Name
-				case "baseURL":
+				case "baseurl", "base_url":
 					return res.BaseURL
 				case "status":
 					return res.Status
 				case "contact":
 					return res.Contact
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -18324,16 +18352,17 @@ func (s *Store) collectFederationNodeSyncCursorValues(res *federationType.NodeSy
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
-				case "nodeID":
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
+				case "nodeid", "rel_node":
 					return res.NodeID
-				case "moduleID":
+				case "moduleid", "rel_module":
 					return res.ModuleID
-				case "syncType":
+				case "synctype", "sync_type":
 					return res.SyncType
-				case "syncStatus":
+				case "syncstatus", "sync_status":
 					return res.SyncStatus
-				case "timeOfAction":
+				case "timeofaction", "time_of_action":
 					return res.TimeOfAction
 				}
 				return nil
@@ -18986,24 +19015,25 @@ func (s *Store) collectFederationSharedModuleCursorValues(res *federationType.Sh
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
 				case "handle":
 					hasUnique = true
 					return res.Handle
-				case "nodeID":
+				case "nodeid", "node_id":
 					return res.NodeID
 				case "name":
 					return res.Name
-				case "externalFederationModuleID":
+				case "externalfederationmoduleid", "external_federation_module_id":
 					return res.ExternalFederationModuleID
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -19336,14 +19366,15 @@ func (s *Store) collectFlagCursorValues(res *flagType.Flag, cc ...*filter.SortEx
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "kind":
 					pkKind = true
 					return res.Kind
-				case "resourceID":
+				case "resourceid", "resource_id":
 					pkResourceID = true
 					return res.ResourceID
-				case "ownedBy":
+				case "ownedby", "owned_by":
 					pkOwnedBy = true
 					return res.OwnedBy
 				case "name":
@@ -19684,11 +19715,12 @@ func (s *Store) collectLabelCursorValues(res *labelsType.Label, cc ...*filter.So
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "kind":
 					pkKind = true
 					return res.Kind
-				case "resourceID":
+				case "resourceid", "resource_id":
 					pkResourceID = true
 					return res.ResourceID
 				case "name":
@@ -20349,19 +20381,20 @@ func (s *Store) collectNotificationCursorValues(res *systemType.Notification, cc
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
 				case "kind":
 					return res.Kind
-				case "readAt":
+				case "readat", "read_at":
 					return res.ReadAt
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -21051,7 +21084,8 @@ func (s *Store) collectQueueCursorValues(res *systemType.Queue, cc ...*filter.So
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -21059,11 +21093,11 @@ func (s *Store) collectQueueCursorValues(res *systemType.Queue, cc ...*filter.So
 					return res.Consumer
 				case "queue":
 					return res.Queue
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -21612,7 +21646,8 @@ func (s *Store) collectQueueMessageCursorValues(res *systemType.QueueMessage, cc
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -21906,8 +21941,9 @@ func (s *Store) collectRbacRuleCursorValues(res *rbacType.Rule, cc ...*filter.So
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
-				case "roleID":
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
+				case "roleid", "role_id":
 					pkRoleID = true
 					return res.RoleID
 				case "resource":
@@ -22575,23 +22611,24 @@ func (s *Store) collectReminderCursorValues(res *systemType.Reminder, cc ...*fil
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
 				case "resource":
 					return res.Resource
-				case "assignedAt":
+				case "assignedat", "assigned_at":
 					return res.AssignedAt
-				case "dismissedAt":
+				case "dismissedat", "dismissed_at":
 					return res.DismissedAt
-				case "remindAt":
+				case "remindat", "remind_at":
 					return res.RemindAt
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -23285,18 +23322,19 @@ func (s *Store) collectReportCursorValues(res *systemType.Report, cc ...*filter.
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
 				case "handle":
 					hasUnique = true
 					return res.Handle
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -23603,7 +23641,8 @@ func (s *Store) collectResourceActivityCursorValues(res *discoveryType.ResourceA
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -24200,15 +24239,16 @@ func (s *Store) collectResourceTranslationCursorValues(res *systemType.ResourceT
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -24948,7 +24988,8 @@ func (s *Store) collectRoleCursorValues(res *systemType.Role, cc ...*filter.Sort
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -24957,13 +24998,13 @@ func (s *Store) collectRoleCursorValues(res *systemType.Role, cc ...*filter.Sort
 				case "handle":
 					hasUnique = true
 					return res.Handle
-				case "archivedAt":
+				case "archivedat", "archived_at":
 					return res.ArchivedAt
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -25300,11 +25341,12 @@ func (s *Store) collectRoleMemberCursorValues(res *systemType.RoleMember, cc ...
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "resource":
 					pkResource = true
 					return res.Resource
-				case "roleID":
+				case "roleid", "role_id":
 					pkRoleID = true
 					return res.RoleID
 				}
@@ -25634,14 +25676,15 @@ func (s *Store) collectSettingValueCursorValues(res *systemType.SettingValue, cc
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
-				case "ownedBy":
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
+				case "ownedby", "owned_by":
 					pkOwnedBy = true
 					return res.OwnedBy
 				case "name":
 					pkName = true
 					return res.Name
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
 				}
 				return nil
@@ -26343,7 +26386,8 @@ func (s *Store) collectTemplateCursorValues(res *systemType.Template, cc ...*fil
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -26356,13 +26400,13 @@ func (s *Store) collectTemplateCursorValues(res *systemType.Template, cc ...*fil
 					return res.Type
 				case "template":
 					return res.Template
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
-				case "lastUsedAt":
+				case "lastusedat", "last_used_at":
 					return res.LastUsedAt
 				}
 				return nil
@@ -27175,7 +27219,8 @@ func (s *Store) collectUserCursorValues(res *systemType.User, cc ...*filter.Sort
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
@@ -27192,13 +27237,13 @@ func (s *Store) collectUserCursorValues(res *systemType.User, cc ...*filter.Sort
 					return res.Handle
 				case "kind":
 					return res.Kind
-				case "suspendedAt":
+				case "suspendedat", "suspended_at":
 					return res.SuspendedAt
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
@@ -27975,20 +28020,21 @@ func (s *Store) collectUserGroupCursorValues(res *systemType.UserGroup, cc ...*f
 
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
-				switch col {
+				// a sort names the field or its column, in any case
+				switch strings.ToLower(col) {
 				case "id":
 					pkID = true
 					return res.ID
 				case "handle":
 					hasUnique = true
 					return res.Handle
-				case "archivedAt":
+				case "archivedat", "archived_at":
 					return res.ArchivedAt
-				case "createdAt":
+				case "createdat", "created_at":
 					return res.CreatedAt
-				case "updatedAt":
+				case "updatedat", "updated_at":
 					return res.UpdatedAt
-				case "deletedAt":
+				case "deletedat", "deleted_at":
 					return res.DeletedAt
 				}
 				return nil
