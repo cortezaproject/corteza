@@ -27,7 +27,7 @@ func (svc record) reportReadable(ctx context.Context, m *types.Module, f string)
 	// names this one, and nobody owns the record.
 	probe := &types.Record{ID: ^uint64(0), NamespaceID: m.NamespaceID, ModuleID: m.ID}
 	probe.SetModule(m)
-	if svc.ac.CanReadRecord(ctx, probe) && !recordReadDenied(svc.ac, m) {
+	if svc.ac.CanReadRecord(ctx, probe) && !recordReadDenied(ctx, svc.ac, m) {
 		return nil, nil
 	}
 
@@ -53,9 +53,13 @@ func (svc record) reportReadable(ctx context.Context, m *types.Module, f string)
 	return ids, nil
 }
 
-// recordReadDenied answers whether any rule denies reading the module's
-// records, or when the rules cannot be listed, whether one may.
-func recordReadDenied(ac any, m *types.Module) bool {
+// recordReadDenied answers whether any rule that can apply to the caller
+// denies reading the module's records, or when the rules cannot be listed,
+// whether one may.
+//
+// A deny given to a role the caller can not hold hides nothing from them;
+// counting it would send everybody's reports through the records one by one.
+func recordReadDenied(ctx context.Context, ac any, m *types.Module) bool {
 	src, ok := ac.(interface{ ruleSet() (rbac.RuleSet, bool) })
 	if !ok {
 		return true
@@ -65,6 +69,14 @@ func recordReadDenied(ac any, m *types.Module) bool {
 		return true
 	}
 
+	// nil when the roles cannot be listed: every deny counts
+	var applicable map[uint64]bool
+	if src, ok := ac.(interface {
+		applicableRoles(context.Context) (map[uint64]bool, bool)
+	}); ok {
+		applicable, _ = src.applicableRoles(ctx)
+	}
+
 	var (
 		prefix = types.RecordResourceType + "/"
 		ns     = strconv.FormatUint(m.NamespaceID, 10)
@@ -72,6 +84,9 @@ func recordReadDenied(ac any, m *types.Module) bool {
 	)
 	for _, r := range rr {
 		if r.Operation != "read" || r.Access != rbac.Deny || !strings.HasPrefix(r.Resource, prefix) {
+			continue
+		}
+		if applicable != nil && !applicable[r.RoleID] {
 			continue
 		}
 		path := strings.Split(strings.TrimPrefix(r.Resource, prefix), "/")
@@ -88,4 +103,16 @@ func (svc accessControl) ruleSet() (rbac.RuleSet, bool) {
 		return src.Rules(), true
 	}
 	return nil, false
+}
+
+// applicableRoles lists the roles whose rules can apply to the caller, and
+// whether the RBAC service could.
+func (svc accessControl) applicableRoles(ctx context.Context) (map[uint64]bool, bool) {
+	src, ok := svc.rbac.(interface {
+		ApplicableRoles(rbac.Session) map[uint64]bool
+	})
+	if !ok {
+		return nil, false
+	}
+	return src.ApplicableRoles(rbac.ContextToSession(ctx)), true
 }

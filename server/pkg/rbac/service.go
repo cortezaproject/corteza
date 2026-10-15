@@ -390,6 +390,34 @@ func (svc *service) Rules() (rr RuleSet) {
 	return svc.rules
 }
 
+// ApplicableRoles returns IDs of roles whose rules can take part in a check
+// for the session: its own roles, roles of the user groups it is a member of
+// and every contextual role, since those depend on the checked resource
+func (svc *service) ApplicableRoles(ses Session) map[uint64]bool {
+	out := make(map[uint64]bool)
+	for _, r := range ses.Roles() {
+		out[r] = true
+	}
+
+	svc.l.RLock()
+	for _, r := range svc.roles {
+		if r.kind == ContextRole {
+			out[r.id] = true
+		}
+	}
+	svc.l.RUnlock()
+
+	// not being a member of any group is not an error here
+	nn, _ := svc.orgTree.MemberBranch(id.MustNumID(ses.Identity()))
+	for _, n := range nn {
+		for _, r := range n.roles {
+			out[r.Number()] = true
+		}
+	}
+
+	return out
+}
+
 // Reload store rules
 func (svc *service) Reload(ctx context.Context) {
 	svc.l.Lock()

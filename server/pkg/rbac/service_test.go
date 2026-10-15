@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -342,4 +344,33 @@ func RandStringRunes(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+func TestApplicableRoles(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+		svc = NewService(zap.NewNop(), nil)
+	)
+
+	svc.UpdateRoles(
+		CommonRole.Make(1, "own"),
+		CommonRole.Make(2, "other"),
+		MakeContextRole(3, "owner", func(map[string]interface{}) bool { return true }, "corteza::compose:record"),
+		CommonRole.Make(4, "group"),
+	)
+
+	// no org tree loaded yet: no group roles
+	req.Equal(map[uint64]bool{1: true, 3: true}, svc.ApplicableRoles(ParamsToSession(ctx, 50, 1)))
+
+	req.NoError(svc.UpdateUserGroups())
+	req.NoError(svc.AddNode(id.MustNumID(101), "root"))
+	req.NoError(svc.AddGroupRole(id.MustNumID(101), id.MustNumID(4)))
+	req.NoError(svc.AssignGroupMembers(id.MustNumID(101), id.MustNumID(50)))
+
+	// own roles, the user group's roles and every contextual role
+	req.Equal(map[uint64]bool{1: true, 3: true, 4: true}, svc.ApplicableRoles(ParamsToSession(ctx, 50, 1)))
+
+	// not a member of any group
+	req.Equal(map[uint64]bool{2: true, 3: true}, svc.ApplicableRoles(ParamsToSession(ctx, 60, 2)))
 }
