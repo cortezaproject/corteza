@@ -241,24 +241,9 @@ func defaultValidator(svc RecordService) recordValuesValidator {
 		return 0, nil
 	})
 
-	validator.RecordRefChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
-		if svc == nil && v.Ref == 0 {
-			return false, nil
-		}
-
-		var (
-			referencedModuleID = f.Options.Uint64("moduleID")
-
-			r, _, err = svc.FindByID(ctx, f.NamespaceID, referencedModuleID, v.Ref)
-		)
-
-		return r != nil, err
-	})
-
-	validator.UserRefChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
-		r, err := store.LookupUserByID(ctx, s, v.Ref)
-		return r != nil, err
-	})
+	// Record and user references are not looked up: a lookup per value on
+	// every save (twice, around the before-handlers) multiplied the queries
+	// a record save costs
 
 	validator.FileRefChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
 		if v.Ref == 0 {

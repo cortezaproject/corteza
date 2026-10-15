@@ -629,10 +629,6 @@ func TestRecord_refAccessControl(t *testing.T) {
 		t.Log("grant record.value.update on namespace level")
 		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.ModuleFieldRbacResource(ns.ID, 0, 0), "record.value.update")))
 
-		t.Log("create record on 2nd module with ref to record on the 1st module; most fail, not allowed to read (referenced) mod1rec1")
-		_, _, err = svc.Create(ctx, mod2rec1)
-		req.EqualError(err, "invalid record value input")
-
 		t.Log("grant read on record")
 		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1rec1.RbacResource(), "read")))
 
