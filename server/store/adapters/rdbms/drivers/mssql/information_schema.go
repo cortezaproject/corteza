@@ -51,8 +51,8 @@ func (i *informationSchema) columnSelect(dbname string) *goqu.SelectDataset {
 		"IS_NULLABLE",
 		"DATA_TYPE",
 		"CHARACTER_MAXIMUM_LENGTH",
+		"NUMERIC_PRECISION",
 		"NUMERIC_SCALE",
-		"DATETIME_PRECISION",
 	).
 		// @note this goqu.I is a cheat; try to figure out if we have something nicer available (same applies to lower code)
 		From(goqu.I(dbObject(dbname, "INFORMATION_SCHEMA.COLUMNS"))).
@@ -75,7 +75,7 @@ func (i *informationSchema) scanColumns(ctx context.Context, sd *goqu.SelectData
 			IsNullable string `db:"IS_NULLABLE"`
 			Type       string `db:"DATA_TYPE"`
 			// We'll use these two to get numeric's precision and scale
-			Precision any `db:"DATETIME_PRECISION"`
+			Precision any `db:"NUMERIC_PRECISION"`
 			Scale     any `db:"NUMERIC_SCALE"`
 			// We'll use this one to get varchar length
 			MaxLength any `db:"CHARACTER_MAXIMUM_LENGTH"`
