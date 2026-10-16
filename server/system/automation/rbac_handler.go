@@ -95,8 +95,9 @@ func (h rbacHandler) inherit(ctx context.Context, args *rbacInheritArgs) (err er
 
 func (h rbacHandler) grant(ctx context.Context, r *rbac.Rule) (err error) {
 	// we can safely create a fake component resource since there are
-	// no extra metadata hidden under it,
-	cmpRes := &auxResource{rbac.ResourceComponent(r.Resource)}
+	// no extra metadata hidden under it; written the way component
+	// resources are, with a trailing /, so the grant rules match it
+	cmpRes := &auxResource{rbac.ResourceComponent(r.Resource) + "/"}
 
 	if !h.rbac.Can(rbac.ContextToSession(ctx), "grant", cmpRes) {
 		return fmt.Errorf("not allowed to grant %s", r.String())
