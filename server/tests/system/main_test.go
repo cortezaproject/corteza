@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/app"
 	"github.com/cortezaproject/corteza/server/auth/handlers"
@@ -135,6 +136,9 @@ func newHelper(t *testing.T) helper {
 		roleID: id.Next(),
 		cUser: &types.User{
 			ID: id.Next(),
+			// SQL Server DATETIME can not hold the zero time, and tests use
+			// this one as a date
+			CreatedAt: time.Now(),
 		},
 		data: mockData,
 	}

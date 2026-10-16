@@ -3,6 +3,7 @@ package workflows
 import (
 	"context"
 	"fmt"
+	"time"
 
 	// "fmt"
 	"path"
@@ -144,6 +145,8 @@ func loadScenarioWithName(ctx context.Context, t *testing.T, scenario string) {
 func bypassRBAC(ctx context.Context) context.Context {
 	u := &sysTypes.User{
 		ID: id.Next(),
+		// SQL Server DATETIME can not hold the zero time
+		CreatedAt: time.Now(),
 	}
 
 	if err := defStore.CreateUser(ctx, u); err != nil {
