@@ -231,10 +231,13 @@ func (mssqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 		col.Type.Name = "NVARCHAR(MAX)"
 
 	case *dal.TypeJSON:
-		col.Type.Name = "NVARCHAR(MAX)"
+		// VARCHAR, not NVARCHAR: JSON is written as bytes, which SQL Server
+		// reads as UTF-16 when it stores them in an NVARCHAR column, leaving
+		// the JSON unreadable. A UTF-8 collation keeps non-Latin text intact.
+		col.Type.Name = "VARCHAR(MAX)"
 
 	case *dal.TypeGeometry:
-		col.Type.Name = "NVARCHAR(MAX)"
+		col.Type.Name = "VARCHAR(MAX)"
 
 	case *dal.TypeBlob:
 		col.Type.Name = "VARBINARY(MAX)"

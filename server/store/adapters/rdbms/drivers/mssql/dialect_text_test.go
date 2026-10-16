@@ -9,7 +9,8 @@ import (
 )
 
 // Text must be stored as Unicode (NVARCHAR); VARCHAR turns characters
-// outside of the database collation into "?"
+// outside of the database collation into "?". JSON and geometry stay VARCHAR:
+// they are written as bytes, which an NVARCHAR column reads as UTF-16.
 func TestAttributeToColumnText(t *testing.T) {
 	tcc := []struct {
 		name     string
@@ -19,8 +20,8 @@ func TestAttributeToColumnText(t *testing.T) {
 		{name: "text", typ: &dal.TypeText{}, expected: "NVARCHAR(MAX)"},
 		{name: "text with length", typ: &dal.TypeText{Length: 64}, expected: "NVARCHAR(64)"},
 		{name: "enum", typ: &dal.TypeEnum{}, expected: "NVARCHAR(MAX)"},
-		{name: "json", typ: &dal.TypeJSON{}, expected: "NVARCHAR(MAX)"},
-		{name: "geometry", typ: &dal.TypeGeometry{}, expected: "NVARCHAR(MAX)"},
+		{name: "json", typ: &dal.TypeJSON{}, expected: "VARCHAR(MAX)"},
+		{name: "geometry", typ: &dal.TypeGeometry{}, expected: "VARCHAR(MAX)"},
 	}
 
 	for _, c := range tcc {
@@ -37,6 +38,15 @@ func TestAttributeToColumnText(t *testing.T) {
 func TestColumnFits_existingVarchar(t *testing.T) {
 	target := &ddl.Column{Type: &ddl.ColumnType{Name: "varchar(max)"}}
 	assertCol := &ddl.Column{Type: &ddl.ColumnType{Name: "NVARCHAR(MAX)"}}
+
+	assert.True(t, Dialect().ColumnFits(target, assertCol))
+}
+
+// JSON columns altered to NVARCHAR by hand are not reported as needing
+// alterations either
+func TestColumnFits_existingNvarcharJSON(t *testing.T) {
+	target := &ddl.Column{Type: &ddl.ColumnType{Name: "nvarchar(max)"}}
+	assertCol := &ddl.Column{Type: &ddl.ColumnType{Name: "VARCHAR(MAX)"}}
 
 	assert.True(t, Dialect().ColumnFits(target, assertCol))
 }
