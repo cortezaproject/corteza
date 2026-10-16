@@ -67,21 +67,28 @@ func ruleByRole(base RuleSet, roleID uint64) (out RuleSet) {
 }
 
 // Dirty returns list of deleted (Access==Inherit) and changed (dirty) rules
+//
+// Only removed and changed rules are copied; unchanged ones are kept as they
+// are, copying every rule on every flush is what made a grant slow down as
+// rules piled up
 func flushable(set RuleSet) (deletable, updatable, final RuleSet) {
-	deletable, updatable, final = RuleSet{}, RuleSet{}, RuleSet{}
+	deletable, updatable, final = RuleSet{}, RuleSet{}, make(RuleSet, 0, len(set))
 
 	for _, r := range set {
-		var c = *r
 		if r.Access == Inherit {
+			var c = *r
 			deletable = append(deletable, &c)
 			continue
 		}
 
 		if r.dirty {
+			var c = *r
 			updatable = append(updatable, &c)
+			final = append(final, &c)
+			continue
 		}
 
-		final = append(final, &c)
+		final = append(final, r)
 	}
 
 	return

@@ -32,30 +32,40 @@ func buildRuleIndex(rules []*Rule) (index *ruleIndex) {
 	}
 
 	for _, r := range rules {
-		if _, ok := index.children[r.RoleID]; !ok {
-			index.children[r.RoleID] = &ruleIndexNode{
-				children: make(map[string]*ruleIndexNode, 4),
-			}
-		}
-		n := index.children[r.RoleID]
-
-		bits := append([]string{r.Operation}, strings.Split(r.Resource, "/")...)
-		for _, b := range bits {
-			if _, ok := n.children[b]; !ok {
-				n.children[b] = &ruleIndexNode{
-					children: make(map[string]*ruleIndexNode, 4),
-				}
-			}
-
-			n = n.children[b]
-		}
-
-		n.isLeaf = true
-		n.access = r.Access
-		n.rule = r
+		index.add(r)
 	}
 
 	return index
+}
+
+// add indexes one rule, replacing the one indexed under the same role,
+// operation and resource
+func (t *ruleIndex) add(r *Rule) {
+	if t.children == nil {
+		t.children = make(map[uint64]*ruleIndexNode, 8)
+	}
+
+	if _, ok := t.children[r.RoleID]; !ok {
+		t.children[r.RoleID] = &ruleIndexNode{
+			children: make(map[string]*ruleIndexNode, 4),
+		}
+	}
+	n := t.children[r.RoleID]
+
+	bits := append([]string{r.Operation}, strings.Split(r.Resource, "/")...)
+	for _, b := range bits {
+		if _, ok := n.children[b]; !ok {
+			n.children[b] = &ruleIndexNode{
+				children: make(map[string]*ruleIndexNode, 4),
+			}
+		}
+
+		n = n.children[b]
+	}
+
+	n.isLeaf = true
+	n.access = r.Access
+	n.rule = r
 }
 
 // get returns all RBAC rules matching these constraints

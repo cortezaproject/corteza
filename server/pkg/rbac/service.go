@@ -334,7 +334,19 @@ func (svc *service) Grant(ctx context.Context, rules ...*Rule) (err error) {
 
 func (svc *service) grant(rules ...*Rule) {
 	svc.rules = merge(svc.rules, rules...)
-	svc.indexed = buildRuleIndex(svc.rules)
+
+	// The granted rules go into the index in place, which is what rebuilding
+	// it from every rule would give; removed (Inherit) rules leave it once the
+	// flush drops them
+	if svc.indexed == nil {
+		svc.indexed = buildRuleIndex(svc.rules)
+		return
+	}
+
+	for _, r := range rules {
+		c := *r
+		svc.indexed.add(&c)
+	}
 }
 
 // Watch reloads RBAC rules in intervals and on request
@@ -511,6 +523,11 @@ func (svc *service) flush(ctx context.Context) (err error) {
 
 	clear(final)
 	svc.rules = final
+
+	if len(deletable) > 0 {
+		// drop the removed rules from the index as well
+		svc.indexed = buildRuleIndex(final)
+	}
 	svc.logger.Debug(
 		"flushed rules",
 		zap.Int("deleted", len(deletable)),
