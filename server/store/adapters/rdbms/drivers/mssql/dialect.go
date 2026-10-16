@@ -113,11 +113,13 @@ func (d mssqlDialect) JsonExtractUnquote(jsonDoc exp.Expression, pp ...any) (pat
 //
 // This approach is not optimal, but it is the only way to make it work
 func (d mssqlDialect) JsonArrayContains(needle, haystack exp.Expression) (_ exp.Expression, err error) {
-	// @todo untested
+	// The needle is a JSON value ('"text"', 42, true), as JSON_CONTAINS takes
+	// it elsewhere; OPENJSON gives strings unquoted, so each element is turned
+	// back into JSON before comparing ([type] 1 = string, 0 = null)
 	return exp.NewLiteralExpression(
-		"? IN ?",
+		`? IN (SELECT CASE [type] WHEN 1 THEN '"' + STRING_ESCAPE([value], 'json') + '"' WHEN 0 THEN 'null' ELSE [value] END FROM OPENJSON(?))`,
 		needle,
-		exp.NewSQLFunctionExpression("OPENJSON", haystack),
+		haystack,
 	), nil
 	// return exp.NewSQLFunctionExpression(
 
