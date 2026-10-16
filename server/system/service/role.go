@@ -1107,7 +1107,7 @@ func UpdateRbacRoles(ctx context.Context, log *zap.Logger, ru rbacRoleUpdater, b
 			}
 
 			check := func(scope map[string]interface{}) bool {
-				vars, err := expr.NewVars(scope)
+				vars, err := rbac.ScopeVars(scope)
 				if err != nil {
 					log.Warn("failed to convert check scope to expr.Vars, fallback to deny", zap.Error(err))
 					return false

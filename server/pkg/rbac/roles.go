@@ -1,6 +1,7 @@
 package rbac
 
 import (
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/slice"
 	"go.uber.org/zap"
@@ -166,6 +167,9 @@ func getSessionRoles(s Session, res Resource, preloadedRoles []*Role, resolveUse
 		}
 	}
 
+	// contextual roles share one conversion of the scope (see ScopeVars)
+	scope[scopeVarsKey] = &scopeVars{}
+
 	for _, r := range preloadedRoles {
 		if r.kind == ContextRole {
 			if hasWildcards(res.RbacResource()) {
@@ -206,4 +210,40 @@ func getSessionRoles(s Session, res Resource, preloadedRoles []*Role, resolveUse
 	}
 
 	return
+}
+
+// scopeVarsKey holds the memo of a check scope's expression variables; not
+// a name an expression can refer to
+const scopeVarsKey = "\x00vars"
+
+type scopeVars struct {
+	vars *expr.Vars
+	err  error
+	done bool
+}
+
+// ScopeVars converts a contextual role's check scope to expression variables.
+//
+// Every contextual role of a permission check gets the same scope; the
+// conversion (which walks the whole resource, record values included) runs
+// once per check and its result is shared by all of them.
+func ScopeVars(scope map[string]any) (*expr.Vars, error) {
+	memo, _ := scope[scopeVarsKey].(*scopeVars)
+	if memo != nil && memo.done {
+		return memo.vars, memo.err
+	}
+
+	plain := make(map[string]any, len(scope))
+	for k, v := range scope {
+		if k != scopeVarsKey {
+			plain[k] = v
+		}
+	}
+
+	vars, err := expr.NewVars(plain)
+	if memo != nil {
+		memo.vars, memo.err, memo.done = vars, err, true
+	}
+
+	return vars, err
 }

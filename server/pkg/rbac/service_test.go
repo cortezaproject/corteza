@@ -446,3 +446,40 @@ func TestCheckUserGroupsFillIn(t *testing.T) {
 		})
 	}
 }
+
+// Contextual roles of one permission check share one conversion of the scope,
+// which carries the scope's values and not the memo itself
+func TestScopeVarsSharedPerCheck(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+		svc = NewService(zap.NewNop(), nil)
+		res = NewResource("thing/1")
+
+		got = make([]*expr.Vars, 0, 2)
+		fn  = func(scope map[string]interface{}) bool {
+			vars, err := ScopeVars(scope)
+			req.NoError(err)
+			got = append(got, vars)
+			return false
+		}
+	)
+
+	svc.UpdateRoles(
+		CommonRole.Make(1, "common"),
+		MakeContextRole(2, "first", fn, "thing"),
+		MakeContextRole(3, "second", fn, "thing"),
+	)
+
+	svc.Check(ParamsToSession(ctx, 5, 1), "read", res)
+
+	req.Len(got, 2)
+	req.Same(got[0], got[1], "one conversion for both roles")
+	req.True(got[0].Has("userID"))
+	req.False(got[0].Has(scopeVarsKey))
+
+	got = got[:0]
+	svc.Check(ParamsToSession(ctx, 5, 1), "read", res)
+	req.Len(got, 2)
+	req.Same(got[0], got[1])
+}
