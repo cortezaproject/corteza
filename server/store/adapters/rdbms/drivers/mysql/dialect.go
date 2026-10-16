@@ -421,6 +421,11 @@ func (d mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr e
 		for a := range args {
 			args[a] = exp.NewLiteralExpression("LOWER(?)", args[a])
 		}
+
+	case "time":
+		// MySQL 8 types a bound parameter in TIME(?) so that a string such as
+		// '02:00:00' comes out as 00:00:00; passed as text it is parsed right
+		return exp.NewLiteralExpression("TIME(CAST(? AS CHAR))", args[0]), nil
 	}
 
 	return ref2exp.RefHandler(n, args...)
