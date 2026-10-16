@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 )
 
 type (
@@ -95,9 +96,10 @@ func CastToNotificationKind(s string) NotificationKind {
 	}
 }
 
-// Scan implements the sql.Scanner interface
+// Scan implements the sql.Scanner interface; drivers hand JSON over as bytes
+// or as a string (SQL Server), and a panic here would leave the rows locked
 func (nc *NotificationConfig) Scan(src interface{}) error {
-	return json.Unmarshal(src.([]byte), nc)
+	return sql.ParseJSON(src, nc)
 }
 
 // Value implements the driver.Valuer interface
