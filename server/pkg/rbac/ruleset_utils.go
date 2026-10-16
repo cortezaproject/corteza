@@ -26,7 +26,8 @@ func merge(base RuleSet, new ...*Rule) (out RuleSet) {
 			// Never go beyond the last base rule (blen)
 			for o = 0; o < blen; o++ {
 				if eq(out[o], rule) {
-					out[o].dirty = out[o].Access != rule.Access
+					// a rule still waiting to be flushed stays dirty
+					out[o].dirty = out[o].dirty || out[o].Access != rule.Access
 					out[o].Access = rule.Access
 
 					// only one rule can match so proceed with next new rule
