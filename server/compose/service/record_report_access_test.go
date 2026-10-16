@@ -120,3 +120,46 @@ func TestReportReadsAllRecordsContextRoles(t *testing.T) {
 	)
 	require.False(t, readsAllRecords(ctx, ac, m), "a contextual deny")
 }
+
+// The cached deny index follows the rules: a deny granted, then lifted, is
+// seen right away
+func TestRecordReadDeniedFollowsRuleChanges(t *testing.T) {
+	var (
+		req     = require.New(t)
+		m       = &types.Module{ID: 2, NamespaceID: 1}
+		records = types.RecordRbacResource(1, 2, 0)
+		svc     = rbac.NewService(zap.NewNop(), nil)
+		ac      = accessControl{rbac: svc}
+		ctx     = auth.SetIdentityToContext(context.Background(), auth.Authenticated(5, 10))
+	)
+
+	svc.UpdateRoles(rbac.CommonRole.Make(10, "user"))
+	req.False(recordReadDenied(ctx, ac, m))
+
+	req.NoError(svc.Grant(context.Background(), rbac.DenyRule(10, records, "read")))
+	req.True(recordReadDenied(ctx, ac, m), "deny granted")
+
+	req.NoError(svc.Grant(context.Background(), &rbac.Rule{RoleID: 10, Resource: records, Operation: "read", Access: rbac.Inherit}))
+	req.False(recordReadDenied(ctx, ac, m), "deny lifted")
+}
+
+func BenchmarkRecordReadDenied100k(b *testing.B) {
+	var (
+		m   = &types.Module{ID: 2, NamespaceID: 1}
+		svc = rbac.NewService(zap.NewNop(), nil)
+		ac  = accessControl{rbac: svc}
+		ctx = auth.SetIdentityToContext(context.Background(), auth.Authenticated(5, 10))
+		rr  = make([]*rbac.Rule, 0, 100000)
+	)
+
+	svc.UpdateRoles(rbac.CommonRole.Make(10, "user"), rbac.CommonRole.Make(11, "other"))
+	for i := 0; i < 100000; i++ {
+		rr = append(rr, rbac.AllowRule(11, types.RecordRbacResource(1, 2, uint64(1000000+i)), "read"))
+	}
+	_ = svc.Grant(context.Background(), rr...)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		recordReadDenied(ctx, ac, m)
+	}
+}

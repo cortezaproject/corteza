@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/cortezaproject/corteza/server/compose/dalutils"
 	"github.com/cortezaproject/corteza/server/compose/types"
@@ -81,13 +82,12 @@ func readsAllRecords(ctx context.Context, ac any, m *types.Module) bool {
 // A deny given to a role the caller can not hold hides nothing from them;
 // counting it would send everybody's reports through the records one by one.
 func recordReadDenied(ctx context.Context, ac any, m *types.Module) bool {
-	src, ok := ac.(interface{ ruleSet() (rbac.RuleSet, bool) })
+	denying, ok := recordReadDenyingRoles(ac, m)
 	if !ok {
 		return true
 	}
-	rr, ok := src.ruleSet()
-	if !ok {
-		return true
+	if len(denying) == 0 {
+		return false
 	}
 
 	// nil when the roles cannot be listed: every deny counts
@@ -97,25 +97,121 @@ func recordReadDenied(ctx context.Context, ac any, m *types.Module) bool {
 	}); ok {
 		applicable, _ = src.applicableRoles(ctx)
 	}
+	if applicable == nil {
+		return true
+	}
 
-	var (
-		prefix = types.RecordResourceType + "/"
-		ns     = strconv.FormatUint(m.NamespaceID, 10)
-		mod    = strconv.FormatUint(m.ID, 10)
-	)
-	for _, r := range rr {
-		if r.Operation != "read" || r.Access != rbac.Deny || !strings.HasPrefix(r.Resource, prefix) {
-			continue
-		}
-		if applicable != nil && !applicable[r.RoleID] {
-			continue
-		}
-		path := strings.Split(strings.TrimPrefix(r.Resource, prefix), "/")
-		if len(path) == 3 && (path[0] == "*" || path[0] == ns) && (path[1] == "*" || path[1] == mod) {
+	for role := range denying {
+		if applicable[role] {
 			return true
 		}
 	}
 	return false
+}
+
+// recordReadDenyingRoles lists the roles a rule denies reading the module's
+// records to, and whether the rules could be listed
+func recordReadDenyingRoles(ac any, m *types.Module) (map[uint64]bool, bool) {
+	if src, ok := ac.(interface {
+		recordReadDenies() (recordReadDenyIndex, bool)
+	}); ok {
+		idx, ok := src.recordReadDenies()
+		return idx.lookup(m), ok
+	}
+
+	src, ok := ac.(interface{ ruleSet() (rbac.RuleSet, bool) })
+	if !ok {
+		return nil, false
+	}
+	rr, ok := src.ruleSet()
+	if !ok {
+		return nil, false
+	}
+
+	return indexRecordReadDenies(rr).lookup(m), true
+}
+
+// recordReadDenyIndex holds the roles denied reading records, by
+// "namespace/module" (either part may be "*")
+type recordReadDenyIndex map[string]map[uint64]bool
+
+func indexRecordReadDenies(rr rbac.RuleSet) recordReadDenyIndex {
+	var (
+		idx    = recordReadDenyIndex{}
+		prefix = types.RecordResourceType + "/"
+	)
+
+	for _, r := range rr {
+		if r.Operation != "read" || r.Access != rbac.Deny || !strings.HasPrefix(r.Resource, prefix) {
+			continue
+		}
+
+		path := strings.Split(strings.TrimPrefix(r.Resource, prefix), "/")
+		if len(path) != 3 {
+			continue
+		}
+
+		key := path[0] + "/" + path[1]
+		if idx[key] == nil {
+			idx[key] = make(map[uint64]bool)
+		}
+		idx[key][r.RoleID] = true
+	}
+
+	return idx
+}
+
+// lookup lists the roles denied reading the module's records: by the module,
+// its namespace or every namespace and module
+func (idx recordReadDenyIndex) lookup(m *types.Module) map[uint64]bool {
+	var (
+		ns  = strconv.FormatUint(m.NamespaceID, 10)
+		mod = strconv.FormatUint(m.ID, 10)
+		out = make(map[uint64]bool)
+	)
+
+	for _, key := range []string{ns + "/" + mod, ns + "/*", "*/" + mod, "*/*"} {
+		for role := range idx[key] {
+			out[role] = true
+		}
+	}
+
+	return out
+}
+
+// readDenies keeps the record read deny index of the RBAC rules, rebuilt
+// only when the rules change, so list and report requests do not scan every
+// rule
+var readDenies struct {
+	mux     sync.Mutex
+	src     any
+	version uint64
+	idx     recordReadDenyIndex
+}
+
+// recordReadDenies returns the record read deny index, and whether the RBAC
+// service could provide the rules for it
+func (svc accessControl) recordReadDenies() (recordReadDenyIndex, bool) {
+	src, ok := svc.rbac.(interface {
+		RulesVersion() uint64
+		Rules() rbac.RuleSet
+	})
+	if !ok {
+		return nil, false
+	}
+
+	// version first: rules read after it are at least as new
+	version := src.RulesVersion()
+
+	readDenies.mux.Lock()
+	defer readDenies.mux.Unlock()
+
+	if readDenies.src != src || readDenies.version != version || readDenies.idx == nil {
+		readDenies.idx = indexRecordReadDenies(src.Rules())
+		readDenies.src, readDenies.version = src, version
+	}
+
+	return readDenies.idx, true
 }
 
 // ruleSet lists every rule, and whether the RBAC service could.

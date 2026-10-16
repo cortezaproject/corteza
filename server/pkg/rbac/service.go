@@ -27,6 +27,9 @@ type (
 		rules   RuleSet
 		indexed *ruleIndex
 
+		// version changes whenever the rules do
+		version uint64
+
 		roles []*Role
 
 		orgTree *orgTree
@@ -334,6 +337,7 @@ func (svc *service) Grant(ctx context.Context, rules ...*Rule) (err error) {
 
 func (svc *service) grant(rules ...*Rule) {
 	svc.rules = merge(svc.rules, rules...)
+	svc.version++
 
 	// The granted rules go into the index in place, which is what rebuilding
 	// it from every rule would give; removed (Inherit) rules leave it once the
@@ -412,6 +416,14 @@ func (svc *service) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
 	return ruleByRole(svc.rules, roleID)
 }
 
+// RulesVersion changes whenever the rules do; read it before the rules to
+// cache something derived from them
+func (svc *service) RulesVersion() uint64 {
+	svc.l.RLock()
+	defer svc.l.RUnlock()
+	return svc.version
+}
+
 // Rules return all roles
 func (svc *service) Rules() (rr RuleSet) {
 	svc.l.RLock()
@@ -460,6 +472,7 @@ func (svc *service) Clear() {
 	defer svc.l.Unlock()
 	svc.rules = RuleSet{}
 	svc.indexed = &ruleIndex{}
+	svc.version++
 }
 
 func (svc *service) reloadRules(ctx context.Context) {
@@ -479,6 +492,7 @@ func (svc *service) reloadRules(ctx context.Context) {
 func (svc *service) setRules(rr RuleSet) {
 	svc.rules = rr
 	svc.indexed = buildRuleIndex(rr)
+	svc.version++
 }
 
 // UpdateRoles updates RBAC roles
