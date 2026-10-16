@@ -159,12 +159,9 @@ func (svc *service) Check(ses Session, op string, res Resource) (userAccess Acce
 		return Allow
 	}
 
-	treeAccess := svc.checkMemberBranch(ses, op, res)
 	userAccess = check(svc.indexed, sesRoles, op, res.RbacResource(), nil)
 
-	out := svc.mergeAccess(treeAccess, userAccess)
-
-	return out
+	return svc.mergeAccess(svc.memberBranchAccess(ses, op, res, userAccess), userAccess)
 }
 
 // CheckWithoutContextRoles checks access as Check does, leaving out the
@@ -183,10 +180,9 @@ func (svc *service) CheckWithoutContextRoles(ses Session, op string, res Resourc
 
 	sesRoles[ContextRole] = nil
 
-	treeAccess := svc.checkMemberBranch(ses, op, res)
 	userAccess := check(svc.indexed, sesRoles, op, res.RbacResource(), nil)
 
-	return svc.mergeAccess(treeAccess, userAccess)
+	return svc.mergeAccess(svc.memberBranchAccess(ses, op, res, userAccess), userAccess)
 }
 
 func (svc *service) checkValidity(ses Session, op string, res Resource) bool {
@@ -196,6 +192,16 @@ func (svc *service) checkValidity(ses Session, op string, res Resource) bool {
 	}
 
 	return true
+}
+
+// memberBranchAccess is the access the user groups give, looked up only when
+// the user's own roles leave it to them: mergeAccess uses it for nothing else
+func (svc *service) memberBranchAccess(ses Session, op string, res Resource, userAccess Access) Access {
+	if userAccess != Inherit {
+		return Inherit
+	}
+
+	return svc.checkMemberBranch(ses, op, res)
 }
 
 func (svc *service) checkMemberBranch(ses Session, op string, res Resource) Access {
@@ -234,23 +240,12 @@ func (svc *service) mergeAccess(treeAccess, userAccess Access) Access {
 	return Inherit
 }
 
+// evalSubBranch allows when any of the groups does; a branch holds a few
+// groups and every permission check walks it, so they are checked in turn
+// rather than each in a goroutine of its own
 func (svc *service) evalSubBranch(nn []*groupNode, op, res string) (a Access) {
-	aux := make([]Access, len(nn))
-
-	wg := sync.WaitGroup{}
-	wg.Add(len(nn))
-
-	for i, n := range nn {
-		go func() {
-			aux[i] = svc.evalNode(n, op, res)
-			wg.Done()
-		}()
-	}
-
-	wg.Wait()
-
-	for _, x := range aux {
-		if x == Allow {
+	for _, n := range nn {
+		if svc.evalNode(n, op, res) == Allow {
 			return Allow
 		}
 	}

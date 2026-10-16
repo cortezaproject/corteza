@@ -396,3 +396,53 @@ func TestCheckWithoutContextRoles(t *testing.T) {
 	req.NoError(svc.Grant(ctx, AllowRule(1, "thing/*", "read")))
 	req.Equal(Allow, svc.CheckWithoutContextRoles(ses, "read", res), "the common role allows")
 }
+
+// User groups decide only what the user's own roles leave open; a user in no
+// group gets Deny then, as before groups were looked up only when needed
+func TestCheckUserGroupsFillIn(t *testing.T) {
+	const (
+		ownRole   = 1
+		groupRole = 4
+		member    = 50
+		loner     = 60
+	)
+
+	var (
+		ctx = context.Background()
+		res = NewResource("thing/1")
+
+		svc = func(rr ...*Rule) *service {
+			svc := NewService(zap.NewNop(), nil)
+			svc.UpdateRoles(CommonRole.Make(ownRole, "own"), CommonRole.Make(groupRole, "group"))
+			require.NoError(t, svc.UpdateUserGroups())
+			require.NoError(t, svc.AddNode(id.MustNumID(101), "root"))
+			require.NoError(t, svc.AddGroupRole(id.MustNumID(101), id.MustNumID(groupRole)))
+			require.NoError(t, svc.AssignGroupMembers(id.MustNumID(101), id.MustNumID(member)))
+			require.NoError(t, svc.Grant(ctx, rr...))
+			return svc
+		}
+
+		groupAllows = AllowRule(groupRole, "thing/*", "read")
+	)
+
+	for _, c := range []struct {
+		name  string
+		rules []*Rule
+		user  uint64
+		want  Access
+	}{
+		{"own allow, group allow", []*Rule{AllowRule(ownRole, "thing/*", "read"), groupAllows}, member, Allow},
+		{"own deny, group allow", []*Rule{DenyRule(ownRole, "thing/*", "read"), groupAllows}, member, Deny},
+		{"own nothing, group allow", []*Rule{groupAllows}, member, Allow},
+		{"own nothing, group nothing", nil, member, Inherit},
+		{"own allow, no group", []*Rule{AllowRule(ownRole, "thing/*", "read")}, loner, Allow},
+		{"own nothing, no group", []*Rule{groupAllows}, loner, Deny},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			s := svc(c.rules...)
+			ses := ParamsToSession(ctx, c.user, ownRole)
+			require.Equal(t, c.want, s.Check(ses, "read", res))
+			require.Equal(t, c.want, s.CheckWithoutContextRoles(ses, "read", res))
+		})
+	}
+}
