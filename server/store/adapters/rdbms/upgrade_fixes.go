@@ -1232,24 +1232,27 @@ func fix_2024_9_7_migrateLabelsValueToJsonbSqlserver(ctx context.Context, s *Sto
 		return nil
 	}
 
-	log.Info("migrating labels.value data format for sqlserver")
-
+	// Wraps plain text values as JSON; values that already are JSON are left
+	// alone, so this is a no-op on a fresh database. STRING_ESCAPE, not
+	// JSON_OBJECT, which SQL Server before 2022 does not know.
+	//
+	// The column stays VARCHAR: label values are written as JSON bytes, and
+	// SQL Server reads bytes stored in an NVARCHAR column as UTF-16.
 	updateQuery := `
   			UPDATE labels
-  			SET value = JSON_OBJECT('value', value)
+  			SET value = '{"value":"' + STRING_ESCAPE(value, 'json') + '"}'
   			WHERE value IS NOT NULL
   			  AND value NOT LIKE '{%'`
 
-	if _, err = s.DB.ExecContext(ctx, updateQuery); err != nil {
+	res, err := s.DB.ExecContext(ctx, updateQuery)
+	if err != nil {
 		return err
 	}
 
-	alterQuery := `ALTER TABLE labels ALTER COLUMN value NVARCHAR(MAX)`
-	if _, err = s.DB.ExecContext(ctx, alterQuery); err != nil {
-		return err
+	if n, _ := res.RowsAffected(); n > 0 {
+		log.Info("migrated labels.value data format for sqlserver", zap.Int64("rows", n))
 	}
 
-	log.Info("successfully migrated labels.value data format")
 	return nil
 }
 func fix_2024_9_7_migrateLabelsValueToJsonb(ctx context.Context, s *Store) (err error) {
