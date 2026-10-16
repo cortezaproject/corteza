@@ -118,6 +118,12 @@ func (n *ruleIndexNode) get(res string, from int) (out []*Rule) {
 			out = append(out, n.rule)
 			return
 		}
+
+		// Past the end (a resource without a trailing /, its last bit used up)
+		// there is nothing left to match the children against
+		if from > to {
+			return
+		}
 	}
 
 	// Get the next / delimiter.

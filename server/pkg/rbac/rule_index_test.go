@@ -118,6 +118,32 @@ func TestIndex(t *testing.T) {
 			role: 1,
 			op:   "read",
 			res:  "a:b/c/d",
+		}, {
+			name: "component, trailing slash",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a::b/",
+				Operation: "grant",
+				Access:    Allow,
+			}},
+			out: []int{0},
+
+			role: 1,
+			op:   "grant",
+			res:  "a::b/",
+		}, {
+			name: "component without the trailing slash",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a::b/",
+				Operation: "grant",
+				Access:    Allow,
+			}},
+			out: nil,
+
+			role: 1,
+			op:   "grant",
+			res:  "a::b",
 		}}
 
 	for _, tc := range tcc {
