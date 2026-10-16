@@ -2090,3 +2090,61 @@ func TestRecordIteratorAccessAndUndelete(t *testing.T) {
 	h.noError(err)
 	h.a.Equal([]string{"visible"}, names, "undelete iterates the deleted records")
 }
+
+// A caller who reads every record has the total counted by the database; it
+// must match counting the records one by one (asked for with page navigation):
+// deleted records and records the query leaves out do not count, and a record
+// denied to the caller is not counted either
+func TestRecordListTotalCountedByDatabase(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module")
+	helpers.AllowMe(h, module.RbacResource(), "records.search")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read")
+
+	var recs []*types.Record
+	for i := 1; i <= 12; i++ {
+		recs = append(recs, h.makeRecord(module, &types.RecordValue{Name: "name", Value: fmt.Sprintf("%02d", i)}))
+	}
+
+	for _, r := range recs[:2] {
+		r = h.lookupRecordByID(module, r.ID)
+		now := time.Now()
+		r.DeletedAt = &now
+		h.noError(dalutils.ComposeRecordSoftDelete(context.Background(), defDal, module, r))
+	}
+
+	total := func(query string, nav bool) float64 {
+		var aux struct {
+			Response struct {
+				Filter struct{ Total float64 }
+			}
+		}
+
+		h.apiInit().
+			Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+			Query("limit", "5").
+			Query("incTotal", "true").
+			Query("incPageNavigation", fmt.Sprintf("%t", nav)).
+			Query("query", query).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End().
+			JSON(&aux)
+
+		return aux.Response.Filter.Total
+	}
+
+	for _, nav := range []bool{false, true} {
+		h.a.Equal(float64(10), total("", nav), "deleted records do not count (page navigation: %t)", nav)
+		h.a.Equal(float64(3), total("name LIKE '1%'", nav), "the query applies (page navigation: %t)", nav)
+	}
+
+	helpers.DenyMe(h, types.RecordRbacResource(module.NamespaceID, module.ID, recs[5].ID), "read")
+	for _, nav := range []bool{false, true} {
+		h.a.Equal(float64(9), total("", nav), "a denied record does not count (page navigation: %t)", nav)
+	}
+}

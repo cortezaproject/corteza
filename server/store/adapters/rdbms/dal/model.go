@@ -268,29 +268,28 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 	return
 }
 
+// Count counts the rows a search with the same filter would return:
+// constraints, state constraints and the query expression; paging and
+// cursors do not apply
 func (d *model) Count(ctx context.Context, f filter.Filter) (c uint, err error) {
 	var (
 		aux = struct {
 			Count uint `db:"count"`
 		}{}
 
-		rows  *sql.Rows
-		exprs []exp.Expression
+		rows *sql.Rows
 
-		q = d.dialect.GOQU().
-			From(d.table.Ident()).Select(goqu.COUNT(goqu.Star()).As("count"))
+		q = d.applyFiltersToQuery(
+			d.dialect.GOQU().From(d.table.Ident()).Select(goqu.COUNT(goqu.Star()).As("count")),
+			f,
+		)
 	)
 
-	for ident, val := range f.Constraints() {
-		attrExpr, err := d.table.AttributeExpression(ident)
-		if err != nil {
-			return 0, err
-		}
-
-		exprs = append(exprs, exp.NewBooleanExpression(exp.EqOp, attrExpr, val))
+	if err = q.Error(); err != nil {
+		return
 	}
 
-	query, args, err := q.Where(exprs...).Limit(1).ToSQL()
+	query, args, err := q.Limit(1).ToSQL()
 	if err != nil {
 		return
 	}

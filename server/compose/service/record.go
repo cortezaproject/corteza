@@ -451,7 +451,11 @@ func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set typ
 			return err
 		}
 
-		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
+		// A caller who reads every record has nothing filtered out; without the
+		// per-record check the total can be counted by the database
+		if !readsAllRecords(ctx, svc.ac, m) {
+			filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
+		}
 
 		if set, stats, f, err = dalutils.ComposeRecordsListN(ctx, svc.dal, m, filter); err != nil {
 			return err
@@ -997,9 +1001,11 @@ func (svc record) checkLimit(ctx context.Context, m *types.Module) (err error) {
 	}
 
 	// get the number of records count for the namespace
+	// deleted records count towards the limit
 	recordsCount, err := dalutils.ComposeRecordsCount(ctx, svc.dal, m, types.RecordFilter{
 		NamespaceID: m.NamespaceID,
 		ModuleID:    m.ID,
+		Deleted:     filter.StateInclusive,
 	})
 	if err != nil {
 		return err

@@ -44,7 +44,7 @@ func ComposeRecordsList(ctx context.Context, s searcher, mod *types.Module, filt
 		return
 	}
 
-	set, _, outFilter, err = drainIterator(ctx, iter, mod, filter)
+	set, _, outFilter, err = drainIterator(ctx, iter, mod, filter, totalCounter(ctx, s, mod, filter))
 	return
 }
 
@@ -54,8 +54,21 @@ func ComposeRecordsListN(ctx context.Context, s searcher, mod *types.Module, fil
 		return
 	}
 
-	set, summaries, outFilter, err = drainIterator(ctx, iter, mod, filter)
+	set, summaries, outFilter, err = drainIterator(ctx, iter, mod, filter, totalCounter(ctx, s, mod, filter))
 	return
+}
+
+// totalCounter counts the records the filter matches in the database, or is
+// nil when the searcher can not count
+func totalCounter(ctx context.Context, s searcher, mod *types.Module, f types.RecordFilter) func() (uint, error) {
+	c, ok := s.(counter)
+	if !ok {
+		return nil
+	}
+
+	return func() (uint, error) {
+		return c.Count(ctx, mod.ModelRef(), recSearchOperations(mod, f), prepFilter(f, mod))
+	}
 }
 
 func ComposeRecordsIterator(ctx context.Context, s searcher, mod *types.Module, filter types.RecordFilter) (iter dal.Iterator, outFilter types.RecordFilter, err error) {
@@ -148,7 +161,7 @@ func prepIterator(ctx context.Context, dal searcher, mod *types.Module, filter t
 //
 // Collection of records is done with respect to check function and limit constraint on record filter
 // For any other filter constraint we assume that underlying DAL took care of it
-func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f types.RecordFilter) (set types.RecordSet, summaries map[string]types.RecordSummary, outFilter types.RecordFilter, err error) {
+func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f types.RecordFilter, count func() (uint, error)) (set types.RecordSet, summaries map[string]types.RecordSummary, outFilter types.RecordFilter, err error) {
 	// close iterator after we've drained it
 	defer iter.Close()
 
@@ -250,7 +263,7 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 	}
 
 	// Get the page nav/total/next-prev cursors
-	nav, auxSm, err := generatePageNavigation(ctx, iter, mod, f, set)
+	nav, auxSm, err := generatePageNavigation(ctx, iter, mod, f, set, count)
 	if err != nil {
 		return
 	}
@@ -272,7 +285,7 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 // If the limit is defined and is less than the total number of records in the set,
 // the page navigation will have multiple pages with cursor(s) based on the total number of records and the provided limit.
 // @todo revisit and clean up this function properly
-func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.Module, p types.RecordFilter, set types.RecordSet) (out types.RecordFilter, summaries map[string]types.RecordSummary, err error) {
+func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.Module, p types.RecordFilter, set types.RecordSet, count func() (uint, error)) (out types.RecordFilter, summaries map[string]types.RecordSummary, err error) {
 	const (
 		howMuchMore = 1000
 	)
@@ -500,7 +513,13 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 		}
 	}
 
-	if p.IncTotal || p.IncPageNavigation || len(p.Summaries) > 0 {
+	// Only a total, and no record is checked one by one: every record the
+	// filter matches counts, so the database can count them
+	if count != nil && p.Check == nil && p.IncTotal && !p.IncPageNavigation && len(p.Summaries) == 0 {
+		if total, err = count(); err != nil {
+			return
+		}
+	} else if p.IncTotal || p.IncPageNavigation || len(p.Summaries) > 0 {
 		// For the first page nav
 		err = generatePage(last)
 		if err != nil {
