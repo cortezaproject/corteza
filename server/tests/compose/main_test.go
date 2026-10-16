@@ -13,6 +13,7 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/app"
 	"github.com/cortezaproject/corteza/server/compose/rest"
@@ -136,6 +137,8 @@ func newHelper(t *testing.T) helper {
 			Handle: fmt.Sprintf("test_user_%d", id.Next()),
 			Name:   "test_user",
 			ID:     id.Next(),
+			// SQL Server DATETIME can not hold the zero time
+			CreatedAt: time.Now(),
 		}
 
 		err := store.CreateUser(ctx, service.DefaultStore, testUser)
