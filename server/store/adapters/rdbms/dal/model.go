@@ -529,7 +529,9 @@ func (d *model) applyFiltersToQuery(base *goqu.SelectDataset, f filter.Filter) *
 			}
 
 			if reflect2.IsNil(mVal) {
-				cnd = append(cnd, exp.NewBooleanExpression(exp.IsNotOp, metaKeyExpr, nil))
+				// a literal IS NOT NULL: SQL Server's dialect renders IsNot with a
+				// nil value as a bound parameter, which it can not parse
+				cnd = append(cnd, exp.NewLiteralExpression("? IS NOT NULL", metaKeyExpr))
 			} else {
 				cnd = append(cnd, exp.NewBooleanExpression(exp.EqOp, metaKeyExpr, mVal))
 			}
