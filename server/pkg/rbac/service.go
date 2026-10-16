@@ -167,6 +167,28 @@ func (svc *service) Check(ses Session, op string, res Resource) (userAccess Acce
 	return out
 }
 
+// CheckWithoutContextRoles checks access as Check does, leaving out the
+// contextual roles: what remains applies to every resource of a kind alike,
+// whoever owns or created it
+func (svc *service) CheckWithoutContextRoles(ses Session, op string, res Resource) Access {
+	if !svc.checkValidity(ses, op, res) {
+		return Inherit
+	}
+
+	sesRoles := getSessionRoles(ses, res, svc.roles, svc.cachedUserResolver())
+
+	if member(sesRoles, BypassRole) {
+		return Allow
+	}
+
+	sesRoles[ContextRole] = nil
+
+	treeAccess := svc.checkMemberBranch(ses, op, res)
+	userAccess := check(svc.indexed, sesRoles, op, res.RbacResource(), nil)
+
+	return svc.mergeAccess(treeAccess, userAccess)
+}
+
 func (svc *service) checkValidity(ses Session, op string, res Resource) bool {
 	// prevent use of wildcard resources for checking permissions
 	if hasWildcards(res.RbacResource()) {

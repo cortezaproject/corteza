@@ -374,3 +374,25 @@ func TestApplicableRoles(t *testing.T) {
 	// not a member of any group
 	req.Equal(map[uint64]bool{2: true, 3: true}, svc.ApplicableRoles(ParamsToSession(ctx, 60, 2)))
 }
+
+func TestCheckWithoutContextRoles(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+		svc = NewService(zap.NewNop(), nil)
+		res = NewResource("thing/1")
+		ses = ParamsToSession(ctx, 5, 1)
+	)
+
+	svc.UpdateRoles(
+		CommonRole.Make(1, "common"),
+		MakeContextRole(2, "ctx", func(map[string]interface{}) bool { return true }, "thing"),
+	)
+
+	req.NoError(svc.Grant(ctx, AllowRule(2, "thing/*", "read")))
+	req.Equal(Allow, svc.Check(ses, "read", res), "the contextual role allows")
+	req.Equal(Inherit, svc.CheckWithoutContextRoles(ses, "read", res), "without it nothing does")
+
+	req.NoError(svc.Grant(ctx, AllowRule(1, "thing/*", "read")))
+	req.Equal(Allow, svc.CheckWithoutContextRoles(ses, "read", res), "the common role allows")
+}

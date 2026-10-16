@@ -23,11 +23,7 @@ const reportReadableCap = 10000
 // denies reading, reads them all and keeps that; anybody else, an owner reading
 // their own records for one, has the readable ones collected first.
 func (svc record) reportReadable(ctx context.Context, m *types.Module, f string) (ids []any, err error) {
-	// The probe needs an ID: a wildcard resource never passes a check. No rule
-	// names this one, and nobody owns the record.
-	probe := &types.Record{ID: ^uint64(0), NamespaceID: m.NamespaceID, ModuleID: m.ID}
-	probe.SetModule(m)
-	if svc.ac.CanReadRecord(ctx, probe) && !recordReadDenied(ctx, svc.ac, m) {
+	if readsAllRecords(ctx, svc.ac, m) {
 		return nil, nil
 	}
 
@@ -51,6 +47,31 @@ func (svc record) reportReadable(ctx context.Context, m *types.Module, f string)
 		ids = append(ids, r.ID)
 	}
 	return ids, nil
+}
+
+// readsAllRecords answers whether the caller reads every record of the module,
+// from the rules alone: a record is hidden only by a rule denying it, so
+// whoever reads a record no rule names, through roles that apply to every
+// record alike, with no such deny for a role they can hold, reads them all.
+func readsAllRecords(ctx context.Context, ac any, m *types.Module) bool {
+	// The probe needs an ID: a wildcard resource never passes a check. No rule
+	// names this one, and nobody owns the record.
+	probe := &types.Record{ID: ^uint64(0), NamespaceID: m.NamespaceID, ModuleID: m.ID}
+	probe.SetModule(m)
+
+	// Contextual roles are left out: one whose expression happens to match the
+	// ownerless probe says nothing about the records that are owned
+	src, ok := ac.(interface {
+		readsWithoutContextRoles(context.Context, *types.Record) (bool, bool)
+	})
+	if !ok {
+		return false
+	}
+	if can, ok := src.readsWithoutContextRoles(ctx, probe); !ok || !can {
+		return false
+	}
+
+	return !recordReadDenied(ctx, ac, m)
 }
 
 // recordReadDenied answers whether any rule that can apply to the caller
@@ -103,6 +124,18 @@ func (svc accessControl) ruleSet() (rbac.RuleSet, bool) {
 		return src.Rules(), true
 	}
 	return nil, false
+}
+
+// readsWithoutContextRoles answers whether the caller reads the record through
+// roles other than contextual ones, and whether the RBAC service could tell.
+func (svc accessControl) readsWithoutContextRoles(ctx context.Context, r *types.Record) (bool, bool) {
+	src, ok := svc.rbac.(interface {
+		CheckWithoutContextRoles(rbac.Session, string, rbac.Resource) rbac.Access
+	})
+	if !ok {
+		return false, false
+	}
+	return src.CheckWithoutContextRoles(rbac.ContextToSession(ctx), "read", r) == rbac.Allow, true
 }
 
 // applicableRoles lists the roles whose rules can apply to the caller, and
