@@ -94,6 +94,12 @@ func (n *automationWorkflow) encodeWorkflow(ctx context.Context, pl *payload) (e
 		return err
 	}
 
+	// without timestamps in the import a resource still needs a creation
+	// time; SQL Server's DATETIME can not hold the zero time
+	if res.CreatedAt.IsZero() {
+		res.CreatedAt = *now()
+	}
+
 	ts := n.res.Timestamps()
 	if ts != nil {
 		if ts.CreatedAt != nil {
@@ -186,6 +192,12 @@ func (n *automationWorkflow) encodeTriggers(ctx context.Context, pl *payload) (e
 		us, err := resolveUserstamps(ctx, pl.s, pl.state.ParentResources, tr.Userstamps())
 		if err != nil {
 			return err
+		}
+
+		// without timestamps in the import a resource still needs a creation
+		// time; SQL Server's DATETIME can not hold the zero time
+		if res.CreatedAt.IsZero() {
+			res.CreatedAt = *now()
 		}
 
 		ts := tr.Timestamps()

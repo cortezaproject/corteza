@@ -90,6 +90,12 @@ func (n *apiGateway) encodeRoute(ctx context.Context, pl *payload) (err error) {
 		return err
 	}
 
+	// without timestamps in the import a resource still needs a creation
+	// time; SQL Server's DATETIME can not hold the zero time
+	if res.CreatedAt.IsZero() {
+		res.CreatedAt = *now()
+	}
+
 	ts := n.res.Timestamps()
 	if ts != nil {
 		if ts.CreatedAt != nil {
@@ -165,6 +171,12 @@ func (n *apiGateway) encodeFilters(ctx context.Context, pl *payload) (err error)
 		us, err := resolveUserstamps(ctx, pl.s, pl.state.ParentResources, rf.Userstamps())
 		if err != nil {
 			return err
+		}
+
+		// without timestamps in the import a resource still needs a creation
+		// time; SQL Server's DATETIME can not hold the zero time
+		if res.CreatedAt.IsZero() {
+			res.CreatedAt = *now()
 		}
 
 		ts := rf.Timestamps()

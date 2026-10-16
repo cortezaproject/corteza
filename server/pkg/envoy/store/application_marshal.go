@@ -52,6 +52,12 @@ func (n *application) Encode(ctx context.Context, pl *payload) (err error) {
 		res.Unify = &types.ApplicationUnify{}
 	}
 
+	// without timestamps in the import a resource still needs a creation
+	// time; SQL Server's DATETIME can not hold the zero time
+	if res.CreatedAt.IsZero() {
+		res.CreatedAt = *now()
+	}
+
 	ts := n.res.Timestamps()
 	if ts != nil {
 		if ts.CreatedAt != nil {
