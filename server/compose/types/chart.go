@@ -201,7 +201,12 @@ func (set ChartSet) FindByHandle(handle string) *Chart {
 }
 
 func (cc *ChartConfig) Scan(src any) error          { return sql.ParseJSON(src, cc) }
-func (cc ChartConfig) Value() (driver.Value, error) { return json.Marshal(cc) }
+// Value encodes the config as JSON text: the column is a text one, and on
+// SQL Server (NVARCHAR) bytes would be read as UTF-16
+func (cc ChartConfig) Value() (driver.Value, error) {
+	bb, err := json.Marshal(cc)
+	return string(bb), err
+}
 
 func (r *ChartConfigReport) WalkMetrics(fn func(string, map[string]interface{})) {
 	for m := range r.Metrics {
