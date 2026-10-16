@@ -36,6 +36,7 @@ func Test_iterator_reminders_total(t *testing.T) {
 		req.NoError(defStore.CreateReminder(ctx, &sysTypes.Reminder{
 			ID:         id.Next(),
 			Resource:   "test:resource",
+			AssignedAt: time.Now(), // MySQL strict mode rejects the zero date
 			AssignedTo: auth.GetIdentityFromContext(ctx).Identity(),
 			CreatedAt:  time.Now(),
 		}))

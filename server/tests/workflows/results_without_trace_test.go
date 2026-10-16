@@ -32,6 +32,7 @@ func Test_results_without_trace(t *testing.T) {
 		rr[i] = &sysTypes.Reminder{
 			ID:         id.Next(),
 			Resource:   "test:resource",
+			AssignedAt: time.Now(), // MySQL strict mode rejects the zero date
 			AssignedTo: auth.GetIdentityFromContext(ctx).Identity(),
 			CreatedAt:  time.Now(),
 		}
