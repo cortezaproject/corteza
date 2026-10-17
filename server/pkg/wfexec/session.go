@@ -55,10 +55,14 @@ type (
 
 		mux sync.RWMutex
 
-		// closed and replaced when a step finishes or the worker stops, so
-		// WaitUntil looks at the status then instead of on its next tick
+		// closed and replaced when the status differs after a step or when
+		// the worker stops, so WaitUntil looks at the status then instead of
+		// on its next tick
 		changed    chan struct{}
 		changedMux sync.Mutex
+
+		// status the waiters were last woken for
+		notified SessionStatus
 
 		// debug logger
 		log *zap.Logger
@@ -488,10 +492,21 @@ func (s *Session) statusChanged() <-chan struct{} {
 	return s.changed
 }
 
-// notifyStatusChanged wakes everybody waiting in WaitUntil
+// notifyStatusChanged wakes everybody waiting in WaitUntil when the status
+// differs from the one they were last woken for
+//
+// A loop finishes a step every few microseconds; waking the waiters after
+// each one cost more than the step itself.
 func (s *Session) notifyStatusChanged() {
 	s.changedMux.Lock()
 	defer s.changedMux.Unlock()
+
+	status := s.Status()
+	if status == s.notified {
+		return
+	}
+
+	s.notified = status
 	close(s.changed)
 	s.changed = make(chan struct{})
 }

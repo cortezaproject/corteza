@@ -114,6 +114,30 @@ func TestSession_WaitWakesOnCompletion(t *testing.T) {
 	req.Equal(SessionCompleted, ses.Status())
 }
 
+func TestSession_StepsWithoutStatusChangeDoNotWakeWaiters(t *testing.T) {
+	var (
+		req = require.New(t)
+		ses = NewSession(context.Background(), NewGraph())
+	)
+
+	changed := ses.statusChanged()
+	ses.notifyStatusChanged()
+	req.Equal(changed, ses.statusChanged(), "the status is still active")
+
+	ses.mux.Lock()
+	ses.result = &expr.Vars{}
+	ses.mux.Unlock()
+
+	ses.notifyStatusChanged()
+	req.NotEqual(changed, ses.statusChanged(), "the status changed to completed")
+
+	select {
+	case <-changed:
+	default:
+		req.Fail("waiters were not woken")
+	}
+}
+
 func TestSession_SplitAndMerge(t *testing.T) {
 	var (
 		ctx = context.Background()
