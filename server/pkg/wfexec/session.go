@@ -55,6 +55,11 @@ type (
 
 		mux sync.RWMutex
 
+		// closed and replaced when a step finishes or the worker stops, so
+		// WaitUntil looks at the status then instead of on its next tick
+		changed    chan struct{}
+		changedMux sync.Mutex
+
 		// debug logger
 		log *zap.Logger
 
@@ -199,6 +204,8 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 		workerIntervalWaiter: time.Millisecond,
 
 		workerLock: make(chan struct{}, 1),
+
+		changed: make(chan struct{}),
 
 		log: zap.NewNop(),
 
@@ -451,14 +458,20 @@ func (s *Session) WaitUntil(ctx context.Context, expected ...SessionStatus) erro
 	defer waitCheck.Stop()
 
 	for {
+		// Taken before the status is read, so a change made in between
+		// still wakes this loop; the tick is the fallback for anything else
+		changed := s.statusChanged()
+
+		status := s.Status()
+		if indexed[status] {
+			s.log.Debug("waiting complete", zap.Stringer("status", status))
+			// nothing in the pipeline
+			return s.err
+		}
+
 		select {
+		case <-changed:
 		case <-waitCheck.C:
-			status := s.Status()
-			if indexed[status] {
-				s.log.Debug("waiting complete", zap.Stringer("status", status))
-				// nothing in the pipeline
-				return s.err
-			}
 
 		case <-ctx.Done():
 			s.log.Debug("wait context canceled", zap.Error(ctx.Err()))
@@ -468,8 +481,24 @@ func (s *Session) WaitUntil(ctx context.Context, expected ...SessionStatus) erro
 	}
 }
 
+// statusChanged returns the channel closed at the next possible status change
+func (s *Session) statusChanged() <-chan struct{} {
+	s.changedMux.Lock()
+	defer s.changedMux.Unlock()
+	return s.changed
+}
+
+// notifyStatusChanged wakes everybody waiting in WaitUntil
+func (s *Session) notifyStatusChanged() {
+	s.changedMux.Lock()
+	defer s.changedMux.Unlock()
+	close(s.changed)
+	s.changed = make(chan struct{})
+}
+
 func (s *Session) worker(ctx context.Context) {
 	defer s.Stop()
+	defer s.notifyStatusChanged()
 
 	// making sure
 	defer close(s.workerLock)
@@ -540,6 +569,8 @@ func (s *Session) worker(ctx context.Context) {
 					// steps executing at the same time
 					<-s.execLock
 				}()
+
+				defer s.notifyStatusChanged()
 
 				var (
 					err error

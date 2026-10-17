@@ -91,6 +91,29 @@ func TestSession_TwoStepWorkflow(t *testing.T) {
 	req.Equal("/s1/s2", expr.Must(expr.Select(ses.Result(), "path")).Get())
 }
 
+// A finished run wakes whoever waits for it instead of leaving them to their
+// next poll; every synchronous workflow run used to wait for one
+func TestSession_WaitWakesOnCompletion(t *testing.T) {
+	var (
+		req = require.New(t)
+		wf  = NewGraph()
+		ses = NewSession(context.Background(), wf, SetWorkerIntervalWaiter(time.Hour))
+
+		s1 = &sesTestStep{name: "s1"}
+		s2 = &sesTestStep{name: "s2"}
+
+		ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	)
+
+	defer cancel()
+
+	wf.AddStep(s1, s2)
+	req.NoError(ses.Exec(ctx, s1, &expr.Vars{}))
+	req.NoError(ses.Wait(ctx))
+	req.NoError(ctx.Err(), "the wait returned when the run completed, not on a poll or the timeout")
+	req.Equal(SessionCompleted, ses.Status())
+}
+
 func TestSession_SplitAndMerge(t *testing.T) {
 	var (
 		ctx = context.Background()
