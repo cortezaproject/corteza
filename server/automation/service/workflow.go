@@ -206,7 +206,7 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 			return WorkflowErrNotAllowedToCreate()
 		}
 
-		if new.Meta.Name == "" {
+		if new.Meta == nil || new.Meta.Name == "" {
 			return WorkflowErrMissingName()
 		}
 

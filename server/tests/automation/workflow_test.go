@@ -175,6 +175,22 @@ func TestWorkflowCreateNotUnique(t *testing.T) {
 		End()
 }
 
+func TestWorkflowCreateWithoutMeta(t *testing.T) {
+	h := newHelper(t)
+	h.clearWorkflows()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "workflow.create")
+
+	h.apiInit().
+		Post("/workflows/").
+		FormData("handle", "handle_"+rs()).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("workflow.errors.missingName")).
+		End()
+}
+
 func TestWorkflowCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearWorkflows()
