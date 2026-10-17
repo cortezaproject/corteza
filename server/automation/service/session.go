@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/ctxcache"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
@@ -45,6 +46,9 @@ type (
 		runner     auth.Identifiable
 		trace      bool
 		callStack  []uint64
+
+		// lookups the run shares with the run that started it
+		cache *ctxcache.Cache
 	}
 
 	sessionAccessController interface {
@@ -63,6 +67,12 @@ const (
 	// We use the size of the stacktrace and for every F (see the value of the constant)
 	// we flush the session info to the store.
 	sessionStateFlushFrequency = 1000
+
+	// how long a run reuses the namespaces and modules it looked up
+	//
+	// Record steps look them up for every record they touch; a short expiry
+	// keeps long-running and resumed runs close to the changes made meanwhile.
+	sessionLookupCacheTTL = 10 * time.Second
 )
 
 func Session(log *zap.Logger, opt options.WorkflowOpt, ps promptSender) *session {
@@ -218,7 +228,14 @@ func (svc *session) Start(ctx context.Context, g *wfexec.Graph, ssp types.Sessio
 		return nil, 0, errors.InvalidData("cannot start workflow on a step with parents")
 	}
 
-	ses, err := svc.spawn(g, ssp.WorkflowID, ssp.Trace, ssp.CallStack, ssp.Runner, ssp.Invoker)
+	// A workflow started from another run's step (a subworkflow, or a trigger
+	// of a record the step saved) shares that run's lookups
+	cache := ctxcache.From(ctx)
+	if cache == nil {
+		cache = ctxcache.New(sessionLookupCacheTTL)
+	}
+
+	ses, err := svc.spawn(g, ssp.WorkflowID, ssp.Trace, ssp.CallStack, ssp.Runner, ssp.Invoker, cache)
 	if err != nil {
 		return
 	}
@@ -308,7 +325,7 @@ func (svc *session) Cancel(ctx context.Context, sessionID uint64) (err error) {
 //
 // We need initial context for the session because we want to catch all cancellations or timeouts from there
 // and not from any potential HTTP requests or similar temporary context that can prematurely destroy a workflow session
-func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callStack []uint64, runner, invoker auth.Identifiable) (ses *types.Session, err error) {
+func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callStack []uint64, runner, invoker auth.Identifiable, cache *ctxcache.Cache) (ses *types.Session, err error) {
 	s := &spawn{
 		workflowID: workflowID,
 		session:    make(chan *wfexec.Session, 1),
@@ -317,6 +334,7 @@ func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callSt
 		callStack:  callStack,
 		invoker:    invoker,
 		runner:     runner,
+		cache:      cache,
 	}
 
 	// Send new-session request
@@ -412,6 +430,10 @@ func (svc *session) newExecSession(ctx context.Context, s *spawn) *wfexec.Sessio
 	// Encode invoker into execution context
 	// invoker is used
 	execCtx = context.WithValue(execCtx, workflowInvokerCtxKey{}, s.invoker)
+
+	if s.cache != nil {
+		execCtx = ctxcache.With(execCtx, s.cache)
+	}
 
 	return wfexec.NewSession(execCtx, s.graph, opts...)
 }

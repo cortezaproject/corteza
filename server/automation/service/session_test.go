@@ -256,7 +256,7 @@ func TestSessionWatchSurvivesPanic(t *testing.T) {
 	svc.mux.Unlock()
 
 	go func() {
-		ses, _ := svc.spawn(wfexec.NewGraph(), 1, false, nil, auth.Anonymous(), auth.Anonymous())
+		ses, _ := svc.spawn(wfexec.NewGraph(), 1, false, nil, auth.Anonymous(), auth.Anonymous(), nil)
 		done <- ses
 	}()
 

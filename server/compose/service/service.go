@@ -107,7 +107,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		hcd = healthcheck.Defaults()
 	)
 
-	DefaultStore = s
+	DefaultStore = cachingStore{Storer: s}
 
 	DefaultLogger = log.Named("service")
 
