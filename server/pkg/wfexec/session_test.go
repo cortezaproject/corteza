@@ -310,3 +310,28 @@ func BenchmarkSessionSimple1000StepSequence(b *testing.B)    { bmSessionSimpleSt
 func BenchmarkSessionSimple10000StepSequence(b *testing.B)   { bmSessionSimpleStepSequence(10000, b) }
 func BenchmarkSessionSimple100000StepSequence(b *testing.B)  { bmSessionSimpleStepSequence(100000, b) }
 func BenchmarkSessionSimple1000000StepSequence(b *testing.B) { bmSessionSimpleStepSequence(1000000, b) }
+
+// States are numbered without drawing an ID from the ID generator for each:
+// a long loop drew it down and held back every other ID the server needed
+func TestStateIDsDoNotDrawGeneratorIDs(t *testing.T) {
+	var (
+		req   = require.New(t)
+		calls = 0
+		orig  = nextID
+	)
+
+	defer func() { nextID = orig }()
+	nextID = func() uint64 { calls++; return orig() }
+
+	seen := make(map[uint64]bool)
+	prev := uint64(0)
+	for i := 0; i < 1000; i++ {
+		id := nextStateID()
+		req.False(seen[id], "state IDs are unique")
+		req.Greater(id, prev, "state IDs increase")
+		seen[id] = true
+		prev = id
+	}
+
+	req.LessOrEqual(calls, 1, "at most the first state draws a generator ID")
+}

@@ -74,7 +74,7 @@ type (
 
 func NewState(ses *Session, owner auth.Identifiable, caller, current Step, scope *expr.Vars) *State {
 	return &State{
-		stateId:   nextID(),
+		stateId:   nextStateID(),
 		owner:     owner,
 		sessionId: ses.id,
 		created:   *now(),
@@ -88,7 +88,7 @@ func NewState(ses *Session, owner auth.Identifiable, caller, current Step, scope
 
 func FinalState(ses *Session, scope *expr.Vars) *State {
 	return &State{
-		stateId:   nextID(),
+		stateId:   nextStateID(),
 		sessionId: ses.id,
 		created:   *now(),
 		completed: now(),
@@ -98,7 +98,7 @@ func FinalState(ses *Session, scope *expr.Vars) *State {
 
 func (s State) Next(current Step, scope *expr.Vars) *State {
 	return &State{
-		stateId:           nextID(),
+		stateId:           nextStateID(),
 		owner:             s.owner,
 		sessionId:         s.sessionId,
 		parent:            s.step,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"runtime/debug"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
@@ -138,6 +139,16 @@ var (
 		return id.Next()
 	}
 
+	// States are numbered by a counter that starts at an ID from nextID
+	//
+	// Every step of a run is a state, a loop takes a few per iteration, and the
+	// ID generator issues a limited number of IDs per 10 ms: a long loop drew
+	// them down and held back every other ID the server needed. A state is only
+	// looked up within its session; starting from a fresh ID keeps the numbers
+	// unique after a restart too.
+	stateIDs     atomic.Uint64
+	stateIDsInit sync.Once
+
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
 		c := time.Now()
@@ -146,6 +157,11 @@ var (
 
 	errCanceled = fmt.Errorf("canceled")
 )
+
+func nextStateID() uint64 {
+	stateIDsInit.Do(func() { stateIDs.Store(nextID()) })
+	return stateIDs.Add(1)
+}
 
 func (s SessionStatus) String() string {
 	switch s {
@@ -392,7 +408,7 @@ func (s *Session) enqueue(ctx context.Context, st *State) error {
 	}
 
 	if st.stateId == 0 {
-		st.stateId = nextID()
+		st.stateId = nextStateID()
 	}
 
 	select {
