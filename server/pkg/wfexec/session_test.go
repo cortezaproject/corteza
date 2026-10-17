@@ -114,6 +114,30 @@ func TestSession_WaitWakesOnCompletion(t *testing.T) {
 	req.Equal(SessionCompleted, ses.Status())
 }
 
+func TestSession_WaitReturnsAfterTheFailureIsHandled(t *testing.T) {
+	var (
+		req     = require.New(t)
+		handled = atomic.NewBool(false)
+		wf      = NewGraph()
+		ses     = NewSession(context.Background(), wf, SetHandler(func(status SessionStatus, _ *State, _ *Session) error {
+			if status == SessionFailed {
+				time.Sleep(50 * time.Millisecond)
+				handled.Store(true)
+			}
+			return nil
+		}))
+
+		s1 = &sesTestStep{name: "s1", exec: func(context.Context, *ExecRequest) (ExecResponse, error) {
+			return nil, fmt.Errorf("failed")
+		}}
+	)
+
+	wf.AddStep(s1)
+	req.NoError(ses.Exec(context.Background(), s1, &expr.Vars{}))
+	req.Error(ses.Wait(context.Background()))
+	req.True(handled.Load(), "the waiter got the session before the failure was recorded")
+}
+
 func TestSession_StepsWithoutStatusChangeDoNotWakeWaiters(t *testing.T) {
 	var (
 		req = require.New(t)

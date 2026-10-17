@@ -601,6 +601,7 @@ func (s *Session) worker(ctx context.Context) {
 				st.completed = now()
 
 				status := s.Status()
+				failed := false
 				if st.err != nil {
 					st.err = fmt.Errorf(
 						"workflow %d step %d execution failed: %w",
@@ -609,20 +610,13 @@ func (s *Session) worker(ctx context.Context) {
 						st.err,
 					)
 
-					s.mux.Lock()
-
 					// when the err handler is defined, the error was handled and should not kill the workflow
 					if !st.errHandled {
 						// We need to force failed session status
 						// because it's not set early enough to pick it up with s.Status()
 						status = SessionFailed
-
-						// pushing step execution error into error queue
-						// to break worker loop
-						s.qErr <- st.err
+						failed = true
 					}
-
-					s.mux.Unlock()
 				}
 
 				s.log.Debug(
@@ -633,6 +627,20 @@ func (s *Session) worker(ctx context.Context) {
 				)
 
 				err = s.eventHandler(status, st, s)
+
+				if failed {
+					// pushing step execution error into error queue
+					// to break worker loop
+					//
+					// This has to run after the event handler, for the same
+					// reason as with the completed status above: the worker
+					// marks the session failed when it gets the error, and a
+					// waiter collects the session as soon as it sees that.
+					s.mux.Lock()
+					s.qErr <- st.err
+					s.mux.Unlock()
+				}
+
 				if err != nil {
 					err = fmt.Errorf(
 						"workflow %d state change handler failed: %w",
