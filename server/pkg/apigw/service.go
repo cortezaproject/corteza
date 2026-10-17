@@ -91,6 +91,7 @@ func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mu.RLock()
 	mx := s.mx
 	empty := len(s.routes) == 0
+	cfg := s.cfg
 	s.mu.RUnlock()
 
 	if mx == nil {
@@ -99,7 +100,7 @@ func (s *apigw) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if empty {
-		helperDefaultResponse(s.cfg, s.pr, s.log)(w, r)
+		helperDefaultResponse(cfg, s.pr, s.log)(w, r)
 		return
 	}
 
@@ -421,7 +422,9 @@ func (s *apigw) UpdateSettings(ctx context.Context, cfg types.Config) {
 	s.reloadMu.Lock()
 	defer s.reloadMu.Unlock()
 
+	s.mu.Lock()
 	s.cfg = cfg
+	s.mu.Unlock()
 
 	s.reg = registry.NewRegistry(cfg)
 	s.reg.Preload()

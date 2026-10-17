@@ -3,6 +3,8 @@ package apigw
 import (
 	"context"
 	"fmt"
+	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"github.com/cortezaproject/corteza/server/pkg/apigw/registry"
@@ -289,4 +291,52 @@ func Test_serviceNotFoundSurvivesEndpointReload(t *testing.T) {
 	req.NoError(svc.ReloadEndpoint(ctx, "GET", "/b"))
 
 	req.ElementsMatch([]string{"/b"}, endpoints())
+}
+
+func Test_serviceServesWhileReloading(t *testing.T) {
+	var (
+		ctx = context.Background()
+		req = require.New(t)
+
+		svc = New(types.Config{Enabled: true}, zap.NewNop(), &types.MockStorer{
+			R: func(_ context.Context, f st.ApigwRouteFilter) (set st.ApigwRouteSet, _ st.ApigwRouteFilter, _ error) {
+				set = st.ApigwRouteSet{{ID: 1, Endpoint: "/a", Method: "GET", Enabled: true}}
+				return
+			},
+			F: func(context.Context, st.ApigwFilterFilter) (set st.ApigwFilterSet, _ st.ApigwFilterFilter, _ error) {
+				return
+			},
+		})
+
+		wg sync.WaitGroup
+	)
+
+	req.NoError(svc.Reload(ctx))
+
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < 50; j++ {
+				svc.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/a", nil))
+			}
+		}()
+	}
+
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		for j := 0; j < 20; j++ {
+			svc.UpdateSettings(ctx, types.Config{Enabled: true})
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for j := 0; j < 20; j++ {
+			_ = svc.ReloadEndpoint(ctx, "GET", "/a")
+			svc.NotFound(ctx, "GET", "/b")
+		}
+	}()
+
+	wg.Wait()
 }
