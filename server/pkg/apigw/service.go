@@ -195,6 +195,18 @@ func mergeRoutes(existing, incoming []*route) []*route {
 	return out
 }
 
+// withoutRoute returns routes without the one on method and endpoint
+func withoutRoute(routes []*route, method, endpoint string) []*route {
+	out := make([]*route, 0, len(routes))
+	for _, r := range routes {
+		if r != nil && r.method == method && r.endpoint == endpoint {
+			continue
+		}
+		out = append(out, r)
+	}
+	return out
+}
+
 // ReloadEndpoint reload a route and its filters
 //
 // The procedure use existing chi mux
@@ -347,9 +359,10 @@ func (s *apigw) NotFound(_ context.Context, method, endpoint string) {
 	s.reloadMu.Lock()
 	defer s.reloadMu.Unlock()
 
-	// Rebuild from the current set, then override this endpoint with the default
-	// 404 handler, and publish — never mutate the live mux in place.
-	routes := s.currentRoutes()
+	// Rebuild from the current set without this endpoint, so a later reload of
+	// another endpoint does not bring it back, then override it with the
+	// default 404 handler, and publish — never mutate the live mux in place.
+	routes := withoutRoute(s.currentRoutes(), method, endpoint)
 	mx := s.buildMux(routes)
 	mx.Method(method, endpoint, helperDefaultResponse(s.cfg, s.pr, s.log))
 	s.publish(mx, routes)

@@ -247,3 +247,46 @@ func Test_serviceAppendRoutes(t *testing.T) {
 		})
 	}
 }
+
+func Test_serviceNotFoundSurvivesEndpointReload(t *testing.T) {
+	var (
+		ctx = context.Background()
+		req = require.New(t)
+
+		rr = st.ApigwRouteSet{
+			{ID: 1, Endpoint: "/a", Method: "GET", Enabled: true},
+			{ID: 2, Endpoint: "/b", Method: "GET", Enabled: true},
+		}
+
+		svc = New(types.Config{Enabled: true}, zap.NewNop(), &types.MockStorer{
+			R: func(_ context.Context, f st.ApigwRouteFilter) (set st.ApigwRouteSet, _ st.ApigwRouteFilter, _ error) {
+				for _, r := range rr {
+					if f.Endpoint == "" || (r.Endpoint == f.Endpoint && r.Method == f.Method) {
+						set = append(set, r)
+					}
+				}
+				return
+			},
+			F: func(context.Context, st.ApigwFilterFilter) (set st.ApigwFilterSet, _ st.ApigwFilterFilter, _ error) {
+				return
+			},
+		})
+
+		endpoints = func() (ee []string) {
+			for _, r := range svc.routes {
+				ee = append(ee, r.endpoint)
+			}
+			return
+		}
+	)
+
+	req.NoError(svc.Reload(ctx))
+	req.ElementsMatch([]string{"/a", "/b"}, endpoints())
+
+	// route /a is deleted, then /b is changed
+	rr = rr[1:]
+	svc.NotFound(ctx, "GET", "/a")
+	req.NoError(svc.ReloadEndpoint(ctx, "GET", "/b"))
+
+	req.ElementsMatch([]string{"/b"}, endpoints())
+}
