@@ -1,7 +1,7 @@
 
 PATH_ROOT     := ../../..
 PATH_INTERNAL := $(PATH_ROOT)/locale
-VERSION       := 2022.9.x
+VERSION       := 2026.9.x
 
 EXTERNAL_PKG  := corteza-locale-$(VERSION).zip
 EXTERNAL_DIR  := corteza-locale-$(VERSION)
