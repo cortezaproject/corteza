@@ -1,0 +1,14 @@
+namespace:
+  test_ns_rev:
+    name: Test Namespace Revisions
+    enabled: true
+
+    modules:
+      test_ns_rev_mod:
+        name: Test Namespace Revisions Module
+        config:
+          recordrevisions:
+            enabled: true
+        fields:
+          test_ns_rev_mod_f1:
+            title: Test Namespace Revisions Module Field 1
