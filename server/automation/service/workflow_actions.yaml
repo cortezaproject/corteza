@@ -65,6 +65,9 @@ errors:
   - error: disabled
     message: "disabled workflow or trigger"
 
+  - error: notExecutable
+    message: "workflow is disabled or deleted and cannot run"
+
   - error: invalidHandle
     message: "invalid handle"
 

@@ -518,6 +518,38 @@ func WorkflowErrDisabled(mm ...*workflowActionProps) *errors.Error {
 	return e
 }
 
+// WorkflowErrNotExecutable returns "automation:workflow.notExecutable" as *errors.Error
+//
+// This function is auto-generated.
+func WorkflowErrNotExecutable(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("workflow is disabled or deleted and cannot run", nil),
+
+		errors.Meta("type", "notExecutable"),
+		errors.Meta("resource", "automation:workflow"),
+
+		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notExecutable"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // WorkflowErrInvalidHandle returns "automation:workflow.invalidHandle" as *errors.Error
 //
 // This function is auto-generated.

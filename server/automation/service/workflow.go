@@ -776,7 +776,7 @@ func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.Workf
 	svc.muxCache.Lock()
 
 	if svc.cache[wf.ID] == nil {
-		return nil, 0, WorkflowErrInvalidID()
+		return nil, 0, WorkflowErrNotExecutable()
 	}
 
 	var (
