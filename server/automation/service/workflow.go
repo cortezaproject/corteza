@@ -356,10 +356,10 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 
 		svc.updateCache(res, g)
 
-		if len(res.Issues) == 0 {
-			if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
-				return err
-			}
+		// takes the old triggers off and registers them again only for an
+		// enabled, undeleted workflow without issues
+		if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
+			return err
 		}
 
 		if changes&workflowChanged > 0 || len(res.Issues) > 0 {
