@@ -217,7 +217,7 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 
 			// Only validate form post for actual POST/PUT/PATCH requests, not GET
 			// GET requests with query params (like OIDC callbacks) can have long values
-			if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodPatch {
+			if requiresFormPostValidation(r.Method) {
 				if !validFormPost(r) {
 					req.Status = http.StatusRequestEntityTooLarge
 					return
@@ -538,4 +538,15 @@ func validFormPost(r *http.Request) bool {
 	}
 
 	return true
+}
+
+// requiresFormPostValidation tells whether validFormPost should be applied
+// for the given request method.
+//
+// GET requests never carry a posted form body; their r.Form is populated
+// purely from the URL's query string (see net/http's ParseForm), which can
+// legitimately exceed validFormPost's size limits, e.g. an OIDC provider's
+// callback URL carrying a long authorization code.
+func requiresFormPostValidation(method string) bool {
+	return method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch
 }
