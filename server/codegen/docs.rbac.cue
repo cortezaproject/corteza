@@ -27,7 +27,7 @@ import (
 		output:   "src/modules/generated/partials/access-control/\(cmp.handle)/index.gen.adoc"
 		payload: #_indexPayload & {
 			label: cmp.label
-			resources: [ for res in cmp.resources { res.handle } ]
+			resources: [ for res in cmp.resources if res.rbac != _|_ { res.handle } ]
 		}
 	}
 ] +
